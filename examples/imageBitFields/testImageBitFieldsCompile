@@ -1,0 +1,1 @@
+g++ -g -o testImageBitFields -I../../.. ../../../minorGems/io/file/linux/PathLinux.cpp testImageBitFields.cpp

@@ -1,0 +1,26 @@
+The B12 base speaks serial with the following settings:
+
+19200 bps
+8 data bits
+no parity
+1 stop bit
+flow control off
+
+
+
+The baud rate is supposedly configurable via a DIP switch as follows:
+
+switch #  baud rate
+1 2 3 4
+- - - - 300
+x - - - 600
+- x - - 1200
+x x - - 2400
+- - x - 4800
+x - x - 9600
+- x x - 19200
+x x x - 38400
+
+'x' = switch in ON position
+
+all baud rates are 8N1

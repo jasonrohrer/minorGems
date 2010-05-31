@@ -1,0 +1,12 @@
+Some safe-seeming velocities for the robot:
+  * RV 40 is smooth and slow
+  * TV 600 is a good middle speed
+  * TV 1000 is probably about as fast as 
+    we want it to go.  At that point, stuff starts
+    wiggling when it stops.
+
+  * R> 100 ~ 90 degrees
+       400 ~ 360 degrees (1024 decimal units per rotation)
+
+  * T> 400 ~ 8cm (~ 8e-5 m/1024 decimal units)
+  

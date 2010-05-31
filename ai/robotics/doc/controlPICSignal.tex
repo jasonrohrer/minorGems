@@ -1,0 +1,68 @@
+%
+% Modification History
+%
+% 2001-April-26   Jason Rohrer
+% Created.
+%
+% 2001-May-14   Jason Rohrer
+% Changed to specify 20ms long pulses.
+% Added information about the strobing ready pin.
+% Changed all variables to math mode.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{Signal specifications for the B12 mobile robot base control PIC}
+\date{Created: April 26, 2001;  Last modified: May 14, 2001}
+
+\maketitle
+
+This document covers the command signal interface for the control PIC\@.  Serial communications between the PIC and the B12 base are not covered here.
+
+
+\section{PIC input signals}
+The PIC accepts command signal input on pin B1.  The input line should be set low between commands.
+
+An input command is encoded as a 16-bit string preceded by one high start bit.  No trailing stop bit is necessary.  
+
+Each bit is 20ms long. Bits are sent as non-inverted TTL levels.
+
+\subsection{Data encoding}
+The first 8 bits of the 16-bit command are interpreted as an unsigned, big-endian integer.  This first integer specifies a command type.
+
+The second 8 bits of the 16-bit command are interpreted as an unsigned, big-endian integer.  This second integer specifies an argument for the command.
+
+For the remainder of this document, command-argument pairs will be denote by $(x,y)$, which means a command type $x$ with an argument value $y$.
+
+
+\subsection{Examples}
+The command $(0,0)$ would be sent as the following string, where each character represents 20ms:
+\begin{center}
+{\tt HLLLLLLLLLLLLLLLL }
+\end{center}
+The command $(1,1)$ would be sent as the following string:
+\begin{center}
+{\tt HLLLLLLLHLLLLLLLH }
+\end{center}
+The command $(3, 100)$ would be sent as the following string:
+\begin{center}
+{\tt HLLLLLLHHLHHLLHLLL }
+\end{center}
+
+\section{ PIC output }
+The PIC sends response signal output on pin B2.  This signal consists only of a ``ready for next command'' flag.  Pin B2 will be set to high when the PIC is ready to receive a new command.  B2 will be set to low as soon as the PIC sees the leading edge of a new command's start bit.  
+
+Note that in the current implementation, the ready state is represented by a pulse train with 125ms long pulses on pin B2.  This is necessary for the camera to register a change in its input pin, as a pin that is steadily high goes unnoticed.  The non-ready state is still represented by a low value on pin B2.
+
+
+
+\end{document}
+
+
+
+

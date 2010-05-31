@@ -1,0 +1,1 @@
+g++ -g -o tgaConverter -I../../.. tgaConverter.cpp ../../../minorGems/io/file/linux/PathLinux.cpp

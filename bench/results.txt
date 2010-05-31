@@ -1,0 +1,118 @@
+Task:  Naive counting of primes in the range [5, 50000]
+
+All program executions were correct and found 5131 primes.
+
+Printing out the number of primes found ruled out the chance
+that one of the compilers had over-optimized (i.e., removed
+most of the code in an inner loop that was not being used 
+elsewhere).
+
+C code was compiled with gcc.
+C code was optimized using the -O8 option in gcc.
+
+All tests were run twice to reduce the chance 
+of other processes running on the system and interfering.
+
+
+PPC processor running Linux, 250MHz
+   Non-optimized C code:   18,298 ms
+   Optimized C code:       11,682 ms
+   Java code:              85,193 ms
+
+
+Intel Celeron running Linux, 433MHz
+   Non-optimized C code:    9,729 ms
+   Optimized C code:       10,309 ms
+   Java code:              10,283 ms
+
+
+Sun Ultrasparc running Solaris, ?MHz
+   Non-optimized C code:   22,213 ms
+   Optimized C code:       17,916 ms
+   Java code:              15,546 ms
+
+
+Intel Pentium running Linux, 550MHz
+   Non-optimized C code:    7,950 ms
+   Optimized C code:        8,397 ms
+   Java code:               7,957 ms
+
+
+
+Notes:
+1.  On both RISC machines, optimizations improved the running
+time dramatically.  On CISC machines, optimizations consistently
+_lengthened_ the running time.  Part of this disparity may be due 
+to the fact that the CISC machines have only 4 data registers, 
+and optimizations are likely to make use of as many registers as 
+possible (thus, a dramatic improvement with optimizations on the 
+RISC machines, and not much improvement on the CISC machines).  
+However, the fact that performance _suffered_ with optimizations 
+on CISC machines is still mysterious.
+
+
+2.  On machines with highly-optimized Java implementations, the Java
+code was competitive with the C code, and consistently faster than
+the optimized C code.  In the case of the Solaris machine, the Java
+code was significantly faster.
+
+
+3.  On machines that lack the Just-in-Time-Compiler for Java (notably,
+the PPC machine), the Java code was more than 4 times slower than the
+slowest C code.
+
+
+
+The timed portions of the C and Java code are pasted below for 
+comparison.
+
+
+>>>> START C CODE <<<<
+
+// TIMED portion starts here
+for( i=5; i<limit; i++ ) {
+    if( isPrime(i) ) {
+        numPrimes++;
+        }
+    }
+// TIMED portion ends here
+
+// ...
+
+char isPrime( int inNumToCheck ) {
+    int i;
+	
+    for( i=2; i<inNumToCheck; i++ ) {
+        if( inNumToCheck % i == 0 ) {
+            return 0;
+            }
+        }
+    return 1;
+    }
+
+>>>> END C CODE <<<<
+
+
+
+>>>> START JAVA CODE <<<<
+
+// TIMED portion starts here
+for( int i=5; i<limit; i++ ) {
+    if( isPrime(i) ) {
+        numPrimes++;
+        }
+    }
+// TIMED portion ends here
+
+// ...
+
+public static boolean isPrime( int inNumToCheck ) {
+    for( int i=2; i<inNumToCheck; i++ ) {
+        if( inNumToCheck % i == 0 ) {
+            return false;
+            }
+        }
+    return true;
+    }
+      
+>>>> END JAVA CODE <<<<

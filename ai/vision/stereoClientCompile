@@ -1,0 +1,1 @@
+g++ -g -o stereoClient -ljpeg -lpthread -I../../.. stereoClient.cpp ../../../minorGems/io/linux/TypeIOLinux.cpp ../../../minorGems/system/linux/*.cpp ../../../minorGems/network/linux/*.cpp ../../../minorGems/io/file/linux/*.cpp ../../../minorGems/graphics/converters/unix/JPEGImageConverterUnix.cpp

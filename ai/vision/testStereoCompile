@@ -1,0 +1,1 @@
+g++ -g -o testStereo -lpthread -I../../.. testStereo.cpp ../../../minorGems/io/linux/TypeIOLinux.cpp ../../../minorGems/io/file/linux/*.cpp ../../../minorGems/system/linux/*.cpp ../../../minorGems/network/linux/*.cpp

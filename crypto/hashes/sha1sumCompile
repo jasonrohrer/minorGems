@@ -1,0 +1,1 @@
+g++ -I../../.. -o sha1sum sha1sum.cpp sha1.cpp ../../formats/encodingUtils.cpp

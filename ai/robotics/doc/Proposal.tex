@@ -1,0 +1,127 @@
+%
+% Modification History
+%
+% 2001-March-15   Jeremy Tavan
+% Created.
+%
+% 2001-May-14   Jason Rohrer
+% Checked into the repository.
+%
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+
+\title{Autonomous Robot Navigation Platform}
+
+
+\author{Jason Rohrer and Jeremy Tavan}
+\date{March 15, 2001}
+\maketitle
+
+\section{Overview}
+
+One of the interesting problems in artificial intelligence is
+finding ways to apply learning, planning, and knowledge representation algorithms
+to situations in the real world. Interaction with the world requires some sort
+of agent. These agents can exist purely in software, in the case of intelligent software
+agents used for any number of tasks (often related to information retrieval
+or processing), or they can exist in hardware and interact with the physical world.
+Hardware agents often take the form of robotic arms, heads, or fully mobile
+vehicles. They are particularly interesting because they represent a direct,
+real-world application of artificial intelligence, and their behavior provides
+direct feedback as to the usefulness of the methods involved in creating them.
+We are developing a software framework for artificial intelligence research
+with a mobile robot agent, with parallelizable components for stereo vision,
+planning and navigation, and robot control. Our short term goal is to integrate
+all of these components into a functional system that can navigate around a real environment without running into obstacles, while
+working towards pre-specified long-term goals.  We describe each of these components in more detail below.
+
+
+\section{Software}
+
+
+\subsection{Fundamental Ideas}
+
+One of the primary design goals in the software system is modularity. It should
+be possible to change the behavior of the robot by swapping in and out different
+decision-making algorithms on the fly. Every task should be able to run as a separate process, allowing us to distribute computationally-intensive algorithms such as vision among
+a cluster of computers. The basic framework is already written, we simply need
+to code some more interesting behavioral algorithms now.
+
+
+\subsection{Subsystems}
+
+
+\subsubsection{Vision}
+
+The current vision processing system takes in two stereo images and returns
+a map of depth values derived from pixel-by-pixel disparity between
+the two images. We may add edge detection to facilitate object recognition.
+
+
+\subsubsection{Decision Making}
+
+This is the interesting part, and where most of the AI comes in. We plan to explore several different algorithms for making high level decisions, and our modular software design will make
+them easily interchangeable. Potential algorithms include map-building,  environment
+representation-building, object or person recognition and tracking, goal location, and object searches.
+
+
+\subsubsection{Robot Control}
+
+In past experimentation, we have encountered trade-offs between high-level control and quick responses to a changing environment.  To deal with these issues, we propose a multi-level approach.  Instead of allowing the higher cognitive layer dictate robot behavior directly, it will pass ``suggestions'' to the low-level control layer that alter the likelihood of certain actions. For example, if the vision system decides
+that there is an unobstructed path to the left of the robot, and the goal object
+or location is also in that direction, it might send a message to the low-level control layer making
+it much more likely to turn left and go forward. Should any
+of the high-priority low-level inputs trigger reactive responses (like avoiding
+obstacles or a precipice), the high-level suggestions will be overruled.
+
+
+\section{Hardware}
+
+
+\subsection{The Robot Platform}
+
+We have found an old, abandoned robot formerly used in the Cornell robotics
+lab. The motorized base is completely salvageable, and consists of a custom-machined
+aluminum frame with caterpillar treads powered by heavy-duty DC motors. The
+motors have position readouts, and the whole system should be easily controllable
+(see below). For power, it uses a pair of 12V sealed lead acid batteries, which
+we hope will provide ample power for extended operations. We will build a battery
+charging station that (in theory) the robot will be able to return to for refills,
+allowing operation for extended ({\it i.e.}, unlimited) amounts of time without interruption.
+
+
+\subsection{Reactive Control}
+
+Although most of the interesting AI science lies in the representation/planning/vision
+side of robot control, vision is (at least for us at the moment) a slow process,
+and results in a very unresponsive robot. For quick reaction to the environment,
+we need a layer of low-level reactive control. For example, to prevent the robot from
+falling down stairs, we will use either microswitches or infrared sensors to
+detect the ground falling away.  These sensors will instantaneously trigger a backing-up, turning
+around behavior that overrules all high-level suggestions.  In fact, such behavior will be triggered even if the network connection to the high-level control breaks.  Thus, our system will be more robust than a system that only uses high-level control.
+
+
+\subsection{Vision Hardware}
+
+For stereo vision, we need two cameras. We tried using just one (with prisms for split stereo),
+but the results were terrible. We also need to be able to transmit the images
+to the remote computing system, so we will connect Ethernet-enabled web
+cameras to wireless Ethernet adapters. The whole assembly should fit without
+difficulty on the robot base.
+
+
+\subsection{Command and Control}
+
+The local reactive control, as well the integration of suggestions from the remote vision/planning systems, will be implemented with a PIC microcontroller.  The remote systems will communicate the local control via the serial ports provided by the web cameras.
+
+
+\subsection{Other Sensors}
+
+We are considering several other types of environment sensors for the robot, including ultrasound (sonar), infrared, laser rangefinding, laser grid projection
+and analysis, and sound input.  The hardware needed for most of these sensors is available in the now-abandoned Cornell Robotics Lab workroom.
+
+\end{document}

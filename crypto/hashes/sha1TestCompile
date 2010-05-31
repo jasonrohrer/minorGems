@@ -1,0 +1,1 @@
+g++ -I../../.. -o sha1Test sha1Test.cpp sha1.cpp ../../formats/encodingUtils.cpp

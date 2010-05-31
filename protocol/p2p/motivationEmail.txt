@@ -1,0 +1,34 @@
+Greetings,
+
+I had a bit of correspondence with you about a year ago concerning "konspire", a distributed file sharing system that I was developing.  As you may be aware, konspire never caught on.  konspire failed to be popular for several reasons, but the major reason was that it was written using Java and had no natively compiled client or server available.  Most people don't like to mess with getting a Java application up and running.  Another problem was ease of use:  konspire didn't work immediately "out of the box", as users had to enter the address of a live server the first time they ran konspire.  Finally, there was a problem that never rose to the surface, which was scalability:  had konspire become popular, the indexing scheme being used would have limited the network to about 100,000 files.
+
+When I was developing konspire, I was focusing on "complete searching" capabilities.  When you got search results back using konspire, you could be certain that you were seeing a list of all files in the system that matched your search.  With Gnutella, results trickled back over time, and you were never sure when they would stop arriving.  With Napster, you could only search through files on one of their sub-servers.
+
+Of course, both Gnutella and Napster scale very well:  in theory, the number of nodes in the network has no limit (though you can only search through a fraction of the available files).
+
+With konspire, each designated "server" node keeps a complete copy of the system-wide file index.  The size of the index is bounded by the size of the memory available to the most memory-limited server.  Thus, konspire does not scale well at all.  Furthermore, even if the limit is not hit, who wants to donate their system's entire memory to the konspire file index?  Add the 20MiB+ base memory requirements of Java to this, and konspire servers are major memory hogs.
+
+For a while, plans for konspire v1.2 were in place, and the new protocol would attempt to fix the scaling problems by splitting each copy of the index among a cluster of server nodes.  Keeping things organized gets very messy, though.  In the mean time, much simpler systems like Gnutella started to work well, once they had a larger consistent user base and a more connected network.  In fact, you can find almost anything these days using a BearShare client... why bother with a smarter protocol?
+
+FastTrack improved the scalability with ideas similar to those of konspire v1.2, but they threw in a nice self-organization concept:  self-organization frees novice users from making decisions (many users were endlessly confused about the difference between clients and servers in konspire).  FastTrack has a huge problem, though:  they are commercial and proprietary.  You would think that these companies would learn their lesson from the Napster debacle.  Do they think the RIAA will look the other way?  Notice that the RIAA has not even touched Gnutella, since they have no one to point a suit at.
+
+The FastTrack protocol (supposedly) is also very specific to the way FastTrack organizes a network.  Network organization and peer communication protocol seem like they could be completely separated.  The kind of messages sent in a Napster network are pretty much the same as the kind of messages sent in a Gnutella network.  The differences lie in how nodes behave and what they do upon receipt of a particular message.  Think of a search request message:  Gnutella nodes search themselves and pass the request on to other nodes;  FastTrack nodes pass the request on to super-nodes, who pass the request among themselves.  Why do the messages and protocols for a search request need to be different for Gnutella and FastTrack?  In fact, Gnutella nodes and FastTrack nodes could be joined into one common network if they only used the same protocol.  
+
+In fact, even a network that differs from Gnutella as much as Freenet could use the same communication protocol.  Gnutella has download requests as well as search requests.  Freenet in essence only has download requests.  When a Gnutella node receives a DL request, it sends back the file, or sends a rejection if it doesn't have the file.  A Freenet node differs in that it forwards download (key) requests (much like the way Gnutella forwards search requests).  Again, another example of networks that differ in node behavior and not communication protocol.  Freenet's communication protocol is a subset of the Gnutella communication protocol.
+
+I'm currently toying with a general purpose peer-to-peer protocol.  When I say "general purpose", I mean that the protocol is extraordinarily general and abstract.  Ideally, any kind of p2p network could make use of this protocol.  However, the protocol itself is very simple, so simple that anyone could understand it.  One could imagine p2p network developers "adding on" support for this protocol to existing p2p node software, allowing all networks supporting the protocol to be joined together.
+
+One upshot of such a protocol is that it could be used to design a non-proprietary replacement for FastTrack:  nodes would decide to become servers and then simply behave differently than the nodes that are clients.
+
+I'm contacting you because I'm wondering if you've run into similar ideas or initiatives out there.  If so, could you point me towards them?
+
+Anyway, I'll keep you posted with news as I work on this more... What will the protocol be called?  Is the name "konspire" taken yet?  ;)
+
+Thanks,
+Jason Rohrer
+HC software
+
+
+
+-- 
+http://www.jasonrohrer.n3.net

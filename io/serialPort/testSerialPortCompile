@@ -1,0 +1,1 @@
+g++ -o testSerialPort -I../../.. linux/SerialPortLinux.cpp testSerialPort.cpp

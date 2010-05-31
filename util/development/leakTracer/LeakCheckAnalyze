@@ -1,0 +1,13 @@
+#!/bin/sh
+
+CHECKER=`dirname $0`/LeakCheck" $@"
+ANALYZER=`dirname $0`/leak-analyze" $1 leak.out"
+
+echo "Checking with: $CHECKER"
+echo ""
+$CHECKER
+
+echo ""
+echo "Analyzing with: $ANALYZER"
+echo ""
+$ANALYZER 2>&1 | more

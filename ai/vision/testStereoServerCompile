@@ -1,0 +1,1 @@
+g++ -g -o testStereoServer -I../../.. testStereoServer.cpp ../../../minorGems/io/linux/TypeIOLinux.cpp ../../../minorGems/network/linux/*.cpp ../../../minorGems/io/file/linux/*.cpp

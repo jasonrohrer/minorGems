@@ -1,0 +1,38 @@
+<!-- 
+Modification history
+
+2001-May-14   Jason Rohrer
+Created.
+
+2001-June-5   Jason Rohrer
+Fixed a typo.
+
+-->
+
+
+<!--#include virtual="/robotics/header.html" -->
+
+<TABLE BORDER=0 WIDTH=85%>
+<TR>
+
+<TD VALIGN=TOP>
+<!--#include virtual="/robotics/navbar.html" -->
+</TD>
+
+<TD VALIGN=TOP>
+<B>Dalek-Zero</B> is a mobile robot project at Cornell University.  Our aim is to build a robotics and vision  platform with behavior control that is easily extensible.  We have largely succeeded in achieving this goal (of course, our work is never finished).  As an example of extensibility, new behavior modules have been coded and plugged into the framework with less than one hour of work.<BR>
+<BR>
+This project, in a way, has been an attempt at reviving robotics at Cornell.  When people think of robotics at Cornell, our incredibly successful <A HREF="http://www.mae.cornell.edu/Robocup/RoboCup.html">robot soccer group</A> usually springs to mind.  However, robot soccer is not the whole story.  Many years ago, Cornell had a <A HREF="http://www.cs.cornell.edu/Info/Projects/csrvl/mobot.html">thriving robotics program</A>.  However, most of the professors involved in this group have moved on to other areas of research, and some have even left Cornell entirely.   What was left behind by this group was a closet full of broken (and in some cases, nearly destroyed) robots.  From these pitiful remains has risen a new entity, Dalek-Zero.<BR>
+<BR>
+
+</TD>
+</TR>
+</TABLE>
+
+
+</BODY>
+
+
+
+</HTML>
+

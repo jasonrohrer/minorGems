@@ -1,0 +1,2 @@
+g++ -o waveTerrain -I../../.. -lpthread -lSDL waveTerrain.cpp SoundPlayer.cpp ../../../minorGems/graphics/linux/ScreenGraphicsLinux.cpp ../../../minorGems/system/linux/ThreadLinux.cpp ../../../minorGems/util/random/Noise.cpp
+

@@ -1,0 +1,36 @@
+<!-- 
+Modification history
+
+2001-May-15   Jason Rohrer
+Created.
+-->
+
+
+<!--#include virtual="/robotics/header.html" -->
+
+<TABLE BORDER=0 WIDTH=85%>
+<TR>
+
+<TD VALIGN=TOP>
+<!--#include virtual="/robotics/navbar.html" -->
+</TD>
+
+<TD VALIGN=TOP>
+All sourcecode is currently part of the <B>minorGems</B> portable software framework.  To obtain the source, you should check out the entire minorGems source tree.  In this source tree, central classes for Dalek-Zero are in <B>minorGems/ai/vision</B> and <B>minorGems/ai/robotics</B>.<BR>
+<BR>
+For more information about obtaining minorGems, please visit the <A HREF="http://www.sourceforge.net/projects/minorgems">minorGems development page</A>.<BR>
+<BR>
+To simply browse the source tree online, visit <A HREF="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/minorgems/minorGems/">the online repository browser</A>.
+
+
+</TD>
+</TR>
+</TABLE>
+
+
+</BODY>
+
+
+
+</HTML>
+

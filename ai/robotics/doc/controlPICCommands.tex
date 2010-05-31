@@ -1,0 +1,63 @@
+%
+% Modification History
+%
+% 2001-April-26   Jason Rohrer
+% Created.
+%
+% 2001-May-2   Jason Rohrer
+% Updated with new translation increment.
+%
+% 2001-May-13   Jason Rohrer
+% Added light flashing command.
+%
+% 2001-May-14   Jason Rohrer
+% Added missing description of parameter as an integer.
+% Changed the command table to conform to command 
+% denotation presented in the forward.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{Commands for the B12 mobile robot base control PIC}
+\date{Created: April 26, 2001;  Last modified: May 14, 2001}
+
+\maketitle
+
+This document covers the commands recognized by the control PIC\@.  Throughout this document, commands are denoted as (x,y), where x is a command type integer in [0,255], and y is an integer argument in [0,255].  For more information, refer to the document {\it Signal specifications for the B12 mobile robot base control PIC}. 
+
+
+\section{Supported commands}
+Specifying an undefined command type code is equivalent to specifying a nop.
+
+\begin{tabular}{|l|l|p{2in}|p{2in}|}
+\hline
+ & {\bf Command name } & {\bf Parameter description} & {\bf Description} \\
+\hline
+$(0,y)$ 
+& nop & unused & executes a null operation and immediately waits for a new command\\
+\hline 
+$(1,y)$
+& forwardAvoid & the distance to move in tens of centimeters (for example, specifying 23 as the parameter would result in a net translation of 230 centimeters)& moves the base forward by the specified amount using obstacle avoidance;  continues obstacle avoidance until the base has moved by the specified distance in the direction that was ``forward'' when the command was issued;  after the forward travel, the base is left in the rotational orientation it was in when the command was issued\\
+\hline
+$(2,y)$ 
+& rotateLeft & the amount to rotate in 1/256 rotations& rotates the base to the left, or counter-clockwise if looking down at the base; specifying a parameter value of 128 will rotate the base $180^\circ$;  there is no way to specify a rotation of a complete $360^\circ$, as this is equivalent to a rotation of $0^\circ$\\
+\hline
+$(3,y)$ 
+& rotateRight & the amount to rotate in 1/256 rotations& rotates the base to the right, or clockwise if looking down at the base; see rotateLeft for more information\\
+\hline 
+$(4,y)$ 
+& flashLight & the number of times to flash the light& flashes a light attached to pin B3;  each light pulse is 500ms long, and the gap between pulses is also 500ms long\\
+\hline 
+
+\end{tabular}
+
+\end{document}
+
+
+
+

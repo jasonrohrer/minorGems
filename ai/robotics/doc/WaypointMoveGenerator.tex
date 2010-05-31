@@ -1,0 +1,99 @@
+%
+% Modification History
+%
+% 2001-May-14   Jason Rohrer
+% Created.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{Visual Waypoint Navigation Algorithm}
+\date{Created: May 14, 2001;  Last modified: May 14, 2001}
+
+\maketitle
+
+This document covers the trainable visual waypoint navigation algorithm as implemented in WaypointMoveGenerator.
+
+\section{General description}
+This algorithm performs navigation using color visual cues in the environment.  Given a series of color values, it searches the environment for each color in order.  When it finds a color waypoint in its visual field, it moves towards it until it is ``close enough'' to be considered ``at the waypoint''.  After reaching a waypoint, the algorithm moves on to search for the next waypoint.
+
+The algorithm supports learning waypoint colors before starting navigation.  During the optional learning phase, the trainer presents a example of each color in the center of the visual field, and the colors are sampled and stored as the target waypoint colors.  After learning all waypoints, the algorithm performs navigation.
+
+\section{Algorithm input}
+\subsection{Configuration input}
+The algorithm reads configuration values from a text file at startup.  The following values must be specified in the configuration file.
+
+\begin{tabular}{|l|p{1.7in}|p{2in}|}
+\hline
+{\bf Value name } & {\bf Legal values} & {\bf Description} \\
+\hline
+horizontal\_view\_angle & floating point, in $[0, 360]$ & the number of degrees spanned horizontally by the camera's visual field\\
+\hline
+
+tolerance & floating point, in $[0, 1]$ & the amount a pixel can vary in hue and still be considered as part of a waypoint\\
+\hline
+
+see\_waypoint\_fraction & floating point, in $[0, 1]$ & fraction of pixels in the view that must match the waypoint color (with tolerance) before we assume the waypoint is present in our current view\\
+\hline
+
+at\_waypoint\_fraction & floating point, in $[0, 1]$ & fraction of pixels in the view that must match the waypoint color (with tolerance) before we consider ourselves to be ``at'' the waypoint\\
+\hline
+
+loop & integer, in $[0, 1]$ & controls whether we loop through the waypoints\\
+\hline
+
+learn\_waypoint\_colors & integer, in $[0, 1]$ & controls whether we go through a learning phase before navigation\\
+\hline
+
+learning\_start\_delay & integer, in $[0, \mbox{intMax}]$ & the amount of time to delay in seconds before starting the learning phase\\
+\hline
+
+between\_color\_learning\_delay & integer, in $[0, \mbox{intMax}]$ & the amount of time to delay in seconds between learning each waypoint color\\
+\hline
+
+number\_of\_waypoints & integer, in $[0, \mbox{intMax}]$ & the number of waypoints\\
+\hline
+
+waypoint\_0\_hue& floating point, in $[0, 1]$ & the HSB hue value of waypoint 0\\
+\hline
+
+waypoint\_1\_hue& floating point, in $[0, 1]$ & the HSB hue value of waypoint 1\\
+\hline
+
+\vdots & & \\
+\hline
+
+\end{tabular}
+
+\subsection{Data input}
+For each move generated, the algorithm takes a color stereo image pair and a depth map as input.  Only the left channel image is used by the algorithm.
+
+\section{Learning implementation}
+During the optional learning phase, the algorithm samples the input images and uses the samples to configure the waypoint color values.
+
+Before sampling for a particular waypoint, the algorithm sends a {\it flashLight} move and specifies a number of flashes corresponding to the waypoint number being learned.  Immediately following these flashes, an image is taken from the camera.  The center hundredth of the image is analyzed (a tenth of the image width, and a tenth of the image height), and an average is taken over all pixels in this region to produce the waypoint color.
+
+After learning all waypoints, the algorithm moves immediately to the navigation phase.
+
+\section{Navigation implementation}
+\subsection{Waypoint search}
+For each waypoint, the algorithm performs a search of the visual environment.  While not enough pixels match the waypoint color (as specified by {\it see\_waypoint\_fraction}), the algorithm repeatedly rotates in one direction by half its visual field angle.
+
+\subsection{Approaching waypoints}
+When more than {\it see\_waypoint\_fraction} pixels in the visual field match the waypoint color, the algorithm measures the center of the supposed waypoint using a weighted average of all matching pixel coordinates.  Using the {\it horizontal\_view\_angle} value, the algorithm rotates so that this center point is in the center of the visual field.
+
+When the weighted center point of the supposed waypoint is in the center of the visual field, and while the waypoint does not fill the visual field (as specified by {\it at\_waypoint\_fraction}), the algorithm performs forward translation towards the waypoint.  Once the fraction of matching pixels exceed {\it at\_waypoint\_fraction}, the algorithm determines that it has reached the current waypoint.  A {\it flashLight} move is sent, with the number of flashes representing the current waypoint,  and then the entire procedure is repeated for the next waypoint.
+
+If looping is enabled, the algorithm starts over with the first waypoint after reaching the last waypoint.
+
+
+\end{document}
+
+
+
+

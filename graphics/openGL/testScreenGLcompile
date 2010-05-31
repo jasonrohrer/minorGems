@@ -1,0 +1,1 @@
+g++ -g -o testScreenGL -I../../.. -lGL -lglut -lGLU -L/usr/X11R6/lib ScreenGL.cpp testScreenGL.cpp ../../../minorGems/util/random/Noise.cpp

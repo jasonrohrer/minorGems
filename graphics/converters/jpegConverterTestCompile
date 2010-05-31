@@ -1,0 +1,1 @@
+g++ -I../../.. -ljpeg -o jpegConverterTest jpegConverterTest.cpp unix/JPEGImageConverterUnix.cpp ../../io/file/linux/PathLinux.cpp

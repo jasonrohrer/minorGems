@@ -1,0 +1,114 @@
+/**
+ * The number of degrees across our view field.
+ *
+ * A floating point value in [0, 360]
+ */
+horizontal_view_angle
+
+/**
+ * Tolerance is the amount a pixel can vary
+ * in each color component and still be considered
+ * a part of a waypoint.
+ *
+ * For example, if tolerance = 0.05, and the waypoint
+ * color = (0.5, 0.0, 1.0 ), then a pixel of color (0.55, 0.05, 0.95)
+ * would count as part of the waypoint.
+ *
+ * An floating point value in [0, 1].
+ */
+tolerance
+
+/**
+ * The HSB saturation value below which pixels will be ignored. 
+ *
+ * An floating point value in [0, 1].
+ */
+saturationThreshold
+
+
+/**
+ * The fraction of pixels in the view that must match
+ * the waypoint color (with tolerance) before we
+ * assume the waypoint is in our current view.
+ *
+ * If the number of matching pixels is less than this
+ * fraction, we keep turning to search for our waypoint.
+ *
+ * A floating point value in [0, 1].
+ */
+see_waypoint_fraction
+
+
+/**
+ * The fraction of pixels in the view that must
+ * match the waypoint color (with tolerance) before
+ * we consider ourselves to be "at" the waypoint.
+ *
+ * A floating point value in [0, 1].
+ */
+at_waypoint_fraction
+
+
+/**
+ * Sets whether we loop through the waypoints.
+ * If looping is off, we stop when we reach
+ * the last waypoint.
+ *
+ * An integer in [0, 1].
+ */
+loop
+
+
+/**
+ * Sets whether waypoint should be "learned" 
+ * before proceeding.
+ * If learning is on, we go through a training phase
+ * at startup where we ask for an example of 
+ * each waypoint color by flashing a light.
+ * 
+ * If learning is on, the colors specified
+ * below are replaced by the learned colors.
+ *
+ * An integer in [0, 1].
+ */
+learn_waypoint_colors
+
+
+/**
+ * Sets the amount of time to delay in seconds before
+ * starting the learning phase.
+ *
+ * No commands are sent to the robot during this time.
+ *
+ * An integer in [0, MAX_INT].
+ */
+learning_start_delay
+
+
+/**
+ * Sets the amount of time to delay in seconds
+ * between learning each waypoint color.  This
+ * delay is meant to give the trainer a chance
+ * to bring out the next example color.
+ *
+ * No commands are sent to the robot during this time.
+ *
+ * An integer in [0, MAX_INT].
+ */  
+between_color_learning_delay
+
+
+
+number_of_waypoints
+
+/**
+ * The hue of each waypoint, each a value in [0,1].
+ */
+
+waypoint_0_hue
+
+waypoint_1_hue
+
+waypoint_2_hue
+
+...

@@ -1,0 +1,1 @@
+g++ -g -o testStereoClient -lpthread -lSDL -I../../.. testStereoClient.cpp susan.o ../../../minorGems/graphics/linux/ScreenGraphicsLinux.cpp ../../../minorGems/io/linux/TypeIOLinux.cpp ../../../minorGems/system/linux/*.cpp ../../../minorGems/network/linux/*.cpp ../../../minorGems/io/file/linux/*.cpp

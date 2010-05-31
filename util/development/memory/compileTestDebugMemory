@@ -1,0 +1,1 @@
+g++ -Wall -g -DDEBUG_MEMORY -o testDebugMemory -I../../../.. debugMemory.cpp MemoryTrack.cpp testDebugMemory.cpp ../../../../minorGems/system/linux/MutexLockLinux.cpp

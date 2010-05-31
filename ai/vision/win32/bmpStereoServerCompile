@@ -1,0 +1,1 @@
+g++ -g -o bmpStereoServer -lpthread -I../../../.. bmpStereoServer.cpp ../../../../minorGems/io/linux/TypeIOLinux.cpp ../../../../minorGems/system/linux/*.cpp ../../../../minorGems/network/linux/*.cpp ../../../../minorGems/io/file/linux/*.cpp

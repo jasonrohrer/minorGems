@@ -1,0 +1,46 @@
+left_server_address left_server_port
+right_server_address right_server_port
+
+control_server_address control_server_port
+
+
+/**
+ * 0 = no debug output image files
+ * 1 = debug output image files
+ */
+output_files
+
+
+/**
+ * 0 = DefaultMoveGenerator
+ * 1 = TavanMoveGenerator
+ * 2 = RohrerMoveGenerator
+ * 3 = WaypointMoveGenerator
+ */
+move_generator_number	
+
+
+/**
+ * 0 = DummyStereo
+ * 1 = NetworkedStereo
+ */
+stereo_algorithm_number
+
+
+/**
+ * If using NetworkedStereo, then
+ */
+number_of_stereo_servers
+server_1_address server_1_port
+server_2_address server_2_port
+server_3_address server_3_port
+.
+.
+.
+
+
+/**
+ * If using WaypointMoveGenerator, then
+ */
+waypoint_config_file
+

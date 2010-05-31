@@ -1,0 +1,1 @@
+g++ -g -I../../.. -o testBigInt ../BigInt.cpp testBigInt.cpp

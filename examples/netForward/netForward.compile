@@ -1,0 +1,1 @@
+g++ -o netForward -I../../.. netForward.cpp ../../network/linux/*Linux.cpp ../../network/NetworkFunctionLocks.cpp ../../system/linux/ThreadLinux.cpp ../../system/linux/MutexLockLinux.cpp -lpthread

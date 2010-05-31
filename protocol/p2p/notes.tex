@@ -1,0 +1,50 @@
+%
+% Modification History
+%
+% 2001-October-8   Jason Rohrer
+% Created.
+%
+% 2001-December-2   Jason Rohrer
+% Fixed a few typos and mistakes.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{Generic peer-to-peer protocol notes}
+\date{Created: October 8, 2001;  Last modified: December 1, 2001}
+
+\maketitle
+
+We can think of a peer-to-peer network as a group of hosts such that each host has a set of resources made available to the other hosts in the group.  Peer $A$ can ask peer $B$ for a resource $r$ by sending $B$ a resource descriptor $D_r$, and peer $B$ can respond in one of \ref{response:count} ways:
+\begin{enumerate}
+\item Send a null response (equivalent to ``I know nothing about $r$'').
+\item Return the requested resource $r$.
+\item Return the address of a host that may know more about resource $r$ (referred to as informing $A$ of a more knowledgeable host). \label{response:inform}
+\item Forward the request for $r$ on to other hosts in the network and inform $A$ that it is doing so.\label{response:forward}
+\label{response:count}
+\end{enumerate}
+For response option \ref{response:forward} to make sense, we must assume that each resource descriptor $D_r$ contains a return address where the resource should be sent and a request identifier so that $A$ knows that a particular inbound transmission is a response to its request for $r$.  To be compatible with request forwarding, all responses should be sent to the return address contained in the request.  To make sense in this context, the null response should be embodied by no response at all.  Because responses are not returned via the same two-way transmission channel on which the corresponding requests were sent, a responding host $B$ can in fact perform any subset of the response options simultaneously.  Thus, the system can operate using only one-way transmissions.  In this context, the null response corresponds to the empty response set.
+
+A network that avoids option \ref{response:forward} could still be a very usable network and in fact would require far fewer network transmissions to operate (as well as distributing the work load more heavily upon those hosts actually requesting resources).  However, such a network would not take advantage of the work distribution possible with a forwarding network.  Note that a non-forwarding network can be just as powerful as a forwarding network by clever use of response option \ref{response:inform} in place of \ref{response:forward}.  We will deal only with forwarding networks throughout the rest of this document.
+
+As a simple example, consider the case where $r$ is file data.  $A$ sends $D_r$ to $B$, and $B$ might execute a null response or return the requested resource by sending back the file data associated with $D_r$.  We might assume that $D_r$ contains information that uniquely describes a file resource being offered by $B$, so neither response option \ref{response:inform} nor response option \ref{response:forward} would apply.
+
+For a more complex example, consider the case where $r$ is a search results set.  Note that a search is itself a resource that might be offered by a host, and we might have specially-designated index nodes in the network that offer the resource of searching.  Suppose $A$ sends $D_r$ to $B$.  $D_r$ might contain information about the resource types to search for, as well as a set of resource descriptors.  Suppose that $B$ does not have the capability to perform the requested search, but is aware of a super-node $B'$ that does have searching capabilities.  $B$ has two options at this point:  return a description of $B'$, or forward $D_r$ to $B'$.  Since the method of executing the first option is obvious, consider the second option.  $B$ forwards $D_r$ to $B'$, and $A$ waits for a response.  $B'$ performs the search, constructing the set $R = \{D_{r'} \mid r'$ matches the search criteria of $r \}$.  $B'$ attaches the identifier from $D_r$ to $R$ and then sends it to the return address found in $D_r$.  $A$ receives $R$.  By examining the identifier, $A$ knows $R$ is a response to $D_r$.  
+
+In addition, $B'$ might forward $A$'s search request on to other indexing nodes.  Thus, $A$ might receive multiple responses to $D_r$ and could track them all by their common identifier.
+
+As another example, we might think of an indexing node $B$ sending requests to non-indexing nodes to collect data about their resources.  In this case, resource $r$ would be a resource list.  $B$ might send $D_r$ to $A$, and $A$ might return its resource list as well as forward $D_r$ to the resource hosts that it knows about.  In this case, $B$ might receive responses to $D_r$ from many different hosts, but all responses will contain an identifier that $B$ can recognize.  Thus, $B$ can collect a substantial index of resources in the network simply by sending out a single request.  $B$ might have a limit on its index size, so it might send out $D_r$ to various hosts until it builds a large enough index and then discard further responses.  $B$ could update its index in the future by sending out a new $D_r$ with a different identifier.
+
+Because response option \ref{response:inform} and response option \ref{response:forward} are equally powerful, we can ignore option \ref{response:inform} in our further discussions.  We choose to ignore \ref{response:inform} because we are primarily interested in the work distribution possible with forwarding networks.  However, we should note that using option \ref{response:inform} wisely can result in drastic savings in terms of the number of network transmissions sent.  For example, if only forwarding is used, the following situation might arise.  Consider the host set $\{A, B, C, D\}$, and suppose that the only indexing node is $D$.  Let $K$ be a binary knowledge relation such that $(X,Y)\in K \Rightarrow$ ``$X$ knows about $Y$''.  In our system, assume $K=\{ (A,B), (B,C), (C,D) \}$.  Suppose $A$ needs a search result set $r$.  $A$ can only send $D_r$ to $B$.  $B$ forwards the request to $C$, and $C$ forwards to $D$.  $D$ fills the request and sends the results back to $A$ via the return address in $D_r$.  When $A$ needs to search again, the same transmission process occurs, resulting in 4 transmissions for each search requested by $A$.  By using response option \ref{response:inform}, $C$ might inform $A$ about $D$.  Thus, $A$'s first search would require 5 transmissions, but each additional search would require only 2 transmissions.  Even if response option \ref{response:inform} was used by $B$ during $A$'s first search to inform $A$ about $C$, $A$'s first search would only require 6 transmissions.  
+
+For a set of hosts $S$ such that $|S|=n$ and for an arbitrary knowledge relation $K_s$, if $(X,Y)$ is in the transitive closure of $K$, then the worst case number of transmissions for each request fulfilled by $Y$ for $X$ is $O(n)$ if only forwarding is used.  If the informing response option is always used along with forwarding, we have $2(n-1)$ transmissions in the worst case for the initial request, and $2$ transmissions for each subsequent request.  For $O(n)$ requests, we execute $O(1)$ amortized transmissions per request.   
+
+ 
+\end{document}
+
+

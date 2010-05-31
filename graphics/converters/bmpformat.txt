@@ -1,0 +1,87 @@
+
+                       Size
+                                          Description
+       Header
+                  14 bytes
+                                Windows Structure: BITMAPFILEHEADER
+        
+        Signature
+                  2 bytes
+                                'BM'
+        FileSize
+                  4 bytes
+                                File size in bytes
+        reserved
+                  4 bytes
+                                unused (=0)
+        DataOffset
+                  4 bytes
+                                File offset to Raster Data
+       InfoHeader
+                  40 bytes
+                                Windows Structure: BITMAPINFOHEADER
+        
+        Size
+                  4 bytes
+                                Size of InfoHeader =40 
+        Width
+                  4 bytes
+                                Bitmap Width
+        Height
+                  4 bytes
+                                Bitmap Height
+        Planes
+                  2 bytes
+                                Number of Planes (=1)
+        BitCount
+                  2 bytes
+                                Bits per Pixel   
+                                1 = monochrome palette. NumColors = 1   
+                                4 = 4bit palletized. NumColors = 16   
+                                8 = 8bit palletized. NumColors = 256  
+                                16 = 16bit RGB. NumColors = 65536 (?)  
+                                24 = 24bit RGB. NumColors = 16M
+        Compression
+                  4 bytes
+                                Type of Compression   
+                                0 = BI_RGB   no compression   
+                                1 = BI_RLE8 8bit RLE encoding   
+                                2 = BI_RLE4 4bit RLE encoding
+        ImageSize
+                  4 bytes
+                                (compressed) Size of Image  
+                                It is valid to set this =0 if Compression = 0
+        XpixelsPerM
+                  4 bytes
+                                horizontal resolution: Pixels/meter
+        YpixelsPerM
+                  4 bytes
+                                vertical resolution: Pixels/meter
+        ColorsUsed
+                  4 bytes
+                                Number of actually used colors
+        ColorsImportant
+                  4 bytes
+                                Number of important colors  
+                                0 = all
+       ColorTable
+                  4 * NumColors bytes
+                                present only if Info.BitsPerPixel <= 8   
+                                colors should be ordered by importance
+        
+         Red
+                  1 byte
+                                Red intensity
+         Green
+                  1 byte
+                                Green intensity
+         Blue
+                  1 byte
+                                Blue intensity
+         reserved
+                  1 byte
+                                unused (=0)
+        repeated NumColors times
+       Raster Data
+                  Info.ImageSize bytes
+                                The pixel data

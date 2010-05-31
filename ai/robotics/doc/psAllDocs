@@ -1,0 +1,28 @@
+#!/bin/bash
+
+for file in *.tex; do
+	echo "processing $file"	
+
+    # strip off the .tex
+	strippedFileName=$( echo "$file" | sed 's/\..*//' )
+
+	psFileName=$( echo "$strippedFileName.ps" )
+
+	if test -f "$psFileName"
+	then
+		if test "$psFileName" -ot "$file"
+		then
+			echo "    ps file out of date: $psFileName"
+			result1=$( latex "$file" )
+			result2=$( dvips -t letter -o "$psFile" "$strippedFileName".dvi )
+		else
+			echo "    ps file up to date: $psFileName"
+		fi
+	else
+		echo "    ps file missing: $psFileName"
+		result1=$( latex "$file" )
+		result2=$( dvips -t letter -o "$psFile" "$strippedFileName".dvi )
+	fi
+	echo ""
+done
+

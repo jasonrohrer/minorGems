@@ -1,0 +1,1 @@
+g++ -o automataTest -lpthread -lSDL -I../../.. AutomataTest.cpp ../../../minorGems/graphics/linux/ScreenGraphicsLinux.cpp ../../../minorGems/system/linux/ThreadLinux.cpp

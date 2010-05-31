@@ -1,0 +1,95 @@
+<!-- 
+Modification history
+
+2001-May-15   Jason Rohrer
+Created.
+Fixed a few errors.
+-->
+
+
+<!--#include virtual="/robotics/header.html" -->
+
+<TABLE BORDER=0 WIDTH=85%>
+<TR>
+
+<TD VALIGN=TOP>
+<!--#include virtual="/robotics/navbar.html" -->
+</TD>
+
+<TD VALIGN=TOP>
+A live view from one of Dalek-Zero's on-board cameras.  If an image does not appear below, then Dalek-Zero is turned off at the moment.<BR>
+<BR>
+
+<CENTER>
+
+<SCRIPT LANGUAGE="JavaScript">
+ // Set the BaseURL to the url of your camera
+ // Example:  var BaseURL = "http://172.21.1.122/";
+ // Since this file is located inside the unit itself, no base url is specified here
+ var BaseURL = "http://128.84.220.234/";
+
+ // DisplayWidth & DisplayHeight specifies the displayed width & Height of the image.
+ // You may change these numbers, the effect will be a strech or a shrink of the image
+ var DisplayWidth = "320";
+ var DisplayHeight = "240";
+
+ // This is the filepath to the video generating file inside the camera itself
+ var File = "axis-cgi/mjpg/video.cgi?resolution=320x240";
+
+ // No changes required below this point
+
+var output = "";
+if ((navigator.appName == "Microsoft Internet Explorer")&&(navigator.platform != "MacPPC")&&(navigator.platform != "Mac68k"))
+{ 
+ // If Internet Explorer for Windows then use ActiveX 
+  output =  "<OBJECT ID=\"CamImage\" WIDTH="
+  output += DisplayWidth;
+  output += " HEIGHT=";
+  output += DisplayHeight;
+  output += " CLASSID=CLSID:917623D1-D8E5-11D2-BE8B-00104B06BDE3 ";
+  output += "CODEBASE=\"";
+  output += BaseURL;
+  output += "activex/AxisCamControl.ocx#Version=1,0,1,42\">";
+  output += "<PARAM NAME=\"URL\" VALUE=\"";
+  output += BaseURL;
+  output += File;
+  output += "\"> <BR><B>Axis ActiveX Camera Control</B><BR>";
+  output += "The AXIS ActiveX Camera Control, which enables you ";
+  output += "to view live image streams in Microsoft Internet";
+  output += " Explorer, could not be registered on your computer.";
+  output += "<BR></OBJECT>"; 
+} 
+else 
+{
+  // If not IE for Windows use the browser itself to display
+  output = "<IMG SRC=\"";
+  output += BaseURL;
+  output += File;
+  output += "&dummy=garb\" HEIGHT=\"";
+  // The above dummy cgi-parameter helps some versions of NS
+  output += DisplayHeight;
+  output += "\" WIDTH=\"";
+  output += DisplayWidth;
+  output += "\" ALT=\"Live video feed (Netscape version)\">";
+} 
+
+document.write(output);
+
+</SCRIPT>
+
+</CENTER>
+
+<BR>
+Note:  You must have JavaScript enabled to view this version of the image.  If you have Internet Explorer, you must have ActiveX enabled.
+
+</TD>
+</TR>
+</TABLE>
+
+
+</BODY>
+
+
+
+</HTML>
+

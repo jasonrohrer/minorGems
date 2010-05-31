@@ -1,0 +1,1 @@
+g++ -I../../../ -o errorFinder errorFinder.cpp *NeuralNet.cpp *Trainer*.cpp ../genetic/*.cpp

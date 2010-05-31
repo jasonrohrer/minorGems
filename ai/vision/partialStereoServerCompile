@@ -1,0 +1,1 @@
+g++ -g -o partialStereoServer -I../../.. partialStereoServer.cpp ../../../minorGems/io/linux/TypeIOLinux.cpp ../../../minorGems/network/linux/*.cpp

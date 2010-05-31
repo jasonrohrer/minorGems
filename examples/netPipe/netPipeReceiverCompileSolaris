@@ -1,0 +1,1 @@
+g++ -I../../.. -o netPipeReceiver netPipeReceiver.cpp ../../../minorGems/network/linux/SocketLinux.cpp ../../../minorGems/network/linux/SocketServerLinux.cpp ../../../minorGems/io/file/linux/PathLinux.cpp -DSOLARIS -lsocket -lnsl -lresolv

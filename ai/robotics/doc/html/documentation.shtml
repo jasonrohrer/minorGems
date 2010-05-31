@@ -1,0 +1,53 @@
+<!-- 
+Modification history
+
+2001-May-15   Jason Rohrer
+Created.
+-->
+
+
+<!--#include virtual="/robotics/header.html" -->
+
+<TABLE BORDER=0 WIDTH=85%>
+<TR>
+
+<TD VALIGN=TOP>
+<!--#include virtual="/robotics/navbar.html" -->
+</TD>
+
+<TD VALIGN=TOP>
+The following postscript files are available for download.<BR>
+<BR>
+
+<A HREF="doc/OverviewReport.ps">Project Overview</A> -- (46 KiB) -- A high-level description of the Dalek-Zero project and its objectives.<BR>
+<BR>
+
+<A HREF="doc/GettingStarted.ps">Getting Started Guide</A> -- (53 KiB) -- A guide to getting the Dalek-Zero system up and running.<BR>
+<BR>
+
+<A HREF="doc/controlPICSignal.ps">Control PIC Microcontroller Signal Specification</A> -- (46 KiB) -- An input and output signal specification for the low-level control processor.<BR>
+<BR>
+
+<A HREF="doc/controlPICCommands.ps">Control PIC Microcontroller Command Specification</A> -- (46 KiB) -- A specification for motion commands accepted by the low-level control processor.<BR>
+<BR>
+
+<A HREF="doc/obstacleAvoidanceAlgorithm.ps">Obstacle Avoidance Algorithm</A> -- (38 KiB) -- A description of the low-level, on-chip obstacle avoidance algorithm.<BR>
+<BR>
+
+<A HREF="doc/TavanMoveGenerator.ps">Motion Detection and Following Algorithm</A> -- (38 KiB) -- A description of the high-level motion detection and following module.<BR>
+<BR>
+
+<A HREF="doc/WaypointMoveGenerator.ps">Visual Waypoint Navigation Algorithm</A> -- (65 KiB) -- A description of the high-level color waypoint navigation module.<BR>
+<BR>
+
+</TD>
+</TR>
+</TABLE>
+
+
+</BODY>
+
+
+
+</HTML>
+

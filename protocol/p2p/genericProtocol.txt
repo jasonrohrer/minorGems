@@ -1,0 +1,88 @@
+Generic peer-to-peer protocol.
+
+White space:
+All white space is equivalent (tabs, line breaks, spaces, etc.)
+
+
+Two types of commands, GET and PUT.
+
+Command form:
+GET return_address id_number resource_descriptor
+PUT id_number resource
+
+
+return_address = {xxx.xxx.xxx.xxx | hostname}:port_number
+
+resource_descriptor = resource_type [description]
+
+
+description = resource specific description data may be optional for certain resource types
+
+
+resource = resource_type resource_data 
+
+
+A PUT command corresponding to a GET command (in other words, a put command sharing the same ID as the GET command) can be of one of three types:
+
+1. A resource matching the resource descriptor specified by the GET command.
+2. A GET_REQUEST_FAILURE resource.
+3. A MORE_KNOWLEDGEABLE_HOSTS resource.
+ 
+
+
+Examples:
+
+See resourceSpecifications.txt for information about the resource types used in these examples.
+
+
+A GET request for a server list:
+
+GET myhost.mydomain.com:5157 1 SERVER_LIST
+
+
+The corresponding PUT command:
+
+PUT 1 SERVER_LIST 3 server1.domain1.com:5157 server2.domain2.com:5157 server3.domain3.com:5157
+
+
+
+A GET request for a search:
+
+GET myhost.mydomain.com:5157 2 SEARCH 1 FILE 3 termA termB termC
+
+
+A PUT command from a successful search:
+
+PUT 2 SEARCH 2 FILE filehost1.domain1.com:5157 c:/files/termAtermBtermC.txt FILE filehost2.domain2.com:5157 /home/john/myfiles/termAtermBtermC.txt
+
+
+A PUT command for a failed search:
+
+PUT 2 GET_REQUEST_FAILED SEARCH 1 FILE 3 termA termB termC
+
+
+A PUT command informing us of a more knowledgeable search host:
+
+PUT 2 MORE_KNOWLEDGEABLE_HOSTS 1 searchhost.domain.com:5157
+
+
+
+We can request more knowlegeable hosts explicitly:
+
+GET myhost.mydomain.com:5157 3 MORE_KNOWLEDGEABLE_HOSTS SEARCH 1 FILE 3 termA termB termC
+
+
+The corresponding PUT command:
+
+PUT 3 MORE_KNOWLEDGEABLE_HOSTS 1 searchhost.domain.com:5157
+
+
+
+A GET request for a file
+
+GET myhost.mydomain.com:5157 4 FILE filehost1.domain1.com:5157 c:/files/termAtermBtermC.txt
+
+
+The corresponding PUT command:
+
+PUT 4 FILE c:/files/termAtermBtermC.txt 19 ###this is a text file

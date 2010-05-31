@@ -1,0 +1,1 @@
+g++ -o httpServerTest -I ../../.. httpServerTest.cpp ../../../minorGems/network/linux/SocketLinux.cpp ../../../minorGems/network/linux/SocketServerLinux.cpp

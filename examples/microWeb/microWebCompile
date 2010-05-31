@@ -1,0 +1,1 @@
+g++ -O3 -I../../.. -lpthread -o microWeb microWeb.cpp ../../../minorGems/system/linux/ThreadLinux.cpp ../../../minorGems/system/linux/MutexLockLinux.cpp ../../../minorGems/network/linux/SocketLinux.cpp ../../../minorGems/network/linux/SocketServerLinux.cpp ../../../minorGems/io/file/linux/PathLinux.cpp

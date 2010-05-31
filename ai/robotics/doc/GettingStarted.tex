@@ -1,0 +1,142 @@
+%
+% Modification History
+%
+% 2001-May-14   Jeremy Tavan
+% Created.
+%
+% 2001-May-15   Jason Rohrer
+% Removed LyX stuff that seems to cause fonts to be remade every
+% time one views the DVI.
+%
+
+%% LyX 1.1 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+%%\documentclass[11pt]{article}
+%%\usepackage[T1]{fontenc}
+%%\usepackage[latin1]{inputenc}
+%%\usepackage{geometry}
+%%\geometry{verbose,letterpaper,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+
+%%\makeatletter
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%\providecommand{\LyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
+
+%\makeatother
+
+\begin{document}
+
+{\par\centering \textbf{\LARGE Dalek-Zero Getting Started Guide}\LARGE \par}
+
+
+\section*{Introduction}
+
+Congratulations on your purchase of a new, state of the art platform for mobile
+robot artificial intelligence research! We have put a lot of effort into the
+design of your Dalek-Zero, in order to make it the most flexible and easy to
+use platform possible. In order to help you get up and running quickly, we provide
+this Getting Started guide. Please read through it once, following all of the
+instructions, before starting your own research. We think you'll quickly become
+comfortable with creating your own behavioral modules for your Dalek-Zero, and
+expect that you will find that your Dalek-Zero grows along with you.
+
+
+\section*{Unpacking your Dalek-Zero}
+
+Since you're reading this, we assume you have already opened your Dalek-Zero's
+packaging and found the documentation packet. Please, try to be careful when
+moving or carrying your Dalek-Zero. Not only is it quite heavy, its main logic
+board is a breadboard with fragile connections. This design feature allows easy
+user customization of the Dalek-Zero behavior, but it does require a little
+extra care in handling.
+
+
+\section*{Component parts}
+
+The Dalek-Zero is a very simple and easy-to-use robot platform. Part count has
+been kept to a minimum to ensure easy operation and customization. Please make
+sure that your unit has all of the following parts:
+
+\begin{itemize}
+\item B-12 Synchro Base (1)
+\item 12V, 7.2AH sealed lead-acid batteries (2)
+\item Breadboard with basic control logic and wiring (1)
+\item Sonar control board (1)
+\item Sonar emitters (4)
+\item Power switch (1)
+\item Sonar control board control board (1)
+\item 5V power supply (1)
+\item Axis 2100 network camera (1 or 2)
+\item Orinoco Ethernet-Wavelan converter (1 or 2)
+\item Orinoco Wavelan Silver PC Card (Factory-installed in the converter, above) (1
+or 2)
+\item Ethernet cable, 12{}'' (1 or 2)
+\item Documentation packet (1)
+\end{itemize}
+
+\section*{Before you begin}
+
+Please go through the following checklist before attempting to operate your
+Dalek-Zero.
+
+\begin{itemize}
+\item Make sure that the batteries are fully charged, and wired in parallel with the
+provided wiring harness. This system runs on 12VDC.
+\item Control logic boards should be securely held within the body cavity of the Dalek-Zero.
+\item Ethernet converter(s) should be snapped on to wall-mount plate, which should
+be securely screwed to the underside of the Dalek-Zero's top plate.
+\item Web camera(s) should be securely screwed to the top plate of the Dalek-Zero,
+and should be connected to the Ethernet converter(s) by Ethernet cables.
+\item Ethernet converters should be powered by the small, right-angle coaxial power
+connector connected to the output of the 5V power supply.
+\item Web camera(s) should be powered by attaching their I/O block plug to its socket.
+Wires should run from the I/O block to the 12V power distribution panel on the
+Dalek-Zero base.
+\item The sonar control board should be connected to the sonar emitters by the 10-pin
+ribbon cable.
+\item The two-pin ribbon cable with the 10-pin IDC connector coming from the B-12
+base should plug into the corresponding socket on the control breadboard.
+\item You may have to reconfigure the Ethernet Converter to talk to your local Wavelan
+network.
+\end{itemize}
+
+\section*{Software Setup}
+
+The software framework for control of the Dalek-Zero robot platform is part
+of the minorGems package. Before continuing, please download the very latest
+version from our source repository.
+
+\begin{itemize}
+\item The source repository can be accessed via CVS by simply typing the two commands\begin{verbatim}cvs -d:pserver:anonymous@cvs.minorgems.
+    sourceforge.net:/cvsroot/minorgems login
+
+cvs -z3 -d:pserver:anonymous@cvs.minorgems.
+    sourceforge.net:/cvsroot/minorgems co minorGems\end{verbatim}
+\item Alternatively, you can browse it on the WWW at \begin{verbatim}http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/minorgems/minorGems/\end{verbatim}
+\item Once you have downloaded the source code, you should be able to change directories
+to \texttt{minorGems/ai/vision} and compile \texttt{stereoClient.cpp}. On our
+in-house Linux systems, this is done with the \texttt{stereoClientCompile} script.
+You may have to modify this to match your local environment.
+\end{itemize}
+
+\section*{Get it moving!}
+
+\begin{itemize}
+\item Now that you have both the hardware and software properly set up, it's time
+to make the Dalek-Zero do something interesting. Turn on the Dalek-Zero by flipping
+the power switch to the {}``on{}'' position. You should see flashing LED's
+and hear the clicking sound of the sonar transducers firing.
+\item Start the control software by executing the \texttt{stereoClient} binary you
+generated in the compilation stage.
+\item Watch the Dalek-Zero move about!
+\end{itemize}
+
+\section*{For more information...}
+
+You can get more information about customizing the Dalek-Zero's behavior by
+reading the documentation package we have included. The documentation is also
+located in the \texttt{minorGems/ai/robotics/doc} directory.
+\end{document}

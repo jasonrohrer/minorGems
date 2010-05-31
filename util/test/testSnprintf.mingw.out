@@ -1,0 +1,12 @@
+Printed string of length 3 to buffer of size 4 with snprintf.
+Return value = 3
+Buffer was null-terminated by snprintf
+
+Printed string of length 4 to buffer of size 4 with snprintf.
+Return value = 4
+Buffer was NOT null-terminated by snprintf
+
+Printed string of length 5 to buffer of size 4 with snprintf.
+Return value = -1
+Buffer was NOT null-terminated by snprintf
+

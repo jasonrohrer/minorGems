@@ -1,0 +1,62 @@
+%
+% Modification History
+%
+% 2001-May-1   Jason Rohrer
+% Created.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{General forward-motion obstacle avoidance algorithm}
+\date{Created: May 1, 2001;  Last modified: May 1, 2001}
+
+\maketitle
+
+This document provides a pseudo-code description of a general obstacle avoidance algorithm.  
+
+\section{Specification}
+The input to the algorithm is the desired translation in the starting forward direction.  The algorithm generates moves that result in translation by the desired amount in the starting direction, as well as an unspecified translation in the directions perpendicular to the starting direction (in the presence of blocking obstacles).
+
+\newpage
+
+\section{Algorithm}
+\begin{verbatim}
+input:  
+    desiredDistance
+init:
+    currentDistance := 0
+
+while( currentDistance < desiredDistance )
+    while( blocked )
+        turn +90 degrees
+    end
+
+    translate by 1 unit 
+
+    if( direction == starting direction ) 
+        increment currentDistance 
+    end
+
+    if( direction == opposite of starting direction )
+        decrement currentDistance
+    end
+
+    if( direction != starting direction )
+        turn -90 degrees
+        if( blocked )
+            turn +90 degrees
+        end
+    end
+end
+\end{verbatim}
+
+\end{document}
+
+
+
+

@@ -1,0 +1,1 @@
+g++ -o tenlet -I../../.. ../../../minorGems/network/linux/SocketServerLinux.cpp ../../../minorGems/network/linux/SocketLinux.cpp ../../../minorGems/network/linux/HostAddressLinux.cpp ../../../minorGems/network/NetworkFunctionLocks.cpp ../../../minorGems/system/linux/ThreadLinux.cpp ../../../minorGems/system/linux/MutexLockLinux.cpp tenlet.cpp -lpthread

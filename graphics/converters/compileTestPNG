@@ -1,0 +1,1 @@
+g++ -g -Wall -o testPNG -I../../.. testPNG.cpp PNGImageConverter.cpp ../../io/file/linux/PathLinux.cpp ../../system/unix/TimeUnix.cpp -lz -lpng

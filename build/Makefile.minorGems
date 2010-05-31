@@ -1,0 +1,378 @@
+#
+# Modification History
+#
+# 2004-November-19    Jason Rohrer
+# Copied from Primrose source.
+#
+# 2004-November-21    Jason Rohrer
+# Added multi-source downloader.
+#
+# 2004-December-13    Jason Rohrer
+# Added socket manager.
+#
+# 2005-February-4    Jason Rohrer
+# Added ScreenGL.
+#
+# 2005-February-21    Jason Rohrer
+# Added SingleTextureGL.
+#
+# 2006-November-21    Jason Rohrer
+# Added PNGImageConverter.
+#
+
+
+##
+# The common portion of Makefiles for all targets that use minorGems,
+# supplying variable definitions for minorGems.
+#
+# Should not be made manually---used by project-specific configure scripts to 
+# build Makefiles.
+##
+
+
+# This file is intended to be included in another makefile.
+# The following variables need to be defined:
+#
+# ROOT_PATH   the path to the directory containing the minorGems directory
+# PLATFORM_PATH
+# PLATFORM
+# DIRECTORY_PLATFORM_PATH
+# DIRECTORY_PLATFORM
+# TIME_PLATFORM_PATH
+# TIME_PLATFORM
+# SOCKET_UDP_PLATFORM_PATH
+# SOCKET_UDP_PLATFORM
+
+
+# Makefile Usage:
+# -- Include this file
+# -- Define your project-specific targets and rules
+# -- Include Makefile.minorGems_targets
+
+
+
+
+PLATFORM_DIRECTORY = ${ROOT_PATH}/minorGems/io/file/${DIRECTORY_PLATFORM_PATH}/Directory${DIRECTORY_PLATFORM}
+
+PLATFORM_TIME = ${ROOT_PATH}/minorGems/system/${TIME_PLATFORM_PATH}/Time${TIME_PLATFORM}
+
+PLATFORM_HOST_ADDRESS = ${ROOT_PATH}/minorGems/network/${PLATFORM_PATH}/HostAddress${PLATFORM}
+
+PLATFORM_SOCKET = ${ROOT_PATH}/minorGems/network/${PLATFORM_PATH}/Socket${PLATFORM}
+
+PLATFORM_SOCKET_CLIENT = ${ROOT_PATH}/minorGems/network/${PLATFORM_PATH}/SocketClient${PLATFORM}
+
+PLATFORM_SOCKET_SERVER = ${ROOT_PATH}/minorGems/network/${PLATFORM_PATH}/SocketServer${PLATFORM}
+
+PLATFORM_SOCKET_UDP = ${ROOT_PATH}/minorGems/network/${SOCKET_UDP_PLATFORM_PATH}/SocketUDP${SOCKET_UDP_PLATFORM}
+
+
+PLATFORM_TYPE_IO = ${ROOT_PATH}/minorGems/io/${PLATFORM_PATH}/TypeIO${PLATFORM}
+
+PLATFORM_THREAD = ${ROOT_PATH}/minorGems/system/${PLATFORM_PATH}/Thread${PLATFORM}
+
+PLATFORM_MUTEX_LOCK = ${ROOT_PATH}/minorGems/system/${PLATFORM_PATH}/MutexLock${PLATFORM}
+
+PLATFORM_BINARY_SEMAPHORE = ${ROOT_PATH}/minorGems/system/${PLATFORM_PATH}/BinarySemaphore${PLATFORM}
+
+
+
+##
+# Header, source, and object files.
+##
+
+SIMPLE_VECTOR_H = ${ROOT_PATH}/minorGems/util/SimpleVector.h
+
+OUTPUT_STREAM_H = ${ROOT_PATH}/minorGems/io/OutputStream.h
+INPUT_STREAM_H = ${ROOT_PATH}/minorGems/io/InputStream.h
+
+
+HOST_ADDRESS_H = ${ROOT_PATH}/minorGems/network/HostAddress.h
+HOST_ADDRESS_CPP = ${PLATFORM_HOST_ADDRESS}.cpp
+HOST_ADDRESS_O = ${PLATFORM_HOST_ADDRESS}.o
+
+SOCKET_H = ${ROOT_PATH}/minorGems/network/Socket.h
+SOCKET_CPP = ${PLATFORM_SOCKET}.cpp
+SOCKET_O = ${PLATFORM_SOCKET}.o
+
+SOCKET_CLIENT_H = ${ROOT_PATH}/minorGems/network/SocketClient.h
+SOCKET_CLIENT_CPP = ${PLATFORM_SOCKET_CLIENT}.cpp
+SOCKET_CLIENT_O = ${PLATFORM_SOCKET_CLIENT}.o
+
+SOCKET_SERVER_H = ${ROOT_PATH}/minorGems/network/SocketServer.h
+SOCKET_SERVER_CPP = ${PLATFORM_SOCKET_SERVER}.cpp
+SOCKET_SERVER_O = ${PLATFORM_SOCKET_SERVER}.o
+
+SOCKET_UDP_H = ${ROOT_PATH}/minorGems/network/SocketUDP.h
+SOCKET_UDP_CPP = ${PLATFORM_SOCKET_UDP}.cpp
+SOCKET_UDP_O = ${PLATFORM_SOCKET_UDP}.o
+
+
+SOCKET_STREAM_H = ${ROOT_PATH}/minorGems/network/SocketStream.h
+
+NETWORK_FUNCTION_LOCKS = ${ROOT_PATH}/minorGems/network/NetworkFunctionLocks
+NETWORK_FUNCTION_LOCKS_H = ${NETWORK_FUNCTION_LOCKS}.h
+NETWORK_FUNCTION_LOCKS_CPP = ${NETWORK_FUNCTION_LOCKS}.cpp
+NETWORK_FUNCTION_LOCKS_O = ${NETWORK_FUNCTION_LOCKS}.o
+
+SOCKET_MANAGER = ${ROOT_PATH}/minorGems/network/SocketManager
+SOCKET_MANAGER_H = ${SOCKET_MANAGER}.h
+SOCKET_MANAGER_CPP = ${SOCKET_MANAGER}.cpp
+SOCKET_MANAGER_O = ${SOCKET_MANAGER}.o
+
+LOOKUP_THREAD = ${ROOT_PATH}/minorGems/network/LookupThread
+LOOKUP_THREAD_H = ${LOOKUP_THREAD}.h
+LOOKUP_THREAD_CPP = ${LOOKUP_THREAD}.cpp
+LOOKUP_THREAD_O = ${LOOKUP_THREAD}.o
+
+
+
+PATH_H = ${ROOT_PATH}/minorGems/io/file/Path.h
+PATH_CPP = ${ROOT_PATH}/minorGems/io/file/${PLATFORM_PATH}/Path${PLATFORM}.cpp
+PATH_O = ${ROOT_PATH}/minorGems/io/file/${PLATFORM_PATH}/Path${PLATFORM}.o
+
+
+FILE_H = ${ROOT_PATH}/minorGems/io/file/File.h
+FILE_OUTPUT_STREAM_H = ${ROOT_PATH}/minorGems/io/file/FileOutputStream.h
+FILE_INPUT_STREAM_H = ${ROOT_PATH}/minorGems/io/file/FileInputStream.h
+
+DIRECTORY_H = ${ROOT_PATH}/minorGems/io/file/Directory.h
+DIRECTORY_CPP = ${PLATFORM_DIRECTORY}.cpp
+DIRECTORY_O = ${PLATFORM_DIRECTORY}.o
+
+
+TYPE_IO_H = ${ROOT_PATH}/minorGems/io/TypeIO.h
+TYPE_IO_CPP = ${PLATFORM_TYPE_IO}.cpp
+TYPE_IO_O = ${PLATFORM_TYPE_IO}.o
+
+
+TIME_H = ${ROOT_PATH}/minorGems/system/Time.h
+TIME_CPP = ${PLATFORM_TIME}.cpp
+TIME_O = ${PLATFORM_TIME}.o
+
+THREAD_H = ${ROOT_PATH}/minorGems/system/Thread.h
+THREAD_CPP = ${PLATFORM_THREAD}.cpp
+THREAD_O = ${PLATFORM_THREAD}.o
+
+MUTEX_LOCK_H = ${ROOT_PATH}/minorGems/system/MutexLock.h
+MUTEX_LOCK_CPP = ${PLATFORM_MUTEX_LOCK}.cpp
+MUTEX_LOCK_O = ${PLATFORM_MUTEX_LOCK}.o
+
+
+BINARY_SEMAPHORE_H = ${ROOT_PATH}/minorGems/system/BinarySemaphore.h
+BINARY_SEMAPHORE_CPP = ${PLATFORM_BINARY_SEMAPHORE}.cpp
+BINARY_SEMAPHORE_O = ${PLATFORM_BINARY_SEMAPHORE}.o
+
+
+SEMAPHORE_H = ${ROOT_PATH}/minorGems/system/Semaphore.h
+
+APP_LOG_H = ${ROOT_PATH}/minorGems/util/log/AppLog.h
+APP_LOG_CPP = ${ROOT_PATH}/minorGems/util/log/AppLog.cpp
+APP_LOG_O = ${ROOT_PATH}/minorGems/util/log/AppLog.o
+
+PRINT_LOG_H = ${ROOT_PATH}/minorGems/util/log/PrintLog.h
+PRINT_LOG_CPP = ${ROOT_PATH}/minorGems/util/log/PrintLog.cpp
+PRINT_LOG_O = ${ROOT_PATH}/minorGems/util/log/PrintLog.o
+
+
+FILE_LOG_H = ${ROOT_PATH}/minorGems/util/log/FileLog.h
+FILE_LOG_CPP = ${ROOT_PATH}/minorGems/util/log/FileLog.cpp
+FILE_LOG_O = ${ROOT_PATH}/minorGems/util/log/FileLog.o
+
+
+LOG_H = ${ROOT_PATH}/minorGems/util/log/Log.h
+LOG_CPP = ${ROOT_PATH}/minorGems/util/log/Log.cpp
+LOG_O = ${ROOT_PATH}/minorGems/util/log/Log.o
+
+
+PRINT_UTILS_H = ${ROOT_PATH}/minorGems/util/printUtils.h
+PRINT_UTILS_CPP = ${ROOT_PATH}/minorGems/util/printUtils.cpp
+PRINT_UTILS_O = ${ROOT_PATH}/minorGems/util/printUtils.o
+
+
+WEB_CLIENT_H = ${ROOT_PATH}/minorGems/network/web/WebClient.h
+WEB_CLIENT_CPP = ${ROOT_PATH}/minorGems/network/web/WebClient.cpp
+WEB_CLIENT_O = ${ROOT_PATH}/minorGems/network/web/WebClient.o
+
+URL_UTILS_H = ${ROOT_PATH}/minorGems/network/web/URLUtils.h
+URL_UTILS_CPP = ${ROOT_PATH}/minorGems/network/web/URLUtils.cpp
+URL_UTILS_O = ${ROOT_PATH}/minorGems/network/web/URLUtils.o
+
+MIME_TYPER = ${ROOT_PATH}/minorGems/network/web/MimeTyper
+MIME_TYPER_H = ${MIME_TYPER}.h
+MIME_TYPER_CPP = ${MIME_TYPER}.cpp
+MIME_TYPER_O = ${MIME_TYPER}.o
+
+WEB_REQUEST_H = ${ROOT_PATH}/minorGems/network/web/WebRequest.h
+WEB_REQUEST_CPP = ${ROOT_PATH}/minorGems/network/web/WebRequest.cpp
+WEB_REQUEST_O = ${ROOT_PATH}/minorGems/network/web/WebRequest.o
+
+
+
+
+WEB_SERVER_PATH = ${ROOT_PATH}/minorGems/network/web/server
+
+WEB_SERVER = ${WEB_SERVER_PATH}/WebServer
+WEB_SERVER_H = ${WEB_SERVER}.h
+WEB_SERVER_CPP = ${WEB_SERVER}.cpp
+WEB_SERVER_O = ${WEB_SERVER}.o
+
+REQUEST_HANDLING_THREAD = ${WEB_SERVER_PATH}/RequestHandlingThread
+REQUEST_HANDLING_THREAD_H = ${REQUEST_HANDLING_THREAD}.h
+REQUEST_HANDLING_THREAD_CPP = ${REQUEST_HANDLING_THREAD}.cpp
+REQUEST_HANDLING_THREAD_O = ${REQUEST_HANDLING_THREAD}.o
+
+THREAD_HANDLING_THREAD = ${WEB_SERVER_PATH}/ThreadHandlingThread
+THREAD_HANDLING_THREAD_H = ${THREAD_HANDLING_THREAD}.h
+THREAD_HANDLING_THREAD_CPP = ${THREAD_HANDLING_THREAD}.cpp
+THREAD_HANDLING_THREAD_O = ${THREAD_HANDLING_THREAD}.o
+
+CONNECTION_PERMISSION_HANDLER = ${WEB_SERVER_PATH}/ConnectionPermissionHandler
+CONNECTION_PERMISSION_HANDLER_H = ${CONNECTION_PERMISSION_HANDLER}.h
+CONNECTION_PERMISSION_HANDLER_CPP = ${CONNECTION_PERMISSION_HANDLER}.cpp
+CONNECTION_PERMISSION_HANDLER_O = ${CONNECTION_PERMISSION_HANDLER}.o
+
+STOP_SIGNAL_THREAD = ${ROOT_PATH}/minorGems/system/StopSignalThread
+STOP_SIGNAL_THREAD_H = ${STOP_SIGNAL_THREAD}.h
+STOP_SIGNAL_THREAD_CPP = ${STOP_SIGNAL_THREAD}.cpp
+STOP_SIGNAL_THREAD_O = ${STOP_SIGNAL_THREAD}.o
+
+FINISHED_SIGNAL_THREAD = ${ROOT_PATH}/minorGems/system/FinishedSignalThread
+FINISHED_SIGNAL_THREAD_H = ${FINISHED_SIGNAL_THREAD}.h
+FINISHED_SIGNAL_THREAD_CPP = ${FINISHED_SIGNAL_THREAD}.cpp
+FINISHED_SIGNAL_THREAD_O = ${FINISHED_SIGNAL_THREAD}.o
+
+FINISHED_SIGNAL_THREAD_MANAGER = ${ROOT_PATH}/minorGems/system/FinishedSignalThreadManager
+FINISHED_SIGNAL_THREAD_MANAGER_H = ${FINISHED_SIGNAL_THREAD_MANAGER}.h
+FINISHED_SIGNAL_THREAD_MANAGER_CPP = ${FINISHED_SIGNAL_THREAD_MANAGER}.cpp
+FINISHED_SIGNAL_THREAD_MANAGER_O = ${FINISHED_SIGNAL_THREAD_MANAGER}.o
+
+
+
+
+
+STRING_BUFFER_OUTPUT_STREAM_H = ${ROOT_PATH}/minorGems/util/StringBufferOutputStream.h
+STRING_BUFFER_OUTPUT_STREAM_CPP = ${ROOT_PATH}/minorGems/util/StringBufferOutputStream.cpp
+STRING_BUFFER_OUTPUT_STREAM_O = ${ROOT_PATH}/minorGems/util/StringBufferOutputStream.o
+
+
+XML_UTILS_H = ${ROOT_PATH}/minorGems/formats/xml/XMLUtils.h
+XML_UTILS_CPP = ${ROOT_PATH}/minorGems/formats/xml/XMLUtils.cpp
+XML_UTILS_O = ${ROOT_PATH}/minorGems/formats/xml/XMLUtils.o
+
+
+HTML_UTILS_H = ${ROOT_PATH}/minorGems/formats/html/HTMLUtils.h
+HTML_UTILS_CPP = ${ROOT_PATH}/minorGems/formats/html/HTMLUtils.cpp
+HTML_UTILS_O = ${ROOT_PATH}/minorGems/formats/html/HTMLUtils.o
+
+
+SETTINGS_MANAGER_H = ${ROOT_PATH}/minorGems/util/SettingsManager.h
+SETTINGS_MANAGER_CPP = ${ROOT_PATH}/minorGems/util/SettingsManager.cpp
+SETTINGS_MANAGER_O = ${ROOT_PATH}/minorGems/util/SettingsManager.o
+
+TRANSLATION_MANAGER_H = ${ROOT_PATH}/minorGems/util/TranslationManager.h
+TRANSLATION_MANAGER_CPP = ${ROOT_PATH}/minorGems/util/TranslationManager.cpp
+TRANSLATION_MANAGER_O = ${ROOT_PATH}/minorGems/util/TranslationManager.o
+
+
+STRING_UTILS = ${ROOT_PATH}/minorGems/util/stringUtils
+STRING_UTILS_H = ${STRING_UTILS}.h
+STRING_UTILS_CPP = ${STRING_UTILS}.cpp
+STRING_UTILS_O = ${STRING_UTILS}.o
+
+
+SHA1 = ${ROOT_PATH}/minorGems/crypto/hashes/sha1
+SHA1_H = ${SHA1}.h
+SHA1_CPP = ${SHA1}.cpp
+SHA1_O = ${SHA1}.o
+
+
+
+
+MEMORY_TRACK_H = ${ROOT_PATH}/minorGems/util/development/memory/MemoryTrack.h
+MEMORY_TRACK_CPP = ${ROOT_PATH}/minorGems/util/development/memory/MemoryTrack.cpp
+MEMORY_TRACK_O = ${ROOT_PATH}/minorGems/util/development/memory/MemoryTrack.o
+
+
+DEBUG_MEMORY = ${ROOT_PATH}/minorGems/util/development/memory/debugMemory
+DEBUG_MEMORY_H = ${DEBUG_MEMORY}.h
+DEBUG_MEMORY_CPP = ${DEBUG_MEMORY}.cpp
+DEBUG_MEMORY_O = ${DEBUG_MEMORY}.o
+
+
+# variable pointing to both necessary .o files for memory tracking
+MEMORY_TRACKER_O = ${MEMORY_TRACK_O} ${DEBUG_MEMORY_O}
+
+
+# p2p parts
+
+HOST_CATCHER = ${ROOT_PATH}/minorGems/network/p2pParts/HostCatcher
+HOST_CATCHER_H = ${HOST_CATCHER}.h
+HOST_CATCHER_CPP = ${HOST_CATCHER}.cpp
+HOST_CATCHER_O = ${HOST_CATCHER}.o
+
+OUTBOUND_CHANNEL = ${ROOT_PATH}/minorGems/network/p2pParts/OutboundChannel
+OUTBOUND_CHANNEL_H = ${OUTBOUND_CHANNEL}.h
+OUTBOUND_CHANNEL_CPP = ${OUTBOUND_CHANNEL}.cpp
+OUTBOUND_CHANNEL_O = ${OUTBOUND_CHANNEL}.o
+
+DUPLICATE_MESSAGE_DETECTOR = ${ROOT_PATH}/minorGems/network/p2pParts/DuplicateMessageDetector
+DUPLICATE_MESSAGE_DETECTOR_H = ${DUPLICATE_MESSAGE_DETECTOR}.h
+DUPLICATE_MESSAGE_DETECTOR_CPP = ${DUPLICATE_MESSAGE_DETECTOR}.cpp
+DUPLICATE_MESSAGE_DETECTOR_O = ${DUPLICATE_MESSAGE_DETECTOR}.o
+
+PROTOCOL_UTILS = ${ROOT_PATH}/minorGems/network/p2pParts/protocolUtils
+PROTOCOL_UTILS_H = ${PROTOCOL_UTILS}.h
+PROTOCOL_UTILS_CPP = ${PROTOCOL_UTILS}.cpp
+PROTOCOL_UTILS_O = ${PROTOCOL_UTILS}.o
+
+MESSAGE_PER_SECOND_LIMITER = ${ROOT_PATH}/minorGems/network/p2pParts/MessagePerSecondLimiter
+MESSAGE_PER_SECOND_LIMITER_H = ${MESSAGE_PER_SECOND_LIMITER}.h
+MESSAGE_PER_SECOND_LIMITER_CPP = ${MESSAGE_PER_SECOND_LIMITER}.cpp
+MESSAGE_PER_SECOND_LIMITER_O = ${MESSAGE_PER_SECOND_LIMITER}.o
+
+MULTI_SOURCE_DOWNLOADER = ${ROOT_PATH}/minorGems/network/p2pParts/MultiSourceDownloader
+MULTI_SOURCE_DOWNLOADER_H = ${MULTI_SOURCE_DOWNLOADER}.h
+MULTI_SOURCE_DOWNLOADER_CPP = ${MULTI_SOURCE_DOWNLOADER}.cpp
+MULTI_SOURCE_DOWNLOADER_O = ${MULTI_SOURCE_DOWNLOADER}.o
+
+
+
+
+
+
+ENCODING_UTILS = ${ROOT_PATH}/minorGems/formats/encodingUtils
+ENCODING_UTILS_H = ${ENCODING_UTILS}.h
+ENCODING_UTILS_CPP = ${ENCODING_UTILS}.cpp
+ENCODING_UTILS_O = ${ENCODING_UTILS}.o
+
+
+
+
+SCREEN_GL = ${ROOT_PATH}/minorGems/graphics/openGL/ScreenGL
+SCREEN_GL_H = ${SCREEN_GL}.h
+SCREEN_GL_CPP = ${SCREEN_GL}.cpp
+SCREEN_GL_O = ${SCREEN_GL}.o
+
+SCREEN_GL_SDL_CPP = ${SCREEN_GL}_SDL.cpp
+SCREEN_GL_SDL_O = ${SCREEN_GL}_SDL.o
+
+
+
+SINGLE_TEXTURE_GL = ${ROOT_PATH}/minorGems/graphics/openGL/SingleTextureGL
+SINGLE_TEXTURE_GL_H = ${SINGLE_TEXTURE_GL}.h
+SINGLE_TEXTURE_GL_CPP = ${SINGLE_TEXTURE_GL}.cpp
+SINGLE_TEXTURE_GL_O = ${SINGLE_TEXTURE_GL}.o
+
+
+
+PNG_IMAGE_CONVERTER = ${ROOT_PATH}/minorGems/graphics/converters/PNGImageConverter
+PNG_IMAGE_CONVERTER_H = ${PNG_IMAGE_CONVERTER}.h
+PNG_IMAGE_CONVERTER_CPP = ${PNG_IMAGE_CONVERTER}.cpp
+PNG_IMAGE_CONVERTER_O = ${PNG_IMAGE_CONVERTER}.o
+
+
+PORT_MAPPING = ${ROOT_PATH}/minorGems/network/upnp/portMapping
+PORT_MAPPING_H = ${PORT_MAPPING}.h
+PORT_MAPPING_CPP = ${PORT_MAPPING}.cpp
+PORT_MAPPING_O = ${PORT_MAPPING}.o

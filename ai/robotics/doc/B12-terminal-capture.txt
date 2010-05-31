@@ -1,0 +1,31 @@
+Mobile base control system - Version 073093(alpha)       
+                                           
+*HE   
+HE Commands:            
+KI      - KIll (space bar also)       LP [32] - Load Position
+VR      - Version Report              LH [16] - Load Heading
+SH      - SHut down                   IX      - locate rotate IndeX
+DM      - Direct Mode                 BE [16] - Bump Enable
+FD      - Full Duplex                 BS      - read Bump Switches
+HD      - Half Duplex                 BV      - read Battery Voltage
+SR [32] - individual Status Report    BC      - read Battery Current
+SD [32] - periodic Status report Data JD [ 8] - Joystick Disable
+SP [16] - Status report Period        RD [ 8] - Radio Disable
+ED      - Error Delay                 DL [32] - DeLay
+EA      - Error acknowledge           WE [ 8] - Wait Event
+WD [16] - host WDT                    UM [ 8] - User Message
+CL      - read CLock
+TV [16] - Translate velocity          TA [16] - Translate acceleration
+TH      - Translate Halt              TL      - Translate Limp
+T> [32] - Translate relative positive T< [32] - Translate relative negative
+T+      - Translate positive          T-      - Translate negative
+T] [ 8] - Translate torque positive   T[ [ 8] - Translate torque negative
+T) [ 8] - Translate power positive    T( [ 8] - Translate power negative
+TT [ 8] - Translate Torque limit      TS [16] - Translate rpm-emf Slope
+TF [ 8] - Translate Friction          TZ [ 8] - Translate Zero threshold
+TR [16] - Translate closed loop Range TP [32] - Translate position
+TW      - Translate Where             TC      - Translate motor Current
+*
+
+
+

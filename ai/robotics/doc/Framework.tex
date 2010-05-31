@@ -1,0 +1,93 @@
+%
+% Modification History
+%
+% 2001-May-14   Jason Rohrer
+% Created.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{Vision-based Robotics Software Framework}
+\date{Created: May 14, 2001;  Last modified: May 14, 2001}
+
+\maketitle
+
+This document covers the vision and control software framework for the Dalek-Zero mobile robot system.
+
+\section{General description}
+The software system is divided into several independent interface modules.  New components that implement the required interfaces can be easily integrated into the existing system with little work on the part of the programmer.  The entire framework is implemented in platform-independent C++.  Platform-dependent portions of the code ({\it i.e.}, networking) are provided by the {\it minorGems} platform-independent software framework.  The following modules are central to the framework:
+\begin{itemize}
+\item the {\it ImageSource} interface--- provides a stream of images to the framework
+\item the {\it Stereo} interface--- generates a stereo depth map from an image pair
+\item the {\it StereoMoveGenerator} interface--- generates a series of motion commands from a depth map and image pair
+\item the {\it MoveProcessor} interface--- handles a stream of motion commands from the framework
+\end{itemize}
+Implementations are provided for all of these abstract interfaces.  In some cases, multiple implementations are provided and can be selected dynamically at run time to achieve different behaviors.  To extend this framework, a programmer needs only to write a class that implements one of the provided interfaces.  For example, to customize robot behavior, a programmer could write a new StereoMoveGenerator  module.
+
+The StereoClient class ties all of these modules together into a complete system, and it also dynamically selects between different module implementations at runtime.  To add a new module to the system, the file stereoClient.cpp needs to be modified so that the module is compiled into the system.
+
+\section{Module interfaces}
+
+\subsection{ImageSource}
+This interface provides a stream of images to the framework.  The interface contains the following functions:
+
+\begin{itemize}
+\item {\bf getNextImage}--- returns the next image in the stream
+\end{itemize}
+Known implementing classes:  AxisImageSource
+
+\subsection{Stereo}
+This interface generates stereo depth maps from image pairs.  The interface contains the following functions:
+
+\begin{itemize}
+\item {\bf computeDepthMap}--- takes a left and right image pair and returns a stereo depth map 
+\item {\bf setMaxDisparity}--- sets the maximum disparity allowed in a depth map
+\item {\bf getMaxDisparity}--- gets the maximum disparity allowed in a depth map
+\item {\bf setImageChannel}--- sets the image channel from each image in the pair used for the stereo computation
+\item {\bf getImageChannel}--- gets the image channel from each image in the pair used for the stereo computation
+\end{itemize}
+Known implementing classes:  DummyStereo, NetworkedStereo, EdgeBoundedStereo, MultiChannelStereo, PartialStereo, ThreadedPartialStereo 
+
+\subsection{StereoMoveGenerator}
+This interface generates a series of motion commands from image and stereo data.  The interface contains the following functions:
+
+\begin{itemize}
+\item {\bf generateMoves}--- takes left, right, and stereo images and passes a series of moves to the specified MoveProcessor 
+\end{itemize}
+Known implementing classes:  DefaultMoveGenerator, TavanMoveGenerator, RohrerMoveGenerator, WaypointMoveGenerator
+
+\subsection{MoveProcessor}
+This interface generates a series of motion commands from image and stereo data.  The interface contains the following functions:
+
+\begin{itemize}
+\item {\bf nop}--- generates a null move
+\item {\bf translateForward}--- generates a forward translation move
+\item {\bf rotateClockwise}--- generates a rotation move
+\item {\bf flashLight}--- generates a series of status light flashes
+\end{itemize}
+Known implementing classes:  AxisMoveProcessor
+
+\section{Module implementations}
+In this section, we cover some of the more notable module implementations provided with the framework.
+\subsection{AxisImageSource}
+This ImageSource implementation connects to an Axis web camera to retrieve each image.  Images fetched from the camera are then decompressed from the JPEG format before being returned.  This implementation is not threaded (and thus it does not build up a buffer of images between calls), so the image returned from a getNextImage call will be fetched from the camera {\it after} the call is made.
+\subsection{AxisMoveProcessor}
+This MoveProcessor sends moves to a robot control PIC that is connected to the digital output pin on an Axis web camera.  Refer to the document {\it Signal specifications for the B12 mobile robot base control PIC} for more details.
+\subsection{TavanMoveGenerator}
+This StereoMoveGenerator performs a motion detection and following algorithm.  Refer to the document {\it Motion Detection and Following Algorithm} for more details. 
+\subsection{WaypointMoveGenerator}
+This StereoMoveGenerator performs visual waypoint navigation.  Waypoints are colored swatches in the environment, and this Generator supports learning these swatch colors at runtime.  Refer to the document {\it Visual Waypoint Navigation Algorithm} for more details.
+\subsection{NetworkedStereo}
+This Stereo implementation splits up the computation for each image pair among an arbitrarily number of networked slave hosts.  Computation time has been shown to scale inversely with the number of slave hosts used.  This implantation makes use of the PartialStereo interface and implementations.
+
+
+\end{document}
+
+
+
+

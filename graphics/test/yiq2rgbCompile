@@ -1,0 +1,1 @@
+g++ -g -o yiq2rgb -I../../.. yiq2rgb.cpp ../../../minorGems/io/file/linux/PathLinux.cpp

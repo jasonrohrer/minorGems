@@ -1,0 +1,38 @@
+<!-- 
+Modification history
+
+2001-May-15   Jason Rohrer
+Created.
+Added a link to the Internet Explorer page, and fixed a few errors.
+-->
+
+
+<!--#include virtual="/robotics/header.html" -->
+
+<TABLE BORDER=0 WIDTH=85%>
+<TR>
+
+<TD VALIGN=TOP>
+<!--#include virtual="/robotics/navbar.html" -->
+</TD>
+
+<TD VALIGN=TOP>
+A live view from one of Dalek-Zero's on-board cameras.  If an image does not appear below, then Dalek-Zero is turned off at the moment.<BR>
+<BR>
+
+<CENTER>
+<IMG SRC="http://128.84.220.234/axis-cgi/mjpg/video.cgi?resolution=320x240&dummy=garb" ALT="Live video feed (Netscape only)" WIDTH=320 HEIGHT=240>
+</CENTER>
+<BR>
+Note:  If you have Internet Explorer, and you don't mind downloading an ActiveX plug-in, <A HREF="ie_liveview.shtml">click here</A> to load a version of this page that will work for you.
+</TD>
+</TR>
+</TABLE>
+
+
+</BODY>
+
+
+
+</HTML>
+

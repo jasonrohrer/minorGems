@@ -1,0 +1,3 @@
+Attaching 12V batteries to the system seems to work fine.
+
+According to technical support at RWI, the power jack on the back of the base accepts 22 - 24VDC regulated for charging. 

@@ -1,0 +1,38 @@
+<!-- 
+Modification history
+
+2001-May-15   Jason Rohrer
+Created.
+-->
+
+
+<!--#include virtual="/robotics/header.html" -->
+
+<TABLE BORDER=0 WIDTH=85%>
+<TR>
+
+<TD VALIGN=TOP>
+<!--#include virtual="/robotics/navbar.html" -->
+</TD>
+
+<TD VALIGN=TOP>
+Dalek-Zero was started by Jeremy Tavan, an undergraduate computer science student, and Jason Rohrer, a computer science master's student.<BR>
+<BR>
+Jeremy Tavan can be reached via email at <A HREF="mailto:jeremy@tavan.com">jeremy@tavan.com</A><BR>
+<BR>
+Jason Rohrer can be reached via email at <A HREF="mailto:jcr13@cornell.edu">jcr13@cornell.edu</A><BR>
+<BR>
+
+Dalek-Zero is supported by <A HREF="http://www.cs.cornell.edu/home/selman/">Professor Bart Selman</A>.
+
+</TD>
+</TR>
+</TABLE>
+
+
+</BODY>
+
+
+
+</HTML>
+

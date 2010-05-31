@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if test -z $1
+then
+	echo "Usage:"
+	echo "$0 window_size"
+	echo "   window_size  -- the size of the window for the stereo computation"
+	exit
+fi
+
+partialStereoServer 3003 $1 &
+partialStereoServer 3004 $1 &
+partialStereoServer 3005 $1 &
+partialStereoServer 3006 $1 &
+partialStereoServer 3007 $1 &
+partialStereoServer 3008 $1 &
+partialStereoServer 3009 $1 &
+partialStereoServer 3010 $1 &

@@ -1,0 +1,23 @@
+echo "compiling non-optimized C version..."
+gcc -o FooC Foo.c
+
+echo "compiling optimized C version..."
+gcc -O8 -o FooCOpt Foo.c
+
+
+echo "compiling non-optimized C++ version..."
+g++ -o FooCpp Foo.cpp
+
+echo "compiling optimized C++ version..."
+g++ -O8 -o FooCppOpt Foo.cpp
+
+
+echo "compiling non-optimized C++ Object version..."
+g++ -o FooObjCpp FooObj.cpp
+
+echo "compiling optimized C++ Object version..."
+g++ -O8 -o FooObjCppOpt FooObj.cpp
+
+
+echo "compiling java version..."
+javac Foo.java

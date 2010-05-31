@@ -1,0 +1,37 @@
+%
+% Modification History
+%
+% 2001-May-13   Jeremy Tavan
+% Created.
+%
+
+
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+
+\begin{document}
+
+\title{Motion Detection and Following Algorithm}
+\date{Created: May 13, 2001;  Last modified: May 14, 2001}
+
+\maketitle
+
+This document describes the TavanMoveGenerator's algorithm for following motion.  The justification for this behavior is that moving things in an environment are often of interest.  Possible future applications include security, remote observation, and (?)search-and-destroy.
+
+\section{Specification}
+The input to the algorithm is is a stereo image pair from the robot vision system.  Only the left image of the image pair is used.  The output is one of: nop, turn left, turn right, or move forwards.
+
+\section{Implementation}
+The move generator has a one-image buffer.  The first time it is called, it fills the buffer with the incoming left channel image and returns a nop, so that it will soon be called again with a new image.
+The second time it is called, it has a full buffer and a new image, both taken in a relatively small time interval.  At this point it calculates a mapping of the difference between the two images, whose density is proportional to the delta between corresponding pixels in the two images.  It issues a turn left command if the left third of the image is the most dense, a right turn command if the right third of the image is the most dense, and issues a command to move forwards if the center of the map is the most dense.
+
+\section{References}
+This algorithm is based on the description of the motion detection algorithm as used at MIT by the Cog project, which can be found on the Web at \begin{verbatim}http://www.ai.mit.edu/projects/cog/VisionSystem/motion_detection.html\end{verbatim}.
+
+
+\end{document}
+
+
+
+

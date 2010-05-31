@@ -1,0 +1,1 @@
+g++ -g -o testNavigatorGL -I/usr/X11R6/include -I../../.. -L/usr/X11R6/lib -lGL -lglut -lGLU -lX11 -lXi -lXext -lXmu ScreenGL.cpp testNavigatorGL.cpp ../../../minorGems/io/linux/TypeIOLinux.cpp

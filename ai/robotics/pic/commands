@@ -1,0 +1,13 @@
+
+Programming 
+
+./picp /dev/ttyS0 16f873 -s 30 -wp /home/jwa/cpp/minorGems/ai/robotics/pic/sonar.hex 
+
+
+Assembling
+
+gpasm -p p16f874 -I ~/pic/includes/ sonar.asm
+
+Compiling 
+
+c2c -PPIC16F874 sonar.c serial.c asciihex.c  

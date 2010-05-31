@@ -1,0 +1,3 @@
+g++ -g -o socketTest -I../.. socketTest.cpp linux/SocketLinux.cpp linux/SocketClientLinux.cpp linux/SocketServerLinux.cpp linux/HostAddressLinux.cpp ../system/linux/MutexLockLinux.cpp NetworkFunctionLocks.cpp
+
+g++ -g -o socketClientTest -I../.. socketClientTest.cpp linux/SocketLinux.cpp linux/SocketClientLinux.cpp linux/SocketServerLinux.cpp linux/HostAddressLinux.cpp ../system/linux/MutexLockLinux.cpp NetworkFunctionLocks.cpp

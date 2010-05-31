@@ -1,0 +1,196 @@
+November 8, 2002
+
+Ideas for low-overhead anonymous publishing.
+
+Freenet problem:
+In a system where a data retrieval can take up to 10 network hops, redirects
+are rediculous (10 hops to find the pointer file, 10 more hops to find
+the actual data).  In Freenet, since SSKs are common, redirects are used
+for almost every piece of data in the system.
+
+From the start, the network should be designed to handle the most common
+usage scenareo (fetching the latest version of an anonymous author's content),
+not to handle all sorts of other possible scenareos.
+
+The goal of such a system should be usable anonymous publication and
+retrieval.  We should not focus (as Freenet does) on side issues such as 
+retrieval of past document versions or elimination of data redundancy.
+
+
+
+Simplest solution:
+
+Sign(K,D) signs data D with key K.
+Encr(K,D) encrypts data D with key K.
+
+Hash(D) produces a fixed-length hash of data D.
+
+
+A | B concatonates A and B.
+
+
+An anonymous author generates a private key R and a public key U.
+
+The author wants to post a subspace file "index.html", with content C and
+timestamp T.
+
+The author generates a random symmetric key K.
+
+The author generates the following pointer URL:
+
+K/U/index.html
+
+
+The author generates the following insertion data:
+
+T | Encr(K,C) | Sign( U, T | Encr(K,C) )
+
+
+The author generates the following insertion URL:
+
+U/index.html
+
+
+Problems:  U, the author's public key, is visible in the insertion URL.  Thus,
+nodes can selectively block particular authors.  The second problem is
+that the "file name" is visible in the insertion URL, allowing nodes to 
+selectively block certain files.
+
+
+What if the insertion URL looks like this:
+Hash(U) + Hash("index.html")
+
+Problem:
+There is no way for storage nodes to verify that the inserted data actually
+matches the insertion URL.
+
+
+We have several reasons for assuming that we have one priv/pub key pair per 
+author:
+
+1.  This allows authors to build an anonymous publishing identity and 
+repuation, since all URLs that contain a particular U certainly correspond
+to data posted by a particular author.
+
+2.  Generating priv/pub key pairs is computationally expensive, so we
+want to do this as infrequently as possible.
+
+3.  Authors only need to manage one priv/pub key pair to publish in the
+network.
+
+
+Thus, given all of the assumptions and issues raised above, we can see why
+the Freenet paradigm uses redirects. 
+
+However, we should note the following points about this paradigm:
+
+1.  Using redirects *doubles* data fetch time in the worst case.
+
+2.  Generating key pairs, though expensive, only takes a few seconds on
+modern computing hardware.
+
+3.  Freenet data fetch times, in practice, are take tens of seconds.
+
+4.  Each data post operation may be followed by many fetch operations for
+that data.
+
+5.  Readers, in general, do not compare the public keys in a URLs to judge
+whether or not two pieces of content were posted by the same author.  They 
+generally look at whether or not the two content "links" were grouped together
+on the same "homepage".  I.e., they assume that all data grouped together 
+into a "freesite" was posted by one author. (This is a fair assumption to make,
+since only one author posted the main page of the freesite, so it is safe
+to assume that the author chose to group the content links together.)
+
+
+
+Dropping the assumtions about keys stated earlier, we can devise a publishing 
+mechanism with better properties:
+
+
+An anonymous author wants to post a new file "index.html", with content C and
+timestamp T.
+
+The author generates a new private key R and a public key U.
+
+The author generates a random symmetric key K.
+
+The author generates the following pointer URL:
+
+K/U
+
+
+The author generates the following insertion data:
+
+T | Encr(K,C) | Sign( U, T | Encr(K,C) )
+
+
+The author generates the following insertion URL:
+
+U
+
+
+Whenever the author wants to post an updated version of this file, s/he uses
+the same R/U pair, inserting new content C' with a new timestamp T'.  Storage
+nodes can check timestamps for key collisions and keep only the latest version
+of a content unit.
+
+
+This scheme has the following properties:
+
+1.  Storage nodes can verify that content matches a key by checking the
+signature included with the content.
+
+2.  Storage nodes can obtain a secure timestamp for each unit of content.
+
+3.  Storage nodes do not have access to unencrypted content.
+
+4.  Storage nodes cannot tie a piece of content to any particular author.
+
+3.  Readers, using the K/U URL form, can fetch the content (using U), verify
+its signature and timestamp, and decrypt it (using K).
+
+
+
+We might observe that, with this scheme, readers have lost the ability to
+associate a collection of content with a particular author, since each 
+unit of content is signed with a different private key.
+
+However, we propose the following simple solution to this problem:
+
+Authors can insert a "collection" document with links to all of their work.
+This is similar to a homepage on the web.
+
+Since an author can securely update and maintain their collection document,
+readers can be sure that all of the work pointed to by the collection document
+was actually collected by the same author.  
+
+Note that with *any* scheme, there is no way to guarentee authorship, so 
+nothing really is lost here.  With Freenet, all we can know for sure is that
+the same person *posted* each of a particular series of documents.  In our
+system, we know for sure only that the same person *linked to* each of a 
+particular series of documents.  Since there is nothing all that sacred about
+posting a document, we claim that nothing sacred is lost.
+
+
+However, for each document posted, a new priv/pub key pair must be generated.
+This can be computationally expensive and time-consuming for a poster.  To
+deal with this issue, each node can build a collection of fresh priv/pub key
+pairs using spare computation cycles (or a thread with low priority) so that
+fresh keys are ready whenever an author wishes to publish new content.
+
+
+We should note the following trade-offs:
+
+We gain:
+The ability to publish and retrieve content securely and anonymously without
+using redirects, while still allowing for reputation building and anonymous
+identity.
+
+We lose:
+The ability to factor redundant content out of the network.
+
+
+However, the only want to factor redundant content out of the network while
+still allowing for high-level pointers to content is by using redirects
+(a high-level pointer that redirects you to a low-level, content hash key).
