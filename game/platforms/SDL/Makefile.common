@@ -1,0 +1,81 @@
+#
+# Modification History
+#
+# 2004-April-30    Jason Rohrer
+# Created.  Modified from MUTE source.
+#
+# 2005-August-29    Jason Rohrer
+# Added optimization options.
+#
+# 2007-April-23    Jason Rohrer
+# Upgraded to latest minorGems dependency format.
+#
+
+
+##
+# The common portion of all Makefiles.
+# Should not be made manually---used by configure to build Makefiles.
+##
+
+
+
+EXE_LINKER = ${GXX}
+
+RANLIB = ranlib
+LIBRARY_LINKER = ar
+
+
+DEBUG_ON_FLAG = -g #-DDEBUG_MEMORY
+DEBUG_OFF_FLAG = 
+
+DEBUG_FLAG = ${DEBUG_ON_FLAG}
+
+
+PROFILE_ON_FLAG = -pg -DUSE_GPROF_THREADS
+PROFILE_OFF_FLAG = 
+
+PROFILE_FLAG = ${PROFILE_OFF_FLAG}
+
+
+OPTIMIZE_ON_FLAG = -O9
+OPTIMIZE_OFF_FLAG = -O0
+
+OPTIMIZE_FLAG = ${OPTIMIZE_OFF_FLAG}
+
+
+
+# common to all platforms
+SOCKET_UDP_PLATFORM_PATH = unix
+SOCKET_UDP_PLATFORM = Unix
+
+
+
+COMPILE_FLAGS = -Wall -Wwrite-strings -Wchar-subscripts -Wparentheses ${DEBUG_FLAG} ${PLATFORM_COMPILE_FLAGS} ${PROFILE_FLAG} ${OPTIMIZE_FLAG} -I${ROOT_PATH}
+
+COMMON_LIBS = 
+
+
+
+COMPILE = ${GXX} ${COMPILE_FLAGS} -c
+EXE_LINK = ${EXE_LINKER} ${COMPILE_FLAGS} ${LINK_FLAGS}
+LIBRARY_LINK = ${LIBRARY_LINKER} cru
+
+
+# 
+# Generic:
+#
+# Map all .cpp C++ and C files into .o object files
+#
+# $@   represents the name.o file
+# $<   represents the name.cpp file
+#
+.cpp.o:
+	${COMPILE} -o $@ $<
+.c.o:
+	${COMPILE} -o $@ $<
+
+
+
+
+
+

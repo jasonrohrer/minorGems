@@ -1,0 +1,104 @@
+#
+# Modification History
+#
+# 2006-June-27    Jason Rohrer
+# Created.  Copied from Transcend.
+#
+
+
+##
+# The portion of SleepIsDeath Makefiles common to all platforms.
+#
+# Should not be made manually---
+# used by SleepIsDeath/configure to build Makefiles.
+##
+
+
+
+
+# can be overridden by makeFileList
+APP_NAME = gameApp
+
+ROOT_PATH = ../..
+
+
+
+include makeFileList
+
+
+
+LAYER_OBJECTS = ${LAYER_SOURCE:.cpp=.o}
+
+
+
+
+
+ 
+
+
+TEST_SOURCE = 
+TEST_OBJECTS = ${TEST_SOURCE:.cpp=.o}
+
+
+
+# separate dependency files
+LAYER_DEPENDS = ${LAYER_SOURCE:.cpp=.dep}
+
+
+
+
+
+# targets
+
+all: ${APP_NAME} ${GAME_GRAPHICS}
+clean:
+	rm -f ${LAYER_DEPENDS} ${LAYER_OBJECTS} ${TEST_OBJECTS} ${NEEDED_MINOR_GEMS_OBJECTS} ${APP_NAME} ${GAME_GRAPHICS}
+
+
+graphics: ${GAME_GRAPHICS}
+
+
+${APP_NAME}: ${LAYER_OBJECTS} ${NEEDED_MINOR_GEMS_OBJECTS} ${ICON_FILE}
+	${EXE_LINK} -o ${APP_NAME} ${LAYER_OBJECTS} ${NEEDED_MINOR_GEMS_OBJECTS} ${ICON_FILE} ${COMMON_LIBS} ${PLATFORM_LINK_FLAGS}
+
+
+
+# add this on Unix to support JPEG video frame output
+# -ljpeg ${ROOT_PATH}/minorGems/graphics/converters/unix/JPEGImageConverterUnix.cpp
+
+
+
+
+
+# 
+# Generic:
+#
+# Map all .cpp files into .dep files
+#
+# $@   represents the name.dep file
+# $<   represents the name.cpp file
+#
+%.dep: %.cpp
+	${COMPILE} -MM $< >> $@
+
+# include them all
+include ${LAYER_DEPENDS}
+
+
+
+
+
+# 
+# Generic:
+#
+# Map all png files into .tga files
+#
+# $@   represents the name.tga file
+# $<   represents the name.png file
+#
+graphics/%.tga: %.png
+	convert $< $@
+music/%.tga: %.png
+	convert $< $@
+
+

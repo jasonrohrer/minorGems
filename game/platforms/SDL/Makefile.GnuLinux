@@ -1,0 +1,43 @@
+#
+# Modification History
+#
+# 2006-June-27    Jason Rohrer
+# Created.  Condensed from X86 and PPC makefiles in Transcend project.
+#
+# 2007-April-23    Jason Rohrer
+# Removed unneeded libraries.
+#
+
+
+##
+# The common GnuLinux portion of Makefiles.
+# Should not be made manually---used by configure to build Makefiles.
+##
+
+
+PLATFORM_COMPILE_FLAGS = -DLINUX
+
+
+# various GL and X windows  librariesneeded for linux
+# also need portaudio library (which in turn needs pthreads)
+PLATFORM_LINK_FLAGS = -L/usr/X11R6/lib -lGL  -lGLU -lX11 -lSDL -lpthread
+
+
+# All platforms but OSX support g++ and need no linker hacks
+GXX = g++ 
+LINK_FLAGS = 
+
+
+
+##
+# Platform-specific minorGems file path prefixes
+##
+
+PLATFORM = Linux
+PLATFORM_PATH = linux
+
+TIME_PLATFORM = Unix
+TIME_PLATFORM_PATH = unix
+
+DIRECTORY_PLATFORM = Unix
+DIRECTORY_PLATFORM_PATH = unix

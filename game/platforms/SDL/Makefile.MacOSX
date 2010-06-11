@@ -1,0 +1,44 @@
+#
+# Modification History
+#
+# 2006-June-27    Jason Rohrer
+# Created.  Adapted from Transcend project.
+#
+
+
+##
+# The common MacOSX portion of Makefiles.
+# Should not be made manually---used by configure to build Makefiles.
+##
+
+
+# __mac__ to trigger certain mac-specific coping code
+# paths to GL and GLUT headers
+
+PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.framework/Headers
+
+
+# various frameworks to support OpenGL and SDL
+# static linking against zlib and libpng
+PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa mac/SDLMain.m
+
+
+# Nothing special for OS X here
+GXX = g++ 
+LINK_FLAGS =
+
+
+
+##
+# Platform-specific minorGems file path prefixes
+##
+
+PLATFORM = Linux
+PLATFORM_PATH = linux
+
+TIME_PLATFORM = Unix
+TIME_PLATFORM_PATH = unix
+
+DIRECTORY_PLATFORM = Unix
+DIRECTORY_PLATFORM_PATH = unix
+
