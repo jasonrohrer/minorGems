@@ -3,7 +3,7 @@
 // platform-independent wrapper for graphics primitives
 
 
-void setDrawColor( double inR, double inG, double inB, double inA );
+void setDrawColor( float inR, float inG, float inB, float inA );
 
 
 // draw using last set color

@@ -4,8 +4,8 @@
 
 
 
-void setDrawColor( double inR, double inG, double inB, double inA ) {
-    glColor4d( inR, inG, inB, inA );
+void setDrawColor( float inR, float inG, float inB, float inA ) {
+    glColor4f( inR, inG, inB, inA );
     }
 
 
