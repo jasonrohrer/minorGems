@@ -187,6 +187,8 @@ s/^ScreenGLSDL.*\.o/$${SCREEN_GL_SDL_O}/; \
 s/^SingleTextureGL.*\.o/$${SINGLE_TEXTURE_GL_O}/; \
 s/^PNGImageConverter.*\.o/$${PNG_IMAGE_CONVERTER_O}/; \
 s/^portMapping.*\.o/$${PORT_MAPPING_O}/; \
+s/^gameSDL.*\.o/$${GAME_SDL_O}/; \
+s/^gameGraphicsGL.*\.o/$${GAME_GRAPHICS_GL_O}/; \
 '
 
 

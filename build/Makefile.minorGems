@@ -385,4 +385,7 @@ PORT_MAPPING_O = ${PORT_MAPPING}.o
 
 GAME_SDL_O = ${ROOT_PATH}/minorGems/game/platforms/SDL/gameSDL.o
 
+GAME_GRAPHICS_GL_O = \
+${ROOT_PATH}/minorGems/game/platforms/openGL/gameGraphicsGL.o
+
 
