@@ -376,3 +376,13 @@ PORT_MAPPING = ${ROOT_PATH}/minorGems/network/upnp/portMapping
 PORT_MAPPING_H = ${PORT_MAPPING}.h
 PORT_MAPPING_CPP = ${PORT_MAPPING}.cpp
 PORT_MAPPING_O = ${PORT_MAPPING}.o
+
+
+
+
+# turns out the _H and _CPP versions are no longer needed
+
+
+GAME_SDL_O = ${ROOT_PATH}/minorGems/game/platforms/SDL/gameSDL.o
+
+

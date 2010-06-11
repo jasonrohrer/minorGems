@@ -66,14 +66,6 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/game/game.h"
 
 
-// globals
-
-
-// used for picking a "slice" from various noise functions
-double globalRandomSeed = 0;
-
-
-
 
 
 
@@ -433,27 +425,6 @@ void GameSceneHandler::initFromFiles() {
     }
 
 
-int lastMouseX, lastMouseY;
-
-
-// position of view in world
-double viewCenterX = 0;
-double viewCenterY = 0;
-
-// world with of one view
-double viewWidth = 10;
-
-double velocityX = 0;
-double velocityY = 0;
-double dragX = 0;
-double accelY = 0;
-double dragY = 0;
-
-double thrustX = 0;
-
-double thrustValue = 2;
-
-double airFillLevel = 1.0;
 
 
 static float viewCenterX = 0;
@@ -486,7 +457,9 @@ void GameSceneHandler::drawScene() {
     float vRadius = viewSize / 2;
     
     if( screenWidth > screenHeight ) {
-        vRadius *= screenHeight / (float) screenWidth;
+
+        // FIXME:  this is temporary until I fix scaling in game9
+        //vRadius *= screenHeight / (float) screenWidth;
         }
     else if( screenHeight < screenWidth ) {
         hRadius *= screenWidth / (float) screenHeight;
@@ -495,7 +468,7 @@ void GameSceneHandler::drawScene() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho( viewCenterX - hRadius, viewCenterX + hRadius, 
-             viewCenterY + vRadius, viewCenterY - vRadius, -1.0f, 1.0f);
+             viewCenterY - vRadius, viewCenterY + vRadius, -1.0f, 1.0f);
     
     
     glMatrixMode(GL_MODELVIEW);
@@ -520,7 +493,7 @@ static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
 void GameSceneHandler::mouseMoved( int inX, int inY ) {
     float x, y;
-    screenToWorld( inX, inY,m &x, &y );
+    screenToWorld( inX, inY, &x, &y );
     pointerMove( x, y );
     }
 
@@ -528,7 +501,7 @@ void GameSceneHandler::mouseMoved( int inX, int inY ) {
 
 void GameSceneHandler::mouseDragged( int inX, int inY ) {
     float x, y;
-    screenToWorld( inX, inY,m &x, &y );
+    screenToWorld( inX, inY, &x, &y );
     pointerDrag( x, y );
     }
 
@@ -537,7 +510,7 @@ void GameSceneHandler::mouseDragged( int inX, int inY ) {
 
 void GameSceneHandler::mousePressed( int inX, int inY ) {
     float x, y;
-    screenToWorld( inX, inY,m &x, &y );
+    screenToWorld( inX, inY, &x, &y );
     pointerDown( x, y );
     }
 
@@ -545,7 +518,7 @@ void GameSceneHandler::mousePressed( int inX, int inY ) {
 
 void GameSceneHandler::mouseReleased( int inX, int inY ) {
     float x, y;
-    screenToWorld( inX, inY,m &x, &y );
+    screenToWorld( inX, inY, &x, &y );
     pointerUp( x, y );
     }
 
