@@ -453,22 +453,13 @@ void GameSceneHandler::drawScene() {
                   mBackgroundColor->a );
     */
 	
+    // viewport square centered on screen (even if screen is rectangle)
     float hRadius = viewSize / 2;
-    float vRadius = viewSize / 2;
-    
-    if( screenWidth > screenHeight ) {
-
-        // FIXME:  this is temporary until I fix scaling in game9
-        //vRadius *= screenHeight / (float) screenWidth;
-        }
-    else if( screenHeight < screenWidth ) {
-        hRadius *= screenWidth / (float) screenHeight;
-        }
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho( viewCenterX - hRadius, viewCenterX + hRadius, 
-             viewCenterY - vRadius, viewCenterY + vRadius, -1.0f, 1.0f);
+             viewCenterY - hRadius, viewCenterY + hRadius, -1.0f, 1.0f);
     
     
     glMatrixMode(GL_MODELVIEW);

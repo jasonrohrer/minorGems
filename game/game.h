@@ -104,7 +104,7 @@ void setSoundPlaying( char inPlaying );
 // for moving view around
 void setViewCenterPosition( float inX, float inY );
 
-// 1:1 aspect ratio (truncated on shorter dimension)
+// 1:1 aspect ratio (truncated on shorter screen dimension)
 void setViewSize( float inSize );
 
 
