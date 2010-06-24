@@ -20,7 +20,7 @@ void drawQuads( int inNumQuads, double inVertices[], float inVertexColors[] );
 void drawTriangles( int inNumTriangles, double inVertices[] );
 
 
-// four r,g,b,a values per quad vertex
+// four r,g,b,a values per triangle vertex
 void drawTriangles( int inNumTriangles, double inVertices[], 
                     float inVertexColors[] );
 

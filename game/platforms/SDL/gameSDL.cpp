@@ -381,7 +381,7 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
       mStartTimeSeconds( time( NULL ) ),
       mPaused( false ),
       mMaxFrameRate( 30 ),  
-      mPrintFrameRate( true ),
+      mPrintFrameRate( false ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( time( NULL ) ),
       mFrameBatchStartTimeMilliseconds( 0 ),
