@@ -17,11 +17,24 @@ void drawQuads( int inNumQuads, double inVertices[], float inVertexColors[] );
 
 // draw using last set color
 // three vertices per triangle
-void drawTriangles( int inNumTriangles, double inVertices[] );
+void drawTriangles( int inNumTriangles, double inVertices[], 
+                    char inStrip=false );
 
 
 // four r,g,b,a values per triangle vertex
 void drawTriangles( int inNumTriangles, double inVertices[], 
-                    float inVertexColors[] );
+                    float inVertexColors[],
+                    char inStrip=false );
 
+
+// switch into stencil-buffer drawing mode
+// all primitives drawn add to the area that is inside the stencil
+void startAddingToStencil( char inDrawColorToo );
+
+// switch into mode where further drawing operations are passed through
+// stenciled area
+void startDrawingThroughStencil();
+
+// stop stenciling and clear stencil buffer
+void stopStencil();
 
