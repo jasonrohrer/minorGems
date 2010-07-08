@@ -9,6 +9,17 @@ void setDrawColor( float inR, float inG, float inB, float inA ) {
     }
 
 
+void toggleAdditiveBlend( char inAdditive ) {
+    if( inAdditive ) {
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+        }
+    else {
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        }
+    }
+
+
+
 
 void drawQuads( int inNumQuads, double inVertices[] ) {
     
@@ -41,16 +52,21 @@ void drawQuads( int inNumQuads, double inVertices[],
 
 
 
-void drawTriangles( int inNumTriangles, double inVertices[], char inStrip ) {
+void drawTriangles( int inNumTriangles, double inVertices[], 
+                    char inStrip, char inFan ) {
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
         
     if( inStrip ) {
         glDrawArrays( GL_TRIANGLE_STRIP, 0, inNumTriangles + 2 );
         }
+    else if( inFan ) {
+        glDrawArrays( GL_TRIANGLE_FAN, 0, inNumTriangles + 2 );
+        }
     else {
         glDrawArrays( GL_TRIANGLES, 0, inNumTriangles * 3 );
         }
+    
     
     glDisableClientState( GL_VERTEX_ARRAY );
     }
@@ -58,7 +74,7 @@ void drawTriangles( int inNumTriangles, double inVertices[], char inStrip ) {
 
 
 void drawTriangles( int inNumTriangles, double inVertices[], 
-                    float inVertexColors[], char inStrip ) {
+                    float inVertexColors[], char inStrip, char inFan ) {
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -70,6 +86,9 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 
     if( inStrip ) {
         glDrawArrays( GL_TRIANGLE_STRIP, 0, inNumTriangles + 2 );
+        }
+    else if( inFan ) {
+        glDrawArrays( GL_TRIANGLE_FAN, 0, inNumTriangles + 2 );
         }
     else {
         glDrawArrays( GL_TRIANGLES, 0, inNumTriangles * 3 );
