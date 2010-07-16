@@ -26,9 +26,9 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 
 
 // four r,g,b,a values per triangle vertex
-void drawTriangles( int inNumTriangles, double inVertices[], 
-                    float inVertexColors[],
-                    char inStrip=false, char inFan=false );
+void drawTrianglesColor( int inNumTriangles, double inVertices[], 
+                         float inVertexColors[],
+                         char inStrip=false, char inFan=false );
 
 
 // switch into stencil-buffer drawing mode

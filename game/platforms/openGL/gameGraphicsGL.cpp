@@ -73,8 +73,8 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 
 
 
-void drawTriangles( int inNumTriangles, double inVertices[], 
-                    float inVertexColors[], char inStrip, char inFan ) {
+void drawTrianglesColor( int inNumTriangles, double inVertices[], 
+                         float inVertexColors[], char inStrip, char inFan ) {
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
