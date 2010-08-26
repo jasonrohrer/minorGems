@@ -39,6 +39,9 @@
  *
  * 2010-May-21    Jason Rohrer
  * Mapped ctrl-q and alt-q to ESC key.
+ *
+ * 2010-August-26    Jason Rohrer
+ * Fixed a parens warning.
  */
 
 
@@ -322,7 +325,7 @@ void ScreenGL::start() {
                          ( ( mods & KMOD_META ) || ( mods & KMOD_ALT )
                            || ( mods & KMOD_CTRL ) ) )
                        ||
-                       event.key.keysym.unicode & 0xFF == 17 ) ) {
+                       ( event.key.keysym.unicode & 0xFF == 17 ) ) ) {
                 
                 // map to 27, escape
                 int mouseX, mouseY;
