@@ -1,8 +1,8 @@
 /*
  * Modification History
  *
- * 2008-September-11  Jason Rohrer
- * Created.  Copied from Cultivation.
+ * 2010-September-3  Jason Rohrer
+ * Fixed mouse to world translation function.
  */
 
 
@@ -477,6 +477,13 @@ void GameSceneHandler::drawScene() {
 
 static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
+    // relative to center,
+    // viewSize spreads out across screenWidth only (a square on screen)
+    float x = (float)( inX - (screenWidth/2) ) / (float)screenWidth;
+    float y = -(float)( inY - (screenHeight/2) ) / (float)screenWidth;
+    
+    *outX = x * viewSize + viewCenterX;
+    *outY = y * viewSize + viewCenterY;
     }
 
 
