@@ -42,6 +42,9 @@
  *
  * 2010-August-26    Jason Rohrer
  * Fixed a parens warning.
+ *
+ * 2010-September-6   Jason Rohrer
+ * Split display callback into two parts to handle events after frame sleep.
  */
 
 
@@ -94,6 +97,7 @@ void callbackKeyboard( unsigned char  inKey, int inX, int inY );
 void callbackMotion( int inX, int inY );
 void callbackPassiveMotion( int inX, int inY );
 void callbackMouse( int inButton, int inState, int inX, int inY );
+void callbackPreDisplay();
 void callbackDisplay();
 void callbackIdle();
 */
@@ -289,10 +293,18 @@ void ScreenGL::start() {
     // main loop
     while( true ) {
         
-        callbackDisplay();
+
+        // pre-display first, this might involve a sleep for frame timing
+        // purposes
+        callbackPreDisplay();
         
 
-        // handle all pending events
+
+        // now handle pending events BEFORE actually drawing the screen.
+        // Thus, screen reflects all the latest events (not just those
+        // that happened before any sleep called during the pre-display).
+        // This makes controls much more responsive.
+
         SDL_Event event;
         
         while( SDL_PollEvent( &event ) ) {
@@ -426,7 +438,11 @@ void ScreenGL::start() {
                 }
             
             }
+
+        // now all events handled, actually draw the screen
+        callbackDisplay();
         }
+    
     }
 
 
@@ -831,7 +847,7 @@ void callbackMouse( int inButton, int inState, int inX, int inY ) {
 	
 	
 	
-void callbackDisplay() {
+void callbackPreDisplay() {
 	ScreenGL *s = currentScreenGL;
 	
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -845,7 +861,12 @@ void callbackDisplay() {
 			= *( s->mRedrawListenerVector->getElement( r ) );
 		listener->fireRedraw();
 		}
+    }
 
+
+
+void callbackDisplay() {
+    ScreenGL *s = currentScreenGL;
 
 	if( ! s->m2DMode ) {    
         // apply our view transform

@@ -54,6 +54,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2010-September-6   Jason Rohrer
+ * Split display callback into two parts to handle events after frame sleep.
  */
  
  
@@ -82,6 +85,7 @@ void callbackSpecialKeyboardUp( int inKey, int inX, int inY );
 void callbackMotion( int inX, int inY );
 void callbackPassiveMotion( int inX, int inY );
 void callbackMouse( int inButton, int inState, int inX, int inY );
+void callbackPreDisplay();
 void callbackDisplay();
 void callbackIdle();
 
@@ -403,7 +407,8 @@ class ScreenGL {
 		friend void callbackPassiveMotion( int inX, int inY );
 		friend void callbackMouse( int inButton, int inState, 
                                    int inX, int inY );
-		friend void callbackDisplay();
+		friend void callbackPreDisplay();
+        friend void callbackDisplay();
 		friend void callbackIdle();
 		
 

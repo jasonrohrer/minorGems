@@ -6,6 +6,9 @@
  *
  * 2010-April-9 	Jason Rohrer
  * Added post-redraw events.
+ *
+ * 2010-September-6   Jason Rohrer
+ * New frame timing behavior explained.
  */
  
  
@@ -32,6 +35,8 @@ class RedrawListenerGL {
 		 *
 		 * Note that the redraw operation waits for this call to return
 		 * before proceeding.
+         *
+         * This is where sleeping to adjust frame timing should occur.
 		 */
 		virtual void fireRedraw() = 0;
 		
