@@ -310,7 +310,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     screen =
         new ScreenGL( screenWidth, screenHeight, fullscreen, 
-                      "SleepIsDeath", NULL, NULL, NULL );
+                      getWindowTitle(), NULL, NULL, NULL );
 
     // may change if specified resolution is not supported
     screenWidth = screen->getWidth();
@@ -442,6 +442,17 @@ void setViewCenterPosition( float inX, float inY ) {
 void setViewSize( float inSize ) {
     viewSize = inSize;
     }
+
+
+void setCursorVisible( char inIsVisible ) {
+    if( inIsVisible ) {
+        SDL_ShowCursor( SDL_ENABLE );
+        }
+    else {
+        SDL_ShowCursor( SDL_DISABLE );
+        }
+    }
+
 
 
 

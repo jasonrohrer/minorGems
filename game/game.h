@@ -8,6 +8,9 @@
 // these are called by SDL or iPhone (or other platform) app wrapper
 
 
+const char *getWindowTitle();
+
+
 void initFrameDrawer( int inWidth, int inHeight );
 
 
@@ -107,6 +110,9 @@ void setViewCenterPosition( float inX, float inY );
 // 1:1 aspect ratio (truncated on shorter screen dimension)
 void setViewSize( float inSize );
 
+
+
+void setCursorVisible( char inIsVisible );
 
 
 
