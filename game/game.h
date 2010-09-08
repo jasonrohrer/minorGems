@@ -121,10 +121,15 @@ void setCursorVisible( char inIsVisible );
 void grabInput( char inGrabOn );
 
 
-
 // sets how mouse events are reported
 // true to use game world coordinates
 // false to use screen coordinates
 //
 // defaults to game world coordinates
 void setMouseReportingMode( char inWorldCoordinates );
+
+
+// warps mouse to center of screen
+// does not generate pointer even callback
+// returns new mouse position
+void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY );

@@ -474,6 +474,18 @@ void setMouseReportingMode( char inWorldCoordinates ) {
     }
 
 
+static char ignoreNextMouseEvent = false;
+
+void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
+    ignoreNextMouseEvent = true;
+    SDL_WarpMouse( screenWidth / 2, screenHeight / 2 );
+
+    *outNewMouseX = screenWidth / 2;
+    *outNewMouseY = screenHeight / 2;
+    }
+
+
+
 
 
 void GameSceneHandler::drawScene() {
@@ -530,6 +542,11 @@ static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
 
 void GameSceneHandler::mouseMoved( int inX, int inY ) {
+    if( ignoreNextMouseEvent ) {
+        ignoreNextMouseEvent = false;
+        return;
+        }
+    
     float x, y;
     screenToWorld( inX, inY, &x, &y );
     pointerMove( x, y );
@@ -538,6 +555,11 @@ void GameSceneHandler::mouseMoved( int inX, int inY ) {
 
 
 void GameSceneHandler::mouseDragged( int inX, int inY ) {
+    if( ignoreNextMouseEvent ) {
+        ignoreNextMouseEvent = false;
+        return;
+        }
+    
     float x, y;
     screenToWorld( inX, inY, &x, &y );
     pointerDrag( x, y );
