@@ -89,6 +89,9 @@ char enableSlowdownKeys = false;
 //char enableSlowdownKeys = true;
 
 
+char mouseWorldCoordinates = true;
+
+
 
 
 
@@ -455,6 +458,23 @@ void setCursorVisible( char inIsVisible ) {
 
 
 
+void grabInput( char inGrabOn ) {
+    if( inGrabOn ) {
+        SDL_WM_GrabInput( SDL_GRAB_ON );
+        }
+    else {
+        SDL_WM_GrabInput( SDL_GRAB_OFF );
+        }
+    }
+
+
+
+void setMouseReportingMode( char inWorldCoordinates ) {
+    mouseWorldCoordinates = inWorldCoordinates;
+    }
+
+
+
 
 void GameSceneHandler::drawScene() {
     /*
@@ -488,13 +508,22 @@ void GameSceneHandler::drawScene() {
 
 static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
-    // relative to center,
-    // viewSize spreads out across screenWidth only (a square on screen)
-    float x = (float)( inX - (screenWidth/2) ) / (float)screenWidth;
-    float y = -(float)( inY - (screenHeight/2) ) / (float)screenWidth;
+    if( mouseWorldCoordinates ) {
+        
+        // relative to center,
+        // viewSize spreads out across screenWidth only (a square on screen)
+        float x = (float)( inX - (screenWidth/2) ) / (float)screenWidth;
+        float y = -(float)( inY - (screenHeight/2) ) / (float)screenWidth;
+        
+        *outX = x * viewSize + viewCenterX;
+        *outY = y * viewSize + viewCenterY;
+        }
+    else {
+        // raw screen coordinates
+        *outX = inX;
+        *outY = inY;
+        }
     
-    *outX = x * viewSize + viewCenterX;
-    *outY = y * viewSize + viewCenterY;
     }
 
 

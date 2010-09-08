@@ -111,8 +111,20 @@ void setViewCenterPosition( float inX, float inY );
 void setViewSize( float inSize );
 
 
-
+// default visible
 void setCursorVisible( char inIsVisible );
 
 
+// confines mouse pointer to window and prevents window manager
+// from intercepting key presses
+// default off
+void grabInput( char inGrabOn );
 
+
+
+// sets how mouse events are reported
+// true to use game world coordinates
+// false to use screen coordinates
+//
+// defaults to game world coordinates
+void setMouseReportingMode( char inWorldCoordinates );
