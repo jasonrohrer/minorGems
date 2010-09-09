@@ -45,6 +45,9 @@
  *
  * 2010-September-6   Jason Rohrer
  * Split display callback into two parts to handle events after frame sleep.
+ *
+ * 2010-September-8   Jason Rohrer
+ * Fixed bug in ASCII key release event.
  */
 
 
@@ -378,7 +381,8 @@ void ScreenGL::start() {
                         unsigned char asciiKey;
 
                         // try unicode first, if 8-bit clean (extended ASCII)
-                        if( ( event.key.keysym.unicode & 0xFF00 ) == 0 ) {
+                        if( ( event.key.keysym.unicode & 0xFF00 ) == 0 &&
+                            ( event.key.keysym.unicode & 0x00FF ) != 0 ) {
                             asciiKey = event.key.keysym.unicode & 0xFF;
                             }
                         else {
