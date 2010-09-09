@@ -32,7 +32,7 @@ LINK_FLAGS =
 
 
 # don't build icon.o when make invoked with no arguments!
-all: SleepIsDeath
+all: all2
 
 icon.o: ../build/win32/icon.ico ../build/win32/icon.rc
 	cp ../build/win32/icon.ico ../build/win32/icon.rc .

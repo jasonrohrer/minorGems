@@ -48,6 +48,7 @@
  *
  * 2010-September-8   Jason Rohrer
  * Fixed bug in ASCII key release event.
+ * Swap control to eliminate tearing.
  */
 
 
@@ -251,6 +252,9 @@ void ScreenGL::setupSurface() {
 
     // 1-bit stencil buffer
     SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 1 );
+
+    // vsync to avoid tearing
+    SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );
 
     // current color depth
     SDL_Surface *screen = SDL_SetVideoMode( mWide, mHigh, 0, flags);
