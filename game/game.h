@@ -130,6 +130,7 @@ void setMouseReportingMode( char inWorldCoordinates );
 
 
 // warps mouse to center of screen
-// does not generate pointer even callback
+// does not generate pointer event callback (and dumps all pending pointer
+// motion events that happened before warp)
 // returns new mouse position
 void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY );

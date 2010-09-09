@@ -475,13 +475,18 @@ void setMouseReportingMode( char inWorldCoordinates ) {
 
 
 static char ignoreNextMouseEvent = false;
+static int xCoordToIgnore, yCoordToIgnore;
 
 void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
-    ignoreNextMouseEvent = true;
-    SDL_WarpMouse( screenWidth / 2, screenHeight / 2 );
-
     *outNewMouseX = screenWidth / 2;
     *outNewMouseY = screenHeight / 2;
+
+    ignoreNextMouseEvent = true;
+    xCoordToIgnore = *outNewMouseX;
+    yCoordToIgnore = *outNewMouseY;
+    
+
+    SDL_WarpMouse( *outNewMouseX, *outNewMouseY );
     }
 
 
@@ -543,8 +548,16 @@ static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
 void GameSceneHandler::mouseMoved( int inX, int inY ) {
     if( ignoreNextMouseEvent ) {
-        ignoreNextMouseEvent = false;
-        return;
+        if( inX == xCoordToIgnore && inY == yCoordToIgnore ) {
+            // seeing the event that triggered the ignore
+            ignoreNextMouseEvent = false;
+            return;
+            }
+        else {
+            // stale pending event before the ignore
+            // skip it too
+            return;
+            }
         }
     
     float x, y;
@@ -556,8 +569,16 @@ void GameSceneHandler::mouseMoved( int inX, int inY ) {
 
 void GameSceneHandler::mouseDragged( int inX, int inY ) {
     if( ignoreNextMouseEvent ) {
-        ignoreNextMouseEvent = false;
-        return;
+        if( inX == xCoordToIgnore && inY == yCoordToIgnore ) {
+            // seeing the event that triggered the ignore
+            ignoreNextMouseEvent = false;
+            return;
+            }
+        else {
+            // stale pending event before the ignore
+            // skip it too
+            return;
+            }
         }
     
     float x, y;
