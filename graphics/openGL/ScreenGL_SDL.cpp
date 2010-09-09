@@ -49,6 +49,9 @@
  * 2010-September-8   Jason Rohrer
  * Fixed bug in ASCII key release event.
  * Swap control to eliminate tearing.
+ *
+ * 2010-September-9   Jason Rohrer
+ * Moved frame rate limit into ScreenGL class.
  */
 
 
@@ -67,6 +70,9 @@
 
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/util/log/AppLog.h"
+
+#include "minorGems/system/Time.h"
+#include "minorGems/system/Thread.h"
 
 
 
@@ -106,14 +112,16 @@ void callbackDisplay();
 void callbackIdle();
 */
 
-ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen, 
-					const char *inWindowName,
+ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
+                    unsigned int inMaxFrameRate,
+                    const char *inWindowName,
 					KeyboardHandlerGL *inKeyHandler,
 					MouseHandlerGL *inMouseHandler,
 					SceneHandlerGL *inSceneHandler  ) 
 	: mWide( inWide ), mHigh( inHigh ), 
       mImageWide( inWide ), mImageHigh( inHigh ),
       mFullScreen( inFullScreen ),
+      mMaxFrameRate( inMaxFrameRate ),
       m2DMode( false ),
 	  mViewPosition( new Vector3D( 0, 0, 0 ) ),
 	  mViewOrientation( new Angle3D( 0, 0, 0 ) ),
@@ -296,10 +304,18 @@ void ScreenGL::start() {
     // window was created)
     callbackResize( mWide, mHigh );
 
+
+    // oversleep on last loop (discount it from next sleep)
+    unsigned long oversleepMSec = 0;
+    
     
     // main loop
     while( true ) {
         
+        unsigned long frameStartSec, frameStartMSec;
+        
+        Time::getCurrentTime( &frameStartSec, &frameStartMSec );
+
 
         // pre-display first, this might involve a sleep for frame timing
         // purposes
@@ -449,9 +465,44 @@ void ScreenGL::start() {
 
         // now all events handled, actually draw the screen
         callbackDisplay();
+
+        unsigned long frameTime =
+            Time::getMillisecondsSince( frameStartSec, frameStartMSec );
+        
+    
+        // lock down to mMaxFrameRate frames per second
+        unsigned long minFrameTime = (unsigned long)( 1000 / mMaxFrameRate );
+        if( ( frameTime + oversleepMSec ) < minFrameTime ) {
+            unsigned int timeToSleep = 
+                minFrameTime - ( frameTime + oversleepMSec );
+        
+            //SDL_Delay( timeToSleep );
+            unsigned long sleepStartSec, sleepStartMSec;
+            Time::getCurrentTime( &sleepStartSec, &sleepStartMSec );
+            
+            Thread::staticSleep( timeToSleep );
+
+            unsigned int actualSleepTime = 
+                Time::getMillisecondsSince( sleepStartSec, sleepStartMSec );
+            
+            if( actualSleepTime - timeToSleep > 0 ) {
+                oversleepMSec = actualSleepTime - timeToSleep;
+                }
+            }
+        else { 
+            oversleepMSec = 0;
+            }
+        
         }
     
     }
+
+
+
+void ScreenGL::setMaxFrameRate( unsigned int inMaxFrameRate ) {
+    mMaxFrameRate = inMaxFrameRate;
+    }
+
 
 
 

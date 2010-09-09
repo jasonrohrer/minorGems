@@ -168,19 +168,9 @@ class GameSceneHandler :
         
     protected:
 
-        
-        // the time that the last frame was drawn
-        unsigned long mLastFrameSeconds;
-        unsigned long mLastFrameMilliseconds;
-
-        // our current frame rate
-        unsigned long mFrameMillisecondDelta;
-
         int mStartTimeSeconds;
         
         char mPaused;
-
-        double mMaxFrameRate;
 
         char mPrintFrameRate;
         unsigned long mNumFrames;
@@ -312,7 +302,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
 
     screen =
-        new ScreenGL( screenWidth, screenHeight, fullscreen, 
+        new ScreenGL( screenWidth, screenHeight, fullscreen, 30, 
                       getWindowTitle(), NULL, NULL, NULL );
 
     // may change if specified resolution is not supported
@@ -380,11 +370,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
 GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     : mScreen( inScreen ),
-      mFrameMillisecondDelta( 0 ),
       mStartTimeSeconds( time( NULL ) ),
       mPaused( false ),
-      mMaxFrameRate( 30 ),  
-      mPrintFrameRate( false ),
+      mPrintFrameRate( true ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( time( NULL ) ),
       mFrameBatchStartTimeMilliseconds( 0 ),
@@ -405,11 +393,6 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     mScreen->addKeyboardHandler( this );
     mScreen->addSceneHandler( this );
     mScreen->addRedrawListener( this );
-
-    
-    Time::getCurrentTime( &mLastFrameSeconds, &mLastFrameMilliseconds );
-
-
     }
 
 
@@ -606,6 +589,7 @@ void GameSceneHandler::mouseReleased( int inX, int inY ) {
 
 
 void GameSceneHandler::fireRedraw() {
+
     
     if( mPaused ) {
         // ignore redraw event
@@ -613,80 +597,8 @@ void GameSceneHandler::fireRedraw() {
         // sleep to avoid wasting CPU cycles
         Thread::staticSleep( 1000 );
         
-        // also ignore time that passes while paused
-        Time::getCurrentTime( &mLastFrameSeconds, &mLastFrameMilliseconds );
-        
         return;
         }
-
-    
-    // deal with frame timing issues
-    
-    unsigned long lastMillisecondDelta = mFrameMillisecondDelta;
-    
-    // how many milliseconds have passed since the last frame
-    mFrameMillisecondDelta =
-        Time::getMillisecondsSince( mLastFrameSeconds,
-                                    mLastFrameMilliseconds );
-
-    
-    // lock down to mMaxFrameRate frames per second
-    unsigned long minFrameTime = (unsigned long)( 1000 / mMaxFrameRate );
-    if( mFrameMillisecondDelta < minFrameTime ) {
-        unsigned long timeToSleep = minFrameTime - mFrameMillisecondDelta;
-        Thread::staticSleep( timeToSleep );
-
-        // get new frame second delta, including sleep time
-        mFrameMillisecondDelta =
-            Time::getMillisecondsSince( mLastFrameSeconds,
-                                        mLastFrameMilliseconds );
-        }
-
-    // avoid huge position "jumps" if we have a very large delay during a frame
-    // (possibly caused by something going on in the background)
-    // This will favor a slight visual slow down, but this is better than
-    // a disorienting jump
-
-    // skip this check if we are just starting up
-    if( lastMillisecondDelta != 0 ) {
-        if( mFrameMillisecondDelta > 6 * lastMillisecondDelta ) {
-            // limit:  this frame represents at most twice the jump of the last
-            // frame
-            // printf( "Limiting time jump (requested=%lu ms, last=%lu ms)\n",
-            //        mFrameMillisecondDelta, lastMillisecondDelta );
-
-            if( mFrameMillisecondDelta > 10000 ) {
-                AppLog::warning( 
-                    "Time between frames more than 10 seconds:\n" );
-                // way too big... investigate
-                AppLog::getLog()->logPrintf( 
-                    Log::WARNING_LEVEL,
-                    "Last time = %lu s, %lu ms\n",
-                    mLastFrameSeconds, mLastFrameMilliseconds );
-
-                Time::getCurrentTime( &mLastFrameSeconds,
-                                      &mLastFrameMilliseconds );
-                AppLog::getLog()->logPrintf( 
-                    Log::WARNING_LEVEL,
-                    "current time = %lu s, %lu ms\n",
-                    mLastFrameSeconds, mLastFrameMilliseconds );
-
-                }
-            
-            mFrameMillisecondDelta = 2 * lastMillisecondDelta;
-            
-            }
-        }
-    
-    
-    // record the time that this frame was drawn
-    Time::getCurrentTime( &mLastFrameSeconds, &mLastFrameMilliseconds );
-
-    
-    // for use with non-constant time-per-frame
-    // this game is constant time-per-frame
-    // double frameSecondsDelta = (double)mFrameMillisecondDelta / 1000.0;
-    
 
 
     mNumFrames ++;
@@ -705,11 +617,11 @@ void GameSceneHandler::fireRedraw() {
             
             //AppLog::getLog()->logPrintf( 
             //    Log::DETAIL_LEVEL,
-                printf(
+            printf(
                 "Frame rate = %f frames/second\n", frameRate );
             
-            mFrameBatchStartTimeSeconds = mLastFrameSeconds;
-            mFrameBatchStartTimeMilliseconds = mLastFrameMilliseconds;
+            Time::getCurrentTime( &mFrameBatchStartTimeSeconds,
+                                  &mFrameBatchStartTimeMilliseconds );
             }
         }
     }
@@ -726,11 +638,11 @@ void GameSceneHandler::keyPressed(
         
         if( inKey == '^' ) {
             // slow
-            mMaxFrameRate = 2;
+            mScreen->setMaxFrameRate( 2 );
             }
         if( inKey == '&' ) {
             // normal
-            mMaxFrameRate = 30;
+            mScreen->setMaxFrameRate( 30 );
             }
         }
     

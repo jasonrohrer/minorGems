@@ -57,6 +57,9 @@
  *
  * 2010-September-6   Jason Rohrer
  * Split display callback into two parts to handle events after frame sleep.
+ *
+ * 2010-September-9   Jason Rohrer
+ * Moved frame rate limit into ScreenGL class.
  */
  
  
@@ -122,6 +125,7 @@ class ScreenGL {
          *   NOTE that full screen mode requires inWide and inHigh to match
          *   an available screen resolution.
 		 * @param inWindowName name to be displayed on title bar of window.
+         * @param inMaxFrameRate in frames per second.
 		 * @param inKeyHandler object that will receive keyboard events.
 		 *   NULL specifies no handler (defaults to NULL).
 		 *   Must be destroyed by caller.
@@ -134,7 +138,8 @@ class ScreenGL {
 		 *   Must be destroyed by caller.
 		 */
 		ScreenGL( int inWide, int inHigh, char inFullScreen, 
-				  const char *inWindowName,
+				  unsigned int inMaxFrameRate,
+                  const char *inWindowName,
 				  KeyboardHandlerGL *inKeyHandler = NULL,
 				  MouseHandlerGL *inMouseHandler = NULL,
 				  SceneHandlerGL *inSceneHandler = NULL );
@@ -153,6 +158,8 @@ class ScreenGL {
 		 */
 		void start();
 		
+        
+        void setMaxFrameRate( unsigned int inMaxFrameRate );
 
 
         /**
@@ -430,6 +437,7 @@ class ScreenGL {
         // only allow ALT-Enter to toggle fullscreen if it started there
         char mStartedFullScreen;
         
+        unsigned int mMaxFrameRate;
 
         char m2DMode;
         
