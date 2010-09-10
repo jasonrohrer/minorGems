@@ -419,14 +419,31 @@ static float viewCenterY = 0;
 static float viewSize = 2;
 
 
+static void redoDrawMatrix() {
+    // viewport square centered on screen (even if screen is rectangle)
+    float hRadius = viewSize / 2;
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho( viewCenterX - hRadius, viewCenterX + hRadius, 
+             viewCenterY - hRadius, viewCenterY + hRadius, -1.0f, 1.0f);
+    
+    
+    glMatrixMode(GL_MODELVIEW);
+    }
+
+
+
 void setViewCenterPosition( float inX, float inY ) {
     viewCenterX = inX;
     viewCenterY = inY;
+    redoDrawMatrix();
     }
     
 
 void setViewSize( float inSize ) {
     viewSize = inSize;
+    redoDrawMatrix();
     }
 
 
@@ -484,17 +501,8 @@ void GameSceneHandler::drawScene() {
                   mBackgroundColor->a );
     */
 	
-    // viewport square centered on screen (even if screen is rectangle)
-    float hRadius = viewSize / 2;
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho( viewCenterX - hRadius, viewCenterX + hRadius, 
-             viewCenterY - hRadius, viewCenterY + hRadius, -1.0f, 1.0f);
-    
-    
-    glMatrixMode(GL_MODELVIEW);
-    
+
+    redoDrawMatrix();
 
 
 	glDisable( GL_TEXTURE_2D );
