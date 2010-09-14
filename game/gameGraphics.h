@@ -32,8 +32,9 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
 
 
 // switch into stencil-buffer drawing mode
-// all primitives drawn add to the area that is inside the stencil
-void startAddingToStencil( char inDrawColorToo );
+// inAdd determines whether drawn primitives add to or subtract from
+//   pass-through area of stencil
+void startAddingToStencil( char inDrawColorToo, char inAdd );
 
 // switch into mode where further drawing operations are passed through
 // stenciled area

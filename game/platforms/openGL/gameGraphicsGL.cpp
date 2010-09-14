@@ -100,7 +100,7 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
 
 
 
-void startAddingToStencil( char inDrawColorToo) {
+void startAddingToStencil( char inDrawColorToo, char inAdd ) {
     if( !inDrawColorToo ) {
         
         // stop updating color
@@ -110,11 +110,24 @@ void startAddingToStencil( char inDrawColorToo) {
         glEnable( GL_ALPHA_TEST );
         glAlphaFunc( GL_GREATER, 0 );
         }
+    else {
+        // Re-enable update of color (in case stencil drawing was already
+        //  started)
+        glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+        glDisable( GL_ALPHA_TEST );
+        }
     
-    // Draw 1 into the stencil buffer wherever a sprite is
     glEnable( GL_STENCIL_TEST );
     glStencilOp( GL_REPLACE, GL_REPLACE, GL_REPLACE );
-    glStencilFunc( GL_ALWAYS, 1, 0xffffffff );
+
+    if( inAdd ) {
+        // Draw 1 into the stencil buffer wherever a sprite is
+        glStencilFunc( GL_ALWAYS, 1, 0xffffffff );
+        }
+    else {
+        // draw 0
+        glStencilFunc( GL_ALWAYS, 0, 0xffffffff );
+        }
     }
 
 
