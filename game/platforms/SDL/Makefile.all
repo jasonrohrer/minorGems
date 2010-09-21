@@ -79,7 +79,7 @@ ${APP_NAME}: ${LAYER_OBJECTS} ${NEEDED_MINOR_GEMS_OBJECTS} ${ICON_FILE}
 # $<   represents the name.cpp file
 #
 %.dep: %.cpp
-	${COMPILE} -MM $< >> $@
+	${COMPILE} -MM $< > $@
 
 # include them all
 include ${LAYER_DEPENDS}

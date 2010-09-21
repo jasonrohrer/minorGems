@@ -189,6 +189,7 @@ s/^PNGImageConverter.*\.o/$${PNG_IMAGE_CONVERTER_O}/; \
 s/^portMapping.*\.o/$${PORT_MAPPING_O}/; \
 s/^gameSDL.*\.o/$${GAME_SDL_O}/; \
 s/^gameGraphicsGL.*\.o/$${GAME_GRAPHICS_GL_O}/; \
+s/^doublePair.*\.o/$${DOUBLE_PAIR_O}/; \
 '
 
 

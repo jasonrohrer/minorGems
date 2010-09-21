@@ -3,6 +3,9 @@
 // platform-independent wrapper for graphics primitives
 
 
+#include "doublePair.h"
+
+
 void setDrawColor( float inR, float inG, float inB, float inA );
 
 // defaults to non-additive blending
@@ -43,3 +46,17 @@ void startDrawingThroughStencil();
 // stop stenciling and clear stencil buffer
 void stopStencil();
 
+
+
+typedef void * SpriteHandle;
+
+
+// can be NULL on load failure
+SpriteHandle loadSprite( const char *inTGAFileName );
+
+
+// draw with current draw color
+void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
+                 double inZoom = 1.0 );
+
+                 
