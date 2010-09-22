@@ -388,6 +388,9 @@ GAME_SDL_O = ${ROOT_PATH}/minorGems/game/platforms/SDL/gameSDL.o
 GAME_GRAPHICS_GL_O = \
 ${ROOT_PATH}/minorGems/game/platforms/openGL/gameGraphicsGL.o
 
+SPRITE_GL_O = \
+${ROOT_PATH}/minorGems/game/platforms/openGL/SpriteGL.o
+
 DOUBLE_PAIR_O = ${ROOT_PATH}/minorGems/game/doublePair.o
 
 

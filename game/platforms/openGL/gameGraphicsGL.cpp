@@ -1,5 +1,7 @@
 #include "minorGems/game/gameGraphics.h"
 
+#include "SpriteGL.h"
+
 #include <GL/gl.h>
 
 
@@ -154,4 +156,26 @@ void stopStencil() {
     glClear( GL_STENCIL_BUFFER_BIT );
     }
 
+
+
+
+SpriteHandle fillSprite( Image *inImage ) {
+    return new SpriteGL( inImage, true );
+    }
+
+
+
+
+// draw with current draw color
+void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
+                 double inZoom ) {
+    SpriteGL *sprite = (SpriteGL *)inSprite;
+    
+    Vector3D pos( inCenter.x, inCenter.y, 0 );
+
+    sprite->draw( 1,
+                  0, 
+                  &pos,
+                  inZoom );
+    }
 

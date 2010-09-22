@@ -61,9 +61,14 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/util/log/AppLog.h"
 #include "minorGems/util/log/FileLog.h"
 
+#include "minorGems/graphics/converters/TGAImageConverter.h"
+
+#include "minorGems/io/file/FileInputStream.h"
+
 
 
 #include "minorGems/game/game.h"
+#include "minorGems/game/gameGraphics.h"
 
 
 
@@ -699,6 +704,35 @@ void GameSceneHandler::specialKeyReleased(
 
 void GameSceneHandler::actionPerformed( GUIComponent *inTarget ) {
     }
+
+
+
+SpriteHandle loadSprite( const char *inTGAFileName ) {
+    File tgaFile( new Path( "graphics" ), inTGAFileName );
+    FileInputStream tgaStream( &tgaFile );
+    
+    TGAImageConverter converter;
+    
+    Image *result = converter.deformatImage( &tgaStream );
+    
+    if( result == NULL ) {
+        char *logString = autoSprintf( 
+            "CRITICAL ERROR:  could not read TGA file %s, wrong format?",
+            inTGAFileName );
+        AppLog::criticalError( logString );
+        delete [] logString;
+    
+        return NULL;
+        }
+    else {
+        
+        SpriteHandle sprite = fillSprite( result );
+
+        delete result;
+        return sprite;
+        }
+    }
+
 
 
 

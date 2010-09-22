@@ -5,6 +5,9 @@
 
 #include "doublePair.h"
 
+#include "minorGems/graphics/Image.h"
+
+
 
 void setDrawColor( float inR, float inG, float inB, float inA );
 
@@ -53,6 +56,9 @@ typedef void * SpriteHandle;
 
 // can be NULL on load failure
 SpriteHandle loadSprite( const char *inTGAFileName );
+
+SpriteHandle fillSprite( Image *inImage );
+
 
 
 // draw with current draw color
