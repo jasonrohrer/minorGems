@@ -59,6 +59,7 @@ SpriteHandle loadSprite( const char *inTGAFileName );
 
 SpriteHandle fillSprite( Image *inImage );
 
+void freeSprite( SpriteHandle inSprite );
 
 
 // draw with current draw color

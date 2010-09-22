@@ -158,9 +158,15 @@ void stopStencil() {
 
 
 
-
 SpriteHandle fillSprite( Image *inImage ) {
     return new SpriteGL( inImage, true );
+    }
+
+
+
+
+void freeSprite( SpriteHandle inSprite ) {
+    delete ( (SpriteGL *)inSprite );
     }
 
 
