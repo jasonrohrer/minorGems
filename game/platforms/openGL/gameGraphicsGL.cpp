@@ -179,7 +179,7 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     
     Vector3D pos( inCenter.x, inCenter.y, 0 );
 
-    sprite->draw( 1,
+    sprite->draw( 0,
                   0, 
                   &pos,
                   inZoom );
