@@ -183,13 +183,14 @@ void SpriteGL::draw( int inFrame,
         }
     */
 
+    /*
     if( inColor != NULL  ) {
         glColor4f( inColor->r, inColor->g, inColor->b, inFadeFactor );
         }
     else {
         glColor4f( 1, 1, 1, inFadeFactor );
         }
-                
+    */          
     mTexture->enable();
     
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 

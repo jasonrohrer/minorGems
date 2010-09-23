@@ -1,3 +1,5 @@
+#ifndef GAME_GRAPHICS_INCLUDED
+#define GAME_GRAPHICS_INCLUDED
 
 
 // platform-independent wrapper for graphics primitives
@@ -66,4 +68,7 @@ void freeSprite( SpriteHandle inSprite );
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
                  double inZoom = 1.0 );
 
+
+
+#endif
                  
