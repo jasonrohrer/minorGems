@@ -707,21 +707,31 @@ void GameSceneHandler::actionPerformed( GUIComponent *inTarget ) {
 
 
 
-SpriteHandle loadSprite( const char *inTGAFileName ) {
+Image *readTGAFile( const char *inTGAFileName ) {
+
     File tgaFile( new Path( "graphics" ), inTGAFileName );
     FileInputStream tgaStream( &tgaFile );
     
     TGAImageConverter converter;
     
     Image *result = converter.deformatImage( &tgaStream );
-    
-    if( result == NULL ) {
+
+    if( result == NULL ) {        
         char *logString = autoSprintf( 
             "CRITICAL ERROR:  could not read TGA file %s, wrong format?",
             inTGAFileName );
         AppLog::criticalError( logString );
         delete [] logString;
+        }
     
+    return result;
+    }
+
+
+SpriteHandle loadSprite( const char *inTGAFileName ) {
+    Image *result = readTGAFile( inTGAFileName );
+    
+    if( result == NULL ) {
         return NULL;
         }
     else {
