@@ -728,7 +728,8 @@ Image *readTGAFile( const char *inTGAFileName ) {
     }
 
 
-SpriteHandle loadSprite( const char *inTGAFileName ) {
+SpriteHandle loadSprite( const char *inTGAFileName,
+                         char inTransparentLowerLeftCorner ) {
     Image *result = readTGAFile( inTGAFileName );
     
     if( result == NULL ) {
@@ -736,7 +737,8 @@ SpriteHandle loadSprite( const char *inTGAFileName ) {
         }
     else {
         
-        SpriteHandle sprite = fillSprite( result );
+        SpriteHandle sprite = fillSprite( result, 
+                                          inTransparentLowerLeftCorner );
 
         delete result;
         return sprite;
