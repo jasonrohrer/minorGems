@@ -158,8 +158,9 @@ void stopStencil() {
 
 
 
-SpriteHandle fillSprite( Image *inImage ) {
-    return new SpriteGL( inImage, true );
+SpriteHandle fillSprite( Image *inImage, 
+                         char inTransparentLowerLeftCorner ) {
+    return new SpriteGL( inImage, inTransparentLowerLeftCorner );
     }
 
 

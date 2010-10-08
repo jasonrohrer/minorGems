@@ -57,9 +57,11 @@ typedef void * SpriteHandle;
 
 
 // can be NULL on load failure
-SpriteHandle loadSprite( const char *inTGAFileName );
+SpriteHandle loadSprite( const char *inTGAFileName, 
+                         char inTransparentLowerLeftCorner = true );
 
-SpriteHandle fillSprite( Image *inImage );
+SpriteHandle fillSprite( Image *inImage, 
+                         char inTransparentLowerLeftCorner = true );
 
 
 // Image destroyed by caller
