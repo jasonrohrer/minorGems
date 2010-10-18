@@ -5,10 +5,22 @@
 #include <GL/gl.h>
 
 
+static float lastR, lastG, lastB;
+
 
 void setDrawColor( float inR, float inG, float inB, float inA ) {
+    lastR = inR;
+    lastG = inG;
+    lastB = inB;
+
     glColor4f( inR, inG, inB, inA );
     }
+
+
+void setDrawFade( float inA ) {    
+    glColor4f( lastR, lastG, lastB, inA );
+    }
+
 
 
 void toggleAdditiveBlend( char inAdditive ) {

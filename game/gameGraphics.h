@@ -13,6 +13,9 @@
 
 void setDrawColor( float inR, float inG, float inB, float inA );
 
+void setDrawFade( float inA );
+
+
 // defaults to non-additive blending
 void toggleAdditiveBlend( char inAdditive );
 
