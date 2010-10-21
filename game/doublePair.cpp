@@ -26,6 +26,15 @@ doublePair sub( doublePair inA, doublePair inB ) {
     }
 
 
+doublePair normalize( doublePair inP ) {
+    double factor = 1 / sqrt( inP.x * inP.x + inP.y * inP.y );
+    inP.x *= factor;
+    inP.y *= factor;
+    return inP;
+    }
+
+
+
 
 double distance( doublePair inA, doublePair inB ) {
     double delX = inA.x - inB.x;

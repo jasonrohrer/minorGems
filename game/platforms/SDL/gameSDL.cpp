@@ -90,8 +90,8 @@ char hardToQuitMode = false;
 
 
 // ^ and & keys to slow down and speed up for testing
-char enableSlowdownKeys = false;
-//char enableSlowdownKeys = true;
+//char enableSlowdownKeys = false;
+char enableSlowdownKeys = true;
 
 
 char mouseWorldCoordinates = true;

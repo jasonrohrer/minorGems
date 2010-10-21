@@ -14,6 +14,8 @@ doublePair add( doublePair inA, doublePair inB );
 
 doublePair sub( doublePair inA, doublePair inB );
 
+doublePair normalize( doublePair inP );
+
 
 
 double distance( doublePair inA, doublePair inB );
