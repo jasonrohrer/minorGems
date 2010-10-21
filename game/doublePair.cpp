@@ -26,8 +26,24 @@ doublePair sub( doublePair inA, doublePair inB ) {
     }
 
 
+doublePair mult( doublePair inP, double inV ) {
+    inP.x *= inV;
+    inP.y *= inV;
+    return inP;
+    }
+
+
+static doublePair defaultNormalized = { 0, 1 };
+
+
 doublePair normalize( doublePair inP ) {
-    double factor = 1 / sqrt( inP.x * inP.x + inP.y * inP.y );
+    double length = sqrt( inP.x * inP.x + inP.y * inP.y );
+    
+    if( length == 0 ) {
+        return defaultNormalized;
+        }
+    
+    double factor = 1 / length;
     inP.x *= factor;
     inP.y *= factor;
     return inP;

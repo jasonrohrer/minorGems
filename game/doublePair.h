@@ -14,6 +14,9 @@ doublePair add( doublePair inA, doublePair inB );
 
 doublePair sub( doublePair inA, doublePair inB );
 
+doublePair mult( doublePair inP, double inV );
+
+
 doublePair normalize( doublePair inP );
 
 
