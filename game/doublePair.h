@@ -31,4 +31,8 @@ double angle( doublePair inA );
 char equal( doublePair inA, doublePair inB );
 
 
+doublePair rotate( doublePair inP, double inAngle );
+
+
+
 #endif

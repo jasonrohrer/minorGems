@@ -80,5 +80,16 @@ char equal( doublePair inA, doublePair inB ) {
     }
 
 
+doublePair rotate( doublePair inP, double inAngle ) {
+    double cosTheta = cos( inAngle );
+    double sinTheta = sin( inAngle );
+    
+    doublePair result = 
+        { cosTheta * inP.x - sinTheta * inP.y,
+          sinTheta * inP.x + cosTheta * inP.y };
+
+    return result;
+    }
+
 
 
