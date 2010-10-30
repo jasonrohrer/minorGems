@@ -20,7 +20,6 @@ doublePair mult( doublePair inP, double inV );
 doublePair normalize( doublePair inP );
 
 
-
 double distance( doublePair inA, doublePair inB );
 
 
@@ -32,6 +31,9 @@ char equal( doublePair inA, doublePair inB );
 
 
 doublePair rotate( doublePair inP, double inAngle );
+
+
+double dot( doublePair inA, doublePair inB );
 
 
 

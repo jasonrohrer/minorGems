@@ -93,3 +93,10 @@ doublePair rotate( doublePair inP, double inAngle ) {
 
 
 
+double dot( doublePair inA, doublePair inB ) {
+    return inA.x * inB.x + inA.y * inB.y;
+    }
+
+
+
+
