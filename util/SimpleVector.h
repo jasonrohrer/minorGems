@@ -33,6 +33,7 @@
 *		Jason Rohrer	1-28-2010	Data protected for subclass access.
 *		Jason Rohrer	4-28-2010	Fast version of getElement.
 *		Jason Rohrer	5-14-2010	String parameters as const to fix warnings.
+*		Jason Rohrer	11-2-2010	Added appendArray function.
 */
 
 #include "minorGems/common.h"
@@ -149,7 +150,18 @@ class SimpleVector {
          *   Must be destroyed by caller.
 		 */
 		void appendElementString( const char *inString );
+        
 
+
+        /**
+		 * Appends elements from an array.
+		 *
+		 * @param inArray elements to append to this vector.
+         *   Must be destroyed by caller.
+         * @param inSize the number of elements to append.
+		 */
+        void appendArray( Type *inArray, int inSize );
+        
 
         
 	protected:
@@ -439,12 +451,8 @@ inline char *SimpleVector<char>::getElementString() {
 
 template <>
 inline void SimpleVector<char>::appendElementString( const char *inString ) {
-    // slow but correct
-    
     unsigned int numChars = strlen( inString );
-    for( unsigned int i=0; i<numChars; i++ ) {
-        push_back( inString[i] );
-        }
+    appendArray( (char*)inString, numChars );
     }
 
 
@@ -454,6 +462,18 @@ inline void SimpleVector<char>::setElementString( const char *inString ) {
     deleteAll();
 
     appendElementString( inString );
+    }
+
+
+
+
+template <class Type>
+inline void SimpleVector<Type>::appendArray( Type *inArray, int inSize ) {
+    // slow but correct
+    
+    for( int i=0; i<inSize; i++ ) {
+        push_back( inArray[i] );
+        }
     }
 
 
