@@ -637,10 +637,9 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
         KeyboardHandlerGL *handler 
 			= *( currentScreenGL->mKeyboardHandlerVector->getElement( h ) );
         handler->mHandlerFlagged = true;
-        }
-
+        }    
 		
-	// fire to all handlers
+	// fire to all handlers, stop if eaten
 	for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
 		KeyboardHandlerGL *handler 
 			= *( currentScreenGL->mKeyboardHandlerVector->getElement( h ) );
@@ -650,9 +649,16 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
             // of the focused handlers
             if( !someFocused || handler->isFocused() ) {
                 handler->keyPressed( inKey, inX, inY );
+                if( handler->mEatEvent ) {
+                    handler->mEatEvent = false;
+                    goto down_eaten;                  
+                    }
                 }
             }
 		}
+
+    down_eaten:
+    
 
 
     // deflag for next time
@@ -680,7 +686,7 @@ void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
         handler->mHandlerFlagged = true;
         }
 
-	// fire to all handlers
+	// fire to all handlers, stop if eaten
 	for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
 		KeyboardHandlerGL *handler 
 			= *( currentScreenGL->mKeyboardHandlerVector->getElement( h ) );
@@ -691,9 +697,16 @@ void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
             // of the focused handlers
             if( !someFocused || handler->isFocused() ) {
                 handler->keyReleased( inKey, inX, inY );
+                if( handler->mEatEvent ) {
+                    handler->mEatEvent = false;
+                    goto up_eaten;                  
+                    }
                 }
             }
         }
+
+    up_eaten:
+    
 
     // deflag for next time
     for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
@@ -722,7 +735,7 @@ void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
         }
 
 
-	// fire to all handlers
+	// fire to all handlers, stop if eaten
 	for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
 		KeyboardHandlerGL *handler 
 			= *( currentScreenGL->mKeyboardHandlerVector->getElement( h ) );
@@ -733,10 +746,16 @@ void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
             // of the focused handlers
             if( !someFocused || handler->isFocused() ) {
                 handler->specialKeyPressed( inKey, inX, inY );
+                if( handler->mEatEvent ) {
+                    handler->mEatEvent = false;
+                    goto special_down_eaten;                  
+                    }
                 }
             }
         }
 
+    special_down_eaten:
+    
     // deflag for next time
     for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
         KeyboardHandlerGL *handler 
@@ -762,7 +781,7 @@ void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
         handler->mHandlerFlagged = true;
         }
 	
-	// fire to all handlers
+	// fire to all handlers, stop if eaten
 	for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
 		KeyboardHandlerGL *handler 
 			= *( currentScreenGL->mKeyboardHandlerVector->getElement( h ) );
@@ -773,10 +792,16 @@ void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
             // of the focused handlers
             if( !someFocused || handler->isFocused() ) {
                 handler->specialKeyReleased( inKey, inX, inY );
+                if( handler->mEatEvent ) {
+                    handler->mEatEvent = false;
+                    goto special_up_eaten;                  
+                    }
                 }
             }
         }
 
+    special_up_eaten:
+    
     // deflag for next time
     for( h=0; h<currentScreenGL->mKeyboardHandlerVector->size(); h++ ) {
         KeyboardHandlerGL *handler 

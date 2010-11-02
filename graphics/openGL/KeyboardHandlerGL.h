@@ -18,6 +18,9 @@
  *
  * 2010-April-6 	Jason Rohrer
  * Blocked event passing to handlers that were added by event.
+ *
+ * 2010-November-2 	Jason Rohrer
+ * Support for eating key events.
  */
  
  
@@ -136,11 +139,18 @@ class KeyboardHandlerGL {
 
 
         char mHandlerFlagged;
+
+        // set to true by a handler if this key even was consumed
+        // specially by the handler and should not be passed on to other
+        // listening handlers
+        char mEatEvent;
+        
 			
     protected:
         
         KeyboardHandlerGL()
-                : mHandlerFlagged( false ) {
+                : mHandlerFlagged( false ),
+                  mEatEvent( false ) {
             }
 		
 	};
