@@ -60,6 +60,9 @@
  *
  * 2010-September-9   Jason Rohrer
  * Moved frame rate limit into ScreenGL class.
+ *
+ * 2010-November-2   Jason Rohrer
+ * Support for controlling order of keyboard handlers.
  */
  
  
@@ -311,10 +314,13 @@ class ScreenGL {
 		 *
 		 * @param inHandler the handler to add  Must 
 		 *   be destroyed by caller.
+         * @param inFirstHandler true to put this handler ahead of
+         *   existing handlers in the list.
 		 *
 		 * Must not be called after calling start().
 		 */
-		void addKeyboardHandler( KeyboardHandlerGL *inHandler );
+		void addKeyboardHandler( KeyboardHandlerGL *inHandler,
+                                 char inFirstHandler = false );
 		
 
 		
@@ -556,8 +562,22 @@ inline void ScreenGL::removeMouseHandler( MouseHandlerGL *inListener ) {
 
 
 
-inline void ScreenGL::addKeyboardHandler( KeyboardHandlerGL *inListener ) {
-	mKeyboardHandlerVector->push_back( inListener );
+inline void ScreenGL::addKeyboardHandler( KeyboardHandlerGL *inListener,
+                                          char inFirstHandler ) {
+	if( !inFirstHandler ) {
+        mKeyboardHandlerVector->push_back( inListener );
+        }
+    else {
+        int numExisting= mKeyboardHandlerVector->size();
+        KeyboardHandlerGL **oldHandlers = 
+            mKeyboardHandlerVector->getElementArray();
+        
+        mKeyboardHandlerVector->deleteAll();
+        
+        mKeyboardHandlerVector->push_back( inListener );
+        mKeyboardHandlerVector->appendArray( oldHandlers, numExisting );
+        delete [] oldHandlers;
+        }
 	}
 		
 
