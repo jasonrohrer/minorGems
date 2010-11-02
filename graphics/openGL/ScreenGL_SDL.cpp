@@ -52,6 +52,9 @@
  *
  * 2010-September-9   Jason Rohrer
  * Moved frame rate limit into ScreenGL class.
+ *
+ * 2010-November-2 	Jason Rohrer
+ * Support for eating key events.
  */
 
 
