@@ -309,7 +309,8 @@ void ScreenGL::start() {
 
 
     // oversleep on last loop (discount it from next sleep)
-    unsigned long oversleepMSec = 0;
+    // can be negative (add to next sleep)
+    int oversleepMSec = 0;
     
     
     // main loop
@@ -469,14 +470,14 @@ void ScreenGL::start() {
         // now all events handled, actually draw the screen
         callbackDisplay();
 
-        unsigned long frameTime =
+        int frameTime =
             Time::getMillisecondsSince( frameStartSec, frameStartMSec );
         
     
         // lock down to mMaxFrameRate frames per second
-        unsigned long minFrameTime = (unsigned long)( 1000 / mMaxFrameRate );
+        int minFrameTime = 1000 / mMaxFrameRate;
         if( ( frameTime + oversleepMSec ) < minFrameTime ) {
-            unsigned int timeToSleep = 
+            int timeToSleep = 
                 minFrameTime - ( frameTime + oversleepMSec );
         
             //SDL_Delay( timeToSleep );
@@ -485,13 +486,11 @@ void ScreenGL::start() {
             
             Thread::staticSleep( timeToSleep );
 
-            unsigned int actualSleepTime = 
+            int actualSleepTime = 
                 Time::getMillisecondsSince( sleepStartSec, sleepStartMSec );
-            
-            if( actualSleepTime - timeToSleep > 0 ) {
-                oversleepMSec = actualSleepTime - timeToSleep;
-                }
-            }
+	    
+	    oversleepMSec = actualSleepTime - timeToSleep;
+	    }
         else { 
             oversleepMSec = 0;
             }
