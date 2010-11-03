@@ -55,6 +55,9 @@
  *
  * 2010-November-2 	Jason Rohrer
  * Support for eating key events.
+ *
+ * 2010-November-3 	Jason Rohrer
+ * Fixed frame timing on platforms where sleeps can be shorter than requested.
  */
 
 
@@ -488,9 +491,9 @@ void ScreenGL::start() {
 
             int actualSleepTime = 
                 Time::getMillisecondsSince( sleepStartSec, sleepStartMSec );
-	    
-	    oversleepMSec = actualSleepTime - timeToSleep;
-	    }
+            
+            oversleepMSec = actualSleepTime - timeToSleep;
+            }
         else { 
             oversleepMSec = 0;
             }
