@@ -85,6 +85,9 @@ int screenWidth = 640;
 int screenHeight = 480;
 
 
+int targetFrameRate = 60;
+
+
 char hardToQuitMode = false;
 
 
@@ -301,13 +304,26 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
     char fullscreen = true;
     
-    if( readFullscreen == 0 ) {
+    if( fullscreenFound && readFullscreen == 0 ) {
         fullscreen = false;
+        }
+
+
+    char frameRateFound = false;
+    int readFrameRate = SettingsManager::getIntSetting( "halfFrameRate", 
+                                                         &frameRateFound );
+
+    if( frameRateFound && readFrameRate == 1 ) {
+        // cut frame rate in half
+        targetFrameRate /= 2;
         }
     
 
+    
+
+
     screen =
-        new ScreenGL( screenWidth, screenHeight, fullscreen, 30, 
+        new ScreenGL( screenWidth, screenHeight, fullscreen, targetFrameRate, 
                       getWindowTitle(), NULL, NULL, NULL );
 
     // may change if specified resolution is not supported
@@ -362,7 +378,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
     //glLineWidth( pixelZoomFactor );
 
-    initFrameDrawer( screenWidth, screenHeight );
+    initFrameDrawer( screenWidth, screenHeight, targetFrameRate );
 
     screen->start();
 

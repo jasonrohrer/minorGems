@@ -11,7 +11,7 @@
 const char *getWindowTitle();
 
 
-void initFrameDrawer( int inWidth, int inHeight );
+void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate );
 
 
 // called at application termination
