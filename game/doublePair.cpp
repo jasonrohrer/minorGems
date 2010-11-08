@@ -50,6 +50,12 @@ doublePair normalize( doublePair inP ) {
     }
 
 
+doublePair forceLength( doublePair inP, double inLength ) {
+    return mult( normalize( inP ), inLength );
+    }
+
+
+
 
 
 double distance( doublePair inA, doublePair inB ) {

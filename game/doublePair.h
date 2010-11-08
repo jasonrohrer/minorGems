@@ -19,6 +19,11 @@ doublePair mult( doublePair inP, double inV );
 
 doublePair normalize( doublePair inP );
 
+// same direction, new length
+doublePair forceLength( doublePair inP, double inLength );
+
+
+
 
 double distance( doublePair inA, doublePair inB );
 
