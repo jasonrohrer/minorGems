@@ -676,8 +676,8 @@ void GameSceneHandler::keyPressed(
         }
     
     if( !hardToQuitMode ) {
-        // q or escape
-        if( inKey == 'q' || inKey == 'Q' || inKey == 27 ) {
+        // escape only
+        if( inKey == 27 ) {
             exit( 0 );
             }
         }
