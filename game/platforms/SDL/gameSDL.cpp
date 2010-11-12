@@ -671,7 +671,7 @@ void GameSceneHandler::keyPressed(
             }
         if( inKey == '&' ) {
             // normal
-            mScreen->setMaxFrameRate( 30 );
+            mScreen->setMaxFrameRate( targetFrameRate );
             }
         }
     
