@@ -313,9 +313,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     int readFrameRate = SettingsManager::getIntSetting( "halfFrameRate", 
                                                          &frameRateFound );
 
-    if( frameRateFound && readFrameRate == 1 ) {
-        // cut frame rate in half
-        targetFrameRate /= 2;
+    if( frameRateFound && readFrameRate >= 1 ) {
+        // cut frame rate in half N times
+        targetFrameRate /= (int)pow( 2, readFrameRate );
         }
     
 
