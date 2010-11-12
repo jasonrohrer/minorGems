@@ -366,6 +366,46 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     if( readHardToQuit == 1 ) {
         hardToQuitMode = true;
         }
+
+
+    
+    // translation language
+    File languageNameFile( NULL, "language.txt" );
+
+    if( languageNameFile.exists() ) {
+        char *languageNameText = languageNameFile.readFileContents();
+
+        SimpleVector<char *> *tokens = tokenizeString( languageNameText );
+
+        int numTokens = tokens->size();
+        
+        // first token is name
+        if( numTokens > 0 ) {
+            char *languageName = *( tokens->getElement( 0 ) );
+        
+            TranslationManager::setLanguage( languageName );
+            }
+        else {
+            // default
+
+            // TranslationManager already defaults to English, but
+            // it looks for the language files at runtime before we have set
+            // the current working directory.
+            
+            // Thus, we specify the default again here so that it looks
+            // for its language files again.
+            TranslationManager::setLanguage( "English" );
+            }
+        
+        delete [] languageNameText;
+
+        for( int t=0; t<numTokens; t++ ) {
+            delete [] *( tokens->getElement( t ) );
+            }
+        delete tokens;
+        }
+
+
     
         
     // register cleanup function, since screen->start() will never return
@@ -760,6 +800,13 @@ SpriteHandle loadSprite( const char *inTGAFileName,
         return sprite;
         }
     }
+
+
+
+const char *translate( const char *inTranslationKey ) {
+    return TranslationManager::translate( inTranslationKey );
+    }
+
 
 
 

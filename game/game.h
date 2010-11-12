@@ -134,3 +134,8 @@ void setMouseReportingMode( char inWorldCoordinates );
 // motion events that happened before warp)
 // returns new mouse position
 void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY );
+
+
+
+// returns translation of key using current language
+const char *translate( const char *inTranslationKey );
