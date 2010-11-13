@@ -418,7 +418,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
     //glLineWidth( pixelZoomFactor );
 
-    initFrameDrawer( screenWidth, screenHeight, targetFrameRate );
+    initFrameDrawer( pixelZoomFactor * gameWidth, 
+                     pixelZoomFactor * gameHeight, 
+                     targetFrameRate );
 
     screen->start();
 
