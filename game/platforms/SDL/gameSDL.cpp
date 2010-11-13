@@ -437,7 +437,7 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( time( NULL ) ),
       mFrameBatchStartTimeMilliseconds( 0 ),
-      mBackgroundColor( 0, 0, 0.5, 1 ) { 
+      mBackgroundColor( 0, 0, 0, 1 ) { 
     
     
     glClearColor( mBackgroundColor.r,
