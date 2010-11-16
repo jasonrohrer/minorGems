@@ -55,6 +55,12 @@ doublePair forceLength( doublePair inP, double inLength ) {
     }
 
 
+double length( doublePair inP ) {
+    return sqrt( inP.x * inP.x + inP.y * inP.y );
+    }
+
+
+
 
 
 
