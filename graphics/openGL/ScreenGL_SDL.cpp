@@ -367,7 +367,7 @@ void ScreenGL::start() {
                          ( ( mods & KMOD_META ) || ( mods & KMOD_ALT )
                            || ( mods & KMOD_CTRL ) ) )
                        ||
-                       ( event.key.keysym.unicode & 0xFF == 17 ) ) ) {
+                       ( ( event.key.keysym.unicode & 0xFF ) == 17 ) ) ) {
                 
                 // map to 27, escape
                 int mouseX, mouseY;
