@@ -290,7 +290,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                              mRandSeed,
                              mMaxFrameRate, mWide, mHigh, fullScreenFlag );
                     }
-                
+
+                delete [] fullFileName;                
                 }
             delete file;
             }
