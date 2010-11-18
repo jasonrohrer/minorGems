@@ -58,6 +58,9 @@
  *
  * 2010-November-3 	Jason Rohrer
  * Fixed frame timing on platforms where sleeps can be shorter than requested.
+ *
+ * 2010-November-17   Jason Rohrer
+ * Added input recording and playback.
  */
 
 
@@ -76,6 +79,7 @@
 
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/util/log/AppLog.h"
+#include "minorGems/io/file/File.h"
 
 #include "minorGems/system/Time.h"
 #include "minorGems/system/Thread.h"
@@ -95,6 +99,7 @@
  * SDL doesn't even require C callbacks (you provide the event loop).
  */
 ScreenGL *currentScreenGL;
+
 
 
 // maps SDL-specific special (non-ASCII) key-codes (SDLK) to minorGems key 
@@ -162,10 +167,14 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     SDL_EnableUNICODE( true );
     
     
+    mRecordingEvents = true;
+    mEventFile = NULL;
+    
 
-	
-	
-	}
+
+
+
+    }
 
 
 
@@ -176,6 +185,17 @@ ScreenGL::~ScreenGL() {
 	delete mMouseHandlerVector;
 	delete mKeyboardHandlerVector;
 	delete mSceneHandlerVector;
+
+    if( mRecordingEvents ) {    
+        writeEventBatchToFile();
+        }
+    
+    if( mEventFile != NULL ) {
+        fclose( mEventFile );
+        mEventFile = NULL;
+        }
+        
+    
 	}
 
 
@@ -302,6 +322,122 @@ void ScreenGL::setupSurface() {
 
 
 
+void ScreenGL::writeEventBatchToFile() {
+    
+    int numInBatch = mEventBatch.size();
+            
+    if( mEventFile != NULL ) {
+        if( numInBatch > 0 ) {
+            
+            char **allEvents = mEventBatch.getElementArray();
+            char *eventString = join( allEvents, numInBatch, " " );
+            
+            fprintf( mEventFile, "%d %s\n", numInBatch, eventString );
+        
+            
+            delete [] allEvents;
+            delete [] eventString;
+            }
+        else {
+            fprintf( mEventFile, "0\n" );
+            }
+        
+        fflush( mEventFile );
+        }
+            
+    for( int i=0; i<numInBatch; i++ ) {
+        delete [] *( mEventBatch.getElement( i ) );
+        }
+    mEventBatch.deleteAll();
+    }
+
+
+
+void ScreenGL::playNextEventBatch() {
+    // read and playback next batch
+    int batchSize = 0;
+    fscanf( mEventFile, "%d", &batchSize );
+            
+    for( int i=0; i<batchSize; i++ ) {
+                
+        char code[3];
+        code[0] = '\0';
+                
+        fscanf( mEventFile, "%2s", code );
+                
+        switch( code[0] ) {
+            case 'm':
+                switch( code[1] ) {
+                    case 'm': {
+                        int x, y;
+                        fscanf( mEventFile, "%d %d", &x, &y );
+                                
+                        callbackPassiveMotion( x, y );
+                        }
+                        break;
+                    case 'd': {
+                        int x, y;
+                        fscanf( mEventFile, "%d %d", &x, &y );
+                                
+                        callbackMotion( x, y );
+                        }
+                        break;
+                    case 'b': {
+                        int button, state, x, y;
+                        fscanf( mEventFile, "%d %d %d %d", 
+                                &button, &state, &x, &y );
+                                
+                        if( state == 1 ) {
+                            state = SDL_PRESSED;
+                            }
+                        else {
+                            state = SDL_RELEASED;
+                            }
+                        
+                        callbackMouse( button, state, x, y );
+                        }
+                        break;
+                    }
+                break;
+            case 'k': {
+                int c, x, y;
+                fscanf( mEventFile, "%d %d %d", &c, &x, &y );
+
+                switch( code[1] ) {
+                    case 'd':          
+                        callbackKeyboard( c, x, y );
+                        break;
+                    case 'u':
+                        callbackKeyboardUp( c, x, y );                        
+                        break;
+                    }
+                }
+                break;
+            case 's': {
+                int c, x, y;
+                fscanf( mEventFile, "%d %d %d", &c, &x, &y );
+
+                switch( code[1] ) {
+                    case 'd':          
+                        callbackSpecialKeyboard( c, x, y );
+                        break;
+                    case 'u':
+                        callbackSpecialKeyboardUp( c, x, y );
+                        break;
+                    }
+                }
+                break;
+            default:
+                AppLog::error( "Unknown code '%s' in playback file\n",
+                               code );
+            }            
+        
+        }
+    }
+
+
+
+
 
 void ScreenGL::start() {
 	currentScreenGL = this;
@@ -314,6 +450,86 @@ void ScreenGL::start() {
     // oversleep on last loop (discount it from next sleep)
     // can be negative (add to next sleep)
     int oversleepMSec = 0;
+
+
+
+    // playback overrides recording, check for it first
+
+    File playbackDir( NULL, "playbackGame" );
+    
+    if( !playbackDir.exists() ) {
+        playbackDir.makeDirectory();
+        }
+    
+    int numChildren;
+    File **childFiles = playbackDir.getChildFiles( &numChildren );
+
+    if( numChildren > 0 ) {
+        mRecordingEvents = false;
+        mPlaybackEvents = true;
+
+        // take first
+        char *fullFileName = childFiles[0]->getFullFileName();
+                
+        mEventFile = fopen( fullFileName, "r" );
+
+        if( mEventFile == NULL ) {
+            AppLog::error( "Failed to open event playback file" );
+            }
+        else {
+            fscanf( mEventFile, "%d fps\n", &mMaxFrameRate );
+            }
+        delete [] fullFileName;
+
+        for( int i=0; i<numChildren; i++ ) {
+            delete childFiles[i];
+            }
+        }
+    delete [] childFiles;
+
+
+
+    if( mRecordingEvents ) {
+        File recordedGameDir( NULL, "recordedGames" );
+    
+        if( !recordedGameDir.exists() ) {
+            recordedGameDir.makeDirectory();
+            }
+
+
+        // find next event recording file
+        int fileNumber = 0;
+        
+        char hit = true;
+
+        while( hit ) {
+            fileNumber++;
+            char *fileName = autoSprintf( "recordedGame%05d.txt", 
+                                          fileNumber );
+            File *file = recordedGameDir.getChildFile( fileName );
+            
+            delete [] fileName;
+            
+            if( !file->exists() ) {
+                hit = false;
+            
+                char *fullFileName = file->getFullFileName();
+                
+                mEventFile = fopen( fullFileName, "w" );
+
+                if( mEventFile == NULL ) {
+                    AppLog::error( "Failed to open event recording file" );
+                    }
+                else {
+                    fprintf( mEventFile, "%d fps\n", mMaxFrameRate );
+                    }
+                
+                }
+            delete file;
+            }
+        }
+    
+        
     
     
     // main loop
@@ -335,9 +551,11 @@ void ScreenGL::start() {
         // that happened before any sleep called during the pre-display).
         // This makes controls much more responsive.
 
+        
+
         SDL_Event event;
         
-        while( SDL_PollEvent( &event ) ) {
+        while( !mPlaybackEvents && SDL_PollEvent( &event ) ) {
             
             SDLMod mods = SDL_GetModState();
 
@@ -470,6 +688,20 @@ void ScreenGL::start() {
             
             }
 
+        
+
+        // record them?
+        if( mRecordingEvents ) {
+            writeEventBatchToFile();
+            }
+
+        if( mPlaybackEvents && mEventFile != NULL ) {
+            playNextEventBatch();
+            }
+        
+
+
+
         // now all events handled, actually draw the screen
         callbackDisplay();
 
@@ -506,6 +738,12 @@ void ScreenGL::start() {
 
 void ScreenGL::setMaxFrameRate( unsigned int inMaxFrameRate ) {
     mMaxFrameRate = inMaxFrameRate;
+    }
+
+
+
+unsigned int ScreenGL::getMaxFramerate() {
+    return mMaxFrameRate;
     }
 
 
@@ -630,6 +868,13 @@ void callbackResize( int inW, int inH ) {
 
 
 void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
+    if( currentScreenGL->mRecordingEvents ) {
+        char *eventString = autoSprintf( "kd %d %d %d", inKey, inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+
+
 	char someFocused = currentScreenGL->isKeyboardHandlerFocused();
 
     int h;
@@ -677,6 +922,12 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
 
 
 void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
+    if( currentScreenGL->mRecordingEvents ) {
+        char *eventString = autoSprintf( "ku %d %d %d", inKey, inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+
 	char someFocused = currentScreenGL->isKeyboardHandlerFocused();
 	
     int h;
@@ -725,6 +976,13 @@ void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
 	
 	
 void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
+    if( currentScreenGL->mRecordingEvents ) {
+        char *eventString = autoSprintf( "sd %d %d %d", inKey, inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+
+
 	char someFocused = currentScreenGL->isKeyboardHandlerFocused();
 	
     int h;
@@ -772,6 +1030,13 @@ void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
 
 
 void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
+    if( currentScreenGL->mRecordingEvents ) {
+        char *eventString = autoSprintf( "su %d %d %d", inKey, inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+
+
 	char someFocused = currentScreenGL->isKeyboardHandlerFocused();
 
     int h;
@@ -819,6 +1084,12 @@ void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
 
 	
 void callbackMotion( int inX, int inY ) {
+    if( currentScreenGL->mRecordingEvents ) {
+        char *eventString = autoSprintf( "md %d %d", inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+
 	// fire to all handlers
     int h;
     // flag those that exist right now
@@ -851,6 +1122,13 @@ void callbackMotion( int inX, int inY ) {
 
 
 void callbackPassiveMotion( int inX, int inY ) {
+
+    if( currentScreenGL->mRecordingEvents ) {
+        char *eventString = autoSprintf( "mm %d %d", inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+
 	// fire to all handlers
     int h;
     // flag those that exist right now
@@ -889,6 +1167,18 @@ void callbackMouse( int inButton, int inState, int inX, int inY ) {
     if( inButton == SDL_BUTTON_WHEELUP ||
         inButton == SDL_BUTTON_WHEELDOWN ) {
         return;
+        }
+    
+    if( currentScreenGL->mRecordingEvents ) {
+        int stateEncoding = 0;
+        if( inState == SDL_PRESSED ) {
+            stateEncoding = 1;
+            }
+        
+        char *eventString = autoSprintf( "mb %d %d %d %d",
+                                         inButton, stateEncoding, inX, inY );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
         }
     
 

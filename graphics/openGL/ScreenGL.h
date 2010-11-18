@@ -63,6 +63,9 @@
  *
  * 2010-November-2   Jason Rohrer
  * Support for controlling order of keyboard handlers.
+ *
+ * 2010-November-17   Jason Rohrer
+ * Added input recording and playback.
  */
  
  
@@ -163,7 +166,9 @@ class ScreenGL {
 		
         
         void setMaxFrameRate( unsigned int inMaxFrameRate );
-
+        
+        unsigned int getMaxFramerate();
+        
 
         /**
          * Switches to 2D mode, where no view transforms are applied
@@ -467,7 +472,16 @@ class ScreenGL {
 		 * @return true iff at least one keyboard handler is focused.
 		 */
 		char isKeyboardHandlerFocused();
+        
 
+        // for event recording
+        SimpleVector<char*> mEventBatch;
+        char mRecordingEvents;
+        char mPlaybackEvents;
+        FILE *mEventFile;
+
+        void writeEventBatchToFile();
+        void playNextEventBatch();
 
 		
 	};
