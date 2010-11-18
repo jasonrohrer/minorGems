@@ -171,7 +171,82 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mEventFile = NULL;
     
 
+    
+        // playback overrides recording, check for it first
 
+    File playbackDir( NULL, "playbackGame" );
+    
+    if( !playbackDir.exists() ) {
+        playbackDir.makeDirectory();
+        }
+    
+    int numChildren;
+    File **childFiles = playbackDir.getChildFiles( &numChildren );
+
+    if( numChildren > 0 ) {
+        mRecordingEvents = false;
+        mPlaybackEvents = true;
+
+        // take first
+        char *fullFileName = childFiles[0]->getFullFileName();
+                
+        mEventFile = fopen( fullFileName, "r" );
+
+        if( mEventFile == NULL ) {
+            AppLog::error( "Failed to open event playback file" );
+            }
+        else {
+            fscanf( mEventFile, "%d fps\n", &mMaxFrameRate );
+            }
+        delete [] fullFileName;
+
+        for( int i=0; i<numChildren; i++ ) {
+            delete childFiles[i];
+            }
+        }
+    delete [] childFiles;
+    
+
+
+    if( mRecordingEvents ) {
+        File recordedGameDir( NULL, "recordedGames" );
+    
+        if( !recordedGameDir.exists() ) {
+            recordedGameDir.makeDirectory();
+            }
+
+
+        // find next event recording file
+        int fileNumber = 0;
+        
+        char hit = true;
+
+        while( hit ) {
+            fileNumber++;
+            char *fileName = autoSprintf( "recordedGame%05d.txt", 
+                                          fileNumber );
+            File *file = recordedGameDir.getChildFile( fileName );
+            
+            delete [] fileName;
+            
+            if( !file->exists() ) {
+                hit = false;
+            
+                char *fullFileName = file->getFullFileName();
+                
+                mEventFile = fopen( fullFileName, "w" );
+
+                if( mEventFile == NULL ) {
+                    AppLog::error( "Failed to open event recording file" );
+                    }
+                else {
+                    fprintf( mEventFile, "%d fps\n", mMaxFrameRate );
+                    }
+                
+                }
+            delete file;
+            }
+        }
 
 
     }
@@ -453,81 +528,9 @@ void ScreenGL::start() {
 
 
 
-    // playback overrides recording, check for it first
-
-    File playbackDir( NULL, "playbackGame" );
-    
-    if( !playbackDir.exists() ) {
-        playbackDir.makeDirectory();
-        }
-    
-    int numChildren;
-    File **childFiles = playbackDir.getChildFiles( &numChildren );
-
-    if( numChildren > 0 ) {
-        mRecordingEvents = false;
-        mPlaybackEvents = true;
-
-        // take first
-        char *fullFileName = childFiles[0]->getFullFileName();
-                
-        mEventFile = fopen( fullFileName, "r" );
-
-        if( mEventFile == NULL ) {
-            AppLog::error( "Failed to open event playback file" );
-            }
-        else {
-            fscanf( mEventFile, "%d fps\n", &mMaxFrameRate );
-            }
-        delete [] fullFileName;
-
-        for( int i=0; i<numChildren; i++ ) {
-            delete childFiles[i];
-            }
-        }
-    delete [] childFiles;
 
 
 
-    if( mRecordingEvents ) {
-        File recordedGameDir( NULL, "recordedGames" );
-    
-        if( !recordedGameDir.exists() ) {
-            recordedGameDir.makeDirectory();
-            }
-
-
-        // find next event recording file
-        int fileNumber = 0;
-        
-        char hit = true;
-
-        while( hit ) {
-            fileNumber++;
-            char *fileName = autoSprintf( "recordedGame%05d.txt", 
-                                          fileNumber );
-            File *file = recordedGameDir.getChildFile( fileName );
-            
-            delete [] fileName;
-            
-            if( !file->exists() ) {
-                hit = false;
-            
-                char *fullFileName = file->getFullFileName();
-                
-                mEventFile = fopen( fullFileName, "w" );
-
-                if( mEventFile == NULL ) {
-                    AppLog::error( "Failed to open event recording file" );
-                    }
-                else {
-                    fprintf( mEventFile, "%d fps\n", mMaxFrameRate );
-                    }
-                
-                }
-            delete file;
-            }
-        }
     
         
     

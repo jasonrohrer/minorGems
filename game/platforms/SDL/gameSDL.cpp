@@ -327,9 +327,12 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                       getWindowTitle(), NULL, NULL, NULL );
 
     // may change if specified resolution is not supported
+    // or for event playback mode
     screenWidth = screen->getWidth();
     screenHeight = screen->getHeight();
+    targetFrameRate = screen->getMaxFramerate();
     
+
     /*
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY,
                          SDL_DEFAULT_REPEAT_INTERVAL );
