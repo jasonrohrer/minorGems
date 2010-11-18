@@ -48,6 +48,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2010-November-18    Jason Rohrer
+ * Added upper-case function.
  */
 
 
@@ -101,6 +104,20 @@ inline char *stringDuplicate( const char *inString ) {
  *   Must be destroyed by caller.
  */
 char *stringToLowerCase( const char *inString  );
+
+
+
+/**
+ * Converts a string to upper case.
+ *
+ * @param inString the \0-terminated string to convert.
+ *   Must be destroyed by caller if non-const.
+ *
+ * @return a newly allocated \0-terminated string
+ *   that is a uppercase version of inString.
+ *   Must be destroyed by caller.
+ */
+char *stringToUpperCase( const char *inString  );
 
 
 

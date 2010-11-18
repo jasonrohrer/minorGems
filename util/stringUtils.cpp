@@ -57,6 +57,21 @@ char *stringToLowerCase( const char *inString  ) {
 
 
 
+char *stringToUpperCase( const char *inString  ) {
+
+    unsigned int length = strlen( inString );
+
+    char *returnString = stringDuplicate( inString );
+    
+    for( unsigned int i=0; i<length; i++ ) {
+        returnString[i] = (char)toupper( returnString[i] );
+        }
+
+    return returnString;
+    }
+
+
+
 char *stringLocateIgnoreCase( const char *inHaystack,
                               const char *inNeedle ) {
 
