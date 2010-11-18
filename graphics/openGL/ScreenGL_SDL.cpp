@@ -61,6 +61,9 @@
  *
  * 2010-November-17   Jason Rohrer
  * Added input recording and playback.
+ *
+ * 2010-November-18   Jason Rohrer
+ * Record and playback rand seed.
  */
 
 
@@ -76,6 +79,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
+
 
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/util/log/AppLog.h"
@@ -154,7 +159,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 		addSceneHandler( inSceneHandler );
 		}
 
-
+    
+    mRandSeed = time( NULL );
+    
     
     mRecordingEvents = inRecordEvents;
     mPlaybackEvents = false;
@@ -185,8 +192,14 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
             AppLog::error( "Failed to open event playback file" );
             }
         else {
+            AppLog::getLog()->logPrintf( 
+                Log::INFO_LEVEL,
+                "Playing back game from file %s", fullFileName );
+            
+            AppLog::info( "All resolutions available" );
             int fullScreenFlag;
-            fscanf( mEventFile, "%d fps, %dx%d fullScreen=%d\n", 
+            fscanf( mEventFile, "%u seed, %u fps, %dx%d fullScreen=%d\n",
+                    &mRandSeed,
                     &mMaxFrameRate,
                     &mWide, &mHigh, &fullScreenFlag );
 
@@ -264,11 +277,17 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     AppLog::error( "Failed to open event recording file" );
                     }
                 else {
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Recording game into file %s", fullFileName );
+
                     int fullScreenFlag = 0;
                     if( mFullScreen ) {
                         fullScreenFlag = 1;
                         }
-                    fprintf( mEventFile, "%d fps, %dx%d fullScreen=%d\n", 
+                    fprintf( mEventFile, 
+                             "%u seed, %u fps, %dx%d fullScreen=%d\n",
+                             mRandSeed,
                              mMaxFrameRate, mWide, mHigh, fullScreenFlag );
                     }
                 
@@ -832,6 +851,11 @@ void ScreenGL::setMaxFrameRate( unsigned int inMaxFrameRate ) {
 
 unsigned int ScreenGL::getMaxFramerate() {
     return mMaxFrameRate;
+    }
+
+
+unsigned int ScreenGL::getRandSeed() {
+    return mRandSeed;
     }
 
 

@@ -97,6 +97,9 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes );
 // These are called BY game engine (implemented by supporting platform)
 
 
+unsigned int getRandSeed();
+
+
 
 // true to start or resume playing
 // false to pause

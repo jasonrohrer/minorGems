@@ -511,6 +511,13 @@ static void redoDrawMatrix() {
 
 
 
+unsigned int getRandSeed() {
+    return screen->getRandSeed();
+    }
+
+
+
+
 void setViewCenterPosition( float inX, float inY ) {
     viewCenterX = inX;
     viewCenterY = inY;

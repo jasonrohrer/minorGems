@@ -66,6 +66,9 @@
  *
  * 2010-November-17   Jason Rohrer
  * Added input recording and playback.
+ *
+ * 2010-November-18   Jason Rohrer
+ * Record and playback rand seed.
  */
  
  
@@ -170,6 +173,12 @@ class ScreenGL {
         void setMaxFrameRate( unsigned int inMaxFrameRate );
         
         unsigned int getMaxFramerate();
+        
+
+        // enables rand seed to be recorded and played back with
+        // even playback
+        unsigned int getRandSeed();
+        
         
 
         /**
@@ -484,7 +493,10 @@ class ScreenGL {
 
         void writeEventBatchToFile();
         void playNextEventBatch();
+        
 
+        unsigned int mRandSeed;
+        
 		
 	};
 
