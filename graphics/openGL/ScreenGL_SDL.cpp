@@ -744,6 +744,7 @@ void ScreenGL::start() {
 
 
             // dump events, but responde to ESC to stop playback
+            // let player take over from that point
             while( SDL_PollEvent( &event ) ) {
                 SDLMod mods = SDL_GetModState();
                 // map CTRL-q to ESC
@@ -760,7 +761,8 @@ void ScreenGL::start() {
                     int mouseX, mouseY;
                     SDL_GetMouseState( &mouseX, &mouseY );
                     
-                    callbackKeyboard( 27, mouseX, mouseY );    
+                    // stop playback
+                    mPlaybackEvents = false;
                     }
                 else {
                     switch( event.type ) {
@@ -768,7 +770,9 @@ void ScreenGL::start() {
                             // map to 27, escape
                             int mouseX, mouseY;
                             SDL_GetMouseState( &mouseX, &mouseY );
-
+                            
+                            // actual quit event, still pass through 
+                            // as ESC to signal a full quit
                             callbackKeyboard( 27, mouseX, mouseY );
                             }
                             break;
@@ -795,14 +799,46 @@ void ScreenGL::start() {
                                 int mouseX, mouseY;
                                 SDL_GetMouseState( &mouseX, &mouseY );
                                 
-                                callbackKeyboard( 27, mouseX, mouseY );
+                                // stop playback
+                                mPlaybackEvents = false;
                                 }
                             }
-                        }
-                    
+                        }                    
                     }
                 
                 }
+            
+            if( !mPlaybackEvents ) {
+                // playback ended
+                // send through full spectrum of release events
+                // so no presses linger after playback end
+               
+                int mouseX, mouseY;
+                SDL_GetMouseState( &mouseX, &mouseY );
+                callbackMouse( SDL_BUTTON_LEFT, 
+                               SDL_RELEASED, mouseX, mouseY );
+
+                callbackMouse( SDL_BUTTON_MIDDLE, 
+                               SDL_RELEASED, mouseX, mouseY );
+
+                callbackMouse( SDL_BUTTON_RIGHT, 
+                               SDL_RELEASED, mouseX, mouseY );
+
+                callbackMouse( SDL_BUTTON_WHEELUP, 
+                               SDL_RELEASED, mouseX, mouseY );
+
+                callbackMouse( SDL_BUTTON_WHEELDOWN, 
+                               SDL_RELEASED, mouseX, mouseY );
+
+                for( int i=0; i<255; i++ ) {
+                    callbackKeyboardUp( i, mouseX, mouseY );
+                    }
+                for( int i=MG_KEY_FIRST_CODE; i<=MG_KEY_LAST_CODE; i++ ) {
+                    callbackSpecialKeyboardUp( i, mouseX, mouseY );
+                    }
+                }
+            
+
             }
         
         

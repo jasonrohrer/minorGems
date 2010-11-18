@@ -21,6 +21,9 @@
  *
  * 2010-November-2 	Jason Rohrer
  * Support for eating key events.
+ *
+ * 2010-November-18 	Jason Rohrer
+ * Added first and last macros for walking through all keycodes.
  */
  
  
@@ -60,6 +63,11 @@
 #define  MG_KEY_LALT                      0x0075
 #define  MG_KEY_RMETA                     0x0076
 #define  MG_KEY_LMETA                     0x0077
+
+
+// bounds of key constants
+#define  MG_KEY_FIRST_CODE    MG_KEY_F1                     
+#define  MG_KEY_LAST_CODE     MG_KEY_LMETA                     
 
 
 
