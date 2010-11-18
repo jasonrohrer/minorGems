@@ -384,10 +384,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     
     // translation language
-    File languageNameFile( NULL, "language.txt" );
+    File *languageNameFile = new File( NULL, "language.txt" );
 
-    if( languageNameFile.exists() ) {
-        char *languageNameText = languageNameFile.readFileContents();
+    if( languageNameFile->exists() ) {
+        char *languageNameText = languageNameFile->readFileContents();
 
         SimpleVector<char *> *tokens = tokenizeString( languageNameText );
 
@@ -418,7 +418,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             }
         delete tokens;
         }
-
+    
+    delete languageNameFile;
+    
 
     
         
