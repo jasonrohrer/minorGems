@@ -125,6 +125,7 @@ void callbackIdle();
 
 ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     unsigned int inMaxFrameRate,
+                    char inRecordEvents,
                     const char *inWindowName,
 					KeyboardHandlerGL *inKeyHandler,
 					MouseHandlerGL *inMouseHandler,
@@ -155,7 +156,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 
 
     
-    mRecordingEvents = true;
+    mRecordingEvents = inRecordEvents;
+    mPlaybackEvents = false;
     mEventFile = NULL;
 
     // playback overrides recording, check for it first

@@ -320,10 +320,21 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
 
     
+    char recordFound = false;
+    int readRecordFlag = SettingsManager::getIntSetting( "recordGame", 
+                                                         &recordFound );
+    
+    char recordGame = false;
+    
+    if( recordFound && readRecordFlag == 1 ) {
+        recordGame = true;
+        }
+
 
 
     screen =
-        new ScreenGL( screenWidth, screenHeight, fullscreen, targetFrameRate, 
+        new ScreenGL( screenWidth, screenHeight, fullscreen, targetFrameRate,
+                      recordGame,
                       getWindowTitle(), NULL, NULL, NULL );
 
     // may change if specified resolution is not supported

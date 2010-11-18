@@ -132,6 +132,7 @@ class ScreenGL {
          *   an available screen resolution.
 		 * @param inWindowName name to be displayed on title bar of window.
          * @param inMaxFrameRate in frames per second.
+         * @param inRecordEvents true to record events to file.
 		 * @param inKeyHandler object that will receive keyboard events.
 		 *   NULL specifies no handler (defaults to NULL).
 		 *   Must be destroyed by caller.
@@ -145,6 +146,7 @@ class ScreenGL {
 		 */
 		ScreenGL( int inWide, int inHigh, char inFullScreen, 
 				  unsigned int inMaxFrameRate,
+                  char inRecordEvents,
                   const char *inWindowName,
 				  KeyboardHandlerGL *inKeyHandler = NULL,
 				  MouseHandlerGL *inMouseHandler = NULL,
