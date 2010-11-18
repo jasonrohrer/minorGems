@@ -554,13 +554,6 @@ void ScreenGL::start() {
     int oversleepMSec = 0;
 
 
-
-
-
-
-    
-        
-    
     
     // main loop
     while( true ) {
@@ -608,7 +601,7 @@ void ScreenGL::start() {
                 SingleTextureGL::contextChanged();
                 }
             // map CTRL-q to ESC
-            // 17 is "DC1" which is ctrl-z on some platforms
+            // 17 is "DC1" which is ctrl-q on some platforms
             else if( event.type == SDL_KEYDOWN &&
                      ( ( event.key.keysym.sym == SDLK_q
                          &&
@@ -727,7 +720,70 @@ void ScreenGL::start() {
 
         if( mPlaybackEvents && mEventFile != NULL ) {
             playNextEventBatch();
+
+
+            // dump events, but responde to ESC to stop playback
+            while( SDL_PollEvent( &event ) ) {
+                SDLMod mods = SDL_GetModState();
+                // map CTRL-q to ESC
+                // 17 is "DC1" which is ctrl-q on some platforms
+                if( event.type == SDL_KEYDOWN &&
+                    ( ( event.key.keysym.sym == SDLK_q
+                        &&
+                        ( ( mods & KMOD_META ) || ( mods & KMOD_ALT )
+                          || ( mods & KMOD_CTRL ) ) )
+                      ||
+                      ( ( event.key.keysym.unicode & 0xFF ) == 17 ) ) ) {
+                    
+                    // map to 27, escape
+                    int mouseX, mouseY;
+                    SDL_GetMouseState( &mouseX, &mouseY );
+                    
+                    callbackKeyboard( 27, mouseX, mouseY );    
+                    }
+                else {
+                    switch( event.type ) {
+                        case SDL_QUIT: {
+                            // map to 27, escape
+                            int mouseX, mouseY;
+                            SDL_GetMouseState( &mouseX, &mouseY );
+
+                            callbackKeyboard( 27, mouseX, mouseY );
+                            }
+                            break;
+                        case SDL_KEYDOWN: {
+                            
+                            unsigned char asciiKey;
+                            
+                            // try unicode first, 
+                            // if 8-bit clean (extended ASCII)
+                            if( ( event.key.keysym.unicode & 0xFF00 ) == 0 &&
+                                ( event.key.keysym.unicode & 0x00FF ) != 0 ) {
+                                asciiKey = event.key.keysym.unicode & 0xFF;
+                                }
+                            else {
+                                // else unicode-to-ascii failed
+
+                                // fall back
+                                asciiKey = 
+                                    mapSDLKeyToASCII( event.key.keysym.sym );
+                                }
+                            if( asciiKey == 27 ) {
+                                // pass ESC through
+                                // map to 27, escape
+                                int mouseX, mouseY;
+                                SDL_GetMouseState( &mouseX, &mouseY );
+                                
+                                callbackKeyboard( 27, mouseX, mouseY );
+                                }
+                            }
+                        }
+                    
+                    }
+                
+                }
             }
+        
         
 
 
