@@ -153,27 +153,14 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 		addSceneHandler( inSceneHandler );
 		}
 
-    mStartedFullScreen = mFullScreen;
 
-    setupSurface();
-    
-
-    SDL_WM_SetCaption( inWindowName, NULL );
-    
-
-    // turn off repeat
-    SDL_EnableKeyRepeat( 0, 0 );
-
-    SDL_EnableUNICODE( true );
-    
     
     mRecordingEvents = true;
     mEventFile = NULL;
-    
 
+    // playback overrides recording, check for it first
+    // do this before setting up surface
     
-        // playback overrides recording, check for it first
-
     File playbackDir( NULL, "playbackGame" );
     
     if( !playbackDir.exists() ) {
@@ -196,7 +183,20 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
             AppLog::error( "Failed to open event playback file" );
             }
         else {
-            fscanf( mEventFile, "%d fps\n", &mMaxFrameRate );
+            int fullScreenFlag;
+            fscanf( mEventFile, "%d fps, %dx%d fullScreen=%d\n", 
+                    &mMaxFrameRate,
+                    &mWide, &mHigh, &fullScreenFlag );
+
+            mImageWide = mWide;
+            mImageHigh = mHigh;
+            
+            if( fullScreenFlag ) {
+                mFullScreen = true;
+                }
+            else {
+                mFullScreen = false;
+                }
             }
         delete [] fullFileName;
 
@@ -205,6 +205,28 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
             }
         }
     delete [] childFiles;
+
+
+
+
+
+    mStartedFullScreen = mFullScreen;
+
+    setupSurface();
+    
+
+    SDL_WM_SetCaption( inWindowName, NULL );
+    
+
+    // turn off repeat
+    SDL_EnableKeyRepeat( 0, 0 );
+
+    SDL_EnableUNICODE( true );
+    
+    
+    
+
+    
     
 
 
@@ -240,7 +262,12 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     AppLog::error( "Failed to open event recording file" );
                     }
                 else {
-                    fprintf( mEventFile, "%d fps\n", mMaxFrameRate );
+                    int fullScreenFlag = 0;
+                    if( mFullScreen ) {
+                        fullScreenFlag = 1;
+                        }
+                    fprintf( mEventFile, "%d fps, %dx%d fullScreen=%d\n", 
+                             mMaxFrameRate, mWide, mHigh, fullScreenFlag );
                     }
                 
                 }
