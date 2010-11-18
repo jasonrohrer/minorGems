@@ -100,6 +100,11 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes );
 unsigned int getRandSeed();
 
 
+// when inFromKey is pressed, an event for inToKey will be generated
+// (and no event for inFromKey will be generated)
+void mapKey( unsigned char inFromKey, unsigned char inToKey );
+
+
 
 // true to start or resume playing
 // false to pause

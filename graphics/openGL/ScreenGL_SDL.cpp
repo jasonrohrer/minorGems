@@ -64,6 +64,7 @@
  *
  * 2010-November-18   Jason Rohrer
  * Record and playback rand seed.
+ * ASCII key mapping.
  */
 
 
@@ -113,6 +114,9 @@ int mapSDLSpecialKeyToMG( int inSDLKey );
 
 // for ascii key
 char mapSDLKeyToASCII( int inSDLKey );
+
+
+static unsigned char keyMap[256];
 
 
 
@@ -296,7 +300,12 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
             delete file;
             }
         }
+    
 
+    for( int i=0; i<256; i++ ) {
+        keyMap[i] = (unsigned char)i;
+        }
+    
 
     }
 
@@ -896,6 +905,17 @@ unsigned int ScreenGL::getRandSeed() {
     }
 
 
+void ScreenGL::setKeyMapping( unsigned char inFromKey,
+                              unsigned char inToKey ) {
+    keyMap[ inFromKey ] = inToKey;
+
+    AppLog::getLog()->logPrintf( 
+        Log::INFO_LEVEL,
+        "Mapping key '%c' to '%c'", inFromKey, inToKey );
+    }
+
+        
+
 
 
 void ScreenGL::switchTo2DMode() {
@@ -1017,6 +1037,11 @@ void callbackResize( int inW, int inH ) {
 
 
 void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
+    // all playback events are already mapped
+    if( ! currentScreenGL->mPlaybackEvents ) {
+        inKey = keyMap[inKey];
+        }
+    
     if( currentScreenGL->mRecordingEvents ) {
         char *eventString = autoSprintf( "kd %d %d %d", inKey, inX, inY );
         
@@ -1071,6 +1096,11 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
 
 
 void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
+    // all playback events are already mapped
+    if( ! currentScreenGL->mPlaybackEvents ) {
+        inKey = keyMap[inKey];
+        }
+    
     if( currentScreenGL->mRecordingEvents ) {
         char *eventString = autoSprintf( "ku %d %d %d", inKey, inX, inY );
         

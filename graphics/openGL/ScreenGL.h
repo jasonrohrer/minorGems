@@ -69,6 +69,7 @@
  *
  * 2010-November-18   Jason Rohrer
  * Record and playback rand seed.
+ * ASCII key mapping.
  */
  
  
@@ -180,6 +181,12 @@ class ScreenGL {
         unsigned int getRandSeed();
         
         
+        // sets mapping so that when inFromKey is pressed, an
+        // event for inToKey is generated instead
+        void setKeyMapping( unsigned char inFromKey,
+                            unsigned char inToKey );
+        
+
 
         /**
          * Switches to 2D mode, where no view transforms are applied

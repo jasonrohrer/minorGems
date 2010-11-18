@@ -519,6 +519,13 @@ unsigned int getRandSeed() {
 
 
 
+void mapKey( unsigned char inFromKey, unsigned char inToKey ) {
+    screen->setKeyMapping( inFromKey, inToKey );
+    }
+
+
+
+
 
 void setViewCenterPosition( float inX, float inY ) {
     viewCenterX = inX;
