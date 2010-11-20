@@ -89,7 +89,7 @@ int targetFrameRate = 60;
 
 
 int soundSampleRate = 22050;
-//int soundSampleRate = 11025;
+//int soundSampleRate = 44100;
 
 
 char hardToQuitMode = false;
@@ -468,6 +468,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         audioFormat.samples = 512;        /* A good value for games */
         //audioFormat.samples = 1024;        
         //audioFormat.samples = 8192;        
+        //audioFormat.samples = 8;        
         audioFormat.callback = audioCallback;
         audioFormat.userdata = NULL;
         
@@ -480,8 +481,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         else {
             AppLog::getLog()->logPrintf( 
                 Log::INFO_LEVEL,
-                "Successfully opened audio: %dHz\n", 
-                soundSampleRate );
+                "Successfully opened audio: %dHz, buffer=%d\n", 
+                audioFormat.freq, audioFormat.samples  );
             }
         
         }
