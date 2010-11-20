@@ -88,6 +88,10 @@ int screenHeight = 480;
 int targetFrameRate = 60;
 
 
+int soundSampleRate = 22050;
+//int soundSampleRate = 11025;
+
+
 char hardToQuitMode = false;
 
 
@@ -218,12 +222,31 @@ void cleanUpAtExit() {
 
     freeFrameDrawer();
 
+    if( getUsesSound() ) {
+        SDL_CloseAudio();
+        }
+    
 
     SDL_Quit();
     }
 
 
 
+
+
+void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
+    getSoundSamples( inStream, inLengthToFill );
+    }
+
+
+int getSampleRate() {
+    return soundSampleRate;
+    }
+
+
+void setSoundPlaying( char inPlaying ) {
+    SDL_PauseAudio( !inPlaying );
+    }
 
 
 
@@ -431,6 +454,41 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
 
     screen->switchTo2DMode();
+
+
+
+    if( getUsesSound() ) {
+        
+        SDL_AudioSpec audioFormat;
+
+        /* Set 16-bit stereo audio at 22Khz */
+        audioFormat.freq = soundSampleRate;
+        audioFormat.format = AUDIO_S16;
+        audioFormat.channels = 2;
+        audioFormat.samples = 512;        /* A good value for games */
+        //audioFormat.samples = 1024;        
+        //audioFormat.samples = 8192;        
+        audioFormat.callback = audioCallback;
+        audioFormat.userdata = NULL;
+        
+        /* Open the audio device and start playing sound! */
+        if( SDL_OpenAudio( &audioFormat, NULL ) < 0 ) {
+            AppLog::getLog()->logPrintf( 
+                Log::ERROR_LEVEL,
+                "Unable to open audio: %s\n", SDL_GetError() );
+            }
+        else {
+            AppLog::getLog()->logPrintf( 
+                Log::INFO_LEVEL,
+                "Successfully opened audio: %dHz\n", 
+                soundSampleRate );
+            }
+        
+        }
+    
+
+
+
     
     //glLineWidth( pixelZoomFactor );
 

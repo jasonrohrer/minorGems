@@ -66,18 +66,6 @@ typedef uint8_t Uint8;
 char getUsesSound();
 
 
-// sample rate shared by game engine and sound rendering platform
-//#define gameSoundSampleRate 22050
-//#define gameSoundSampleRate 44100
-// #define gameSoundSampleRate 11025
-
-
-// called by rendering platform when setting sample rate
-int getSampleRate();
-
-
-
-
 // gets the next buffer-full of sound samples from the game engine
 // inBuffer should be filled with stereo Sint16 samples, little endian,
 //    left-right left-right ....
@@ -106,8 +94,19 @@ void mapKey( unsigned char inFromKey, unsigned char inToKey );
 
 
 
+// sample rate shared by game engine and sound rendering platform
+//#define gameSoundSampleRate 22050
+//#define gameSoundSampleRate 44100
+// #define gameSoundSampleRate 11025
+
+
+// each rendering platform sets a sample rate
+int getSampleRate();
+
+
 // true to start or resume playing
 // false to pause
+// Audio starts off paused
 void setSoundPlaying( char inPlaying );
 
 
