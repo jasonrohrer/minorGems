@@ -22,6 +22,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2010-November-22    Jason Rohrer
+ * More convenient getIntSetting call.
  */
 
 
@@ -229,6 +232,19 @@ int SettingsManager::getIntSetting( const char *inSettingName,
 
     return value;
     }
+
+
+
+int SettingsManager::getIntSetting( const char *inSettingName,
+                                    int inDefaultValue ) {
+    char found;
+    int value = getIntSetting( inSettingName, &found );
+    if( !found ) {
+        value = inDefaultValue;
+        }
+    return value;
+    }
+
 
 
 

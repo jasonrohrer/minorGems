@@ -22,6 +22,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2010-November-22    Jason Rohrer
+ * More convenient getIntSetting call.
  */
 
 #include "minorGems/common.h"
@@ -166,6 +169,14 @@ class SettingsManager {
          */
         static int getIntSetting( const char *inSettingName,
                                   char *outValueFound );
+        
+
+
+        /**
+         * Returns default value if setting not found.
+         */
+        static int getIntSetting( const char *inSettingName,
+                                  int inDefaultValue );
         
         
 
