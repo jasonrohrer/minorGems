@@ -256,7 +256,12 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
 
     // check result below, after opening log, so we can log failure
-    int sdlResult = SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE );
+    Uint32 flags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE;
+    if( getUsesSound() ) {
+        flags |= SDL_INIT_AUDIO;
+        }
+    
+    int sdlResult = SDL_Init( flags );
 
 
     // do this mac check after initing SDL,
@@ -459,21 +464,28 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     if( getUsesSound() ) {
         
+        soundSampleRate = 
+            SettingsManager::getIntSetting( "soundSampleRate", 22050 );
+
+        int bufferSize = 
+            SettingsManager::getIntSetting( "soundBufferSize", 128 );
+        
+
         SDL_AudioSpec audioFormat;
 
         /* Set 16-bit stereo audio at 22Khz */
         audioFormat.freq = soundSampleRate;
         audioFormat.format = AUDIO_S16;
         audioFormat.channels = 2;
-        audioFormat.samples = 512;        /* A good value for games */
-        //audioFormat.samples = 1024;        
-        //audioFormat.samples = 8192;        
-        //audioFormat.samples = 8;        
+        //audioFormat.samples = 512;        /* A good value for games */
+        audioFormat.samples = bufferSize;     
         audioFormat.callback = audioCallback;
         audioFormat.userdata = NULL;
         
+        SDL_AudioSpec actualFormat;
+
         /* Open the audio device and start playing sound! */
-        if( SDL_OpenAudio( &audioFormat, NULL ) < 0 ) {
+        if( SDL_OpenAudio( &audioFormat, &actualFormat ) < 0 ) {
             AppLog::getLog()->logPrintf( 
                 Log::ERROR_LEVEL,
                 "Unable to open audio: %s\n", SDL_GetError() );
@@ -481,8 +493,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         else {
             AppLog::getLog()->logPrintf( 
                 Log::INFO_LEVEL,
-                "Successfully opened audio: %dHz, buffer=%d\n", 
-                audioFormat.freq, audioFormat.samples  );
+                "Successfully opened audio: %dHz, sample buffer size=%d\n", 
+                actualFormat.freq, actualFormat.samples  );
             }
         
         }
