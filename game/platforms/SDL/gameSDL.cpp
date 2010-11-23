@@ -467,8 +467,15 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         soundSampleRate = 
             SettingsManager::getIntSetting( "soundSampleRate", 22050 );
 
-        int bufferSize = 
-            SettingsManager::getIntSetting( "soundBufferSize", 128 );
+        int requestedBufferSize = 
+            SettingsManager::getIntSetting( "soundBufferSize", 512 );
+        
+        
+        // force user-specified value to closest (round up) power of 2
+        int bufferSize = 2;
+        while( bufferSize < requestedBufferSize ) {
+            bufferSize *= 2;
+            }
         
 
         SDL_AudioSpec audioFormat;
@@ -491,10 +498,32 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 "Unable to open audio: %s\n", SDL_GetError() );
             }
         else {
-            AppLog::getLog()->logPrintf( 
-                Log::INFO_LEVEL,
-                "Successfully opened audio: %dHz, sample buffer size=%d\n", 
-                actualFormat.freq, actualFormat.samples  );
+
+            if( actualFormat.format != AUDIO_S16 ||
+                actualFormat.channels != 2 ) {
+                
+                
+                AppLog::getLog()->logPrintf( 
+                    Log::ERROR_LEVEL,
+                    "Able to open audio, "
+                    "but stereo S16 samples not availabl\n");
+                
+                SDL_CloseAudio();
+                }
+            else {
+                
+                int desiredRate = soundSampleRate;
+                
+
+                AppLog::getLog()->logPrintf( 
+                    Log::INFO_LEVEL,
+                    "Successfully opened audio: %dHz (requested %dHz), "
+                    "sample buffer size=%d (requested %d)\n", 
+                    actualFormat.freq, desiredRate, actualFormat.samples,
+                    bufferSize);
+                
+                soundSampleRate = actualFormat.freq;
+                }
             }
         
         }
