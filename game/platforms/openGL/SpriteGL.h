@@ -24,6 +24,12 @@ class SpriteGL{
                 int inNumFrames = 1,
                 int inNumPages = 1 );
         
+        
+        SpriteGL( unsigned char *inRGBA, 
+                  unsigned int inWidth, unsigned int inHeight,
+                  int inNumFrames = 1,
+                  int inNumPages = 1 );
+
 
         ~SpriteGL();
         

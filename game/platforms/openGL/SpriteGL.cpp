@@ -100,6 +100,30 @@ void SpriteGL::initTexture( Image *inImage,
 
 
 
+SpriteGL::SpriteGL( unsigned char *inRGBA, 
+                    unsigned int inWidth, unsigned int inHeight,
+                    int inNumFrames,
+                    int inNumPages ) {
+    
+    mNumFrames = inNumFrames;
+    mNumPages = inNumPages;
+
+    mTexture = new SingleTextureGL( inRGBA, inWidth, inHeight,
+                                    // no wrap
+                                    false );
+
+    mBaseScaleX = inWidth / mNumPages;
+    mBaseScaleY = inHeight / mNumFrames;
+    
+    
+    mFlipHorizontal = false;
+    mHorizontalOffset = 0;
+    mCurrentPage = 0;
+    }
+
+
+
+
 SpriteGL::~SpriteGL() {
     delete mTexture;
     }

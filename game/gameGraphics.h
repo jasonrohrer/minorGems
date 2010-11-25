@@ -66,10 +66,16 @@ SpriteHandle loadSprite( const char *inTGAFileName,
 SpriteHandle fillSprite( Image *inImage, 
                          char inTransparentLowerLeftCorner = true );
 
+SpriteHandle fillSprite( unsigned char *inRGBA, 
+                         unsigned int inWidth, unsigned int inHeight );
+
 
 // Image destroyed by caller
 Image *readTGAFile( const char *inTGAFileName );
 
+// write a TGA file into main directory
+// Image destroyed by caller
+void writeTGAFile( const char *inTGAFileName, Image *inImage );
 
 
 void freeSprite( SpriteHandle inSprite );

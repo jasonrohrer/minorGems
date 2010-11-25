@@ -916,6 +916,17 @@ Image *readTGAFile( const char *inTGAFileName ) {
     }
 
 
+void writeTGAFile( const char *inTGAFileName, Image *inImage ) {
+    File tgaFile( NULL, inTGAFileName );
+    FileOutputStream tgaStream( &tgaFile );
+    
+    TGAImageConverter converter;
+    
+    return converter.formatImage( inImage, &tgaStream );
+    }
+
+
+
 SpriteHandle loadSprite( const char *inTGAFileName,
                          char inTransparentLowerLeftCorner ) {
     Image *result = readTGAFile( inTGAFileName );

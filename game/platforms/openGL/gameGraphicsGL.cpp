@@ -177,6 +177,14 @@ SpriteHandle fillSprite( Image *inImage,
 
 
 
+SpriteHandle fillSprite( unsigned char *inRGBA, 
+                         unsigned int inWidth, unsigned int inHeight ) {
+    return new SpriteGL( inRGBA, inWidth, inHeight );
+    }
+
+
+
+
 
 void freeSprite( SpriteHandle inSprite ) {
     delete ( (SpriteGL *)inSprite );
