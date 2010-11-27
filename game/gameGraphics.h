@@ -49,7 +49,7 @@ void startAddingToStencil( char inDrawColorToo, char inAdd );
 
 // switch into mode where further drawing operations are passed through
 // stenciled area
-void startDrawingThroughStencil();
+void startDrawingThroughStencil( char inInvertStencil=false );
 
 // stop stenciling and clear stencil buffer
 void stopStencil();

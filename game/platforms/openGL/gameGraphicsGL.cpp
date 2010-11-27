@@ -146,13 +146,21 @@ void startAddingToStencil( char inDrawColorToo, char inAdd ) {
 
 
 
-void startDrawingThroughStencil() {
+void startDrawingThroughStencil( char inInvertStencil ) {
     // Re-enable update of color
     glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
     glDisable( GL_ALPHA_TEST );
     
     // Now, only render where stencil is set to 1.
-    glStencilFunc( GL_EQUAL, 1, 0xffffffff );  // draw if == 1
+    // unless inverted
+
+    if( inInvertStencil ) {
+        glStencilFunc( GL_EQUAL, 0, 0xffffffff );  // draw if == 0
+        }
+    else {        
+        glStencilFunc( GL_EQUAL, 1, 0xffffffff );  // draw if == 1
+        }
+    
     glStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
     }
 
