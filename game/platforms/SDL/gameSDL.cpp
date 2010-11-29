@@ -250,6 +250,19 @@ void setSoundPlaying( char inPlaying ) {
 
 
 
+void lockAudio() {
+    SDL_LockAudio();
+    }
+
+
+
+void unlockAudio() {
+    SDL_UnlockAudio();
+    }
+
+
+
+
 int mainFunction( int inNumArgs, char **inArgs ) {
 
 

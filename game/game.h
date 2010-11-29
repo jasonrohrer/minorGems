@@ -110,6 +110,12 @@ int getSampleRate();
 void setSoundPlaying( char inPlaying );
 
 
+// for platforms where audio runs in separate thread
+// Lock when manipulating data that is touched by getSoundSamples
+void lockAudio();
+void unlockAudio();
+
+
 
 // for moving view around
 void setViewCenterPosition( float inX, float inY );
