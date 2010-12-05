@@ -57,6 +57,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2010-December-4    Jason Rohrer
+ * Changed to support new constructor parameters, though they are unused.
  */
 
 
@@ -100,6 +103,8 @@ int mapGLUTKeyToMG( int inGLUTKey );
 
 
 ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen, 
+                    unsigned int inMaxFrameRate,
+                    char inRecordEvents,
 					const char *inWindowName,
 					KeyboardHandlerGL *inKeyHandler,
 					MouseHandlerGL *inMouseHandler,
