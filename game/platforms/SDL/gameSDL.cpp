@@ -220,11 +220,12 @@ void cleanUpAtExit() {
     delete sceneHandler;
     delete screen;
 
-    freeFrameDrawer();
-
     if( getUsesSound() ) {
         SDL_CloseAudio();
         }
+
+    freeFrameDrawer();
+
     
 
     SDL_Quit();
