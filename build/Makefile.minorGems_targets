@@ -191,6 +191,7 @@ s/^gameSDL.*\.o/$${GAME_SDL_O}/; \
 s/^gameGraphicsGL.*\.o/$${GAME_GRAPHICS_GL_O}/; \
 s/^SpriteGL.*\.o/$${SPRITE_GL_O}/; \
 s/^doublePair.*\.o/$${DOUBLE_PAIR_O}/; \
+s/^DemoCodeChecker.*\.o/$${DEMO_CODE_CHECKER_O}/; \
 '
 
 
