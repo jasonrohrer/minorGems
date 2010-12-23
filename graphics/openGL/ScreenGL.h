@@ -70,6 +70,9 @@
  * 2010-November-18   Jason Rohrer
  * Record and playback rand seed.
  * ASCII key mapping.
+ *
+ * 2010-December-23   Jason Rohrer
+ * Support for delaying start of event playback or recording.
  */
  
  
@@ -170,6 +173,12 @@ class ScreenGL {
 		 */
 		void start();
 		
+
+        // can avoid recording/playback during certain "front matter"
+        // activities like menu navigation
+        // (has no effect if no recording or playback pending)
+        void startRecordingOrPlayback();
+        
         
         void setMaxFrameRate( unsigned int inMaxFrameRate );
         
@@ -497,6 +506,9 @@ class ScreenGL {
         char mRecordingEvents;
         char mPlaybackEvents;
         FILE *mEventFile;
+
+        char mRecordingOrPlaybackStarted;
+        
 
         void writeEventBatchToFile();
         void playNextEventBatch();

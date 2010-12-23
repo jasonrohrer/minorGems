@@ -65,6 +65,9 @@
  * 2010-November-18   Jason Rohrer
  * Record and playback rand seed.
  * ASCII key mapping.
+ *
+ * 2010-December-23   Jason Rohrer
+ * Support for delaying start of event playback or recording.
  */
 
 
@@ -166,6 +169,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
     mRandSeed = time( NULL );
     
+
+    mRecordingOrPlaybackStarted = false;
     
     mRecordingEvents = inRecordEvents;
     mPlaybackEvents = false;
@@ -330,6 +335,13 @@ ScreenGL::~ScreenGL() {
         
     
 	}
+
+
+
+void ScreenGL::startRecordingOrPlayback() {
+    mRecordingOrPlaybackStarted = true;
+    }
+
 
 
 char screenGLStencilBufferSupported = false;
@@ -609,7 +621,8 @@ void ScreenGL::start() {
 
         SDL_Event event;
         
-        while( !mPlaybackEvents && SDL_PollEvent( &event ) ) {
+        while( !( mPlaybackEvents && mRecordingOrPlaybackStarted )
+               && SDL_PollEvent( &event ) ) {
             
             SDLMod mods = SDL_GetModState();
 
@@ -745,11 +758,13 @@ void ScreenGL::start() {
         
 
         // record them?
-        if( mRecordingEvents ) {
+        if( mRecordingEvents && mRecordingOrPlaybackStarted ) {
             writeEventBatchToFile();
             }
 
-        if( mPlaybackEvents && mEventFile != NULL ) {
+        if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
+            mEventFile != NULL ) {
+            
             playNextEventBatch();
 
 
@@ -1038,11 +1053,14 @@ void callbackResize( int inW, int inH ) {
 
 void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
     // all playback events are already mapped
-    if( ! currentScreenGL->mPlaybackEvents ) {
+    if( ! ( currentScreenGL->mPlaybackEvents && 
+            currentScreenGL->mRecordingOrPlaybackStarted ) ) {
         inKey = keyMap[inKey];
         }
     
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents && 
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+        
         char *eventString = autoSprintf( "kd %d %d %d", inKey, inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
@@ -1097,11 +1115,14 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
 
 void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
     // all playback events are already mapped
-    if( ! currentScreenGL->mPlaybackEvents ) {
+    if( ! ( currentScreenGL->mPlaybackEvents &&
+            currentScreenGL->mRecordingOrPlaybackStarted ) ) {
         inKey = keyMap[inKey];
         }
     
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents &&
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+
         char *eventString = autoSprintf( "ku %d %d %d", inKey, inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
@@ -1155,7 +1176,9 @@ void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
 	
 	
 void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents &&
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+
         char *eventString = autoSprintf( "sd %d %d %d", inKey, inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
@@ -1209,7 +1232,9 @@ void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
 
 
 void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents &&
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+
         char *eventString = autoSprintf( "su %d %d %d", inKey, inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
@@ -1263,7 +1288,9 @@ void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
 
 	
 void callbackMotion( int inX, int inY ) {
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents && 
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+
         char *eventString = autoSprintf( "md %d %d", inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
@@ -1302,7 +1329,9 @@ void callbackMotion( int inX, int inY ) {
 
 void callbackPassiveMotion( int inX, int inY ) {
 
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents &&
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+
         char *eventString = autoSprintf( "mm %d %d", inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
@@ -1348,7 +1377,9 @@ void callbackMouse( int inButton, int inState, int inX, int inY ) {
         return;
         }
     
-    if( currentScreenGL->mRecordingEvents ) {
+    if( currentScreenGL->mRecordingEvents &&
+        currentScreenGL->mRecordingOrPlaybackStarted ) {
+
         int stateEncoding = 0;
         if( inState == SDL_PRESSED ) {
             stateEncoding = 1;
