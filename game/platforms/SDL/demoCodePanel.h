@@ -137,12 +137,10 @@ class DemoCodePanelKeyboardHandler : public KeyboardHandlerGL {
                         getDemoCodeServerURL() );
                     }
                 }
-            /*
             else if( inKey == 'q' || inKey == 'Q' || inKey == 27 ) {
                 // q or escape
                 exit( 0 );
                 }
-            */
             }
 
 

@@ -562,9 +562,14 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     if( demoMode ) {    
         showDemoCodePanel( screen, getFontTGAFileName() );
         
+        // wait to start handling events
         // wait to start recording/playback
         }
     else {
+        // handle events right away
+        screen->addMouseHandler( sceneHandler );
+        screen->addKeyboardHandler( sceneHandler );
+
         // start recording/playback right away
         screen->startRecordingOrPlayback();
         }
@@ -598,11 +603,9 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     // set external pointer so it can be used in calls below
     sceneHandler = this;
 
-    
-    mScreen->addMouseHandler( this );
-    mScreen->addKeyboardHandler( this );
-    mScreen->addSceneHandler( this );
-    mScreen->addRedrawListener( this );
+        
+    mScreen->addSceneHandler( sceneHandler );
+    mScreen->addRedrawListener( sceneHandler );
     }
 
 
@@ -748,6 +751,9 @@ void GameSceneHandler::drawScene() {
             
             // stop demo mode when panel done
             demoMode = false;
+
+            mScreen->addMouseHandler( this );
+            mScreen->addKeyboardHandler( this );
 
             screen->startRecordingOrPlayback();
             }
