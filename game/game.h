@@ -11,6 +11,14 @@
 const char *getWindowTitle();
 
 
+// name of custom font TGA file to find in "graphics" folder
+const char *getFontTGAFileName();
+
+// should demo code be obtained from user and checked against server?
+char isDemoMode();
+
+
+
 void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate );
 
 

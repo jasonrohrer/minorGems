@@ -72,6 +72,8 @@ int main( int inArgCount, char **inArgs ) {
 
 
 
+#include "demoCodePanel.h"
+
 
 
 // some settings
@@ -93,6 +95,10 @@ int soundSampleRate = 22050;
 
 
 char hardToQuitMode = false;
+
+
+char demoMode = false;
+
 
 
 
@@ -544,7 +550,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
 
 
-
+    demoMode = isDemoMode();
+    
     
     //glLineWidth( pixelZoomFactor );
 
@@ -552,6 +559,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                      pixelZoomFactor * gameHeight, 
                      targetFrameRate );
 
+    if( demoMode ) {    
+        // force demo mode
+        showDemoCodePanel( screen, getFontTGAFileName() );
+        }
+    
     screen->start();
 
     
@@ -594,6 +606,14 @@ GameSceneHandler::~GameSceneHandler() {
     mScreen->removeMouseHandler( this );
     mScreen->removeSceneHandler( this );
     mScreen->removeRedrawListener( this );
+
+    if( demoMode ) {
+        // panel has not freed itself yet
+        freeDemoCodePanel();
+        
+        demoMode = false;
+        }
+    
     }
 
 
@@ -717,7 +737,22 @@ void GameSceneHandler::drawScene() {
     glDisable( GL_DEPTH_TEST );
 
 
-    drawFrame();    
+    if( demoMode ) {
+        
+        if( ! isDemoCodePanelShowing() ) {
+            
+            // stop demo mode when panel done
+            demoMode = false;
+
+            screen->startRecordingOrPlayback();
+            }
+        }
+    else {
+        // demo mode done or was never enabled
+
+        // carry on with game
+        drawFrame();
+        }
     }
 
 
