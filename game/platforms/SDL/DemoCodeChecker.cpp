@@ -8,19 +8,18 @@
 #include <time.h>
 
 
-// secret shared with demo server (so that we can detect that it's a real
-// demo server)
-static const char *sharedSecret = "control_this";
-
-static const char *demoServerAddress = "http://sleepisdeath.net/demoServer/server.php";
 
 
 
-DemoCodeChecker::DemoCodeChecker( char *inCode )
-        : mError( false ),
+DemoCodeChecker::DemoCodeChecker( char *inCode,
+                                  const char *inSharedSecret,
+                                  const char *inServerURL )
+        : mSharedSecret( inSharedSecret ),
+          mServerURL( inServerURL ),
+          mError( false ),
           mErrorString( NULL ) {
 
-    char *challengeString = autoSprintf( "%d%s", time( NULL ), sharedSecret );
+    char *challengeString = autoSprintf( "%d%s", time( NULL ), mSharedSecret );
     
     mChallenge = computeSHA1Digest( challengeString );
     
@@ -29,7 +28,7 @@ DemoCodeChecker::DemoCodeChecker( char *inCode )
 
     char *url = autoSprintf( "%s?action=check_permitted&demo_id=%s"
                              "&challenge=%s",
-                             demoServerAddress, inCode, mChallenge );
+                             mServerURL, inCode, mChallenge );
     
     AppLog::getLog()->logPrintf( 
         Log::INFO_LEVEL, "Checking demo code with URL %s", url );
@@ -96,7 +95,7 @@ char DemoCodeChecker::step() {
         if( strstr( resultString, "permitted" ) != NULL ) {
             
             char *correctResponseString = autoSprintf( "%s%s", mChallenge,
-                                                       sharedSecret );
+                                                       mSharedSecret );
             
             char *correctResponse = computeSHA1Digest( correctResponseString );
             
@@ -107,11 +106,17 @@ char DemoCodeChecker::step() {
                 ( strstr( resultString, correctResponse ) != NULL );
             
             delete[] correctResponse;
+
             delete [] resultString;
-
-
+                
+                
             if( containsResponse ) {
                 mPermitted = true;
+                
+                return false;
+                }
+            else {
+                setError( "err_serverVerifyFailed" );
                 return false;
                 }
             }

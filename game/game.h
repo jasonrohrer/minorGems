@@ -17,6 +17,14 @@ const char *getFontTGAFileName();
 // should demo code be obtained from user and checked against server?
 char isDemoMode();
 
+// secret shared with demo server (so that we can detect that it's a real
+// demo server)
+const char *getDemoCodeSharedSecret();
+
+// url of demo code server PHP script
+const char *getDemoCodeServerURL();
+
+
 
 
 void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate );

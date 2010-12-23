@@ -22,6 +22,8 @@ void freeDemoCodePanel();
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/util/log/AppLog.h"
 
+#include "minorGems/game/game.h"
+
 
 #include "DemoCodeChecker.h"
 
@@ -129,7 +131,10 @@ class DemoCodePanelKeyboardHandler : public KeyboardHandlerGL {
                                                  enteredCode );
 
                     // start 
-                    codeChecker = new DemoCodeChecker( enteredCode );
+                    codeChecker = new DemoCodeChecker( 
+                        enteredCode,
+                        getDemoCodeSharedSecret(),
+                        getDemoCodeServerURL() );
                     }
                 }
             /*
@@ -292,7 +297,9 @@ void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName ) {
                             "checkingCode" );
             
             // start 
-            codeChecker = new DemoCodeChecker( enteredCode );
+            codeChecker = new DemoCodeChecker( enteredCode,
+                                               getDemoCodeSharedSecret(),
+                                               getDemoCodeServerURL() );
             }
         
         delete [] defaultCode;

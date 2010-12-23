@@ -560,8 +560,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                      targetFrameRate );
 
     if( demoMode ) {    
-        // force demo mode
         showDemoCodePanel( screen, getFontTGAFileName() );
+        
+        // wait to start recording/playback
+        }
+    else {
+        // start recording/playback right away
+        screen->startRecordingOrPlayback();
         }
     
     screen->start();

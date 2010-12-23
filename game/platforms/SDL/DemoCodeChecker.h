@@ -6,7 +6,9 @@ class DemoCodeChecker {
     public:
         
         // start a checker connection
-        DemoCodeChecker( char *inCode );    
+        DemoCodeChecker( char *inCode,
+                         const char *inSharedSecret,
+                         const char *inServerURL );    
         
         ~DemoCodeChecker();
         
@@ -28,6 +30,9 @@ class DemoCodeChecker {
         char *getErrorString();
 
   protected:
+        const char *mSharedSecret;
+        const char *mServerURL;
+
         char mError;
         char *mErrorString;
         
