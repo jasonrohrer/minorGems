@@ -716,12 +716,19 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
     *outNewMouseX = screenWidth / 2;
     *outNewMouseY = screenHeight / 2;
 
-    ignoreNextMouseEvent = true;
-    xCoordToIgnore = *outNewMouseX;
-    yCoordToIgnore = *outNewMouseY;
-    
 
-    SDL_WarpMouse( *outNewMouseX, *outNewMouseY );
+    if( SDL_GetAppState() & SDL_APPMOUSEFOCUS ) {
+        
+        if( !demoMode ) {
+            // not ignoring mouse events currently due to demo code panel
+            ignoreNextMouseEvent = true;
+            xCoordToIgnore = *outNewMouseX;
+            yCoordToIgnore = *outNewMouseY;
+            }    
+
+        SDL_WarpMouse( *outNewMouseX, *outNewMouseY );
+        }
+    
     }
 
 
