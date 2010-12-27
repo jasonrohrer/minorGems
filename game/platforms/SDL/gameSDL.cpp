@@ -408,6 +408,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                           pixelZoomFactor * gameHeight );
     
 
+    screen->allowSlowdownKeysDuringPlayback( enableSlowdownKeys );
+
     //SDL_ShowCursor( SDL_DISABLE );
 
 

@@ -73,6 +73,9 @@
  *
  * 2010-December-23   Jason Rohrer
  * Support for delaying start of event playback or recording.
+ *
+ * 2010-December-27   Jason Rohrer
+ * Support for slowdown keys during playback.
  */
  
  
@@ -183,6 +186,13 @@ class ScreenGL {
         void setMaxFrameRate( unsigned int inMaxFrameRate );
         
         unsigned int getMaxFramerate();
+        
+
+        // should ^ and % be allowed to slowdown and resume normal speed
+        // during event playback?
+        // setMaxFrameRate also can be used to create a slowdown, but
+        // ^ and % keys are not passed through during playback
+        void allowSlowdownKeysDuringPlayback( char inAllow );
         
 
         // enables rand seed to be recorded and played back with
@@ -475,7 +485,15 @@ class ScreenGL {
         // only allow ALT-Enter to toggle fullscreen if it started there
         char mStartedFullScreen;
         
+        // current target framerate, may involve slowdown mode (for testing)
         unsigned int mMaxFrameRate;
+        
+        // full frame rate when not in slowdown mode
+        unsigned int mFullFrameRate;
+        
+        char mAllowSlowdownKeysDuringPlayback;
+        
+
 
         char m2DMode;
         
@@ -659,6 +677,11 @@ inline char ScreenGL::isKeyboardHandlerFocused() {
 	// else none were focused
 	return false;
 	}
+
+
+inline void ScreenGL::allowSlowdownKeysDuringPlayback( char inAllow ) {
+    mAllowSlowdownKeysDuringPlayback = inAllow;
+    }
 
 
 

@@ -68,6 +68,9 @@
  *
  * 2010-December-23   Jason Rohrer
  * Support for delaying start of event playback or recording.
+ *
+ * 2010-December-27   Jason Rohrer
+ * Support for slowdown keys during playback.
  */
 
 
@@ -146,6 +149,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
       mImageWide( inWide ), mImageHigh( inHigh ),
       mFullScreen( inFullScreen ),
       mMaxFrameRate( inMaxFrameRate ),
+      mFullFrameRate( inMaxFrameRate ),
       m2DMode( false ),
 	  mViewPosition( new Vector3D( 0, 0, 0 ) ),
 	  mViewOrientation( new Angle3D( 0, 0, 0 ) ),
@@ -154,6 +158,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 	  mSceneHandlerVector( new SimpleVector<SceneHandlerGL*>() ),
 	  mRedrawListenerVector( new SimpleVector<RedrawListenerGL*>() ) {
 
+
+    mAllowSlowdownKeysDuringPlayback = false;
 
 	// add handlers if NULL (the default) was not passed in for them
 	if( inMouseHandler != NULL ) {
@@ -211,6 +217,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     &mRandSeed,
                     &mMaxFrameRate,
                     &mWide, &mHigh, &fullScreenFlag );
+
+            mFullFrameRate = mMaxFrameRate;
 
             mImageWide = mWide;
             mImageHigh = mHigh;
@@ -826,6 +834,15 @@ void ScreenGL::start() {
                                 
                                 // stop playback
                                 mPlaybackEvents = false;
+                                }
+                            else if( mAllowSlowdownKeysDuringPlayback ) {
+                                
+                                if( asciiKey == '^' ) {
+                                    setMaxFrameRate( 2 );
+                                    }
+                                else if( asciiKey == '%' ) {
+                                    setMaxFrameRate( mFullFrameRate );
+                                    }
                                 }
                             }
                         }                    
