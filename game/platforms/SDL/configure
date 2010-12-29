@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # call this script from inside your game's project folder
 # this script creates a Makefile inside your project's "gameSource" directory
