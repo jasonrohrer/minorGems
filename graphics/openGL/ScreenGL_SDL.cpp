@@ -71,6 +71,9 @@
  *
  * 2010-December-27   Jason Rohrer
  * Support for slowdown keys during playback.
+ *
+ * 2010-December-30   Jason Rohrer
+ * Fixed to ignore hidden files in playbackGame directory.
  */
 
 
@@ -195,42 +198,68 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     File **childFiles = playbackDir.getChildFiles( &numChildren );
 
     if( numChildren > 0 ) {
-        mRecordingEvents = false;
-        mPlaybackEvents = true;
 
         // take first
         char *fullFileName = childFiles[0]->getFullFileName();
-                
-        mEventFile = fopen( fullFileName, "r" );
+        char *partialFileName = childFiles[0]->getFileName();
+        
+        // skip hidden files
+        int i = 0;
+        while( partialFileName != NULL &&
+               partialFileName[0] == '.' ) {
 
-        if( mEventFile == NULL ) {
-            AppLog::error( "Failed to open event playback file" );
+            delete [] fullFileName;
+            fullFileName = NULL;
+
+            delete [] partialFileName;
+            partialFileName = NULL;
+
+            i++;
+            if( i < numChildren ) {
+                fullFileName = childFiles[i]->getFullFileName();
+                partialFileName = childFiles[0]->getFileName();
+                }
             }
-        else {
-            AppLog::getLog()->logPrintf( 
-                Log::INFO_LEVEL,
-                "Playing back game from file %s", fullFileName );
-            
-            AppLog::info( "All resolutions available" );
-            int fullScreenFlag;
-            fscanf( mEventFile, "%u seed, %u fps, %dx%d fullScreen=%d\n",
-                    &mRandSeed,
-                    &mMaxFrameRate,
-                    &mWide, &mHigh, &fullScreenFlag );
 
-            mFullFrameRate = mMaxFrameRate;
 
-            mImageWide = mWide;
-            mImageHigh = mHigh;
+        if( fullFileName != NULL ) {
+            delete [] partialFileName;
             
-            if( fullScreenFlag ) {
-                mFullScreen = true;
+            mRecordingEvents = false;
+            mPlaybackEvents = true;
+
+            mEventFile = fopen( fullFileName, "r" );
+
+            if( mEventFile == NULL ) {
+                AppLog::error( "Failed to open event playback file" );
                 }
             else {
-                mFullScreen = false;
+                AppLog::getLog()->logPrintf( 
+                    Log::INFO_LEVEL,
+                    "Playing back game from file %s", fullFileName );
+            
+                AppLog::info( "All resolutions available" );
+                int fullScreenFlag;
+                fscanf( mEventFile, "%u seed, %u fps, %dx%d fullScreen=%d\n",
+                        &mRandSeed,
+                        &mMaxFrameRate,
+                        &mWide, &mHigh, &fullScreenFlag );
+
+                mFullFrameRate = mMaxFrameRate;
+
+                mImageWide = mWide;
+                mImageHigh = mHigh;
+            
+                if( fullScreenFlag ) {
+                    mFullScreen = true;
+                    }
+                else {
+                    mFullScreen = false;
+                    }
                 }
+            delete [] fullFileName;
             }
-        delete [] fullFileName;
+        
 
         for( int i=0; i<numChildren; i++ ) {
             delete childFiles[i];
