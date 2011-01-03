@@ -182,13 +182,14 @@ class GameSceneHandler :
         // implements the ActionListener interface
         virtual void actionPerformed( GUIComponent *inTarget );
         
+
+        char mPaused;
         
         
     protected:
 
         int mStartTimeSeconds;
         
-        char mPaused;
 
         char mPrintFrameRate;
         unsigned long mNumFrames;
@@ -593,8 +594,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
 GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     : mScreen( inScreen ),
-      mStartTimeSeconds( time( NULL ) ),
       mPaused( false ),
+      mStartTimeSeconds( time( NULL ) ),
       mPrintFrameRate( true ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( time( NULL ) ),
@@ -665,6 +666,12 @@ static void redoDrawMatrix() {
 
 unsigned int getRandSeed() {
     return screen->getRandSeed();
+    }
+
+
+
+void pauseGame() {
+    sceneHandler->mPaused = !( sceneHandler->mPaused );
     }
 
 
@@ -777,7 +784,11 @@ void GameSceneHandler::drawScene() {
         // demo mode done or was never enabled
 
         // carry on with game
-        drawFrame();
+        
+        // don't update while paused
+        char update = !mPaused;
+        
+        drawFrame( update );
         }
     }
 

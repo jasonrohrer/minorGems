@@ -44,7 +44,8 @@ void freeFrameDrawer();
 
 
 // draw scene into frame using GL function calls
-void drawFrame();
+// inUpdate is true if game logic should be updated
+void drawFrame( char inUpdate );
 
 
 
@@ -176,3 +177,8 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY );
 
 // returns translation of key using current language
 const char *translate( const char *inTranslationKey );
+
+
+
+// pause and resume the game
+void pauseGame();
