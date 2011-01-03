@@ -77,6 +77,7 @@
  *
  * 2011-January-3   Jason Rohrer
  * Fast-forward key support.
+ * Added custom data to recorded game files.  Fixed bug in hidden file skipping.
  */
 
 
@@ -147,6 +148,7 @@ void callbackIdle();
 ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     unsigned int inMaxFrameRate,
                     char inRecordEvents,
+                    const char *inCustomRecordedGameData,
                     const char *inWindowName,
 					KeyboardHandlerGL *inKeyHandler,
 					MouseHandlerGL *inMouseHandler,
@@ -163,6 +165,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 	  mKeyboardHandlerVector( new SimpleVector<KeyboardHandlerGL*>() ),
 	  mSceneHandlerVector( new SimpleVector<SceneHandlerGL*>() ),
 	  mRedrawListenerVector( new SimpleVector<RedrawListenerGL*>() ) {
+
+    mCustomRecordedGameData = stringDuplicate( inCustomRecordedGameData );
+    
 
 
     mAllowSlowdownKeysDuringPlayback = false;
@@ -209,7 +214,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
         // skip hidden files
         int i = 0;
         while( partialFileName != NULL &&
-               partialFileName[0] == '.' ) {
+               partialFileName[i] == '.' ) {
 
             delete [] fullFileName;
             fullFileName = NULL;
@@ -220,7 +225,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
             i++;
             if( i < numChildren ) {
                 fullFileName = childFiles[i]->getFullFileName();
-                partialFileName = childFiles[0]->getFileName();
+                partialFileName = childFiles[i]->getFileName();
                 }
             }
 
@@ -241,13 +246,21 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     Log::INFO_LEVEL,
                     "Playing back game from file %s", fullFileName );
             
+                delete [] mCustomRecordedGameData;
+                
+                mCustomRecordedGameData = new char[ 257 ];
+
                 AppLog::info( "All resolutions available" );
                 int fullScreenFlag;
-                fscanf( mEventFile, "%u seed, %u fps, %dx%d fullScreen=%d\n",
+                fscanf( mEventFile, 
+                        "%u seed, %u fps, %dx%d, fullScreen=%d, %256s\n",
                         &mRandSeed,
                         &mMaxFrameRate,
-                        &mWide, &mHigh, &fullScreenFlag );
-
+                        &mWide, &mHigh, &fullScreenFlag, 
+                        mCustomRecordedGameData );
+                printf( "Read %s from playback file %s\n", 
+                        mCustomRecordedGameData, fullFileName );
+                
                 mFullFrameRate = mMaxFrameRate;
 
                 mImageWide = mWide;
@@ -335,9 +348,10 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                         fullScreenFlag = 1;
                         }
                     fprintf( mEventFile, 
-                             "%u seed, %u fps, %dx%d fullScreen=%d\n",
+                             "%u seed, %u fps, %dx%d, fullScreen=%d, %s\n",
                              mRandSeed,
-                             mMaxFrameRate, mWide, mHigh, fullScreenFlag );
+                             mMaxFrameRate, mWide, mHigh, fullScreenFlag,
+                             mCustomRecordedGameData );
                     }
 
                 delete [] fullFileName;                
@@ -373,7 +387,8 @@ ScreenGL::~ScreenGL() {
         mEventFile = NULL;
         }
         
-    
+
+    delete [] mCustomRecordedGameData;    
 	}
 
 
@@ -618,6 +633,13 @@ void ScreenGL::playNextEventBatch() {
             }            
         
         }
+    }
+
+
+
+
+const char *ScreenGL::getCustomRecordedGameData() {
+    return mCustomRecordedGameData;
     }
 
 

@@ -76,6 +76,9 @@
  *
  * 2010-December-27   Jason Rohrer
  * Support for slowdown keys during playback.
+ *
+ * 2011-January-3   Jason Rohrer
+ * Added custom data to recorded game files.
  */
  
  
@@ -143,6 +146,10 @@ class ScreenGL {
 		 * @param inWindowName name to be displayed on title bar of window.
          * @param inMaxFrameRate in frames per second.
          * @param inRecordEvents true to record events to file.
+         * @param inCustomRecordedGameData custom data string to add to 
+         *   header of file.  Must contain no whitespace and not exceed 256
+         *   characters.
+         *   Destroyed by caller.
 		 * @param inKeyHandler object that will receive keyboard events.
 		 *   NULL specifies no handler (defaults to NULL).
 		 *   Must be destroyed by caller.
@@ -157,6 +164,7 @@ class ScreenGL {
 		ScreenGL( int inWide, int inHigh, char inFullScreen, 
 				  unsigned int inMaxFrameRate,
                   char inRecordEvents,
+                  const char *inCustomRecordedGameData,
                   const char *inWindowName,
 				  KeyboardHandlerGL *inKeyHandler = NULL,
 				  MouseHandlerGL *inMouseHandler = NULL,
@@ -168,6 +176,16 @@ class ScreenGL {
 		 */	
 		~ScreenGL();	
 		
+
+
+        /**
+         * Gets data read from a recorded game file.
+         *
+         * Not destroyed by caller.
+         */
+        const char *getCustomRecordedGameData();
+
+        
 		
 		/**
 		 * Starts the GLUT main loop.
@@ -526,6 +544,8 @@ class ScreenGL {
         FILE *mEventFile;
 
         char mRecordingOrPlaybackStarted;
+        
+        char *mCustomRecordedGameData;
         
 
         void writeEventBatchToFile();
