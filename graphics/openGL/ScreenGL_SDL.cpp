@@ -258,8 +258,6 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                         &mMaxFrameRate,
                         &mWide, &mHigh, &fullScreenFlag, 
                         mCustomRecordedGameData );
-                printf( "Read %s from playback file %s\n", 
-                        mCustomRecordedGameData, fullFileName );
                 
                 mFullFrameRate = mMaxFrameRate;
 
