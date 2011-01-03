@@ -74,6 +74,9 @@
  *
  * 2010-December-30   Jason Rohrer
  * Fixed to ignore hidden files in playbackGame directory.
+ *
+ * 2011-January-3   Jason Rohrer
+ * Fast-forward key support.
  */
 
 
@@ -869,8 +872,12 @@ void ScreenGL::start() {
                                 if( asciiKey == '^' ) {
                                     setMaxFrameRate( 2 );
                                     }
-                                else if( asciiKey == '%' ) {
+                                else if( asciiKey == '&' ) {
                                     setMaxFrameRate( mFullFrameRate );
+                                    }
+                                else if( asciiKey == '*' ) {
+                                    // fast forward
+                                    setMaxFrameRate( mFullFrameRate * 2 );
                                     }
                                 }
                             }
