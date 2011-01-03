@@ -879,6 +879,10 @@ void ScreenGL::start() {
                                     // fast forward
                                     setMaxFrameRate( mFullFrameRate * 2 );
                                     }
+                                else if( asciiKey == '(' ) {
+                                    // fast forward
+                                    setMaxFrameRate( mFullFrameRate * 4 );
+                                    }
                                 }
                             }
                         }                    

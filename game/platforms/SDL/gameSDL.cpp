@@ -918,6 +918,10 @@ void GameSceneHandler::keyPressed(
             // fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 2 );
             }            
+        if( inKey == '(' ) {
+            // fast forward
+            mScreen->setMaxFrameRate( targetFrameRate * 4 );
+            }            
         }
     
     if( !hardToQuitMode ) {
