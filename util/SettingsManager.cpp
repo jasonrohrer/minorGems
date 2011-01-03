@@ -25,6 +25,9 @@
  *
  * 2010-November-22    Jason Rohrer
  * More convenient getIntSetting call.
+ *
+ * 2011-January-3    Jason Rohrer
+ * More convenient getFloatSetting call.
  */
 
 
@@ -202,6 +205,18 @@ float SettingsManager::getFloatSetting( const char *inSettingName,
 
     *outValueFound = valueFound;
 
+    return value;
+    }
+
+
+
+float SettingsManager::getFloatSetting( const char *inSettingName,
+                                        float inDefaultValue ) {
+    char found;
+    float value = getFloatSetting( inSettingName, &found );
+    if( !found ) {
+        value = inDefaultValue;
+        }
     return value;
     }
 

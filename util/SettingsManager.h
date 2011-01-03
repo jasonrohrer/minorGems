@@ -25,6 +25,9 @@
  *
  * 2010-November-22    Jason Rohrer
  * More convenient getIntSetting call.
+ *
+ * 2011-January-3    Jason Rohrer
+ * More convenient getFloatSetting call.
  */
 
 #include "minorGems/common.h"
@@ -154,7 +157,14 @@ class SettingsManager {
         static float getFloatSetting( const char *inSettingName,
                                       char *outValueFound );
 
-        
+
+        /**
+         * Returns default value if setting not found.
+         */
+        static float getFloatSetting( const char *inSettingName,
+                                      float inDefaultValue );
+
+
         
         /**
          * Gets an integer setting.
