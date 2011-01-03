@@ -379,11 +379,16 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
 
 
+    char *customData = getCustomRecordedGameData();
 
     screen =
         new ScreenGL( screenWidth, screenHeight, fullscreen, targetFrameRate,
                       recordGame,
+                      customData,
                       getWindowTitle(), NULL, NULL, NULL );
+
+    delete [] customData;
+    
 
     // may change if specified resolution is not supported
     // or for event playback mode
@@ -559,7 +564,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     initFrameDrawer( pixelZoomFactor * gameWidth, 
                      pixelZoomFactor * gameHeight, 
-                     targetFrameRate );
+                     targetFrameRate,
+                     screen->getCustomRecordedGameData() );
 
     if( demoMode ) {    
         showDemoCodePanel( screen, getFontTGAFileName() );

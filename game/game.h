@@ -11,6 +11,13 @@
 const char *getWindowTitle();
 
 
+// get data that should be saved in the header of the game that is 
+// being recorded
+// Must be encoded as a single string with no whitespace, max 256 chars
+// Result destroyed by caller
+char *getCustomRecordedGameData();
+
+
 // name of custom font TGA file to find in "graphics" folder
 const char *getFontTGAFileName();
 
@@ -26,8 +33,9 @@ const char *getDemoCodeServerURL();
 
 
 
-
-void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate );
+// recorded game data will be null if no game is playing back
+void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate,
+                      const char *inCustomRecordedGameData );
 
 
 // called at application termination
