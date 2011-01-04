@@ -79,6 +79,7 @@
  *
  * 2011-January-3   Jason Rohrer
  * Added custom data to recorded game files.
+ * Support for detecting playback mode.
  */
  
  
@@ -185,6 +186,12 @@ class ScreenGL {
          */
         const char *getCustomRecordedGameData();
 
+
+        /**
+         * True if currently in playback mode.
+         */
+        char isPlayingBack();
+        
         
 		
 		/**

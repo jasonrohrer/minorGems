@@ -35,7 +35,8 @@ const char *getDemoCodeServerURL();
 
 // recorded game data will be null if no game is playing back
 void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate,
-                      const char *inCustomRecordedGameData );
+                      const char *inCustomRecordedGameData,
+                      char inPlayingBack );
 
 
 // called at application termination

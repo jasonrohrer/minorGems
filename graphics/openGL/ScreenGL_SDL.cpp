@@ -77,7 +77,9 @@
  *
  * 2011-January-3   Jason Rohrer
  * Fast-forward key support.
- * Added custom data to recorded game files.  Fixed bug in hidden file skipping.
+ * Added custom data to recorded game files.  
+ * Fixed bug in hidden file skipping.
+ * Support for detecting playback mode.
  */
 
 
@@ -639,6 +641,13 @@ void ScreenGL::playNextEventBatch() {
 const char *ScreenGL::getCustomRecordedGameData() {
     return mCustomRecordedGameData;
     }
+
+
+
+char ScreenGL::isPlayingBack() {
+    return mPlaybackEvents;
+    }
+
 
 
 

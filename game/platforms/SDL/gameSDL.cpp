@@ -566,7 +566,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     initFrameDrawer( pixelZoomFactor * gameWidth, 
                      pixelZoomFactor * gameHeight, 
                      targetFrameRate,
-                     screen->getCustomRecordedGameData() );
+                     screen->getCustomRecordedGameData(),
+                     screen->isPlayingBack() );
 
     if( demoMode ) {    
         showDemoCodePanel( screen, getFontTGAFileName() );
