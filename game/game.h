@@ -183,3 +183,7 @@ const char *translate( const char *inTranslationKey );
 
 // pause and resume the game
 void pauseGame();
+
+
+
+void saveScreenShot( const char *inPrefix );

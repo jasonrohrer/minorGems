@@ -1046,6 +1046,124 @@ const char *translate( const char *inTranslationKey ) {
     }
 
 
+static int nextShotNumber = 1;
+static char shotDirExists = false;
+
+void saveScreenShot( const char *inPrefix ) {
+    
+    File shotDir( NULL, "screenShots" );
+    
+    if( !shotDirExists && !shotDir.exists() ) {
+        shotDir.makeDirectory();
+        shotDirExists = shotDir.exists();
+        }
+    
+    if( nextShotNumber < 1 ) {
+        if( shotDir.exists() && shotDir.isDirectory() ) {
+        
+            int numFiles;
+            File **childFiles = shotDir.getChildFiles( &numFiles );
+
+            nextShotNumber = 1;
+
+            for( int i=0; i<numFiles; i++ ) {
+            
+                if( childFiles[i]->isDirectory() ) {
+                
+                    char *name = childFiles[i]->getFileName();
+                
+                    int number;
+                
+                    int numRead = sscanf( name, "%d", &number );
+                
+                    if( numRead == 1 ) {
+                    
+                        if( number > nextShotNumber ) {
+                            nextShotNumber = number;
+                            }
+                        }
+                    delete [] name;
+                    }
+                delete childFiles[i];
+            }
+            delete [] childFiles;
+            }
+        }
+    
+
+    if( nextShotNumber < 1 ) {
+        return;
+        }
+    
+    char *fileName = autoSprintf( "%s%05d.tga", 
+                                  inPrefix, nextShotNumber );
+
+    nextShotNumber++;
+    
+
+    File *file = shotDir.getChildFile( fileName );
+    
+    delete [] fileName;
+
+
+    
+    unsigned char *rgbBytes = 
+        new unsigned char[ screenWidth * screenHeight * 3 ];
+
+    // w and h might not be multiples of 4
+    int oldAlignment;
+    glGetIntegerv( GL_PACK_ALIGNMENT, &oldAlignment );
+                
+    glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+    
+    glReadPixels( 0, 0, screenWidth, screenHeight, 
+                  GL_RGB, GL_UNSIGNED_BYTE, rgbBytes );
+    
+    glPixelStorei( GL_PACK_ALIGNMENT, oldAlignment );
+
+
+    Image screenImage( screenWidth, screenHeight, 3, false );
+
+    double *channels[3];
+    int c;
+    for( c=0; c<3; c++ ) {
+        channels[c] = screenImage.getChannel( c );
+        }
+    
+    // image of screen is upside down
+    int outputRow = 0;
+    for( int y=screenHeight-1; y>=0; y-- ) {
+        for( int x=0; x<screenWidth; x++ ) {
+                        
+            int outputPixelIndex = outputRow * screenWidth + x;
+            
+            
+            int screenPixelIndex = y * screenWidth + x;
+            int byteIndex = screenPixelIndex * 3;
+                        
+            for( c=0; c<3; c++ ) {
+                channels[c][outputPixelIndex] =
+                    rgbBytes[ byteIndex + c ] / 255.0;
+                }
+            }
+        outputRow++;
+        }
+    
+    delete [] rgbBytes;
+
+
+    FileOutputStream tgaStream( file );
+    
+    TGAImageConverter converter;
+    
+    return converter.formatImage( &screenImage, &tgaStream );
+
+    delete file;
+    }
+
+
+
+
 
 
 
