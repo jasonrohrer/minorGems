@@ -186,4 +186,6 @@ void pauseGame();
 
 
 
+// save a screenshot to the "screenShots" folder
+// screenshot may be delayed until the end of the next redraw.
 void saveScreenShot( const char *inPrefix );

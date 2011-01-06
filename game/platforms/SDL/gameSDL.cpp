@@ -111,6 +111,12 @@ char mouseWorldCoordinates = true;
 
 
 
+// should screenshot be taken at end of next redraw?
+static char shouldTakeScreenshot = false;
+static char *screenShotPrefix = NULL;
+
+static void takeScreenShot();
+
 
 
 
@@ -236,6 +242,11 @@ void cleanUpAtExit() {
     
 
     SDL_Quit();
+
+    if( screenShotPrefix != NULL ) {
+        delete [] screenShotPrefix;
+        screenShotPrefix = NULL;
+        }
     }
 
 
@@ -791,6 +802,11 @@ void GameSceneHandler::drawScene() {
         
         drawFrame( update );
         }
+
+    if( shouldTakeScreenshot ) {
+        takeScreenShot();
+        shouldTakeScreenshot = false;
+        }
     }
 
 
@@ -1046,10 +1062,23 @@ const char *translate( const char *inTranslationKey ) {
     }
 
 
-static int nextShotNumber = 1;
-static char shotDirExists = false;
 
 void saveScreenShot( const char *inPrefix ) {
+    if( screenShotPrefix != NULL ) {
+        delete [] screenShotPrefix;
+        }
+    screenShotPrefix = stringDuplicate( inPrefix );
+    shouldTakeScreenshot = true;
+    }
+
+
+
+static int nextShotNumber = -1;
+static char shotDirExists = false;
+
+
+void takeScreenShot() {
+     
     
     File shotDir( NULL, "screenShots" );
     
@@ -1066,26 +1095,29 @@ void saveScreenShot( const char *inPrefix ) {
 
             nextShotNumber = 1;
 
+            char *formatString = autoSprintf( "%s%%d.tga", screenShotPrefix );
+
             for( int i=0; i<numFiles; i++ ) {
             
-                if( childFiles[i]->isDirectory() ) {
+                char *name = childFiles[i]->getFileName();
                 
-                    char *name = childFiles[i]->getFileName();
+                int number;
                 
-                    int number;
+                int numRead = sscanf( name, formatString, &number );
                 
-                    int numRead = sscanf( name, "%d", &number );
-                
-                    if( numRead == 1 ) {
+                if( numRead == 1 ) {
                     
-                        if( number > nextShotNumber ) {
-                            nextShotNumber = number;
-                            }
+                    if( number >= nextShotNumber ) {
+                        nextShotNumber = number + 1;
                         }
-                    delete [] name;
                     }
+                delete [] name;
+                
                 delete childFiles[i];
-            }
+                }
+            
+            delete [] formatString;
+            
             delete [] childFiles;
             }
         }
@@ -1096,7 +1128,7 @@ void saveScreenShot( const char *inPrefix ) {
         }
     
     char *fileName = autoSprintf( "%s%05d.tga", 
-                                  inPrefix, nextShotNumber );
+                                  screenShotPrefix, nextShotNumber );
 
     nextShotNumber++;
     
@@ -1156,9 +1188,13 @@ void saveScreenShot( const char *inPrefix ) {
     
     TGAImageConverter converter;
     
-    return converter.formatImage( &screenImage, &tgaStream );
+    converter.formatImage( &screenImage, &tgaStream );
 
     delete file;
+
+
+    delete [] screenShotPrefix;
+    screenShotPrefix = NULL;
     }
 
 
