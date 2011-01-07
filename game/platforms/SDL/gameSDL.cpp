@@ -120,13 +120,6 @@ static void takeScreenShot();
 
 
 
-static int blurTextWidth = 0;
-static int blurTextHeight = 0;
-
-//static GLuint blurTextID;
-SingleTextureGL *blurTexture;
-
-
 
 
 
@@ -601,53 +594,6 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         // start recording/playback right away
         screen->startRecordingOrPlayback();
         }
-
-
-    
-    
-    blurTextWidth = 2;
-    blurTextHeight = 2;
-
-    GLint maxTextSize; 
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextSize);
-    
-    printf( "Max texture size is %d\n", maxTextSize );
-
-    
-
-    while( blurTextWidth < screenWidth && blurTextWidth < maxTextSize ) {
-        blurTextWidth *= 2;
-        }
-    while( blurTextHeight < screenHeight && blurTextHeight < maxTextSize ) {
-        blurTextHeight *= 2;
-        }
-    
-    printf( "Blur dimensions = %d, %d\n", blurTextWidth, blurTextHeight );
-    
-    
-
-    unsigned char *data = 
-        new unsigned char[ blurTextHeight * blurTextWidth * 4 ];
-
-    blurTexture = 
-        new SingleTextureGL( data, blurTextWidth, blurTextHeight );
-    
-    /*
-    glGenTextures( 1, &blurTextID );
-    glBindTexture( GL_TEXTURE_2D, blurTextID );
-
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-    
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, blurTextWidth, blurTextHeight, 0,
-                  GL_RGB, GL_UNSIGNED_BYTE, data );
-
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-
-    delete [] data;
-    */
-
-
     
     screen->start();
 
@@ -814,16 +760,6 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
 
 
 
-static char blurOn = false;
-
-void toggleTrailBlur( char inBlurOn ) {
-    blurOn = inBlurOn;
-    }
-static double blurBlendAmount = 0;
-static double blurBlendMax = 0.5;
-
-
-
 
 
 void GameSceneHandler::drawScene() {
@@ -871,112 +807,6 @@ void GameSceneHandler::drawScene() {
         takeScreenShot();
         shouldTakeScreenshot = false;
         }
-
-
-    if( blurOn ) {
-        blurBlendAmount += 0.05;
-        if( blurBlendAmount > blurBlendMax ) {
-            blurBlendAmount = blurBlendMax;
-            }
-        }
-    else {
-        blurBlendAmount -= 0.025;
-        if( blurBlendAmount < 0 ) {
-            blurBlendAmount = 0;
-            }
-        }
-    
-
-    if( blurBlendAmount > 0 ) {
-        
-    
-        
-    // draw last blur texture as a quad
-
-    toggleAdditiveBlend( true );
-    
-
-    blurTexture->enable();
-    
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    
-    
-    glOrtho( -screenWidth/2, screenWidth/2, 
-             -screenWidth/2, screenWidth/2, -1.0f, 1.0f);
-    
-    
-    glMatrixMode(GL_MODELVIEW);
-
-    /*
-    glEnable( GL_TEXTURE_2D );
-
-    glBindTexture( GL_TEXTURE_2D, blurTextID );
-    */
-    glColor4f( 1, 1, 1, blurBlendAmount );
-    
-    Vector3D corners[4];
-    
-    corners[0].mX = -screenWidth/2;
-    corners[0].mY = -screenHeight/2;
-
-    corners[1].mX = screenWidth/2;
-    corners[1].mY = -screenHeight/2;
-
-    corners[2].mX = screenWidth/2;
-    corners[2].mY = screenHeight/2;
-
-    corners[3].mX = -screenWidth/2;
-    corners[3].mY = screenHeight/2;
-    
-    for( int i=0; i<4; i++ ) {
-        corners[i].mX *= 1.05;
-        corners[i].mY *= 1.05;
-        }
-    
-
-
-    glBegin( GL_QUADS ); {
-        
-        glTexCoord2f( 0, 0 );
-        glVertex2d( corners[0].mX, corners[0].mY );
-        
-        glTexCoord2f( (float)screenWidth / blurTextWidth, 0 );
-        glVertex2d( corners[1].mX, corners[1].mY );
-        
-        glTexCoord2f( (float)screenWidth / blurTextWidth,
-                      (float)screenHeight / blurTextHeight );
-        glVertex2d( corners[2].mX, corners[2].mY );
-        
-        glTexCoord2f( 0, (float)screenHeight / blurTextHeight );
-        glVertex2d( corners[3].mX, corners[3].mY );
-        }
-    glEnd();
-
-    //glDisable( GL_TEXTURE_2D );
-    blurTexture->disable();
-    
-    toggleAdditiveBlend( false );
-        }
-    
-    
-    // update blur texture
-    //glBindTexture( GL_TEXTURE_2D, blurTextID );
-    blurTexture->enable();
-    
-    glCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 
-                      blurTextWidth, blurTextHeight, 0 );
-
-    int error = glGetError();
-    if( error != GL_NO_ERROR ) {		// error
-		printf( "Error copying screen to texture, error = 0x%X\n",
-                error );
-		}
-
-
-    blurTexture->disable();
-    
     }
 
 

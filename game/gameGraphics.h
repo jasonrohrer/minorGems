@@ -20,9 +20,6 @@ void setDrawFade( float inA );
 void toggleAdditiveBlend( char inAdditive );
 
 
-void toggleTrailBlur( char inBlurOn );
-
-
 
 // draw using last set color
 // four vertices per quad
