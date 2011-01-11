@@ -139,6 +139,7 @@ Vector3D corners[4];
 void SpriteGL::draw( int inFrame, 
                      double inRotation, Vector3D *inPosition, 
                      double inScale,
+                     char inLinearMagFilter,
                      double inFadeFactor,
                      Color *inColor ) {
     /*
@@ -217,9 +218,15 @@ void SpriteGL::draw( int inFrame,
     */          
     mTexture->enable();
     
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    
+    if( inLinearMagFilter ) {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        }
+    else {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        }
+    
     double textXA = (1.0 / mNumPages) * mCurrentPage;
     double textXB = textXA + (1.0 / mNumPages );
 

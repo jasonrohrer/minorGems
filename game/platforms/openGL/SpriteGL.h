@@ -37,6 +37,7 @@ class SpriteGL{
         void draw( int inFrame,
                    double inRotation, Vector3D *inPosition,
                    double inScale = 1,
+                   char inLinearMagFilter = false,
                    double inFadeFactor = 1,
                    Color *inColor = NULL );
         

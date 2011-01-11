@@ -82,8 +82,9 @@ void freeSprite( SpriteHandle inSprite );
 
 
 // draw with current draw color
+// mag filter defaults to off (nearest neighbor, big pixels)
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
-                 double inZoom = 1.0 );
+                 double inZoom = 1.0, char inLinearMagFilter=false );
 
 
 
