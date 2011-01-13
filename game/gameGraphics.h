@@ -20,6 +20,9 @@ void setDrawFade( float inA );
 void toggleAdditiveBlend( char inAdditive );
 
 
+// defautls to nearest-neighbor texture magnification
+void toggleLinearMagFilter( char inLinearFilterOn );
+
 
 // draw using last set color
 // four vertices per quad
@@ -84,7 +87,7 @@ void freeSprite( SpriteHandle inSprite );
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
-                 double inZoom = 1.0, char inLinearMagFilter=false );
+                 double inZoom = 1.0 );
 
 
 
