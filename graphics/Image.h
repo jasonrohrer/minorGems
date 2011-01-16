@@ -38,6 +38,9 @@
  *
  * 2008-September-25		Jason Rohrer
  * Added a sub-image function and setting/getting color functions.
+ *
+ * 2011-January-16     Jason Rohrer
+ * Opt:  Changed to use memset to init large double arrays to 0.
  */
  
  
@@ -308,9 +311,7 @@ inline Image::Image( int inWidth, int inHeight, int inNumChannels,
 	for( int i=0; i<mNumChannels; i++ ) {
 		mChannels[i] = new double[ mNumPixels ];
         if( inStartPixelsAtZero ) {
-            for( int j=0; j<mNumPixels; j++ ) {
-                mChannels[i][j] = 0.0;
-                }
+            memset( mChannels[i], 0, mNumPixels * sizeof( double ) );
             }
 		}
 	}
