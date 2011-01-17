@@ -15,6 +15,9 @@
  *
  * 2010-April-20   	Jason Rohrer
  * Reload all SingleTextures after GL context change.
+ *
+ * 2011-January-17   Jason Rohrer
+ * Support for single-channel textures for efficiency.
  */
 
 
@@ -45,7 +48,7 @@ void SingleTextureGL::contextChanged() {
 
 void SingleTextureGL::reloadFromBackup() {
     
-    if( mRGBABackup != NULL ) {
+    if( mBackupBytes != NULL ) {
         
         glGenTextures( 1, &mTextureID );
         
@@ -56,7 +59,8 @@ void SingleTextureGL::reloadFromBackup() {
             }
         
         
-        setTextureData( mRGBABackup, mWidthBackup, mHeightBackup );
+        setTextureData( mBackupBytes, mAlphaOnly, 
+                        mWidthBackup, mHeightBackup );
         }
     }
     
@@ -64,8 +68,9 @@ void SingleTextureGL::reloadFromBackup() {
 
 
 SingleTextureGL::SingleTextureGL( Image *inImage, char inRepeat )
-    : mRepeat( inRepeat ),
-      mRGBABackup( NULL ) {
+    : mRepeat( inRepeat ), 
+      mAlphaOnly( false ),
+      mBackupBytes( NULL ) {
 
     glGenTextures( 1, &mTextureID );
     
@@ -88,7 +93,8 @@ SingleTextureGL::SingleTextureGL( unsigned char *inRGBA,
                                   unsigned int inHeight,
                                   char inRepeat )
     : mRepeat( inRepeat ), 
-      mRGBABackup( NULL ) {
+      mAlphaOnly( false ),
+      mBackupBytes( NULL ) {
 
     glGenTextures( 1, &mTextureID );
     
@@ -99,10 +105,36 @@ SingleTextureGL::SingleTextureGL( unsigned char *inRGBA,
         }
 
 
-	setTextureData( inRGBA, inWidth, inHeight );
+	setTextureData( inRGBA, mAlphaOnly, inWidth, inHeight );
     
     sAllLoadedTextures.push_back( this );
 	}
+
+
+
+SingleTextureGL::SingleTextureGL( char inAlphaOnly,
+                                  unsigned char *inA, 
+                                  unsigned int inWidth, unsigned int inHeight,
+                                  char inRepeat )
+    : mRepeat( inRepeat ), 
+      mAlphaOnly( true ),
+      mBackupBytes( NULL ) {
+
+    glGenTextures( 1, &mTextureID );
+    
+    int error = glGetError();
+	if( error != GL_NO_ERROR ) {		// error
+		printf( "Error generating new texture ID, error = %d, \"%s\"\n",
+                error, glGetString( error ) );
+        }
+
+
+	setTextureData( inA, mAlphaOnly, inWidth, inHeight );
+    
+    sAllLoadedTextures.push_back( this );
+	}
+    
+
 
 
 
@@ -111,9 +143,9 @@ SingleTextureGL::~SingleTextureGL() {
     
     glDeleteTextures( 1, &mTextureID );
 	
-    if( mRGBABackup != NULL ) {
-        delete [] mRGBABackup;
-        mRGBABackup = NULL;
+    if( mBackupBytes != NULL ) {
+        delete [] mBackupBytes;
+        mBackupBytes = NULL;
         }
     
     }
@@ -147,7 +179,7 @@ void SingleTextureGL::setTextureData( Image *inImage ) {
 	unsigned char *textureData = rgbaImage->getRGBABytes();
 
     setTextureData( textureData, 
-                    rgbaImage->getWidth(), rgbaImage->getHeight() );
+                    false, rgbaImage->getWidth(), rgbaImage->getHeight() );
     
     
     delete rgbaImage;
@@ -155,27 +187,57 @@ void SingleTextureGL::setTextureData( Image *inImage ) {
     }
 
 
-void SingleTextureGL::setTextureData( unsigned char *inRGBA,
+
+void SingleTextureGL::replaceBackupData( unsigned char *inBytes,
+                                         char inAlphaOnly,
+                                         unsigned int inWidth, 
+                                         unsigned int inHeight ) {
+    if( inBytes != mBackupBytes ) {
+        
+        // clear old backup
+        if( mBackupBytes != NULL ) {
+            delete [] mBackupBytes;
+            mBackupBytes = NULL;
+            }
+
+        int numBytesPerPixel = 4;
+
+        if( inAlphaOnly ) {
+            numBytesPerPixel = 1;
+            }        
+
+        mBackupBytes = 
+            new unsigned char[ inWidth * inHeight * numBytesPerPixel ];
+        
+        memcpy( mBackupBytes, inBytes, inWidth * inHeight * numBytesPerPixel );
+        
+        mWidthBackup = inWidth;
+        mHeightBackup = inHeight;
+        }    
+    }
+
+
+
+void SingleTextureGL::setTextureData( unsigned char *inBytes,
+                                      char inAlphaOnly,
                                       unsigned int inWidth, 
                                       unsigned int inHeight ) {
     
-    if( inRGBA != mRGBABackup ) {
-        
-        // clear old backup
-        if( mRGBABackup != NULL ) {
-            delete [] mRGBABackup;
-            mRGBABackup = NULL;
-            }
-        mRGBABackup = new unsigned char[ inWidth * inHeight * 4 ];
-        memcpy( mRGBABackup, inRGBA, inWidth * inHeight * 4 );
-        mWidthBackup = inWidth;
-        mHeightBackup = inHeight;
-        }
+    replaceBackupData( inBytes, inAlphaOnly, inWidth, inHeight );
+    
     
 
     int error;
     
-	GLenum texFormat = GL_RGBA;
+	GLenum internalTexFormat = GL_RGBA;
+	GLenum texDataFormat = GL_RGBA;
+
+    if( inAlphaOnly ) {
+        internalTexFormat = GL_LUMINANCE_ALPHA;
+        texDataFormat = GL_ALPHA;
+        }
+    
+
 	glBindTexture( GL_TEXTURE_2D, mTextureID );
 
     error = glGetError();
@@ -201,9 +263,9 @@ void SingleTextureGL::setTextureData( unsigned char *inRGBA,
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
 	glTexImage2D( GL_TEXTURE_2D, 0,
-				  texFormat, inWidth,
+				  internalTexFormat, inWidth,
 				  inHeight, 0,
-				  texFormat, GL_UNSIGNED_BYTE, inRGBA );
+				  texDataFormat, GL_UNSIGNED_BYTE, inBytes );
 
 	error = glGetError();
 	if( error != GL_NO_ERROR ) {		// error
@@ -216,27 +278,26 @@ void SingleTextureGL::setTextureData( unsigned char *inRGBA,
 	}
 
 
-void SingleTextureGL::replaceTextureData( unsigned char *inRGBA,
+void SingleTextureGL::replaceTextureData( unsigned char *inBytes,
+                                          char inAlphaOnly,
                                           unsigned int inWidth, 
                                           unsigned int inHeight ) {
-    if( inRGBA != mRGBABackup ) {
-        // clear old backup
-        if( mRGBABackup != NULL ) {
-            delete [] mRGBABackup;
-            mRGBABackup = NULL;
-            }
-        mRGBABackup = new unsigned char[ inWidth * inHeight * 4];
-        memcpy( mRGBABackup, inRGBA, inWidth * inHeight * 4 );
-        mWidthBackup = inWidth;
-        mHeightBackup = inHeight;
-        }
+
+    replaceBackupData( inBytes, inAlphaOnly, inWidth, inHeight );
     
 
 
     int error;
 
-    GLenum texFormat = GL_RGBA;
-	glBindTexture( GL_TEXTURE_2D, mTextureID );
+
+	GLenum texDataFormat = GL_RGBA;
+
+    if( inAlphaOnly ) {
+        texDataFormat = GL_ALPHA;
+        }
+
+
+    glBindTexture( GL_TEXTURE_2D, mTextureID );
     
     error = glGetError();
 	if( error != GL_NO_ERROR ) {		// error
@@ -249,8 +310,8 @@ void SingleTextureGL::replaceTextureData( unsigned char *inRGBA,
     glTexSubImage2D( GL_TEXTURE_2D, 0,
                      0, 0, // offset
                      inWidth, inHeight, 
-                     texFormat,
-                     GL_UNSIGNED_BYTE, inRGBA );
+                     texDataFormat,
+                     GL_UNSIGNED_BYTE, inBytes );
 
 	error = glGetError();
 	if( error != GL_NO_ERROR ) {		// error

@@ -22,6 +22,9 @@
  *
  * 2010-April-20   	Jason Rohrer
  * Reload all SingleTextures after GL context change.
+ *
+ * 2011-January-17   Jason Rohrer
+ * Support for single-channel textures for efficiency.
  */
  
  
@@ -83,6 +86,17 @@ class SingleTextureGL {
                          unsigned int inWidth, unsigned int inHeight,
                          char inRepeat = true );
 
+        
+        /**
+		 * Specifies single-channel texture data as alpha bytes.
+         *
+         * Extra parameter used only to differentiate constructor calls.
+		 */
+		SingleTextureGL( char inAlphaOnly,
+                         unsigned char *inA, 
+                         unsigned int inWidth, unsigned int inHeight,
+                         char inRepeat = true );
+
 
 		
 		/**
@@ -96,8 +110,11 @@ class SingleTextureGL {
         /**
          * Replaces data in a texture that's already been set.
          * Dimensions must match original dimensions.
+         *
+         * Data can contain either RGBA or Alpha-only bytes.
          */
-        void replaceTextureData( unsigned char *inRGBA,
+        void replaceTextureData( unsigned char *inBytes,
+                                 char inAlphaOnly,
                                  unsigned int inWidth, 
                                  unsigned int inHeight );
         
@@ -123,12 +140,12 @@ class SingleTextureGL {
 		void setTextureData( Image *inImage );
 
 		/**
-		 * Sets texture data as rgba bytes.
+		 * Sets texture data as rgba or alpha-only bytes.
 		 */
-        void setTextureData( unsigned char *inRGBA, 
+        void setTextureData( unsigned char *inBytes,
+                             char inAlphaOnly,
                              unsigned int inWidth, 
-                             unsigned int inHeight );
-        
+                             unsigned int inHeight );        
 
 		
 		/**
@@ -155,15 +172,21 @@ class SingleTextureGL {
         
 		GLuint mTextureID;
         
-
+        char mAlphaOnly;
 
         // in case of context switch where we need to reload our texture
-        unsigned char *mRGBABackup;
+        // backup bytes might contain either RGBA or A only bytes
+        unsigned char *mBackupBytes;
         unsigned int mWidthBackup;
         unsigned int mHeightBackup;
         
         void reloadFromBackup();
         
+        void replaceBackupData( unsigned char *inBytes,
+                                char inAlphaOnly,
+                                unsigned int inWidth, 
+                                unsigned int inHeight );
+
 
         static SimpleVector<SingleTextureGL *> sAllLoadedTextures;
         

@@ -72,6 +72,14 @@ SpriteHandle fillSprite( Image *inImage,
 SpriteHandle fillSprite( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight );
 
+// fill a one-channel (alpha-only) sprite
+// other channels will be set to black.
+// (more efficient than full RGBA for things like shadows)
+SpriteHandle fillSpriteAlphaOnly( unsigned char *inA,
+                                  unsigned int inWidth, 
+                                  unsigned int inHeight );
+
+
 
 // Image destroyed by caller
 Image *readTGAFile( const char *inTGAFileName );

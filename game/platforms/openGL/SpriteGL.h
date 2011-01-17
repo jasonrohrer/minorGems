@@ -30,6 +30,14 @@ class SpriteGL{
                   int inNumFrames = 1,
                   int inNumPages = 1 );
 
+        // one-channel, alpha-only, with other channels black
+        // extra parameter just to differentiate function calls
+        SpriteGL( char inAlphaOnly,
+                  unsigned char *inA, 
+                  unsigned int inWidth, unsigned int inHeight,
+                  int inNumFrames = 1,
+                  int inNumPages = 1 );
+
 
         ~SpriteGL();
         

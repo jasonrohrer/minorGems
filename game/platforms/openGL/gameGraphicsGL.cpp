@@ -200,6 +200,15 @@ SpriteHandle fillSprite( unsigned char *inRGBA,
 
 
 
+SpriteHandle fillSpriteAlphaOnly( unsigned char *inA, 
+                                  unsigned int inWidth, 
+                                  unsigned int inHeight ) {
+    
+    return new SpriteGL( true, inA, inWidth, inHeight );
+    }
+
+
+
 
 
 void freeSprite( SpriteHandle inSprite ) {

@@ -123,6 +123,31 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
 
 
 
+SpriteGL::SpriteGL( char inAlphaOnly,
+                    unsigned char *inA, 
+                    unsigned int inWidth, unsigned int inHeight, 
+                    int inNumFrames,
+                    int inNumPages ) {
+    
+    mNumFrames = inNumFrames;
+    mNumPages = inNumPages;
+
+    mTexture = new SingleTextureGL( inAlphaOnly,
+                                    inA, inWidth, inHeight,
+                                    // no wrap
+                                    false );
+
+    mBaseScaleX = inWidth / mNumPages;
+    mBaseScaleY = inHeight / mNumFrames;
+    
+    
+    mFlipHorizontal = false;
+    mHorizontalOffset = 0;
+    mCurrentPage = 0;
+    }
+
+
+
 
 SpriteGL::~SpriteGL() {
     delete mTexture;
