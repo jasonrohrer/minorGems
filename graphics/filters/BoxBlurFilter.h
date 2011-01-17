@@ -13,6 +13,9 @@
  * 2006-September-7    Jason Rohrer
  * Optimized inner loop.
  * Optimized more, avoiding summing over entire box for each pixel.
+ *
+ * 2011-January-17   Jason Rohrer
+ * Optimized with accumulation buffer pre-processing step, found on Gamasutra.
  */
  
  
@@ -83,152 +86,124 @@ inline int BoxBlurFilter::getRadius() {
 	
 	
 inline void BoxBlurFilter::apply( double *inChannel, 
-	int inWidth, int inHeight ) {
-	
-	double *blurredChannel = new double[ inWidth * inHeight ];
+                                  int inWidth, int inHeight ) {
+
+    // the basis for this method was found in this article:
+    // 
+    // http://www.gamasutra.com/view/feature/3102/
+    //        four_tricks_for_fast_blurring_in_.php?page=1
+    //
+    // however, the code provided seems to contain mistakes, which I have fixed
 
 
-    // optimization:
-    // The sum for a given pixel's box in row N is the sum for the same pixel
-    // in row (N-1) minus one box-row of pixels and plus a box-row of pixels
-    // We don't have to loop over the entire box for each pixel (instead,
-    // we just add the new pixels and subtract the old as the box moves along)
-    char lastRowSumsSet = false;
-    double *lastRowSums = new double[ inWidth ];
+    // sum of all pixels to left and above each position 
+    // (including that position)
+    double *accumTotals = new double[ inWidth * inHeight ];
+    
 
-    // track the sums from single rows of boxes that we have already seen
-    // Thus, when we need to "subtract a row" from our box sum, we can use
-    // the precomputed version
-    double *singleRowBoxSums = new double[ inWidth * inHeight ];
+    double *accumPointer = accumTotals;
+    double *sourcePointer = inChannel;
+    for( int y=0; y<inHeight; y++ ) {
+        for( int x=0; x<inWidth; x++ ) {
+            double total = sourcePointer[0];
+
+            if( x>0 ) {    
+                total += accumPointer[-1];
+                }
+            
+            if( y>0 ) {    
+                total += accumPointer[ -inWidth ];
+                }
+            
+            if( x>0 && y>0 ) {
+                total -= accumPointer[ -inWidth - 1 ];
+                }
+            
+            *accumPointer = total;
+            accumPointer++;
+            
+            sourcePointer++;
+            }
+        }
     
     
-	for( int y=0; y<inHeight; y++ ) {
-		int yIndexContrib = y * inWidth;
-		
-		int startBoxY = y - mRadius;
-		int endBoxY = y + mRadius;
+    
+    
+    
+    // sum boxes right into passed-in channel
+    for( int y=0; y<inHeight; y++ ) {
+        // seems like Gamasutra's code had a mistake
+        // need to extend start of box 1 past actual box, for this to work
+        // properly
+        int boxYStart = y - mRadius - 1;
+        int boxYEnd = y + mRadius;
 
-        // deal with boundary cases (near top and bottom of image)
-        // Near top, we only add rows to our sum
-        // Near bottom, we only subtract rows to our sum
-        char addARow = true;
-        char subtractARow = true;
+        double yOutsideFactor = 1;
         
-		if( startBoxY <= 0 ) {
-			startBoxY = 0;
+        int yDimensionExtra = 0;
+
+        if( boxYStart < 0 ) {
+            boxYStart = 0;
+            yOutsideFactor = 0;
+            yDimensionExtra = 1;
+            }
+        if( boxYEnd >= inHeight ) {
+            boxYEnd = inHeight - 1;
+            }
+        int yDimension = boxYEnd - boxYStart + yDimensionExtra;
+
+
+        for( int x=0; x<inWidth; x++ ) {
             
-            // our box is at or hanging over top edge
-            // no rows to subtract from sum
-            subtractARow = false;
-			}
-		if( endBoxY >= inHeight ) {
-			endBoxY = inHeight - 1; 
-
-            // box hanging over bottom edge
-            // no rows to add to sum
-            addARow = false;
-			}
-		
-		int boxSizeY = endBoxY - startBoxY + 1;
-		
-		for( int x=0; x<inWidth; x++ ) {
-
-            int pixelIndex = yIndexContrib + x;
-
-            // sum into this pixel in the blurred channel
-            blurredChannel[ pixelIndex ] = 0;
+            int boxXStart = x - mRadius - 1;
+            int boxXEnd = x + mRadius;
             
+            double xOutsideFactor = 1;
             
-			int startBoxX = x - mRadius;
-			int endBoxX = x + mRadius;
-
+            int xDimensionExtra = 0;
             
-            
-			if( startBoxX < 0 ) {
-				startBoxX = 0;
-				}
-			if( endBoxX >= inWidth ) {
-				endBoxX = inWidth - 1;
-				}
-			
-			int boxSizeX = endBoxX - startBoxX + 1;
-			
-			// sum all pixels in the box around this pixel
-            double sum = 0;
-
-
-            if( ! lastRowSumsSet ) {
-                // do the "slow way" for the first row
-                
-                for( int boxY = startBoxY; boxY<=endBoxY; boxY++ ) {
-                	int yBoxIndexContrib = boxY * inWidth;
-
-                    double rowSum = 0;
-                	for( int boxX = startBoxX; boxX<=endBoxX; boxX++ ) {	
-                
-                        rowSum += inChannel[ yBoxIndexContrib + boxX ];
-                		}
-
-                    sum += rowSum;
-
-                    // store row sum for future use
-                    singleRowBoxSums[ yBoxIndexContrib + x ] = rowSum;
-                	}
-
+            if( boxXStart < 0 ) {
+                boxXStart = 0;
+                xOutsideFactor = 0;
+                xDimensionExtra = 1;
                 }
-            else {
-                // we have sum for this pixel from the previous row
-                // use it to avoid looping over entire box again
-
-                sum = lastRowSums[ x ];
-
-                if( addARow ) {
-                    // add pixels from row at endBoxY
-
-                                    
-                    int yBoxIndexContrib = endBoxY * inWidth;
-
-                    double rowSum = 0;
-                    for( int boxX = startBoxX; boxX<=endBoxX; boxX++ ) {	
-                        rowSum += inChannel[ yBoxIndexContrib + boxX ];
-                        }
-
-                    sum += rowSum;
-
-                    // store it for later when we will need to subtract it
-                    singleRowBoxSums[ yBoxIndexContrib + x ] = rowSum;
-                    }
-                if( subtractARow ) {
-                    // subtract pixels from startBoxY of previous row's box
-                                    
-                    int yBoxIndexContrib = (startBoxY - 1) * inWidth;
-
-                    // use pre-computed sum for the row we're subtracting
-                    sum -= singleRowBoxSums[ yBoxIndexContrib + x ];
-                    }
-                    
+            if( boxXEnd >= inWidth ) {
+                boxXEnd = inWidth - 1;
                 }
+            
+            double outsideOverlapFactor = yOutsideFactor * xOutsideFactor;
+            
+
+            int xDimension = boxXEnd - boxXStart + xDimensionExtra;
+
+            int numPixelsInBox = (yDimension) * (xDimension);
+    
+            double boxValueMultiplier = 1.0 / numPixelsInBox;
 
             
-			// divide by number of pixels to complete the average
-			blurredChannel[ pixelIndex ] = sum / (boxSizeX * boxSizeY);
+            inChannel[ y * inWidth + x ] = 
+                boxValueMultiplier * (
+                    // total sum of pixels in image from far corner
+                    // of box back to (0,0)
+                    accumTotals[ boxYEnd * inWidth + boxXEnd ]
+                    // subtract regions outside of box, if any
+                    -
+                    yOutsideFactor * 
+                    accumTotals[ boxYStart * inWidth + boxXEnd ]
+                    -
+                    xOutsideFactor * 
+                    accumTotals[ boxYEnd * inWidth + boxXStart ]
+                    // add back in region that was subtracted twice, if any
+                    +
+                    outsideOverlapFactor *
+                    accumTotals[ boxYStart * inWidth + boxXStart ]
+                    );
+            
+            }
+        }
+    
+    delete [] accumTotals;    
+    }
 
-            // save to use when computing box sum for next row
-            lastRowSums[ x ] = sum;
-			}
-        
-        // we now have valid last row sums that we can use for
-        // all the rest of the rows
-        lastRowSumsSet = true;
-        
-		}
-	
-	// copy blurred image back into passed-in image
-	memcpy( inChannel, blurredChannel, sizeof(double) * inWidth * inHeight );
-	
-	delete [] blurredChannel;
-	delete [] lastRowSums;
-    delete [] singleRowBoxSums;
-	}
-	
+
 #endif
