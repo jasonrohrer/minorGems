@@ -906,15 +906,14 @@ void GameSceneHandler::fireRedraw() {
     if( mPaused ) {
         // ignore redraw event
 
-        // sleep to avoid wasting CPU cycles
-        Thread::staticSleep( mPausedSleepTime );
-        
-        mPausedSleepTime += 10;
-        
-        // cap
-        if( mPausedSleepTime > 1000 ) {
-            mPausedSleepTime = 1000;
+        if( mPausedSleepTime > (unsigned int)( 5 * targetFrameRate ) ) {
+            // user has touched nothing for 5 seconds
+            
+            // sleep to avoid wasting CPU cycles
+            Thread::staticSleep( mPausedSleepTime );
             }
+        
+        mPausedSleepTime++;
         
         return;
         }
