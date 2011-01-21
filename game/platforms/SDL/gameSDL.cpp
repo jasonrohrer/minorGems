@@ -687,6 +687,11 @@ void pauseGame() {
     }
 
 
+char isPaused() {
+    return sceneHandler->mPaused;
+    }
+
+
 
 void mapKey( unsigned char inFromKey, unsigned char inToKey ) {
     screen->setKeyMapping( inFromKey, inToKey );
@@ -960,7 +965,13 @@ void GameSceneHandler::keyPressed(
     
     if( !hardToQuitMode ) {
         // escape only
-        if( inKey == 27 ) {
+
+        if( inKey == 27 && ! mPaused ) {
+            // first escape pauses
+            mPaused = !mPaused;
+            }
+        else if( mPaused && inKey == 27 ) {
+            // escape hit when paused
             exit( 0 );
             }
         }

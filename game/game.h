@@ -184,6 +184,8 @@ const char *translate( const char *inTranslationKey );
 // pause and resume the game
 void pauseGame();
 
+char isPaused();
+
 
 
 // save a screenshot to the "screenShots" folder
