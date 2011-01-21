@@ -204,6 +204,8 @@ class GameSceneHandler :
         unsigned long mFrameBatchStartTimeMilliseconds;
         
 
+        // reduce sleep time when user hits keys to restore responsiveness
+        unsigned int mPausedSleepTime;
 
         Color mBackgroundColor;
 
@@ -612,6 +614,7 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( time( NULL ) ),
       mFrameBatchStartTimeMilliseconds( 0 ),
+      mPausedSleepTime( 0 ),
       mBackgroundColor( 0, 0, 0, 1 ) { 
     
     
@@ -904,7 +907,14 @@ void GameSceneHandler::fireRedraw() {
         // ignore redraw event
 
         // sleep to avoid wasting CPU cycles
-        Thread::staticSleep( 1000 );
+        Thread::staticSleep( mPausedSleepTime );
+        
+        mPausedSleepTime += 10;
+        
+        // cap
+        if( mPausedSleepTime > 1000 ) {
+            mPausedSleepTime = 1000;
+            }
         
         return;
         }
@@ -942,6 +952,10 @@ static unsigned char lastKeyPressed = '\0';
 
 void GameSceneHandler::keyPressed(
 	unsigned char inKey, int inX, int inY ) {
+
+    // reset to become responsive while paused
+    mPausedSleepTime = 0;
+    
 
     if( enableSlowdownKeys ) {
         
