@@ -18,6 +18,9 @@
  *
  * 2011-January-17   Jason Rohrer
  * Support for single-channel textures for efficiency.
+ *
+ * 2011-January-23   Jason Rohrer
+ * Changed internal format of single-channel texture to RGBA for compatibility.
  */
 
 
@@ -233,7 +236,7 @@ void SingleTextureGL::setTextureData( unsigned char *inBytes,
 	GLenum texDataFormat = GL_RGBA;
 
     if( inAlphaOnly ) {
-        internalTexFormat = GL_LUMINANCE_ALPHA;
+        internalTexFormat = GL_RGBA;
         texDataFormat = GL_ALPHA;
         }
     
