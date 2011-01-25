@@ -80,6 +80,9 @@
  * Added custom data to recorded game files.  
  * Fixed bug in hidden file skipping.
  * Support for detecting playback mode.
+ *
+ * 2011-January-25   Jason Rohrer
+ * Now respects current screen's aspect ratio when picking a resolution.
  */
 
 
@@ -403,6 +406,20 @@ char screenGLStencilBufferSupported = false;
 
 
 
+
+// aspect ratio rounded to nearest 1/100
+// Some screen resolutions, like 854x480, are not exact matches to their
+// aspect ratio
+double computeAspectRatio( int inW, int inH ) {
+
+    int intRatio = (100 * inW ) / inH;
+
+    return intRatio / 100.0;
+    }
+
+
+
+
 void ScreenGL::setupSurface() {
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	
@@ -412,6 +429,19 @@ void ScreenGL::setupSurface() {
 	if( mFullScreen ) {
         flags = flags | SDL_FULLSCREEN;
         }
+
+    const SDL_VideoInfo* currentScreenInfo = SDL_GetVideoInfo();
+    
+    int currentW = currentScreenInfo->current_w;
+    int currentH = currentScreenInfo->current_h;
+    
+    // aspect ratio
+    double currentAspectRatio = computeAspectRatio( currentW, currentH );
+
+    AppLog::getLog()->logPrintf( 
+        Log::INFO_LEVEL,
+        "Current screen configuration is %dx%d with aspect ratio %.2f",
+        currentW, currentH, currentAspectRatio );
 
 
 
@@ -438,6 +468,8 @@ void ScreenGL::setupSurface() {
         }
     else{
         // Print valid modes
+
+        // only count a match of BOTH resolution and aspect ratio
         char match = false;
         
         AppLog::info( "Available video modes:" );
@@ -446,9 +478,25 @@ void ScreenGL::setupSurface() {
                                          "   %d x %d\n", 
                                          modes[i]->w, 
                                          modes[i]->h );
+
+            double thisAspectRatio = computeAspectRatio( modes[i]->w,
+                                                         modes[i]->h );
+            
+            if( thisAspectRatio == currentAspectRatio ) {
+                AppLog::info( "   ^^^^ this mode matches current "
+                              "aspect ratio" );
+                }
+            
             if( mWide == modes[i]->w && mHigh == modes[i]->h ) {
                 AppLog::info( "   ^^^^ this mode matches requested mode" );
-                match = true;
+                
+                if( thisAspectRatio != currentAspectRatio ) {
+                    AppLog::info( "        but it doesn't match current "
+                                  "aspect ratio" );
+                    }
+                else {
+                    match = true;
+                    }
                 }
             }
 
@@ -465,18 +513,53 @@ void ScreenGL::setupSurface() {
                     fabs( modes[i]->w - mWide ) +
                     fabs( modes[i]->h - mHigh ) );
                 
-                if( distance < bestDistance ) {
+                double thisAspectRatio = computeAspectRatio( modes[i]->w,
+                                                             modes[i]->h );
+
+                if( thisAspectRatio == currentAspectRatio && 
+                    distance < bestDistance ) {
                     bestIndex = i;
                     bestDistance = distance;
                     }
                 }
-                        
-            AppLog::getLog()->logPrintf( 
-                Log::INFO_LEVEL,
-                "Picking closest available resolution, %d x %d\n", 
-                modes[bestIndex]->w, 
-                modes[bestIndex]->h );
-    
+                    
+
+            if( bestIndex != -1 ) {
+                
+                AppLog::getLog()->logPrintf( 
+                    Log::INFO_LEVEL,
+                    "Picking closest available resolution that matches "
+                    "current aspect ratio, %d x %d\n", 
+                    modes[bestIndex]->w, 
+                    modes[bestIndex]->h );
+                }
+            else {
+                // search again, ignoring aspect match
+                AppLog::warning( 
+                    "Warning:  No match for current aspect ratio" );
+                AppLog::info( "Trying to find the closest off-ratio match" );
+
+                
+                for( int i=0; modes[i]; ++i ) {
+                    int distance = (int)(
+                        fabs( modes[i]->w - mWide ) +
+                        fabs( modes[i]->h - mHigh ) );
+                
+                    if( distance < bestDistance ) {
+                        bestIndex = i;
+                        bestDistance = distance;
+                        }
+                    }
+                
+
+                AppLog::getLog()->logPrintf( 
+                    Log::INFO_LEVEL,
+                    "Picking closest available resolution, %d x %d\n", 
+                    modes[bestIndex]->w, 
+                    modes[bestIndex]->h );
+                }
+
+
             mWide = modes[bestIndex]->w;
             mHigh = modes[bestIndex]->h;
             }
