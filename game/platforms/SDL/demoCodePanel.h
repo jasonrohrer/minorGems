@@ -167,9 +167,12 @@ DemoCodePanelKeyboardHandler *codeCheckerKeyHandler;
 
 
 
-void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName ) {
+void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
+                        int inWidth, int inHeight ) {
 
     codeCheckerScreen = inScreen;
+    
+    codeCheckerWidth = inWidth;
     
     
     // load text font
@@ -205,7 +208,7 @@ void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName ) {
     
     delete fontImage;
 
-
+    
     
 
     codeCheckerMainPanel = new GUIPanelGL( 0, 0, codeCheckerWidth, 
@@ -229,7 +232,8 @@ void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName ) {
     codeCheckerScreen->addKeyboardHandler( codeCheckerKeyHandler );
     
 
-    enterDemoCodeLabel = createLabel( 175, "enterDemoCode" );
+    enterDemoCodeLabel = createLabel( 0.5 * codeCheckerWidth + 15, 
+                                      "enterDemoCode" );
     codeCheckerMainPanel->add( enterDemoCodeLabel );
 
 
@@ -252,7 +256,7 @@ void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName ) {
 
 
     enterDemoCodeField = new TextFieldGL( centerW - 0.5 * width,
-                                          145,
+                                          0.5 * codeCheckerWidth - 15,
                                           width,
                                           height,
                                           1,

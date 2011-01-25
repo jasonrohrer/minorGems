@@ -410,6 +410,14 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     screenHeight = screen->getHeight();
     targetFrameRate = screen->getMaxFramerate();
     
+    
+    // adjust gameWidth to match available screen aspect ratio
+    // keep gameHeight constant
+
+    double aspectRatio = (double)screenWidth / (double)screenHeight;
+
+    gameWidth = (int)( aspectRatio * gameHeight );
+
 
     /*
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY,
@@ -583,7 +591,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                      screen->isPlayingBack() );
 
     if( demoMode ) {    
-        showDemoCodePanel( screen, getFontTGAFileName() );
+        showDemoCodePanel( screen, getFontTGAFileName(), gameWidth,
+                           gameHeight );
         
         // wait to start handling events
         // wait to start recording/playback
