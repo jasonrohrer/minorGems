@@ -83,6 +83,9 @@
  *
  * 2011-January-25   Jason Rohrer
  * Now respects current screen's aspect ratio when picking a resolution.
+ *
+ * 2011-January-26   Jason Rohrer
+ * Switched to integer representation for aspect ratio comparisons.
  */
 
 
@@ -411,13 +414,14 @@ char screenGLStencilBufferSupported = false;
 
 
 // aspect ratio rounded to nearest 1/100
+// (16:9  is 177)
 // Some screen resolutions, like 854x480, are not exact matches to their
 // aspect ratio
-double computeAspectRatio( int inW, int inH ) {
+int computeAspectRatio( int inW, int inH ) {
 
     int intRatio = (100 * inW ) / inH;
 
-    return intRatio / 100.0;
+    intRatio;
     }
 
 
@@ -439,7 +443,7 @@ void ScreenGL::setupSurface() {
     int currentH = currentScreenInfo->current_h;
     
     // aspect ratio
-    double currentAspectRatio = computeAspectRatio( currentW, currentH );
+    int currentAspectRatio = computeAspectRatio( currentW, currentH );
 
     AppLog::getLog()->logPrintf( 
         Log::INFO_LEVEL,
@@ -482,8 +486,8 @@ void ScreenGL::setupSurface() {
                                          modes[i]->w, 
                                          modes[i]->h );
 
-            double thisAspectRatio = computeAspectRatio( modes[i]->w,
-                                                         modes[i]->h );
+            int thisAspectRatio = computeAspectRatio( modes[i]->w,
+                                                      modes[i]->h );
             
             if( !mForceAspectRatio && thisAspectRatio == currentAspectRatio ) {
                 AppLog::info( "   ^^^^ this mode matches current "
@@ -517,8 +521,8 @@ void ScreenGL::setupSurface() {
                     fabs( modes[i]->w - mWide ) +
                     fabs( modes[i]->h - mHigh ) );
                 
-                double thisAspectRatio = computeAspectRatio( modes[i]->w,
-                                                             modes[i]->h );
+                int thisAspectRatio = computeAspectRatio( modes[i]->w,
+                                                          modes[i]->h );
 
                 if( !mForceAspectRatio ||
                     ( thisAspectRatio == currentAspectRatio && 
