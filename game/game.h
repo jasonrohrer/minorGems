@@ -187,6 +187,12 @@ void pauseGame();
 char isPaused();
 
 
+// pause mode eventually runs in reduced frame rate to reduce CPU usage
+// call this to temporarily increase framerate back to normal
+void wakeUpPauseFrameRate();
+
+
+
 
 // save a screenshot to the "screenShots" folder
 // screenshot may be delayed until the end of the next redraw.

@@ -190,6 +190,10 @@ class GameSceneHandler :
         
 
         char mPaused;
+
+        // reduce sleep time when user hits keys to restore responsiveness
+        unsigned int mPausedSleepTime;
+
         
         
     protected:
@@ -204,8 +208,6 @@ class GameSceneHandler :
         unsigned long mFrameBatchStartTimeMilliseconds;
         
 
-        // reduce sleep time when user hits keys to restore responsiveness
-        unsigned int mPausedSleepTime;
 
         Color mBackgroundColor;
 
@@ -618,12 +620,12 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     : mScreen( inScreen ),
       mPaused( false ),
+      mPausedSleepTime( 0 ),
       mStartTimeSeconds( time( NULL ) ),
       mPrintFrameRate( true ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( time( NULL ) ),
       mFrameBatchStartTimeMilliseconds( 0 ),
-      mPausedSleepTime( 0 ),
       mBackgroundColor( 0, 0, 0, 1 ) { 
     
     
@@ -701,6 +703,11 @@ void pauseGame() {
 
 char isPaused() {
     return sceneHandler->mPaused;
+    }
+
+
+void wakeUpPauseFrameRate() {
+    sceneHandler->mPausedSleepTime = 0;
     }
 
 
