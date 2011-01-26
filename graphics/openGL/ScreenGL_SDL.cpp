@@ -158,7 +158,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 					KeyboardHandlerGL *inKeyHandler,
 					MouseHandlerGL *inMouseHandler,
 					SceneHandlerGL *inSceneHandler  ) 
-	: mWide( inWide ), mHigh( inHigh ), 
+	: mWide( inWide ), mHigh( inHigh ),
+      mForceAspectRatio( false ),
       mImageWide( inWide ), mImageHigh( inHigh ),
       mFullScreen( inFullScreen ),
       mMaxFrameRate( inMaxFrameRate ),
@@ -268,6 +269,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 
                 mImageWide = mWide;
                 mImageHigh = mHigh;
+
+                mForceAspectRatio = true;
             
                 if( fullScreenFlag ) {
                     mFullScreen = true;
@@ -482,7 +485,7 @@ void ScreenGL::setupSurface() {
             double thisAspectRatio = computeAspectRatio( modes[i]->w,
                                                          modes[i]->h );
             
-            if( thisAspectRatio == currentAspectRatio ) {
+            if( !mForceAspectRatio && thisAspectRatio == currentAspectRatio ) {
                 AppLog::info( "   ^^^^ this mode matches current "
                               "aspect ratio" );
                 }
@@ -490,7 +493,8 @@ void ScreenGL::setupSurface() {
             if( mWide == modes[i]->w && mHigh == modes[i]->h ) {
                 AppLog::info( "   ^^^^ this mode matches requested mode" );
                 
-                if( thisAspectRatio != currentAspectRatio ) {
+                if( ! mForceAspectRatio && 
+                    thisAspectRatio != currentAspectRatio ) {
                     AppLog::info( "        but it doesn't match current "
                                   "aspect ratio" );
                     }
@@ -516,8 +520,9 @@ void ScreenGL::setupSurface() {
                 double thisAspectRatio = computeAspectRatio( modes[i]->w,
                                                              modes[i]->h );
 
-                if( thisAspectRatio == currentAspectRatio && 
-                    distance < bestDistance ) {
+                if( !mForceAspectRatio ||
+                    ( thisAspectRatio == currentAspectRatio && 
+                      distance < bestDistance ) ) {
                     bestIndex = i;
                     bestDistance = distance;
                     }
@@ -526,12 +531,22 @@ void ScreenGL::setupSurface() {
 
             if( bestIndex != -1 ) {
                 
-                AppLog::getLog()->logPrintf( 
-                    Log::INFO_LEVEL,
-                    "Picking closest available resolution that matches "
-                    "current aspect ratio, %d x %d\n", 
-                    modes[bestIndex]->w, 
-                    modes[bestIndex]->h );
+                if( mForceAspectRatio ) {
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Picking closest available resolution that matches"
+                        ", %d x %d\n", 
+                        modes[bestIndex]->w, 
+                        modes[bestIndex]->h );
+                    }
+                else {
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Picking closest available resolution that matches "
+                        "current aspect ratio, %d x %d\n", 
+                        modes[bestIndex]->w, 
+                        modes[bestIndex]->h );
+                    }
                 }
             else {
                 // search again, ignoring aspect match

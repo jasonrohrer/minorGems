@@ -498,6 +498,10 @@ class ScreenGL {
 
 		int mWide;
 		int mHigh;
+
+        // forces requested aspect ratio, if it's available, even
+        // if it doesn't match screen's current ratio
+        char mForceAspectRatio;
 		
         // for an viewport image that can be smaller than our screen
         char mImageSizeSet;
