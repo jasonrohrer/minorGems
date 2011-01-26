@@ -416,7 +416,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     double aspectRatio = (double)screenWidth / (double)screenHeight;
 
-    gameWidth = (int)( roundf( aspectRatio * gameHeight ) );
+    gameWidth = (int)( round( aspectRatio * gameHeight ) );
 
 
     /*
