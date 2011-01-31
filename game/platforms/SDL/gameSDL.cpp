@@ -995,13 +995,9 @@ void GameSceneHandler::keyPressed(
     if( !hardToQuitMode ) {
         // escape only
 
-        if( inKey == 27 && ! mPaused ) {
-            // first escape pauses
+        if( inKey == 27 ) {
+            // escape always toggles pause
             mPaused = !mPaused;
-            }
-        else if( mPaused && inKey == 27 ) {
-            // escape hit when paused
-            exit( 0 );
             }
         }
     else {
@@ -1028,6 +1024,12 @@ void GameSceneHandler::keyReleased(
 void GameSceneHandler::specialKeyPressed(
 	int inKey, int inX, int inY ) {
 
+
+    if( mPaused && inKey == MG_KEY_F4 ) {
+        // f4 to quit from pause
+        exit( 0 );
+        }
+    
     specialKeyDown( inKey );
 	}
 
