@@ -527,7 +527,7 @@ void ScreenGL::setupSurface() {
                 int thisAspectRatio = computeAspectRatio( modes[i]->w,
                                                           modes[i]->h );
 
-                if( ( !mForceAspectRatio ||
+                if( ( mForceAspectRatio ||
                       thisAspectRatio == currentAspectRatio ) 
                     && 
                     distance < bestDistance ) {
