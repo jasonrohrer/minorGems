@@ -86,6 +86,9 @@
  *
  * 2011-January-26   Jason Rohrer
  * Switched to integer representation for aspect ratio comparisons.
+ *
+ * 2011-January-31   Jason Rohrer
+ * Fixed bugs in aspect ration calculations.
  */
 
 
@@ -421,7 +424,7 @@ int computeAspectRatio( int inW, int inH ) {
 
     int intRatio = (100 * inW ) / inH;
 
-    intRatio;
+    return intRatio;
     }
 
 
@@ -448,7 +451,7 @@ void ScreenGL::setupSurface() {
     AppLog::getLog()->logPrintf( 
         Log::INFO_LEVEL,
         "Current screen configuration is %dx%d with aspect ratio %.2f",
-        currentW, currentH, currentAspectRatio );
+        currentW, currentH, currentAspectRatio / 100.0f );
 
 
 
@@ -524,9 +527,11 @@ void ScreenGL::setupSurface() {
                 int thisAspectRatio = computeAspectRatio( modes[i]->w,
                                                           modes[i]->h );
 
-                if( !mForceAspectRatio ||
-                    ( thisAspectRatio == currentAspectRatio && 
-                      distance < bestDistance ) ) {
+                if( ( !mForceAspectRatio ||
+                      thisAspectRatio == currentAspectRatio ) 
+                    && 
+                    distance < bestDistance ) {
+                    
                     bestIndex = i;
                     bestDistance = distance;
                     }
