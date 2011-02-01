@@ -432,6 +432,17 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         pixelZoomFactor = screenHeight / gameHeight;
         }
     
+    // make sure game width fills the screen at this pixel zoom, even if game
+    // height does not (letterbox on top/bottom, but never on left/rigtht)
+    
+    if( gameWidth * pixelZoomFactor < screenWidth ) {
+    
+        // closest number of whole pixels
+        // may be *slight* black bars on left/right
+        gameWidth = screenWidth / pixelZoomFactor;
+        }
+    
+
 
     screen->setImageSize( pixelZoomFactor * gameWidth,
                           pixelZoomFactor * gameHeight );
