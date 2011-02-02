@@ -9,6 +9,9 @@
  * 2001-November-18   Jason Rohrer
  * Added function for finding the minimum probability value.
  * Added a print function.
+ *
+ * 2011-February-1   Jason Rohrer
+ * Got rid of legacy Serializable code.  Fixed warnings.
  */
 
 
@@ -20,7 +23,6 @@
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/util/random/RandomSource.h"
 
-#include "minorGems/io/Serializable.h"
 
 
 
@@ -30,7 +32,7 @@
  *
  * @author Jason Rohrer
  */
-class ProbabilityMassFunction : public Serializable {
+class ProbabilityMassFunction {
 
 	public:
 
@@ -86,7 +88,7 @@ class ProbabilityMassFunction : public Serializable {
 		 *   may change in the future as elements are added to
 		 *   and removed from this mass function.
 		 */
-		virtual unsigned long addElement( double inProbability );
+		virtual int addElement( double inProbability );
 
 
 
@@ -95,7 +97,7 @@ class ProbabilityMassFunction : public Serializable {
 		 *
 		 * @param inIndex the index of the element.
 		 */
-		virtual void removeElement( unsigned long inIndex );
+		virtual void removeElement( int inIndex );
 
 		
 
@@ -107,7 +109,7 @@ class ProbabilityMassFunction : public Serializable {
 		 * @return the probability of the element at inIndex,
 		 *   or 0 if inIndex is not a valid index.
 		 */
-		virtual double getProbability( unsigned long inIndex );
+		virtual double getProbability( int inIndex );
 
 
 		
@@ -122,7 +124,7 @@ class ProbabilityMassFunction : public Serializable {
 		 * @param inIndex the index of the element.
 		 * @param inProbability the probability of the element at inIndex.
 		 */
-		virtual void setProbability( unsigned long inIndex,
+		virtual void setProbability( int inIndex,
 									 double inProbability );
 
 
@@ -132,7 +134,7 @@ class ProbabilityMassFunction : public Serializable {
 		 *
 		 * @return the index of the sampled element.
 		 */
-		virtual unsigned long sampleElement();
+		virtual int sampleElement();
 		
 
 
@@ -152,9 +154,6 @@ class ProbabilityMassFunction : public Serializable {
 
 		
 
-		// implement the Serializable interface
-		virtual int serialize( OutputStream *inOutputStream );
-		virtual int deserialize( InputStream *inInputStream );
 
 
 		
@@ -216,7 +215,7 @@ inline ProbabilityMassFunction::~ProbabilityMassFunction() {
 
 
 
-inline unsigned long ProbabilityMassFunction::addElement(
+inline int ProbabilityMassFunction::addElement(
 	double inProbability ) {
 
 	mProbabilityVector->push_back( inProbability );
@@ -229,7 +228,7 @@ inline unsigned long ProbabilityMassFunction::addElement(
 
 
 inline void ProbabilityMassFunction::removeElement(
-	unsigned long inIndex ) {
+	int inIndex ) {
 
 	mProbabilityVector->deleteElement( (int)inIndex );
 
@@ -239,7 +238,7 @@ inline void ProbabilityMassFunction::removeElement(
 
 
 inline double ProbabilityMassFunction::getProbability(
-	unsigned long inIndex ) {
+	int inIndex ) {
 
 	if( inIndex >= 0 && inIndex < mProbabilityVector->size() ) {
 		return *( mProbabilityVector->getElement( inIndex ) );
@@ -251,7 +250,7 @@ inline double ProbabilityMassFunction::getProbability(
 
 
 
-inline void ProbabilityMassFunction::setProbability( unsigned long inIndex,
+inline void ProbabilityMassFunction::setProbability( int inIndex,
 													 double inProbability ) {
 
 	if( inIndex >= 0 && inIndex < mProbabilityVector->size() ) {
@@ -262,7 +261,7 @@ inline void ProbabilityMassFunction::setProbability( unsigned long inIndex,
 
 
 
-inline unsigned long ProbabilityMassFunction::sampleElement() {
+inline int ProbabilityMassFunction::sampleElement() {
 
 	double randVal = mRandSource->getRandomDouble();
 	
@@ -329,7 +328,6 @@ inline void ProbabilityMassFunction::normalize() {
 			*prob = (*prob) * invCurrentSum;
 			}
 
-		double newSum = getProbabilitySum();
 		}
 	}
 
@@ -351,57 +349,13 @@ inline double ProbabilityMassFunction::getProbabilitySum() {
 
 
 inline void ProbabilityMassFunction::print() {
-	long numElements = mProbabilityVector->size();
+	int numElements = mProbabilityVector->size();
 
 	for( int i=0; i<numElements; i++ ) {
 		double prob = *( mProbabilityVector->getElement( i ) );
 
 		printf( "%lf ", prob );
 		}
-	}
-
-
-
-inline int ProbabilityMassFunction::serialize( OutputStream *inOutputStream ) {
-
-	int numBytes = 0;
-
-	long numElements = mProbabilityVector->size();
-
-	numBytes += inOutputStream->writeLong( numElements );
-	
-	for( int i=0; i<numElements; i++ ) {
-		numBytes += inOutputStream->writeDouble(
-			*( mProbabilityVector->getElement( i ) ) );
-		}
-	
-	return numBytes;
-	}
-	
-	
-	
-inline int ProbabilityMassFunction::deserialize( InputStream *inInputStream ) {
-	int numBytes = 0;
-
-	delete mProbabilityVector;
-
-	long numElements;
-
-	numBytes += inInputStream->readLong( &numElements );
-
-	mProbabilityVector = new SimpleVector< double >( numElements );
-
-	for( int i=0; i<numElements; i++ ) {
-		double prob;
-
-		numBytes += inInputStream->readDouble( &prob );
-
-		mProbabilityVector->push_back( prob );
-		}
-
-	normalize();
-	
-	return numBytes;
 	}
 
 
