@@ -61,7 +61,7 @@ class ProbabilityMassFunction {
 		 * @param inProbabilities the probabilities to start with.
 		 *   Note that these values will be normalized before
 		 *   being stored.
-		 *   Will be destroyed by this constructor.
+		 *   Destroyed by caller
 		 */
 		ProbabilityMassFunction( RandomSource *inRandSource,
 								 int inNumElements, double *inProbabilities );
