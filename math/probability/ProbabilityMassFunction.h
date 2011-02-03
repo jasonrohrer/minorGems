@@ -12,6 +12,10 @@
  *
  * 2011-February-1   Jason Rohrer
  * Got rid of legacy Serializable code.  Fixed warnings.
+ *
+ * 2011-February-3   Jason Rohrer
+ * Added check to deal with rounding errors or 0-length probability 
+ * distributions.
  */
 
 
@@ -269,8 +273,13 @@ inline int ProbabilityMassFunction::sampleElement() {
 	double currentCDFVal = 0;
 	int currentIndex = -1;
 	
-	while( currentCDFVal < randVal ) {
-		currentIndex++;
+    int numValues = mProbabilityVector->size();
+    
+
+	while( currentCDFVal < randVal && 
+           currentIndex < numValues - 1 ) {
+		
+        currentIndex++;
 
 		double currentProb =
 			*( mProbabilityVector->getElement( currentIndex ) );
