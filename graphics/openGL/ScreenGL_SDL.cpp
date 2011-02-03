@@ -89,6 +89,9 @@
  *
  * 2011-January-31   Jason Rohrer
  * Fixed bugs in aspect ration calculations.
+ *
+ * 2011-February-3   Jason Rohrer
+ * Now always picks resolution at least as big as what is requested.
  */
 
 
@@ -262,7 +265,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                 
                 mCustomRecordedGameData = new char[ 257 ];
 
-                AppLog::info( "All resolutions available" );
+                AppLog::info( 
+                    "Forcing aspect ratio specified in playback file" );
+                
                 int fullScreenFlag;
                 fscanf( mEventFile, 
                         "%u seed, %u fps, %dx%d, fullScreen=%d, %256s\n",
@@ -520,21 +525,28 @@ void ScreenGL::setupSurface() {
             int bestIndex = -1;
             
             for( int i=0; modes[i]; ++i ) {
-                int distance = (int)(
-                    fabs( modes[i]->w - mWide ) +
-                    fabs( modes[i]->h - mHigh ) );
+                // don't even consider modes that are SMALLER than our 
+                // requested mode in either dimension
+                if( modes[i]->w >= mWide &&
+                    modes[i]->h >= mHigh ) {
                 
-                int thisAspectRatio = computeAspectRatio( modes[i]->w,
-                                                          modes[i]->h );
-
-                if( ( mForceAspectRatio ||
-                      thisAspectRatio == currentAspectRatio ) 
-                    && 
-                    distance < bestDistance ) {
+                    int distance = (int)(
+                        fabs( modes[i]->w - mWide ) +
+                        fabs( modes[i]->h - mHigh ) );
                     
-                    bestIndex = i;
-                    bestDistance = distance;
+                    int thisAspectRatio = computeAspectRatio( modes[i]->w,
+                                                              modes[i]->h );
+
+                    if( ( mForceAspectRatio ||
+                          thisAspectRatio == currentAspectRatio ) 
+                        && 
+                        distance < bestDistance ) {
+                        
+                        bestIndex = i;
+                        bestDistance = distance;
+                        }
                     }
+                
                 }
                     
 
@@ -543,44 +555,90 @@ void ScreenGL::setupSurface() {
                 if( mForceAspectRatio ) {
                     AppLog::getLog()->logPrintf( 
                         Log::INFO_LEVEL,
-                        "Picking closest available resolution that matches"
-                        ", %d x %d\n", 
+                        "Picking closest available large-enough resolution:  "
+                        "%d x %d\n", 
                         modes[bestIndex]->w, 
                         modes[bestIndex]->h );
                     }
                 else {
                     AppLog::getLog()->logPrintf( 
                         Log::INFO_LEVEL,
-                        "Picking closest available resolution that matches "
-                        "current aspect ratio, %d x %d\n", 
+                        "Picking closest available large-enough resolution "
+                        "that matches current aspect ratio:  %d x %d\n", 
                         modes[bestIndex]->w, 
                         modes[bestIndex]->h );
                     }
                 }
             else {
                 // search again, ignoring aspect match
-                AppLog::warning( 
-                    "Warning:  No match for current aspect ratio" );
-                AppLog::info( "Trying to find the closest off-ratio match" );
+
+                if( !mForceAspectRatio ) {
+                    
+                    AppLog::warning( 
+                        "Warning:  No match for current aspect ratio" );
+                    AppLog::info( 
+                        "Trying to find the closest off-ratio match" );
 
                 
-                for( int i=0; modes[i]; ++i ) {
-                    int distance = (int)(
-                        fabs( modes[i]->w - mWide ) +
-                        fabs( modes[i]->h - mHigh ) );
-                
-                    if( distance < bestDistance ) {
-                        bestIndex = i;
-                        bestDistance = distance;
+                    for( int i=0; modes[i]; ++i ) {
+                        // don't even consider modes that are SMALLER than our 
+                        // requested mode in either dimension
+                        if( modes[i]->w >= mWide &&
+                            modes[i]->h >= mHigh ) {
+                            
+                            int distance = (int)(
+                                fabs( modes[i]->w - mWide ) +
+                                fabs( modes[i]->h - mHigh ) );
+                            
+                            if( distance < bestDistance ) {
+                                bestIndex = i;
+                                bestDistance = distance;
+                                }
+                            }
                         }
                     }
                 
-
-                AppLog::getLog()->logPrintf( 
-                    Log::INFO_LEVEL,
-                    "Picking closest available resolution, %d x %d\n", 
-                    modes[bestIndex]->w, 
-                    modes[bestIndex]->h );
+                
+                if( bestIndex != -1 ) {
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Picking closest available large-enough resolution:  "
+                        "%d x %d\n", 
+                        modes[bestIndex]->w, 
+                        modes[bestIndex]->h );
+                    }
+                else {
+                    AppLog::warning( 
+                        "Warning:  No sufficiently sized resolution found" );
+                    AppLog::info( 
+                        "Considering closest-match smaller resolution" );
+                    
+                    for( int i=0; modes[i]; ++i ) {
+                        int distance = (int)(
+                            fabs( modes[i]->w - mWide ) +
+                            fabs( modes[i]->h - mHigh ) );
+                        
+                        if( distance < bestDistance ) {
+                            bestIndex = i;
+                            bestDistance = distance;
+                            }
+                        }
+                    
+                    if( bestIndex != -1 ) {
+                        AppLog::getLog()->logPrintf( 
+                            Log::INFO_LEVEL,
+                            "Picking closest available resolution:  "
+                            "%d x %d\n", 
+                            modes[bestIndex]->w, 
+                            modes[bestIndex]->h );
+                        }
+                    else {
+                        AppLog::criticalError( 
+                            "ERROR:  No video modes available");
+                        exit(-1);
+                        }
+                    }
+                
                 }
 
 
