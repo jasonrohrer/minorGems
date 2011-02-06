@@ -839,8 +839,14 @@ void GameSceneHandler::drawScene() {
 
 
         if( screen->isPlayingBack() ) {
-            printf( "Playback fraction = %.2f%%\n", 
-                    screen->getPlaybackDoneFraction() * 100 );
+
+            char *progressString = autoSprintf( 
+                "Playback: %.1f%%",
+                screen->getPlaybackDoneFraction() * 100 );
+            
+            drawString( 5, 5, progressString );
+
+            delete [] progressString;
             }
         
         }
