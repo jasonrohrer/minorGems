@@ -1084,6 +1084,10 @@ void ScreenGL::start() {
                                 int mouseX, mouseY;
                                 SDL_GetMouseState( &mouseX, &mouseY );
                                 
+                                printf( 
+                                    "User terminated recorded event playback "
+                                    "with ESC\n" );
+
                                 // stop playback
                                 mPlaybackEvents = false;
                                 }
