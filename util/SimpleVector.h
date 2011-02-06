@@ -34,6 +34,9 @@
 *		Jason Rohrer	4-28-2010	Fast version of getElement.
 *		Jason Rohrer	5-14-2010	String parameters as const to fix warnings.
 *		Jason Rohrer	11-2-2010	Added appendArray function.
+*		Jason Rohrer	11-2-2010	Added appendArray function.
+*		Jason Rohrer	2-6-2011	Added support for printing message on
+*									vector expansion.
 */
 
 #include "minorGems/common.h"
@@ -44,6 +47,7 @@
 #define SIMPLEVECTOR_INCLUDED
 
 #include <string.h>		// for memory moving functions
+#include <stdio.h>
 
 
 const int defaultStartSize = 2;
@@ -164,11 +168,28 @@ class SimpleVector {
         
 
         
+        /**
+         * Toggles printing of messages when vector expands itself
+         * Defaults to off.
+         *
+         * @param inPrintMessage true to turn expansion message printing on.
+         * @param inVectorName the name to include in the message.
+         *   Defaults to "unnamed".
+         */
+        void setPrintMessageOnVectorExpansion( 
+            char inPrintMessage, const char *inVectorName = "unnamed" );
+        
+
+
 	protected:
 		Type *elements;
 		int numFilledElements;
 		int maxSize;
 		int minSize;	// number of allocated elements when vector is empty
+
+
+        char printExpansionMessage;
+        const char *vectorName;
 		};
 		
 		
@@ -178,7 +199,9 @@ inline SimpleVector<Type>::SimpleVector() {
 	numFilledElements = 0;
 	maxSize = defaultStartSize;
 	minSize = defaultStartSize;
-	}
+
+    printExpansionMessage = false;
+    }
 
 template <class Type>
 inline SimpleVector<Type>::SimpleVector(int sizeEstimate) {
@@ -186,7 +209,9 @@ inline SimpleVector<Type>::SimpleVector(int sizeEstimate) {
 	numFilledElements = 0;
 	maxSize = sizeEstimate;
 	minSize = sizeEstimate;
-	}
+    
+    printExpansionMessage = false;
+    }
 	
 template <class Type>	
 inline SimpleVector<Type>::~SimpleVector() {
@@ -364,8 +389,15 @@ inline void SimpleVector<Type>::push_back(Type x)	{
 		numFilledElements++;
 		}
 	else {					// need to allocate more space for vector
+
 		int newMaxSize = maxSize << 1;		// double size
 		
+        if( printExpansionMessage ) {
+            printf( "SimpleVector \"%s\" is expanding itself from %d to %d"
+                    " max elements\n", vectorName, maxSize, newMaxSize );
+            }
+
+
         // NOTE:  memcpy does not work here, because it does not invoke
         // copy constructors on elements.
         // And then "delete []" below causes destructors to be invoked
@@ -475,6 +507,17 @@ inline void SimpleVector<Type>::appendArray( Type *inArray, int inSize ) {
         push_back( inArray[i] );
         }
     }
+
+
+
+template <class Type>
+inline void SimpleVector<Type>::setPrintMessageOnVectorExpansion( 
+    char inPrintMessage, const char *inVectorName) {
+    
+    printExpansionMessage = inPrintMessage;
+    vectorName = inVectorName;
+    }
+
 
 
 
