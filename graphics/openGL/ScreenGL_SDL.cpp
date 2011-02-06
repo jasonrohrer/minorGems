@@ -92,6 +92,9 @@
  *
  * 2011-February-3   Jason Rohrer
  * Now always picks resolution at least as big as what is requested.
+ * 
+ * 2011-February-6   Jason Rohrer
+ * Fixed to stop playback when end of recorded event file is reached.
  */
 
 
@@ -721,8 +724,15 @@ void ScreenGL::writeEventBatchToFile() {
 void ScreenGL::playNextEventBatch() {
     // read and playback next batch
     int batchSize = 0;
-    fscanf( mEventFile, "%d", &batchSize );
+    int numRead = fscanf( mEventFile, "%d", &batchSize );
             
+    if( numRead == 0 || numRead == EOF ) {
+        printf( "Reached end of recorded event file during playback\n" );
+        // stop playback
+        mPlaybackEvents = false;
+        }
+    
+
     for( int i=0; i<batchSize; i++ ) {
                 
         char code[3];
@@ -1020,6 +1030,9 @@ void ScreenGL::start() {
                     int mouseX, mouseY;
                     SDL_GetMouseState( &mouseX, &mouseY );
                     
+                    printf( "User terminated recorded event playback "
+                            "with ESC\n" );
+        
                     // stop playback
                     mPlaybackEvents = false;
                     }
