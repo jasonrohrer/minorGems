@@ -80,6 +80,9 @@
  * 2011-January-3   Jason Rohrer
  * Added custom data to recorded game files.
  * Support for detecting playback mode.
+ * 
+ * 2011-February-6   Jason Rohrer
+ * Support for getting rough playback done fraction.
  */
  
  
@@ -191,6 +194,12 @@ class ScreenGL {
          * True if currently in playback mode.
          */
         char isPlayingBack();
+        
+
+        /**
+         * Returns a rough estimate of playback fraction complete.
+         */
+        float getPlaybackDoneFraction();
         
         
 		
@@ -553,6 +562,10 @@ class ScreenGL {
         char mRecordingEvents;
         char mPlaybackEvents;
         FILE *mEventFile;
+
+        // length of open playback file
+        int mEventFileLength;
+        
 
         char mRecordingOrPlaybackStarted;
         

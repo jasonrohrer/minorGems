@@ -836,6 +836,13 @@ void GameSceneHandler::drawScene() {
         char update = !mPaused;
         
         drawFrame( update );
+
+
+        if( screen->isPlayingBack() ) {
+            printf( "Playback fraction = %.2f%%\n", 
+                    screen->getPlaybackDoneFraction() * 100 );
+            }
+        
         }
 
     if( shouldTakeScreenshot ) {

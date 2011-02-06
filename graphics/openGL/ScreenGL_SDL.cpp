@@ -95,6 +95,7 @@
  * 
  * 2011-February-6   Jason Rohrer
  * Fixed to stop playback when end of recorded event file is reached.
+ * Support for getting rough playback done fraction.
  */
 
 
@@ -210,7 +211,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mRecordingEvents = inRecordEvents;
     mPlaybackEvents = false;
     mEventFile = NULL;
-
+    mEventFileLength = 0;
+    
     // playback overrides recording, check for it first
     // do this before setting up surface
     
@@ -260,6 +262,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                 AppLog::error( "Failed to open event playback file" );
                 }
             else {
+                mEventFileLength = childFiles[i]->getLength();
+
                 AppLog::getLog()->logPrintf( 
                     Log::INFO_LEVEL,
                     "Playing back game from file %s", fullFileName );
@@ -821,6 +825,15 @@ const char *ScreenGL::getCustomRecordedGameData() {
 
 char ScreenGL::isPlayingBack() {
     return mPlaybackEvents;
+    }
+
+
+float ScreenGL::getPlaybackDoneFraction() {
+    if( mEventFileLength == 0 || mEventFile == NULL ) {
+        return 0;
+        }
+    
+    return ftell( mEventFile ) / (float)mEventFileLength;    
     }
 
 
