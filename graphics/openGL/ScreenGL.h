@@ -564,7 +564,8 @@ class ScreenGL {
         FILE *mEventFile;
 
         // length of open playback file
-        int mEventFileLength;
+        int mEventFileNumBatches;
+        int mNumBatchesPlayed;
         
 
         char mRecordingOrPlaybackStarted;

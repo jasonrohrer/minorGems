@@ -211,7 +211,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mRecordingEvents = inRecordEvents;
     mPlaybackEvents = false;
     mEventFile = NULL;
-    mEventFileLength = 0;
+    mEventFileNumBatches = 0;
+    mNumBatchesPlayed = 0;
     
     // playback overrides recording, check for it first
     // do this before setting up surface
@@ -262,7 +263,20 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                 AppLog::error( "Failed to open event playback file" );
                 }
             else {
-                mEventFileLength = childFiles[i]->getLength();
+
+                // count number of newlines in file (close to the number
+                // of batches in the file)
+                char *fileContents = childFiles[i]->readFileContents();
+                
+                int fileLength = strlen( fileContents );
+                
+                for( int j=0; j<fileLength; j++ ) {
+                    if( fileContents[j] == '\n' ) {
+                        mEventFileNumBatches ++;
+                        }
+                    }
+                delete [] fileContents;
+                
 
                 AppLog::getLog()->logPrintf( 
                     Log::INFO_LEVEL,
@@ -812,6 +826,9 @@ void ScreenGL::playNextEventBatch() {
             }            
         
         }
+
+
+    mNumBatchesPlayed++;
     }
 
 
@@ -829,11 +846,11 @@ char ScreenGL::isPlayingBack() {
 
 
 float ScreenGL::getPlaybackDoneFraction() {
-    if( mEventFileLength == 0 || mEventFile == NULL ) {
+    if( mEventFileNumBatches == 0 || mEventFile == NULL ) {
         return 0;
         }
     
-    return ftell( mEventFile ) / (float)mEventFileLength;    
+    return mNumBatchesPlayed / (float)mEventFileNumBatches;    
     }
 
 
