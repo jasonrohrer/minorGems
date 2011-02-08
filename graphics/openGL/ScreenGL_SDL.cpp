@@ -96,6 +96,9 @@
  * 2011-February-6   Jason Rohrer
  * Fixed to stop playback when end of recorded event file is reached.
  * Support for getting rough playback done fraction.
+ * 
+ * 2011-February-7   Jason Rohrer
+ * Support for minimizing on Alt-tab out of fullscreen mode.
  */
 
 
@@ -185,6 +188,10 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 	  mSceneHandlerVector( new SimpleVector<SceneHandlerGL*>() ),
 	  mRedrawListenerVector( new SimpleVector<RedrawListenerGL*>() ) {
 
+    mWantToMimimize = false;
+    mMinimized = false;
+    mWasFullScreenBeforeMinimize = false;
+    
     mCustomRecordedGameData = stringDuplicate( inCustomRecordedGameData );
     
 
@@ -855,6 +862,11 @@ float ScreenGL::getPlaybackDoneFraction() {
 
 
 
+char ScreenGL::isMinimized() {
+    return mMinimized;
+    }
+
+
 
 
 
@@ -917,6 +929,50 @@ void ScreenGL::start() {
 
                 // reload all textures into OpenGL
                 SingleTextureGL::contextChanged();
+                }
+            // handle alt-tab to minimize out of full-screen mode
+            else if( mFullScreen &&
+                     ! mMinimized &&
+                     event.type == SDL_KEYDOWN && 
+                     event.key.keysym.sym == SDLK_TAB && 
+                     ( ( mods & KMOD_META ) || ( mods & KMOD_ALT ) ) ) { 
+                
+                printf( "Minimizing from fullscreen on Alt-tab\n" );
+
+                mFullScreen = false;
+                
+                setupSurface();
+
+                callbackResize( mWide, mHigh );
+
+                // reload all textures into OpenGL
+                SingleTextureGL::contextChanged();
+
+                mWantToMimimize = true;
+                mWasFullScreenBeforeMinimize = true;
+                }
+            else if( mMinimized && 
+                     mWasFullScreenBeforeMinimize &&
+                     event.type == SDL_ACTIVEEVENT && 
+                     event.active.gain && 
+                     event.active.state == SDL_APPACTIVE ) {
+                // window becoming active out of minimization, needs
+                // to return to full-screen mode
+
+                printf( "Restoring to fullscreen after Alt-tab\n" );
+
+                mFullScreen = true;
+                
+                setupSurface();
+
+                callbackResize( mWide, mHigh );
+
+                // reload all textures into OpenGL
+                SingleTextureGL::contextChanged();
+                
+                mWantToMimimize = false;
+                mWasFullScreenBeforeMinimize = false;
+                mMinimized = false;
                 }
             // map CTRL-q to ESC
             // 17 is "DC1" which is ctrl-q on some platforms
@@ -1776,6 +1832,15 @@ void callbackDisplay() {
 
 	
 	SDL_GL_SwapBuffers();
+
+
+    // thanks to Andrew McClure for the idea of doing this AFTER
+    // the next redraw (for pretty minimization)
+    if( s->mWantToMimimize ) {
+        s->mWantToMimimize = false;
+        SDL_WM_IconifyWindow();
+        s->mMinimized = true;
+        }
     }
 
 

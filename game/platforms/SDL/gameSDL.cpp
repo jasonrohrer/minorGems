@@ -832,6 +832,13 @@ void GameSceneHandler::drawScene() {
 
         // carry on with game
         
+
+        // auto-pause when minimized
+        if( screen->isMinimized() ) {
+            mPaused = true;
+            }
+
+
         // don't update while paused
         char update = !mPaused;
         

@@ -83,6 +83,9 @@
  * 
  * 2011-February-6   Jason Rohrer
  * Support for getting rough playback done fraction.
+ * 
+ * 2011-February-7   Jason Rohrer
+ * Support for minimizing on Alt-tab out of fullscreen mode.
  */
  
  
@@ -200,6 +203,12 @@ class ScreenGL {
          * Returns a rough estimate of playback fraction complete.
          */
         float getPlaybackDoneFraction();
+        
+
+        /**
+         * True if minimized.
+         */
+        char isMinimized();
         
         
 		
@@ -520,6 +529,10 @@ class ScreenGL {
 
 		char mFullScreen;
 		
+        char mWantToMimimize;
+        char mMinimized;
+        char mWasFullScreenBeforeMinimize;
+
         // only allow ALT-Enter to toggle fullscreen if it started there
         char mStartedFullScreen;
         
