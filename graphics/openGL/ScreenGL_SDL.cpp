@@ -99,6 +99,9 @@
  * 
  * 2011-February-7   Jason Rohrer
  * Support for minimizing on Alt-tab out of fullscreen mode.
+ * 
+ * 2011-February-9   Jason Rohrer
+ * Hash checking of custom data in recorded game files.
  */
 
 
@@ -123,6 +126,8 @@
 
 #include "minorGems/system/Time.h"
 #include "minorGems/system/Thread.h"
+
+#include "minorGems/crypto/hashes/sha1.h"
 
 
 
@@ -170,6 +175,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     unsigned int inMaxFrameRate,
                     char inRecordEvents,
                     const char *inCustomRecordedGameData,
+                    const char *inHashSalt,
                     const char *inWindowName,
 					KeyboardHandlerGL *inKeyHandler,
 					MouseHandlerGL *inMouseHandler,
@@ -261,8 +267,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
         if( fullFileName != NULL ) {
             delete [] partialFileName;
             
-            mRecordingEvents = false;
-            mPlaybackEvents = true;
+            
 
             mEventFile = fopen( fullFileName, "r" );
 
@@ -289,34 +294,85 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     Log::INFO_LEVEL,
                     "Playing back game from file %s", fullFileName );
             
-                delete [] mCustomRecordedGameData;
                 
-                mCustomRecordedGameData = new char[ 257 ];
+                char *readCustomGameData = new char[ 513 ];
 
-                AppLog::info( 
-                    "Forcing aspect ratio specified in playback file" );
+                char hashString[41];
+
+                
                 
                 int fullScreenFlag;
-                fscanf( mEventFile, 
-                        "%u seed, %u fps, %dx%d, fullScreen=%d, %256s\n",
-                        &mRandSeed,
-                        &mMaxFrameRate,
-                        &mWide, &mHigh, &fullScreenFlag, 
-                        mCustomRecordedGameData );
+                unsigned int readRandSeed;
+                unsigned int readMaxFrameRate;
+                int readWide;
+                int readHigh;
                 
-                mFullFrameRate = mMaxFrameRate;
+                int numScanned =
+                    fscanf( 
+                        mEventFile, 
+                        "%u seed, %u fps, %dx%d, fullScreen=%d, %512s %40s\n",
+                        &readRandSeed,
+                        &readMaxFrameRate,
+                        &readWide, &readHigh, &fullScreenFlag, 
+                        readCustomGameData,
+                        hashString );
+                
+                if( numScanned == 7 ) {
 
-                mImageWide = mWide;
-                mImageHigh = mHigh;
+                    char *stringToHash = autoSprintf( "%s%s",
+                                                      readCustomGameData,
+                                                      inHashSalt );
 
-                mForceAspectRatio = true;
-            
-                if( fullScreenFlag ) {
-                    mFullScreen = true;
+                    char *correctHash = computeSHA1Digest( stringToHash );
+
+                    delete [] stringToHash;
+                    
+                    int difference = strcmp( correctHash, hashString );
+                    
+                    delete [] correctHash;
+
+                    if( difference == 0 ) {
+
+                        mRecordingEvents = false;
+                        mPlaybackEvents = true;
+                        
+                        mRandSeed = readRandSeed;
+                        mMaxFrameRate = readMaxFrameRate;
+                        mWide = readWide;
+                        mHigh = readHigh,
+                        
+                        mFullFrameRate = mMaxFrameRate;
+                    
+                        mImageWide = mWide;
+                        mImageHigh = mHigh;
+                        
+                        AppLog::info( 
+                          "Forcing aspect ratio specified in playback file" );
+                        mForceAspectRatio = true;
+                        
+                        
+                        if( fullScreenFlag ) {
+                            mFullScreen = true;
+                            }
+                        else {
+                            mFullScreen = false;
+                            }
+
+                        delete [] mCustomRecordedGameData;
+                        mCustomRecordedGameData = 
+                            stringDuplicate( readCustomGameData );
+                        }
+                    else {
+                        AppLog::error( 
+                        "Hash check failed for custom data in playback file" );
+                        }
                     }
                 else {
-                    mFullScreen = false;
+                    AppLog::error( 
+                        "Failed to parse playback header data" );
+
                     }
+                delete [] readCustomGameData;                
                 }
             delete [] fullFileName;
             }
@@ -392,11 +448,24 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     if( mFullScreen ) {
                         fullScreenFlag = 1;
                         }
+
+                    char *stringToHash = autoSprintf( "%s%s",
+                                                      mCustomRecordedGameData,
+                                                      inHashSalt );
+
+                    char *correctHash = computeSHA1Digest( stringToHash );
+                    
+                    delete [] stringToHash;
+                    
+
                     fprintf( mEventFile, 
-                             "%u seed, %u fps, %dx%d, fullScreen=%d, %s\n",
+                             "%u seed, %u fps, %dx%d, fullScreen=%d, %s %s\n",
                              mRandSeed,
                              mMaxFrameRate, mWide, mHigh, fullScreenFlag,
-                             mCustomRecordedGameData );
+                             mCustomRecordedGameData,
+                             correctHash );
+
+                    delete [] correctHash;
                     }
 
                 delete [] fullFileName;                

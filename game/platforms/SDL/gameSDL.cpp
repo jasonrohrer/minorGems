@@ -405,13 +405,17 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     char *customData = getCustomRecordedGameData();
 
+    char *hashSalt = getHashSalt();
+
     screen =
         new ScreenGL( screenWidth, screenHeight, fullscreen, targetFrameRate,
                       recordGame,
                       customData,
+                      hashSalt,
                       getWindowTitle(), NULL, NULL, NULL );
 
     delete [] customData;
+    delete [] hashSalt;
     
 
     // may change if specified resolution is not supported

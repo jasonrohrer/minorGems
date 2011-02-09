@@ -86,6 +86,9 @@
  * 
  * 2011-February-7   Jason Rohrer
  * Support for minimizing on Alt-tab out of fullscreen mode.
+ * 
+ * 2011-February-9   Jason Rohrer
+ * Hash checking of custom data in recorded game files.
  */
  
  
@@ -154,8 +157,11 @@ class ScreenGL {
          * @param inMaxFrameRate in frames per second.
          * @param inRecordEvents true to record events to file.
          * @param inCustomRecordedGameData custom data string to add to 
-         *   header of file.  Must contain no whitespace and not exceed 256
+         *   header of file.  Must contain no whitespace and not exceed 512
          *   characters.
+         *   Destroyed by caller.
+         * @param inHashSalt secret salt data to use when authenticating
+         *   custom recorded data.
          *   Destroyed by caller.
 		 * @param inKeyHandler object that will receive keyboard events.
 		 *   NULL specifies no handler (defaults to NULL).
@@ -172,6 +178,7 @@ class ScreenGL {
 				  unsigned int inMaxFrameRate,
                   char inRecordEvents,
                   const char *inCustomRecordedGameData,
+                  const char *inHashSalt,
                   const char *inWindowName,
 				  KeyboardHandlerGL *inKeyHandler = NULL,
 				  MouseHandlerGL *inMouseHandler = NULL,

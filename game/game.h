@@ -17,6 +17,11 @@ const char *getWindowTitle();
 // Result destroyed by caller
 char *getCustomRecordedGameData();
 
+// get secret salt data for secure hashing
+// Result destroyed by caller
+char *getHashSalt();
+
+
 
 // name of custom font TGA file to find in "graphics" folder
 const char *getFontTGAFileName();
