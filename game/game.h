@@ -148,6 +148,10 @@ void lockAudio();
 void unlockAudio();
 
 
+// returns true if sound started up and is running
+char isSoundRunning();
+
+
 
 // for moving view around
 void setViewCenterPosition( float inX, float inY );

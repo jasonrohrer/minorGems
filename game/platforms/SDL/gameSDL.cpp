@@ -93,6 +93,8 @@ int targetFrameRate = 60;
 int soundSampleRate = 22050;
 //int soundSampleRate = 44100;
 
+char soundRunning = false;
+
 
 char hardToQuitMode = false;
 
@@ -240,6 +242,7 @@ void cleanUpAtExit() {
     if( getUsesSound() ) {
         SDL_CloseAudio();
         }
+    soundRunning = false;
 
     freeFrameDrawer();
 
@@ -283,6 +286,11 @@ void unlockAudio() {
     SDL_UnlockAudio();
     }
 
+
+
+char isSoundRunning() {
+    return soundRunning;
+    }
 
 
 
@@ -558,6 +566,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             AppLog::getLog()->logPrintf( 
                 Log::ERROR_LEVEL,
                 "Unable to open audio: %s\n", SDL_GetError() );
+            soundRunning = false;
             }
         else {
 
@@ -571,6 +580,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                     "but stereo S16 samples not availabl\n");
                 
                 SDL_CloseAudio();
+                soundRunning = false;
                 }
             else {
                 
@@ -585,6 +595,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                     bufferSize);
                 
                 soundSampleRate = actualFormat.freq;
+                soundRunning = true;
                 }
             }
         
