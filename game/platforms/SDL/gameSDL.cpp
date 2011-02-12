@@ -1020,6 +1020,12 @@ void GameSceneHandler::keyPressed(
     mPausedSleepTime = 0;
     
 
+    if( mPaused && inKey == '@' ) {
+        // @ to quit from pause
+        exit( 0 );
+        }
+    
+
     if( enableSlowdownKeys ) {
         
         if( inKey == '^' ) {
@@ -1072,12 +1078,6 @@ void GameSceneHandler::keyReleased(
 void GameSceneHandler::specialKeyPressed(
 	int inKey, int inX, int inY ) {
 
-
-    if( mPaused && inKey == MG_KEY_F4 ) {
-        // f4 to quit from pause
-        exit( 0 );
-        }
-    
     specialKeyDown( inKey );
 	}
 
