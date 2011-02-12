@@ -160,8 +160,7 @@ class ScreenGL {
          * @param inMaxFrameRate in frames per second.
          * @param inRecordEvents true to record events to file.
          * @param inCustomRecordedGameData custom data string to add to 
-         *   header of file.  Must contain no whitespace and not exceed 512
-         *   characters.
+         *   header of file.  Must contain no whitespace.
          *   Destroyed by caller.
          * @param inHashSalt secret salt data to use when authenticating
          *   custom recorded data.

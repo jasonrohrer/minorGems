@@ -299,8 +299,21 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                     Log::INFO_LEVEL,
                     "Playing back game from file %s", fullFileName );
             
+
+                // first, determine max possible length of custom data
+                int maxCustomLength = 0;
                 
-                char *readCustomGameData = new char[ 513 ];
+                int readChar = fgetc( mEventFile );
+                
+                while( readChar != EOF && readChar != '\n' ) {
+                    maxCustomLength++;
+                    readChar = fgetc( mEventFile );
+                    }
+                
+                // back to start
+                rewind( mEventFile );
+                
+                char *readCustomGameData = new char[ maxCustomLength ];
 
                 char hashString[41];
 
@@ -315,7 +328,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                 int numScanned =
                     fscanf( 
                         mEventFile, 
-                        "%u seed, %u fps, %dx%d, fullScreen=%d, %512s %40s\n",
+                        "%u seed, %u fps, %dx%d, fullScreen=%d, %s %40s\n",
                         &readRandSeed,
                         &readMaxFrameRate,
                         &readWide, &readHigh, &fullScreenFlag, 

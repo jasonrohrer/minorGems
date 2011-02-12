@@ -13,7 +13,7 @@ const char *getWindowTitle();
 
 // get data that should be saved in the header of the game that is 
 // being recorded
-// Must be encoded as a single string with no whitespace, max 256 chars
+// Must be encoded as a single string with no whitespace.
 // Result destroyed by caller
 char *getCustomRecordedGameData();
 
