@@ -27,9 +27,10 @@ char *getHashSalt();
 const char *getFontTGAFileName();
 
 // called by platform to draw status messages on top of game image
-// inX and inY are proportional to inWidth and inHeight
-// passed into initFrameDrawer
-void drawString( int inX, int inY, const char *inString );
+// game can pick where these should be displayed (though platform ensures
+// that it is drawn after frame is drawn)
+// String might contain multiple lines separated by '\n'
+void drawString( const char *inString );
 
 
 // should demo code be obtained from user and checked against server?

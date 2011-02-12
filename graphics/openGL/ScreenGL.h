@@ -89,6 +89,9 @@
  * 
  * 2011-February-9   Jason Rohrer
  * Hash checking of custom data in recorded game files.
+ * 
+ * 2011-February-12   Jason Rohrer
+ * Playback display toggle.
  */
  
  
@@ -207,10 +210,18 @@ class ScreenGL {
         
 
         /**
-         * Returns a rough estimate of playback fraction complete.
+         * Returns an estimate of playback fraction complete.
          */
         float getPlaybackDoneFraction();
         
+
+        /**
+         * Returns whether playback display is on or off.
+         */
+        char shouldShowPlaybackDisplay();
+        
+        
+
 
         /**
          * True if minimized.
@@ -587,6 +598,8 @@ class ScreenGL {
         int mEventFileNumBatches;
         int mNumBatchesPlayed;
         
+        char mShouldShowPlaybackDisplay;
+
 
         char mRecordingOrPlaybackStarted;
         

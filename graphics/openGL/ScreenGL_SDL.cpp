@@ -102,6 +102,9 @@
  * 
  * 2011-February-9   Jason Rohrer
  * Hash checking of custom data in recorded game files.
+ * 
+ * 2011-February-12   Jason Rohrer
+ * Playback display toggle.
  */
 
 
@@ -218,6 +221,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
     mRandSeed = time( NULL );
     
+
+    mShouldShowPlaybackDisplay = true;
 
     mRecordingOrPlaybackStarted = false;
     
@@ -931,6 +936,11 @@ float ScreenGL::getPlaybackDoneFraction() {
 
 
 
+char ScreenGL::shouldShowPlaybackDisplay() {
+    return mShouldShowPlaybackDisplay;
+    }
+
+
 char ScreenGL::isMinimized() {
     return mMinimized;
     }
@@ -1235,7 +1245,11 @@ void ScreenGL::start() {
                                 }
                             else if( mAllowSlowdownKeysDuringPlayback ) {
                                 
-                                if( asciiKey == '^' ) {
+                                if( asciiKey == '%' ) {
+                                    mShouldShowPlaybackDisplay =
+                                        ! mShouldShowPlaybackDisplay;
+                                    }
+                                else if( asciiKey == '^' ) {
                                     setMaxFrameRate( 2 );
                                     }
                                 else if( asciiKey == '&' ) {
