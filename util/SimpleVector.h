@@ -37,6 +37,7 @@
 *		Jason Rohrer	11-2-2010	Added appendArray function.
 *		Jason Rohrer	2-6-2011	Added support for printing message on
 *									vector expansion.
+*		Jason Rohrer	2-12-2011	Added push_front function.
 */
 
 #include "minorGems/common.h"
@@ -76,6 +77,10 @@ class SimpleVector {
         // add array of elements to the end of the vector
 		void push_back(Type *inArray, int inLength);		
 		
+
+        void push_front(Type x);  // add x to the front of the vector (slower)
+
+
 
 		Type *getElement(int index);		// get a ptr to element at index in vector
 
@@ -429,6 +434,22 @@ inline void SimpleVector<Type>::push_back(Type x)	{
 		numFilledElements++;	
 		}
 	}
+
+
+template <class Type>
+inline void SimpleVector<Type>::push_front(Type x)	{
+
+    // first push_back to reuse expansion code
+    push_back( x );
+    
+    // now shift all of the old elements forward
+    for( int i=numFilledElements-2; i>=0; i-- ) {
+        elements[i+1] = elements[i];
+        }
+    
+    // finally, re-insert in front
+    elements[0] = x;
+    }
 
 
 
