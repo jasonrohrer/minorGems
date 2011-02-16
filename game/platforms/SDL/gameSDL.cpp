@@ -900,10 +900,11 @@ void GameSceneHandler::drawScene() {
         if( screen->isPlayingBack() && screen->shouldShowPlaybackDisplay() ) {
 
             char *progressString = autoSprintf( 
-                "%s %.1f\n%s",
+                "%s %.1f\n%s\n%s",
                 translate( "playbackTag" ),
                 screen->getPlaybackDoneFraction() * 100,
-                translate( "playbackToggleMessage" ) );
+                translate( "playbackToggleMessage" ),
+                translate( "playbackEndMessage" ) );
             
             drawString( progressString );
 
