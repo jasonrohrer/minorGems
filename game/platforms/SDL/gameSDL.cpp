@@ -101,6 +101,7 @@ char hardToQuitMode = false;
 
 char demoMode = false;
 
+char writeFailed = false;
 
 
 
@@ -244,8 +245,10 @@ void cleanUpAtExit() {
         }
     soundRunning = false;
 
-    freeFrameDrawer();
-
+    if( !writeFailed ) {
+        freeFrameDrawer();
+        }
+    
     
 
     SDL_Quit();
@@ -607,23 +610,52 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
 
 
-    demoMode = isDemoMode();
+    FILE *testFile = fopen( "testWrite.txt", "w" );
     
+    if( testFile == NULL ) {
+        writeFailed = true;
+        }
+    else {
+        fclose( testFile );
+        
+        remove( "testWrite.txt" );
+        
+        writeFailed = false;
+        }
+    
+
+
+    if( ! writeFailed ) {    
+        demoMode = isDemoMode();
+        }
+    
+
+    
+    
+
     
     //glLineWidth( pixelZoomFactor );
-
-    initFrameDrawer( pixelZoomFactor * gameWidth, 
-                     pixelZoomFactor * gameHeight, 
-                     targetFrameRate,
-                     screen->getCustomRecordedGameData(),
-                     screen->isPlayingBack() );
-
+    
+    if( !writeFailed ) {    
+        initFrameDrawer( pixelZoomFactor * gameWidth, 
+                         pixelZoomFactor * gameHeight, 
+                         targetFrameRate,
+                         screen->getCustomRecordedGameData(),
+                         screen->isPlayingBack() );
+        }
+    
     if( demoMode ) {    
         showDemoCodePanel( screen, getFontTGAFileName(), gameWidth,
                            gameHeight );
         
         // wait to start handling events
         // wait to start recording/playback
+        }
+    else if( writeFailed ) {
+        showWriteFailedPanel( screen, getFontTGAFileName(), gameWidth,
+                              gameHeight );
+        // handle key events right away to listen for ESC
+        screen->addKeyboardHandler( sceneHandler );
         }
     else {
         // handle events right away
@@ -682,6 +714,11 @@ GameSceneHandler::~GameSceneHandler() {
         
         demoMode = false;
         }
+
+    if( writeFailed ) {
+        freeWriteFailedPanel();
+        }
+    
     
     }
 
@@ -842,7 +879,7 @@ void GameSceneHandler::drawScene() {
             screen->startRecordingOrPlayback();
             }
         }
-    else {
+    else if( !writeFailed ) {
         // demo mode done or was never enabled
 
         // carry on with game
@@ -1016,6 +1053,11 @@ static unsigned char lastKeyPressed = '\0';
 void GameSceneHandler::keyPressed(
 	unsigned char inKey, int inX, int inY ) {
 
+    if( writeFailed ) {
+        exit( 0 );
+        }
+    
+
     // reset to become responsive while paused
     mPausedSleepTime = 0;
     
@@ -1077,6 +1119,11 @@ void GameSceneHandler::keyReleased(
 
 void GameSceneHandler::specialKeyPressed(
 	int inKey, int inX, int inY ) {
+    
+    if( writeFailed ) {
+        exit( 0 );
+        }
+    
 
     specialKeyDown( inKey );
 	}

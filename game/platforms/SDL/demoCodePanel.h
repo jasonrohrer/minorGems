@@ -39,7 +39,7 @@ GUITranslatorGL *codeCheckerGuiTranslator;
 TextGL *codeCheckerTextGLFixedWidth;
 TextGL *codeCheckerTextGL;
 
-LabelGL *enterDemoCodeLabel;
+LabelGL *messageLabel;
 TextFieldGL *enterDemoCodeField;
 
 
@@ -123,7 +123,7 @@ class DemoCodePanelKeyboardHandler : public KeyboardHandlerGL {
                     enterDemoCodeField->setFocus( false );
                     enterDemoCodeField->lockFocus( false );
                     
-                    setLabelString( enterDemoCodeLabel, 
+                    setLabelString( messageLabel, 
                                     "checkingCode" );
                     
                     // save this for next time
@@ -166,10 +166,10 @@ DemoCodePanelKeyboardHandler *codeCheckerKeyHandler;
 
 
 
-
-void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
-                        int inWidth, int inHeight ) {
-
+// common init for both demo code panel and write failed message
+static void panelCommonInit( ScreenGL *inScreen, const char *inFontTGAFileName,
+                             int inWidth, int inHeight ) {
+    
     codeCheckerScreen = inScreen;
     
     codeCheckerWidth = inWidth;
@@ -230,11 +230,23 @@ void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
     codeCheckerKeyHandler = new DemoCodePanelKeyboardHandler();
     
     codeCheckerScreen->addKeyboardHandler( codeCheckerKeyHandler );
+    }
+
+
+
+
+
+void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
+                        int inWidth, int inHeight ) {
+
+
+    panelCommonInit( inScreen, inFontTGAFileName, inWidth, inHeight );
+    
     
 
-    enterDemoCodeLabel = createLabel( 0.5 * codeCheckerWidth + 15, 
+    messageLabel = createLabel( 0.5 * codeCheckerWidth + 15, 
                                       "enterDemoCode" );
-    codeCheckerMainPanel->add( enterDemoCodeLabel );
+    codeCheckerMainPanel->add( messageLabel );
 
 
     // 1:1 aspect ratio
@@ -295,7 +307,7 @@ void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
             enterDemoCodeField->setFocus( false );
             enterDemoCodeField->lockFocus( false );
             
-            setLabelString( enterDemoCodeLabel, 
+            setLabelString( messageLabel, 
                             "checkingCode" );
             
             // start 
@@ -344,7 +356,7 @@ char isDemoCodePanelShowing() {
             
             char *message = codeChecker->getErrorString();
             
-            setLabelString( enterDemoCodeLabel, message );
+            setLabelString( messageLabel, message );
             
             oldCodeCheckers.push_back( codeChecker );
             
@@ -379,8 +391,7 @@ char isDemoCodePanelShowing() {
 
 
 
-void freeDemoCodePanel() {
-
+static void panelCommonFree() {
     codeCheckerScreen->removeSceneHandler( codeCheckerGuiTranslator );
     codeCheckerScreen->removeKeyboardHandler( codeCheckerGuiTranslator );
     codeCheckerScreen->removeMouseHandler( codeCheckerGuiTranslator );
@@ -394,7 +405,14 @@ void freeDemoCodePanel() {
 
     delete codeCheckerTextGLFixedWidth;
     delete codeCheckerTextGL;
+    }
 
+
+
+void freeDemoCodePanel() {
+    
+    panelCommonFree();
+    
 
     if( codeChecker != NULL ) {
         delete codeChecker;
@@ -405,3 +423,27 @@ void freeDemoCodePanel() {
         delete *( oldCodeCheckers.getElement( i ) );
         }
     }
+
+
+
+
+
+
+
+void showWriteFailedPanel( ScreenGL *inScreen, const char *inFontTGAFileName,
+                           int inWidth, int inHeight ) {
+    panelCommonInit( inScreen, inFontTGAFileName, inWidth, inHeight );
+
+    
+    messageLabel = createLabel( 0.5 * codeCheckerWidth, 
+                                "writeFailed" );
+    codeCheckerMainPanel->add( messageLabel );
+    }
+
+
+
+void freeWriteFailedPanel() {
+    
+    panelCommonFree();
+    }
+
