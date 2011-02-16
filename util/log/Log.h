@@ -12,6 +12,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2011-February-16    Jason Rohrer
+ * Flag to print next log message to std out.
  */
 
 #include "minorGems/common.h"
@@ -58,7 +61,9 @@ class Log {
         static const int TRACE_LEVEL;
 
 
-        
+        Log();
+
+
         // provided so that virtual deletes work properly
         virtual ~Log();
 
@@ -83,7 +88,13 @@ class Log {
          * @return one of the defined logging levels.
          */
         virtual int getLoggingLevel() = 0;
+        
 
+        /**
+         * Next message will be printed out as well as written to the log.
+         */
+        void printOutNextMessage();
+        
 
 
         /**
@@ -118,6 +129,11 @@ class Log {
                                  int inLevel, const char* inFormatString, ... )
             = 0;
         
+     
+
+    protected:
+        
+        char mPrintOutNextMessage;
         
     };
 

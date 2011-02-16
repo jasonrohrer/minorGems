@@ -10,6 +10,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2011-February-16    Jason Rohrer
+ * Flag to print next log message to std out.
  */
 
 #include "minorGems/common.h"
@@ -68,7 +71,13 @@ class AppLog {
 
         static void trace( const char *inString );
         static void trace( const char *inLoggerName, const char *inString );
-    
+        
+        
+        /**
+         * Next message will be printed out as well as written to the log.
+         */
+        static void printOutNextMessage();
+        
 
 
         /**

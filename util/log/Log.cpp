@@ -3,6 +3,9 @@
  *
  * 2002-February-25    Jason Rohrer
  * Created.  
+ *
+ * 2011-February-16    Jason Rohrer
+ * Flag to print next log message to std out.
  */
 
 
@@ -27,6 +30,21 @@ const int Log::TRACE_LEVEL = 6;
 
 
 
+Log::Log()
+        : mPrintOutNextMessage( false ) {
+
+    }
+
+
+
 Log::~Log() {
 
     }
+
+
+
+void Log::printOutNextMessage() {
+    mPrintOutNextMessage = true;
+    }
+
+

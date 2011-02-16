@@ -10,6 +10,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2011-February-16    Jason Rohrer
+ * Flag to print next log message to std out.
  */
 
 
@@ -116,6 +119,12 @@ void AppLog::trace( const char *inString ) {
 void AppLog::trace( const char *inLoggerName, const char *inString ) {
     mLogPointerWrapper.mLog->logString(
         inLoggerName, inString, Log::TRACE_LEVEL );
+    }
+
+
+
+void AppLog::printOutNextMessage() {
+    mLogPointerWrapper.mLog->printOutNextMessage();
     }
 
 
