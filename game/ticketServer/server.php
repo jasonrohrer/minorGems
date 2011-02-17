@@ -2017,10 +2017,16 @@ function ts_send_file( $path ) {
     //filenames in IE containing dots will screw up the
     //filename unless we add this
 
-    if( strstr( $_SERVER['HTTP_USER_AGENT'], "MSIE" ) ) {
-        $name =
-            preg_replace('/\./', '%2e', $name, substr_count($name, '.') - 1);
+    // sometimes user agent is not set!
+    if( ! empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+        
+        if( strstr( $_SERVER['HTTP_USER_AGENT'], "MSIE" ) ) {
+            $name =
+                preg_replace('/\./', '%2e',
+                             $name, substr_count($name, '.') - 1);
+            }
         }
+    
     
     //required, or it might try to send the serving
     //document instead of the file
