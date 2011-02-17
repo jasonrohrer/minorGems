@@ -1,0 +1,35 @@
+
+
+// creates a ticket record and returns a ticket code
+
+server.php
+?action=sell_ticket
+&name=[human name]
+&email=[email address]
+&reference=[order number]
+&tags=[ticket_type]
+&security_data=[data]
+&security_hash=[md5 hash]
+
+ticket_type can be:
+
+april_9
+april_12
+
+
+
+
+// shows download links
+
+server.php
+?action=show_downloads
+&ticket_id=[ID]
+
+
+
+// serve a file
+
+server.php
+?action=download
+&ticket_id=[ID]
+&file_name=[file name]
