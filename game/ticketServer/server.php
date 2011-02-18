@@ -361,12 +361,32 @@ function ts_sellTicket() {
     global $tableNamePrefix, $fastspringPrivateKeys, $remoteIP;
 
 
-    $tag = "";
+    $tags = "";
     if( isset( $_REQUEST[ "tags" ] ) ) {
-        $tag = $_REQUEST[ "tags" ];
+        $tags = $_REQUEST[ "tags" ];
         }
+    else {
+        // no tag set?
+        // default to first one
+        $arrayKeys = array_keys( $fastspringPrivateKeys );
+        $tags = $arrayKeys[ 0 ];
+        }
+    
+    $separateTags = preg_split( "/,/", $tags );
 
-    $privateKey = $fastspringPrivateKeys[ $tag ];
+
+    $privateKey = "";
+    $tag = "";
+    
+    for( $t=0; $t<count( $separateTags ); $t++ ) {
+        if( array_key_exists( $separateTags[ $t ],
+                              $fastspringPrivateKeys  ) ) {
+
+            $tag = $separateTags[ $t ];
+            
+            $privateKey = $fastspringPrivateKeys[ $tag ];
+            }
+        }
     
 
     
