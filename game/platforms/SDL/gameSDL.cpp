@@ -406,6 +406,33 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
 
 
+
+    // make sure dir is writeable
+    FILE *testFile = fopen( "testWrite.txt", "w" );
+    
+    if( testFile == NULL ) {
+        writeFailed = true;
+        }
+    else {
+        fclose( testFile );
+        
+        remove( "testWrite.txt" );
+        
+        writeFailed = false;
+        }
+
+
+    // don't try to record games if we can't write to dir
+    // can cause a crash.
+    if( writeFailed ) {
+        recordGame = false;
+        }
+    
+
+
+
+
+
     char *customData = getCustomRecordedGameData();
 
     char *hashSalt = getHashSalt();
@@ -610,18 +637,6 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
 
 
-    FILE *testFile = fopen( "testWrite.txt", "w" );
-    
-    if( testFile == NULL ) {
-        writeFailed = true;
-        }
-    else {
-        fclose( testFile );
-        
-        remove( "testWrite.txt" );
-        
-        writeFailed = false;
-        }
     
 
 
