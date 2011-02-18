@@ -38,6 +38,7 @@
 *		Jason Rohrer	2-6-2011	Added support for printing message on
 *									vector expansion.
 *		Jason Rohrer	2-12-2011	Added push_front function.
+*		Jason Rohrer	2-18-2011	Missing member inits found by cppcheck.
 */
 
 #include "minorGems/common.h"
@@ -199,7 +200,8 @@ class SimpleVector {
 		
 		
 template <class Type>		
-inline SimpleVector<Type>::SimpleVector() {
+inline SimpleVector<Type>::SimpleVector()
+		: vectorName( "" ) {
 	elements = new Type[defaultStartSize];
 	numFilledElements = 0;
 	maxSize = defaultStartSize;
@@ -209,7 +211,8 @@ inline SimpleVector<Type>::SimpleVector() {
     }
 
 template <class Type>
-inline SimpleVector<Type>::SimpleVector(int sizeEstimate) {
+inline SimpleVector<Type>::SimpleVector(int sizeEstimate)
+		: vectorName( "" ) {
 	elements = new Type[sizeEstimate];
 	numFilledElements = 0;
 	maxSize = sizeEstimate;
@@ -230,7 +233,9 @@ template <class Type>
 inline SimpleVector<Type>::SimpleVector( const SimpleVector<Type> &inCopy )
         : elements( new Type[ inCopy.maxSize ] ),
           numFilledElements( inCopy.numFilledElements ),
-          maxSize( inCopy.maxSize ), minSize( inCopy.minSize ) {
+          maxSize( inCopy.maxSize ), minSize( inCopy.minSize ),
+          printExpansionMessage( inCopy.printExpansionMessage ),
+          vectorName( inCopy.vectorName ) {
     
     // if these objects contain pointers to stack, etc, this is not 
     // going to work (not a deep copy)
