@@ -106,8 +106,8 @@ char writeFailed = false;
 
 
 // ^ and & keys to slow down and speed up for testing
-//char enableSlowdownKeys = false;
-char enableSlowdownKeys = true;
+// read from settings folder
+char enableSpeedControlKeys = false;
 
 
 char mouseWorldCoordinates = true;
@@ -406,6 +406,14 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
 
 
+    int speedControlKeysFlag = 
+        SettingsManager::getIntSetting( "enableSpeedControlKeys", 0 );
+    
+    if( speedControlKeysFlag == 1 ) {
+        enableSpeedControlKeys = true;
+        }
+    
+
 
     // make sure dir is writeable
     FILE *testFile = fopen( "testWrite.txt", "w" );
@@ -490,7 +498,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                           pixelZoomFactor * gameHeight );
     
 
-    screen->allowSlowdownKeysDuringPlayback( enableSlowdownKeys );
+    screen->allowSlowdownKeysDuringPlayback( enableSpeedControlKeys );
 
     //SDL_ShowCursor( SDL_DISABLE );
 
@@ -1084,7 +1092,7 @@ void GameSceneHandler::keyPressed(
         }
     
 
-    if( enableSlowdownKeys ) {
+    if( enableSpeedControlKeys ) {
         
         if( inKey == '^' ) {
             // slow
