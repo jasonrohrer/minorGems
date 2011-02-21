@@ -87,6 +87,14 @@ $fileListHeader = $header .
 $siteName = "Sleep Is Death";
 $siteEmailAddress = "jcr13@cornell.edu";
 
+// can be left blank to just give download information
+// should contain newlines to separate it from next part of email
+// if not blank
+$extraEmailMessage =
+"Please share the following information with a friend, so that you ".
+"have someone to play the game with.\n\n";
+
+
 
 
 // number of tickets shown per page in the browse view

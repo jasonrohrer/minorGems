@@ -1597,7 +1597,9 @@ function ts_sendEmail( $inTickeID ) {
 function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
         
     
-    global $siteName, $fullServerURL, $mainSiteURL, $siteEmailAddress;
+    global $siteName, $fullServerURL, $mainSiteURL, $siteEmailAddress,
+           $extraEmailMessage;
+    
     //$mailHeaders = "From: $siteEmailAddress";
     $mailHeaders = "From: $siteEmailAddress";
 
@@ -1607,8 +1609,7 @@ function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
     $mailSubject = "Your [$siteName] download is ready";
     
     $mailBody = "$inName:\n\n".
-        "Please share the following information with a friend, so that you ".
-        "have someone to play the game with.\n\n".
+        "$extraEmailMessage".
         "Your can now access your download at:\n\n".
         "  $downloadURL\n\n".
         "You can also access your download manually by ".
