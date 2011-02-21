@@ -1086,8 +1086,8 @@ void GameSceneHandler::keyPressed(
     mPausedSleepTime = 0;
     
 
-    if( mPaused && inKey == '@' ) {
-        // @ to quit from pause
+    if( mPaused && inKey == '%' ) {
+        // % to quit from pause
         exit( 0 );
         }
     
