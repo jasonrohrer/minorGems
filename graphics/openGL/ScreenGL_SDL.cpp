@@ -1256,13 +1256,13 @@ void ScreenGL::start() {
                                 // stop playback
                                 mPlaybackEvents = false;
                                 }
-                            else if( mAllowSlowdownKeysDuringPlayback ) {
+                            else if( asciiKey == '%' ) {
+                                mShouldShowPlaybackDisplay =
+                                    ! mShouldShowPlaybackDisplay;
+                                }
+                            if( mAllowSlowdownKeysDuringPlayback ) {
                                 
-                                if( asciiKey == '%' ) {
-                                    mShouldShowPlaybackDisplay =
-                                        ! mShouldShowPlaybackDisplay;
-                                    }
-                                else if( asciiKey == '^' ) {
+                                if( asciiKey == '^' ) {
                                     setMaxFrameRate( 2 );
                                     }
                                 else if( asciiKey == '&' ) {
