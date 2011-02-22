@@ -463,12 +463,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     targetFrameRate = screen->getMaxFramerate();
     
     
-    // adjust gameWidth to match available screen aspect ratio
+    // adjust gameWidth to match available screen space
     // keep gameHeight constant
-
-    double aspectRatio = (double)screenWidth / (double)screenHeight;
-
-    gameWidth = (int)( round( aspectRatio * gameHeight ) );
 
 
     /*
@@ -484,13 +480,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     // make sure game width fills the screen at this pixel zoom, even if game
     // height does not (letterbox on top/bottom, but never on left/rigtht)
-    
-    if( gameWidth * pixelZoomFactor < screenWidth ) {
-    
-        // closest number of whole pixels
-        // may be *slight* black bars on left/right
-        gameWidth = screenWidth / pixelZoomFactor;
-        }
+
+    // closest number of whole pixels
+    // may be *slight* black bars on left/right
+    gameWidth = screenWidth / pixelZoomFactor;
     
 
 
