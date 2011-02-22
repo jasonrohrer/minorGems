@@ -475,13 +475,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY,
                          SDL_DEFAULT_REPEAT_INTERVAL );
     */
-    pixelZoomFactor = screenWidth / gameWidth;
-
-    if( pixelZoomFactor * gameHeight > screenHeight ) {
-        // screen too short
-        pixelZoomFactor = screenHeight / gameHeight;
-        }
     
+    // never cut off top/bottom of image, and always try to use largest
+    // whole multiples of screen pixels per game pixel to fill
+    // the screen vertically as well as we can
+    pixelZoomFactor = screenHeight / gameHeight;
+    
+
     // make sure game width fills the screen at this pixel zoom, even if game
     // height does not (letterbox on top/bottom, but never on left/rigtht)
     
