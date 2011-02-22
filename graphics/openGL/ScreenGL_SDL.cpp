@@ -105,6 +105,10 @@
  * 
  * 2011-February-12   Jason Rohrer
  * Playback display toggle.
+ * 
+ * 2011-February-22   Jason Rohrer
+ * Windowed mode forced if fullscreen dimensions specified in playback file 
+ * not available.
  */
 
 
@@ -185,6 +189,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 					SceneHandlerGL *inSceneHandler  ) 
 	: mWide( inWide ), mHigh( inHigh ),
       mForceAspectRatio( false ),
+      mForceSpecifiedDimensions( false ),
       mImageWide( inWide ), mImageHigh( inHigh ),
       mFullScreen( inFullScreen ),
       mMaxFrameRate( inMaxFrameRate ),
@@ -365,8 +370,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
                         mImageHigh = mHigh;
                         
                         AppLog::info( 
-                          "Forcing aspect ratio specified in playback file" );
-                        mForceAspectRatio = true;
+                          "Forcing dimensions specified in playback file" );
+                        mForceSpecifiedDimensions = true;
                         
                         
                         if( fullScreenFlag ) {
@@ -556,6 +561,8 @@ void ScreenGL::setupSurface() {
     int flags = SDL_OPENGL;
     
 
+    // NOTE:  flags are also adjusted below if fullscreen resolution not
+    // available
 	if( mFullScreen ) {
         flags = flags | SDL_FULLSCREEN;
         }
@@ -595,6 +602,30 @@ void ScreenGL::setupSurface() {
     // Check if our resolution is restricted
     if( modes == (SDL_Rect**)-1 ) {
         AppLog::info( "All resolutions available" );
+        }
+    else if( mForceSpecifiedDimensions && mFullScreen ) {
+        // check if specified dimension available in fullscreen
+        
+        char match = false;
+        
+        for( int i=0; modes[i] && ! match; ++i ) {
+            if( mWide == modes[i]->w && 
+                mHigh == modes[i]->h ) {
+                match = true;
+                }
+            }
+        
+        if( !match ) {
+            AppLog::getLog()->logPrintf( 
+                Log::WARNING_LEVEL,
+                "  Could not find a full-screen match for the forced screen "
+                "dimensions %d x %d\n", mWide, mHigh );
+            AppLog::warning( "Reverting to windowed mode" );
+            
+            mFullScreen = false;
+            
+            flags = SDL_OPENGL;
+            }
         }
     else{
         // Print valid modes

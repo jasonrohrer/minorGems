@@ -92,6 +92,9 @@
  * 
  * 2011-February-12   Jason Rohrer
  * Playback display toggle.
+ * 
+ * 2011-February-22   Jason Rohrer
+ * Added a force-dimensions flag.
  */
  
  
@@ -538,6 +541,10 @@ class ScreenGL {
         // if it doesn't match screen's current ratio
         char mForceAspectRatio;
 		
+        // goes beyond just forcing the aspect ratio
+        char mForceSpecifiedDimensions;
+        
+
         // for an viewport image that can be smaller than our screen
         char mImageSizeSet;
         int mImageWide;
