@@ -109,6 +109,7 @@
  * 2011-February-22   Jason Rohrer
  * Windowed mode forced if fullscreen dimensions specified in playback file 
  * not available.
+ * Got Alt-Tab working for windowed mode too.
  */
 
 
@@ -1053,6 +1054,16 @@ void ScreenGL::start() {
                 // reload all textures into OpenGL
                 SingleTextureGL::contextChanged();
                 }
+            // alt-tab when not in fullscreen mode
+            else if( ! mFullScreen &&
+                     ! mMinimized &&
+                     event.type == SDL_KEYDOWN && 
+                     event.key.keysym.sym == SDLK_TAB && 
+                     ( ( mods & KMOD_META ) || ( mods & KMOD_ALT ) ) ) {
+                
+                mWantToMimimize = true;
+                mWasFullScreenBeforeMinimize = false;
+                }
             // handle alt-tab to minimize out of full-screen mode
             else if( mFullScreen &&
                      ! mMinimized &&
@@ -1074,6 +1085,22 @@ void ScreenGL::start() {
                 mWantToMimimize = true;
                 mWasFullScreenBeforeMinimize = true;
                 }
+            // active event after minimizing from windowed mode
+            else if( mMinimized && 
+                     ! mWasFullScreenBeforeMinimize &&
+                     event.type == SDL_ACTIVEEVENT && 
+                     event.active.gain && 
+                     event.active.state == SDL_APPACTIVE ) {
+                // window becoming active out of minimization, needs
+                // to return to full-screen mode
+
+                printf( "Restoring to window after Alt-tab\n" );
+                
+                mWantToMimimize = false;
+                mWasFullScreenBeforeMinimize = false;
+                mMinimized = false;
+                }
+            // active event after minimizing from fullscreen mode
             else if( mMinimized && 
                      mWasFullScreenBeforeMinimize &&
                      event.type == SDL_ACTIVEEVENT && 
