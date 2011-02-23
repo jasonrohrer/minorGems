@@ -1297,7 +1297,7 @@ void takeScreenShot() {
         new unsigned char[ screenWidth * screenHeight * 3 ];
 
     // w and h might not be multiples of 4
-    int oldAlignment;
+    GLint oldAlignment;
     glGetIntegerv( GL_PACK_ALIGNMENT, &oldAlignment );
                 
     glPixelStorei( GL_PACK_ALIGNMENT, 1 );
