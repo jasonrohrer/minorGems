@@ -984,7 +984,11 @@ function ts_emailOptIn() {
                     "ticket_id=$ticket_id\">Opt In</a>] to email updates.";
                 }
             }
+
+        echo "<br><br>";
         
+        echo "[<a href=\"server.php?action=show_downloads&".
+            "ticket_id=$ticket_id\">Return</a>] to your download page.";
         
         eval( $footer );
         }
