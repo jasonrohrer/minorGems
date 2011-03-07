@@ -426,6 +426,18 @@ function ts_sellTicket() {
         }
 
 
+    // these allow convenient linking back to main server site after
+    // a manual order goes through
+    $manual = "0";
+    if( isset( $_REQUEST[ "manual" ] ) ) {
+        $manual = $_REQUEST[ "manual" ];
+        }
+
+    $password = "";
+    if( isset( $_REQUEST[ "password" ] ) ) {
+        $password = $_REQUEST[ "password" ];
+        }
+
 
     
     $found_unused_id = 0;
@@ -485,6 +497,17 @@ function ts_sellTicket() {
 
             
             echo "$ticket_id";
+
+            if( $manual == 1 ) {
+                // not returning generated ticket to FastSpring
+                // (manual order from ticket server interface)
+                // okay to show convenient HTML link back to main.
+                echo "<br><br>";
+                
+                echo "[<a href=\"server.php?".
+                    "action=show_data&password="."$password" .
+                    "\">Main</a>]<br><br><br>";
+                }
             }
         else {
             global $debug;
@@ -1186,7 +1209,9 @@ function ts_showData() {
             <FORM ACTION="server.php" METHOD="post">
     <INPUT TYPE="hidden" NAME="security_data" VALUE="<?php echo $data;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="sell_ticket">
-    Email:
+    <INPUT TYPE="hidden" NAME="manual" VALUE="1">
+    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
+             Email:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"><br>
     Name:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="name"><br>
