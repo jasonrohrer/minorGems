@@ -463,14 +463,17 @@ function ts_sellTicket() {
             "email CHAR(255) NOT NULL," .
             "order_number CHAR(255) NOT NULL," .
             "tag CHAR(255) NOT NULL," .
+            "email_sent TINYINT NOT NULL," .
             "blocked TINYINT NOT NULL," .
-            "download_count INT
+            "download_count INT, ".
+            "email_opt_in TINYINT NOT NULL );";
          */
 
 
+        // opt-in to emails by default
         $query = "INSERT INTO $tableNamePrefix". "tickets VALUES ( " .
             "'$ticket_id', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ".
-            "'$name', '$email', '$order_number', '$tag', '0', '0', '0', '0' );";
+            "'$name', '$email', '$order_number', '$tag', '0', '0', '0', '1' );";
 
 
         $result = mysql_query( $query );
