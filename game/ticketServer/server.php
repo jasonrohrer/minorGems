@@ -1732,8 +1732,8 @@ function ts_sendAllNote() {
         }
     
     
-    
-    ts_sendNote_q( $query, $message_subject, $message_text );
+    // show opt-out URL at bottom of email
+    ts_sendNote_q( $query, $message_subject, $message_text, 1 );
     }
 
 
@@ -1790,14 +1790,15 @@ function ts_sendAllFileNote() {
     $query = "SELECT * FROM $tableNamePrefix"."tickets ".
         "WHERE tag = '$tag' AND blocked = '0' AND email_opt_in = '1';";
 */
-    ts_sendNote_q( $query, $message_subject, $message_text );
+    ts_sendNote_q( $query, $message_subject, $message_text, 0 );
     }
 
 
 
 // sends note emails for every result in a SQL query
-function ts_sendNote_q( $inQuery, $message_subject, $message_text ) {
-    global $tableNamePrefix;
+function ts_sendNote_q( $inQuery, $message_subject, $message_text,
+                        $inShowOptOutLink ) {
+    global $tableNamePrefix, $fullServerURL;
     
     $result = ts_queryDatabase( $inQuery );
     
@@ -1810,10 +1811,24 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text ) {
     for( $i=0; $i<$numRows; $i++ ) {
         $name = mysql_result( $result, $i, "name" );
         $email = mysql_result( $result, $i, "email" );
+        $ticket_id = mysql_result( $result, $i, "ticket_id" );
 
         echo "[$i] Sending note to $email ... ";
+
+        $custom_message_text = $message_text;
+
+        if( $inShowOptOutLink ) {
+            $custom_message_text = $message_text .
+                "\n\n" .
+                "-----\n" .
+                "You can opt out of future email updates by clicking the " .
+                "following link:\n" .
+                "  $fullServerURL?action=email_opt_in&in=0&" .
+                "ticket_id=$ticket_id" .
+                "\n\n";
+            }
         
-        $emailResult = ts_sendNote_p( $message_subject, $message_text,
+        $emailResult = ts_sendNote_p( $message_subject, $custom_message_text,
                                       $name, $email );
 
         if( $emailResult ) {
