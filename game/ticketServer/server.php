@@ -438,6 +438,14 @@ function ts_sellTicket() {
         $password = $_REQUEST[ "password" ];
         }
 
+    // this allows manual ticket creation to override email opt-in
+    // defaults to on if not specified
+    $email_opt_in = "1";
+    if( isset( $_REQUEST[ "email_opt_in" ] ) ) {
+        $email_opt_in = $_REQUEST[ "email_opt_in" ];
+        }
+    
+    
 
     
     $found_unused_id = 0;
@@ -485,7 +493,8 @@ function ts_sellTicket() {
         // opt-in to emails by default
         $query = "INSERT INTO $tableNamePrefix". "tickets VALUES ( " .
             "'$ticket_id', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ".
-            "'$name', '$email', '$order_number', '$tag', '0', '0', '0', '1' );";
+            "'$name', '$email', '$order_number', '$tag', '0', '0', '0', " .
+            "'$email_opt_in' );";
 
 
         $result = mysql_query( $query );
@@ -556,11 +565,17 @@ function ts_editTicket() {
         $tag = $_REQUEST[ "tag" ];
         }
 
+    $email_opt_in = "1";
+    if( isset( $_REQUEST[ "email_opt_in" ] ) ) {
+        $email_opt_in = $_REQUEST[ "email_opt_in" ];
+        }
+    
 
 
     $query = "UPDATE $tableNamePrefix". "tickets SET " .
         "name = '$name', email = '$email', ".
-        "order_number = '$order_number', tag = '$tag' ".
+        "order_number = '$order_number', tag = '$tag', " .
+        "email_opt_in = '$email_opt_in' " .
         "WHERE ticket_id = '$ticket_id';";
     
 
@@ -1245,6 +1260,9 @@ function ts_showData() {
         }
 ?>
     </SELECT><br>
+
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=0>
+          Force email opt-out<br>
           
     <INPUT TYPE="Submit" VALUE="Generate">
     </FORM>
@@ -1418,7 +1436,12 @@ function ts_showDetail() {
     $name = $row[ "name" ];
     $order_number = $row[ "order_number" ];
     $tag = $row[ "tag" ];
-            
+    $email_opt_in = $row[ "email_opt_in" ];
+    $optOutChecked = "";
+    if( ! $email_opt_in ) {
+        $optOutChecked = "checked";
+        }
+    
     // form for editing ticket data
 ?>
         <hr>
@@ -1438,7 +1461,10 @@ function ts_showDetail() {
             VALUE="<?php echo $order_number;?>"><br>
     Tag:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="tag"
-            VALUE="<?php echo $tag;?>"><br>          
+            VALUE="<?php echo $tag;?>"><br>
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE="0"
+             <?php echo $optOutChecked;?> >
+          Email opt-out<br>
     <INPUT TYPE="Submit" VALUE="Update">
     </FORM>
         <hr>
