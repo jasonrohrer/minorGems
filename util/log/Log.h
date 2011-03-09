@@ -15,6 +15,9 @@
  *
  * 2011-February-16    Jason Rohrer
  * Flag to print next log message to std out.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 #include "minorGems/common.h"
@@ -26,9 +29,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 

@@ -42,6 +42,9 @@
  *
  * 2010-February-1    Jason Rohrer
  * Fixed a bug in getNumericalLocalAddress when our local lookup fails.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 #include "minorGems/common.h"
@@ -59,9 +62,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 

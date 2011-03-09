@@ -41,6 +41,9 @@
  *
  * 2010-January-26  Jason Rohrer
  * Added support for disabling Nagle algorithm.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 
@@ -58,9 +61,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 

@@ -10,6 +10,9 @@
  * 2002-March-31    Jason Rohrer
  * Made destructor virtual so it works with subclasses.
  * Fixed several bugs in deletion of mLastError.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 #include "minorGems/common.h"
@@ -23,9 +26,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 

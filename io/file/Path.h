@@ -49,6 +49,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 #include "minorGems/common.h"
@@ -67,9 +70,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 

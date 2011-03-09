@@ -24,6 +24,9 @@
  *
  * 2005-January-22   Jason Rohrer
  * Added a static sleep function.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 #include "minorGems/common.h"
@@ -35,9 +38,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 

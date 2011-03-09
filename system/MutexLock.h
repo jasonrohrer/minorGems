@@ -10,6 +10,9 @@
  * 2002-October-18    Jason Rohrer
  * Moved common include out of header and into platform-specific cpp files,
  * since MemoryTrack uses a mutex lock.
+ *
+ * 2011-March-9    Jason Rohrer
+ * Removed Fortify inclusion.
  */
 
 
@@ -19,9 +22,6 @@
 
 
 
-#ifdef FORTIFY
-#include "minorGems/util/development/fortify/fortify.h"
-#endif
 
 
 
