@@ -1341,6 +1341,7 @@ function ts_showData() {
 ?>
     </SELECT><br>
      Message:<br>
+     (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
          <TEXTAREA NAME="message_text" COLS=50 ROWS=10></TEXTAREA><br>
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
     <INPUT TYPE="Submit" VALUE="Send">
@@ -1853,7 +1854,13 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
                 "ticket_id=$ticket_id" .
                 "\n\n";
             }
-        
+        $custom_link = "$fullServerURL?action=show_downloads&" .
+            "ticket_id=$ticket_id";
+
+        $custom_message_text =
+            preg_replace( '/#DOWNLOAD_LINK#/', $custom_link,
+                          $custom_message_text );
+
         $emailResult = ts_sendNote_p( $message_subject, $custom_message_text,
                                       $name, $email );
 
