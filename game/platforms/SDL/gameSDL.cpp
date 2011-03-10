@@ -1094,7 +1094,7 @@ void GameSceneHandler::fireRedraw() {
             // user has touched nothing for 5 seconds
             
             // sleep to avoid wasting CPU cycles
-            Thread::staticSleep( mPausedSleepTime );
+            Thread::staticSleep( 500 );
             }
         
         mPausedSleepTime++;
