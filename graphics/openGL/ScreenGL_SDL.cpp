@@ -129,6 +129,7 @@
 
 
 #include "minorGems/util/stringUtils.h"
+#include "minorGems/util/SettingsManager.h"
 #include "minorGems/util/log/AppLog.h"
 #include "minorGems/io/file/File.h"
 
@@ -229,6 +230,14 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
 
     mShouldShowPlaybackDisplay = true;
+
+    int hidePlaybackDisplayFlag = 
+        SettingsManager::getIntSetting( "hidePlaybackDisplay", 0 );
+    
+    if( hidePlaybackDisplayFlag == 1 ) {
+        mShouldShowPlaybackDisplay = false;
+        }
+
 
     mRecordingOrPlaybackStarted = false;
     
