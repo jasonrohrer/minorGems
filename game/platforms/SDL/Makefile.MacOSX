@@ -23,6 +23,10 @@ PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.fra
 PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa mac/SDLMain.m
 
 
+# not used for some builds
+PLATFORM_LIBJPEG_FLAG = /usr/lib/libjpeg.a
+
+
 # Nothing special for OS X here
 GXX = g++ 
 LINK_FLAGS =

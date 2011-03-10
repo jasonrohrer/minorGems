@@ -43,6 +43,11 @@ OPTIMIZE_OFF_FLAG = -O0
 OPTIMIZE_FLAG = ${OPTIMIZE_OFF_FLAG}
 
 
+# switch to yes to link against it
+# if this is turned on, -DUSE_JPEG is passed into the compile step
+LINK_AGAINST_LIBJPEG = no
+
+
 
 # common to all platforms
 SOCKET_UDP_PLATFORM_PATH = unix

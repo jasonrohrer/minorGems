@@ -23,6 +23,10 @@ PLATFORM_COMPILE_FLAGS = -DLINUX
 PLATFORM_LINK_FLAGS = -L/usr/X11R6/lib -lGL  -lGLU -lX11 -lSDL -lpthread
 
 
+# not used for some builds
+PLATFORM_LIBJPEG_FLAG = -ljpeg
+
+
 # All platforms but OSX support g++ and need no linker hacks
 GXX = g++ 
 LINK_FLAGS = 
