@@ -113,6 +113,15 @@ char enableSpeedControlKeys = false;
 char mouseWorldCoordinates = true;
 
 
+#ifdef USE_JPEG
+    #include "minorGems/graphics/converters/JPEGImageConverter.h"
+    static JPEGImageConverter screenShotConverter( 90 );
+    static const char *screenShotExtension = "jpg";
+#else
+    static TGAImageConverter screenShotConverter;
+    static const char *screenShotExtension = "tga";
+#endif
+
 
 // should screenshot be taken at end of next redraw?
 static char shouldTakeScreenshot = false;
@@ -1249,7 +1258,8 @@ void takeScreenShot() {
 
             nextShotNumber = 1;
 
-            char *formatString = autoSprintf( "%s%%d.tga", screenShotPrefix );
+            char *formatString = autoSprintf( "%s%%d.%s", screenShotPrefix,
+                                              screenShotExtension );
 
             for( int i=0; i<numFiles; i++ ) {
             
@@ -1281,8 +1291,9 @@ void takeScreenShot() {
         return;
         }
     
-    char *fileName = autoSprintf( "%s%05d.tga", 
-                                  screenShotPrefix, nextShotNumber );
+    char *fileName = autoSprintf( "%s%05d.%s", 
+                                  screenShotPrefix, nextShotNumber,
+                                  screenShotExtension );
 
     nextShotNumber++;
     
@@ -1340,9 +1351,7 @@ void takeScreenShot() {
 
     FileOutputStream tgaStream( file );
     
-    TGAImageConverter converter;
-    
-    converter.formatImage( &screenImage, &tgaStream );
+    screenShotConverter.formatImage( &screenImage, &tgaStream );
 
     delete file;
 
