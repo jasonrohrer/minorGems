@@ -109,6 +109,10 @@ char writeFailed = false;
 // read from settings folder
 char enableSpeedControlKeys = false;
 
+// should each and every frame be saved to disk?
+// useful for making videos
+char outputAllFrames = false;
+
 
 char mouseWorldCoordinates = true;
 
@@ -426,6 +430,18 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         enableSpeedControlKeys = true;
         }
     
+
+
+    int outputAllFramesFlag = 
+        SettingsManager::getIntSetting( "outputAllFrames", 0 );
+    
+    if( outputAllFramesFlag == 1 ) {
+        outputAllFrames = true;
+        // start with very first frame
+        shouldTakeScreenshot = true;
+
+        screenShotPrefix = stringDuplicate( "frame" );
+        }
 
 
     // make sure dir is writeable
@@ -944,7 +960,11 @@ void GameSceneHandler::drawScene() {
 
     if( shouldTakeScreenshot ) {
         takeScreenShot();
-        shouldTakeScreenshot = false;
+
+        if( !outputAllFrames ) {
+            // just one
+            shouldTakeScreenshot = false;
+            }
         }
     }
 
@@ -1358,10 +1378,6 @@ void takeScreenShot() {
     screenShotConverter.formatImage( &screenImage, &tgaStream );
 
     delete file;
-
-
-    delete [] screenShotPrefix;
-    screenShotPrefix = NULL;
     }
 
 
