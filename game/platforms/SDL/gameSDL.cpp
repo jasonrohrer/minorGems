@@ -113,6 +113,18 @@ char enableSpeedControlKeys = false;
 // useful for making videos
 char outputAllFrames = false;
 
+// should output only every other frame, and blend in dropped frames?
+char blendOutputFramePairs = false;
+
+float blendOutputFrameFraction = 0;
+
+
+static unsigned char *lastFrame_rgbaBytes = NULL;
+
+
+static unsigned int frameNumber = 0;
+
+
 
 char mouseWorldCoordinates = true;
 
@@ -133,6 +145,8 @@ char mouseWorldCoordinates = true;
 
 // should screenshot be taken at end of next redraw?
 static char shouldTakeScreenshot = false;
+static char manualScreenShot = false;
+
 static char *screenShotPrefix = NULL;
 
 static void takeScreenShot();
@@ -273,6 +287,11 @@ void cleanUpAtExit() {
     if( screenShotPrefix != NULL ) {
         delete [] screenShotPrefix;
         screenShotPrefix = NULL;
+        }
+
+    if( lastFrame_rgbaBytes != NULL ) {
+        delete [] lastFrame_rgbaBytes;
+        lastFrame_rgbaBytes = NULL;
         }
     }
 
@@ -442,6 +461,17 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
         screenShotPrefix = stringDuplicate( "frame" );
         }
+
+    int blendOutputFramePairsFlag = 
+        SettingsManager::getIntSetting( "blendOutputFramePairs", 0 );
+    
+    if( blendOutputFramePairsFlag == 1 ) {
+        blendOutputFramePairs = true;
+        }
+
+    blendOutputFrameFraction = 
+        SettingsManager::getFloatSetting( "blendOutputFrameFraction", 0.0f );
+
 
 
     // make sure dir is writeable
@@ -965,7 +995,10 @@ void GameSceneHandler::drawScene() {
             // just one
             shouldTakeScreenshot = false;
             }
+        manualScreenShot = false;
         }
+
+    frameNumber ++;
     }
 
 
@@ -1256,6 +1289,7 @@ void saveScreenShot( const char *inPrefix ) {
         }
     screenShotPrefix = stringDuplicate( inPrefix );
     shouldTakeScreenshot = true;
+    manualScreenShot = true;
     }
 
 
@@ -1319,7 +1353,6 @@ void takeScreenShot() {
                                   screenShotPrefix, nextShotNumber,
                                   screenShotExtension );
 
-    nextShotNumber++;
     
 
     File *file = shotDir.getChildFile( fileName );
@@ -1327,9 +1360,10 @@ void takeScreenShot() {
     delete [] fileName;
 
 
+    int numBytes = screenWidth * screenHeight * 3;
     
     unsigned char *rgbBytes = 
-        new unsigned char[ screenWidth * screenHeight * 3 ];
+        new unsigned char[ numBytes ];
 
     // w and h might not be multiples of 4
     GLint oldAlignment;
@@ -1342,6 +1376,47 @@ void takeScreenShot() {
     
     glPixelStorei( GL_PACK_ALIGNMENT, oldAlignment );
 
+
+    if( ! manualScreenShot && 
+        blendOutputFramePairs && 
+        frameNumber % 2 != 0 && 
+        lastFrame_rgbaBytes != NULL ) {
+        
+        // save blended frames on odd frames
+        if( blendOutputFrameFraction > 0 ) {
+            float blendA = 1 - blendOutputFrameFraction;
+            float blendB = blendOutputFrameFraction;
+            
+            for( int i=0; i<numBytes; i++ ) {
+                rgbBytes[i] = 
+                    (unsigned char)(
+                        blendA * rgbBytes[i] + 
+                        blendB * lastFrame_rgbaBytes[i] );
+                }
+            }
+        
+        }
+    else if( !manualScreenShot &&
+             blendOutputFramePairs &&
+             frameNumber % 2 == 0 ) {
+        
+        // skip even frames, but save them for next blending
+        
+        if( lastFrame_rgbaBytes != NULL ) {
+            delete [] lastFrame_rgbaBytes;
+            lastFrame_rgbaBytes = NULL;
+            }
+
+        lastFrame_rgbaBytes = rgbBytes;
+        
+        delete file;
+        
+        return;
+        }
+
+    nextShotNumber++;
+    
+    
 
     Image screenImage( screenWidth, screenHeight, 3, false );
 
