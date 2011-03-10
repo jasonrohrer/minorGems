@@ -175,7 +175,7 @@ void JPEGImageConverter::formatImage( Image *inImage,
  		int yOffset = cinfo.next_scanline * cinfo.image_width;
 		
 		// for each pixel in the row
-		for( int p=0; p<cinfo.image_width; p++ ) {
+		for( unsigned int p=0; p<cinfo.image_width; p++ ) {
 			// index into inImage
 			int pixelIndex = p + yOffset;
 
@@ -472,7 +472,6 @@ Image *JPEGImageConverter::deformatImage( InputStream *inStream ) {
 	double *redChannel = returnImage->getChannel(0);
 	double *greenChannel = returnImage->getChannel(1);
 	double *blueChannel = returnImage->getChannel(2);
-	int currentIndex = 0;
 	
 	
 	row_stride = cinfo.output_width * cinfo.output_components;
@@ -504,7 +503,7 @@ Image *JPEGImageConverter::deformatImage( InputStream *inStream ) {
 		
 		// for each pixel in the row
 		// copy it into the return image channels
-		for( int p=0; p<cinfo.output_width; p++ ) {
+		for( unsigned int p=0; p<cinfo.output_width; p++ ) {
 
 			// index into inImage
 			int pixelIndex = p + yOffset;
