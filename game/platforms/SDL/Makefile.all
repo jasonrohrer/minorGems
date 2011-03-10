@@ -53,6 +53,12 @@ ifeq ($(LINK_AGAINST_LIBJPEG),yes)
 endif
 
 
+ifeq ($(LINK_AGAINST_LIBPNG),yes)
+	PLATFORM_LINK_FLAGS += $(PLATFORM_LIBPNG_FLAG)
+	PLATFORM_COMPILE_FLAGS += -DUSE_PNG
+	NEEDED_MINOR_GEMS_OBJECTS += ${PNG_IMAGE_CONVERTER_O}
+endif
+
 
 # targets
 
@@ -69,8 +75,7 @@ ${APP_NAME}: ${LAYER_OBJECTS} ${NEEDED_MINOR_GEMS_OBJECTS} ${ICON_FILE}
 
 
 
-# add this on Unix to support JPEG video frame output
-# -ljpeg ${ROOT_PATH}/minorGems/graphics/converters/unix/JPEGImageConverterUnix.cpp
+
 
 
 

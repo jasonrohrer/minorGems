@@ -47,6 +47,10 @@ OPTIMIZE_FLAG = ${OPTIMIZE_OFF_FLAG}
 # if this is turned on, -DUSE_JPEG is passed into the compile step
 LINK_AGAINST_LIBJPEG = no
 
+# switch to yes to link against it
+# if this is turned on, -DUSE_PNG is passed into the compile step
+LINK_AGAINST_LIBPNG = no
+
 
 
 # common to all platforms

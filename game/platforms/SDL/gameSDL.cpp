@@ -117,6 +117,10 @@ char mouseWorldCoordinates = true;
     #include "minorGems/graphics/converters/JPEGImageConverter.h"
     static JPEGImageConverter screenShotConverter( 90 );
     static const char *screenShotExtension = "jpg";
+#elif defined(USE_PNG)
+    #include "minorGems/graphics/converters/PNGImageConverter.h"
+    static PNGImageConverter screenShotConverter;
+    static const char *screenShotExtension = "png";
 #else
     static TGAImageConverter screenShotConverter;
     static const char *screenShotExtension = "tga";
