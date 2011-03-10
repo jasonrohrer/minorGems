@@ -27,7 +27,7 @@ PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa mac/SDLM
 PLATFORM_LIBJPEG_FLAG = /usr/lib/libjpeg.a
 
 # not used for some builds
-PLATFORM_LIBPNG_FLAG = /usr/lib/libpng.a
+PLATFORM_LIBPNG_FLAG = /usr/lib/libz.a /usr/lib/libpng.a
 
 
 # Nothing special for OS X here

@@ -27,7 +27,7 @@ PLATFORM_LINK_FLAGS = -L/usr/X11R6/lib -lGL  -lGLU -lX11 -lSDL -lpthread
 PLATFORM_LIBJPEG_FLAG = -ljpeg
 
 # not used for some builds
-PLATFORM_LIBPNG_FLAG = -lpng
+PLATFORM_LIBPNG_FLAG = -lz -lpng
 
 
 # All platforms but OSX support g++ and need no linker hacks
