@@ -334,9 +334,19 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             numSamples = samplesLeftToRecord;
             numBytesToWrite = samplesLeftToRecord * 4;        
             }
-        
-        fwrite( inStream, 1, numBytesToWrite, aiffOutFile );
+
+        // reverse byte order
+        int nextByte = 0;
+        for( int i=0; i<numSamples; i++ ) {
+                    
+            fwrite( &( inStream[ nextByte + 1 ] ), 1, 1, aiffOutFile );
+            fwrite( &( inStream[ nextByte ] ), 1, 1, aiffOutFile );
     
+            fwrite( &( inStream[ nextByte + 3 ] ), 1, 1, aiffOutFile );
+            fwrite( &( inStream[ nextByte + 2 ] ), 1, 1, aiffOutFile );
+            nextByte += 4;
+            }
+        
 
         samplesLeftToRecord -= numSamples;
         
