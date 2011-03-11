@@ -66,6 +66,9 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/io/file/FileInputStream.h"
 
 
+#include "minorGems/sound/formats/aiff.h"
+
+
 
 #include "minorGems/game/game.h"
 #include "minorGems/game/gameGraphics.h"
@@ -123,6 +126,14 @@ static unsigned char *lastFrame_rgbaBytes = NULL;
 
 
 static unsigned int frameNumber = 0;
+
+
+static char recordAudio = false;
+
+static FILE *aiffOutFile = NULL;
+
+static int samplesLeftToRecord = 0;
+
 
 
 
@@ -293,6 +304,14 @@ void cleanUpAtExit() {
         delete [] lastFrame_rgbaBytes;
         lastFrame_rgbaBytes = NULL;
         }
+
+
+    if( recordAudio ) {
+        recordAudio = false;
+        fclose( aiffOutFile );
+        aiffOutFile = NULL;
+        }
+            
     }
 
 
@@ -301,6 +320,34 @@ void cleanUpAtExit() {
 
 void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
     getSoundSamples( inStream, inLengthToFill );
+
+
+
+    if( recordAudio ) {
+        
+        int numSamples = inLengthToFill / 4;
+        
+        int numBytesToWrite = inLengthToFill;
+        
+        
+        if( numSamples > samplesLeftToRecord ) {
+            numSamples = samplesLeftToRecord;
+            numBytesToWrite = samplesLeftToRecord * 4;        
+            }
+        
+        fwrite( inStream, 1, numBytesToWrite, aiffOutFile );
+    
+
+        samplesLeftToRecord -= numSamples;
+        
+    
+        if( samplesLeftToRecord <= 0 ) {
+            recordAudio = false;
+            fclose( aiffOutFile );
+            aiffOutFile = NULL;
+            }            
+        }
+    
     }
 
 
@@ -655,6 +702,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         
         SDL_AudioSpec actualFormat;
 
+
+
+        SDL_LockAudio();
+
+
         /* Open the audio device and start playing sound! */
         if( SDL_OpenAudio( &audioFormat, &actualFormat ) < 0 ) {
             AppLog::getLog()->logPrintf( 
@@ -690,9 +742,40 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 
                 soundSampleRate = actualFormat.freq;
                 soundRunning = true;
+
+                int recordAudioFlag = 
+                    SettingsManager::getIntSetting( "recordAudio", 0 );
+                int recordAudioLengthInSeconds = 
+                    SettingsManager::getIntSetting( 
+                        "recordAudioLengthInSeconds", 0 );
+
+                if( recordAudioFlag == 1 && recordAudioLengthInSeconds > 0 ) {
+                    recordAudio = true;
+                    
+                    samplesLeftToRecord = 
+                        recordAudioLengthInSeconds * soundSampleRate;
+
+                    aiffOutFile = fopen( "recordedAudio.aiff", "wb" );
+        
+                    int headerLength;
+                    
+                    unsigned char *header =
+                        getAIFFHeader( 2, 16,
+                                       soundSampleRate,
+                                       samplesLeftToRecord, 
+                                       &headerLength );
+
+                    fwrite( header, 1, headerLength, aiffOutFile );
+
+                    delete [] header;
+                    }
+
+
+
                 }
             }
-        
+
+        SDL_UnlockAudio();        
         }
     
 

@@ -401,3 +401,6 @@ DOUBLE_PAIR_O = ${ROOT_PATH}/minorGems/game/doublePair.o
 DEMO_CODE_CHECKER_O = \
 ${ROOT_PATH}/minorGems/game/platforms/SDL/DemoCodeChecker.o
 
+
+
+AIFF_O = ${ROOT_PATH}/minorGems/sound/formats/aiff.o
