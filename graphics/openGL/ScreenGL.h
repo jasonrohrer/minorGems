@@ -95,6 +95,9 @@
  * 
  * 2011-February-22   Jason Rohrer
  * Added a force-dimensions flag.
+ * 
+ * 2011-March-14   Jason Rohrer
+ * Changed Alt-Tab to explicitly release mouse.  
  */
  
  
@@ -556,7 +559,8 @@ class ScreenGL {
         char mWantToMimimize;
         char mMinimized;
         char mWasFullScreenBeforeMinimize;
-
+        char mWasInputGrabbedBeforeMinimize;
+        
         // only allow ALT-Enter to toggle fullscreen if it started there
         char mStartedFullScreen;
         

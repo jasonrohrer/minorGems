@@ -110,6 +110,9 @@
  * Windowed mode forced if fullscreen dimensions specified in playback file 
  * not available.
  * Got Alt-Tab working for windowed mode too.
+ * 
+ * 2011-March-14   Jason Rohrer
+ * Changed Alt-Tab to explicitly release mouse.  
  */
 
 
@@ -1072,6 +1075,14 @@ void ScreenGL::start() {
                 
                 mWantToMimimize = true;
                 mWasFullScreenBeforeMinimize = false;
+
+                if( SDL_WM_GrabInput( SDL_GRAB_QUERY ) == SDL_GRAB_ON ) {
+                    mWasInputGrabbedBeforeMinimize = true;
+                    }
+                else {
+                    mWasInputGrabbedBeforeMinimize = false;
+                    }
+                SDL_WM_GrabInput( SDL_GRAB_OFF );
                 }
             // handle alt-tab to minimize out of full-screen mode
             else if( mFullScreen &&
@@ -1093,6 +1104,14 @@ void ScreenGL::start() {
 
                 mWantToMimimize = true;
                 mWasFullScreenBeforeMinimize = true;
+
+                if( SDL_WM_GrabInput( SDL_GRAB_QUERY ) == SDL_GRAB_ON ) {
+                    mWasInputGrabbedBeforeMinimize = true;
+                    }
+                else {
+                    mWasInputGrabbedBeforeMinimize = false;
+                    }
+                SDL_WM_GrabInput( SDL_GRAB_OFF );
                 }
             // active event after minimizing from windowed mode
             else if( mMinimized && 
@@ -1108,6 +1127,10 @@ void ScreenGL::start() {
                 mWantToMimimize = false;
                 mWasFullScreenBeforeMinimize = false;
                 mMinimized = false;
+
+                if( mWasInputGrabbedBeforeMinimize ) {
+                    SDL_WM_GrabInput( SDL_GRAB_ON );
+                    }
                 }
             // active event after minimizing from fullscreen mode
             else if( mMinimized && 
@@ -1132,6 +1155,10 @@ void ScreenGL::start() {
                 mWantToMimimize = false;
                 mWasFullScreenBeforeMinimize = false;
                 mMinimized = false;
+
+                if( mWasInputGrabbedBeforeMinimize ) {
+                    SDL_WM_GrabInput( SDL_GRAB_ON );
+                    }
                 }
             // map CTRL-q to ESC
             // 17 is "DC1" which is ctrl-q on some platforms
