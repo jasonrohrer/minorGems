@@ -942,6 +942,16 @@ void wakeUpPauseFrameRate() {
     }
 
 
+// returns true if we're currently executing a recorded game
+char isGamePlayingBack() {
+    return screen->isPlayingBack();
+    }
+
+
+
+
+
+
 
 void mapKey( unsigned char inFromKey, unsigned char inToKey ) {
     screen->setKeyMapping( inFromKey, inToKey );

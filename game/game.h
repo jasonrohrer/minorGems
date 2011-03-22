@@ -208,6 +208,13 @@ char isPaused();
 void wakeUpPauseFrameRate();
 
 
+// returns true if we're currently executing a recorded game
+char isGamePlayingBack();
+
+
+
+
+
 
 
 // save a screenshot to the "screenShots" folder
