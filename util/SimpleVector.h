@@ -510,7 +510,7 @@ inline char *SimpleVector<char>::getElementString() {
 template <>
 inline void SimpleVector<char>::appendElementString( const char *inString ) {
     unsigned int numChars = strlen( inString );
-    appendArray( (char*)inString, numChars );
+    appendArray( (char*)inString, (int)numChars );
     }
 
 
