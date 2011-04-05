@@ -14,6 +14,32 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
 
 
 
+void outputNonRunBytes( SimpleVector<unsigned char> *dataVector,
+                        SimpleVector<unsigned char> *nonRunBytes ) {
+    
+    int numNonRun = nonRunBytes->size();
+            
+    if( numNonRun > 0 ) {
+        
+        dataVector->push_back( 0 );
+        dataVector->push_back( numNonRun );
+        
+        printf( "Outputting %d-length non-run\n", numNonRun );
+        
+        for( int b=0; b<numNonRun; b++ ) {
+            
+            dataVector->push_back( 
+                *( nonRunBytes->getElement( b ) ) );
+            }
+        nonRunBytes->deleteAll();
+        }
+    }
+
+
+
+
+
+
 unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
                             int *outNumBytes ) {
 
@@ -71,9 +97,12 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
         return NULL;
         }
 
+    int numColors = colors.size();
 
+    printf( "JRI found %d colors\n", numColors );
+    
 
-    char *header = autoSprintf( "%d\n%d %d\n%d",
+    char *header = autoSprintf( "%d\n%d %d\n%d\n",
                                 JRI_VERSION, 
                                 inWidth, inHeight, 
                                 colors.size() );
@@ -87,7 +116,6 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
     dataVector.push_back( '#' );
 
     // add palette bytes
-    int numColors = colors.size();
     for( int c=0; c<numColors; c++ ) {
         rgbaColor color = *( colors.getElement( c ) );
         
@@ -118,9 +146,18 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
                 }
             else {
                 // run full, output it
+
+                // first, output and clear any non-run bytes that preceded 
+                // the run
+                outputNonRunBytes( &dataVector, &nonRunBytes );
+
+
                 dataVector.push_back( 1 );
                 dataVector.push_back( currentRunLength );
                 dataVector.push_back( currentRunByte );
+
+                printf( "Outputting %d-length run of byte %d\n", 
+                        currentRunLength, currentRunByte );
 
                 // start a fresh run
                 currentRunLength = 1;
@@ -137,15 +174,7 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
                     // a full non-run
                     // output it
                     
-                    dataVector.push_back( 0 );
-                    dataVector.push_back( 255 );
-
-                    for( int b=0; b<255; b++ ) {
-                        
-                        dataVector.push_back( 
-                            *( nonRunBytes.getElement( b ) ) );
-                        }
-                    nonRunBytes.deleteAll();
+                    outputNonRunBytes( &dataVector, &nonRunBytes );
                     }
                 
                 nonRunBytes.push_back( currentRunByte );
@@ -160,22 +189,9 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
             // AND current run broken
 
 
-            // first, output any non-run bytes that preceded the run
-
-            int numNonRun = nonRunBytes.size();
+            // first, output and clear any non-run bytes that preceded the run
+            outputNonRunBytes( &dataVector, &nonRunBytes );
             
-            if( numNonRun > 0 ) {
-            
-                dataVector.push_back( 0 );
-                dataVector.push_back( numNonRun );
-
-                for( int b=0; b<numNonRun; b++ ) {
-                        
-                    dataVector.push_back( 
-                        *( nonRunBytes.getElement( b ) ) );
-                    }
-                nonRunBytes.deleteAll();
-                }
         
             // now output the run
 
@@ -183,6 +199,9 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
             dataVector.push_back( currentRunLength );
             dataVector.push_back( currentRunByte );
             
+            printf( "Outputting %d-length run of byte %d\n", 
+                    currentRunLength, currentRunByte );
+
             // start a fresh run with this new, run-breaking byte
             currentRunLength = 1;
             currentRunByte = pixelIndices[p];
