@@ -1,0 +1,59 @@
+jri = Jason Rohrer Image format
+
+
+In developing a game for the DS, I needed a compact image file format for the 
+first time ever.  Furthermore, the format needed to be simple and NOT depend 
+on heavy-weight libraries (because the code supporting the format had to 
+compile and run on the DS).  This ruled out PNG (which pretty much depends on 
+both libpng and zlib).
+
+Supports 256 (max) colors only
+
+
+Format:
+
+
+ASCII header, whitespace-delimited:
+
+version_number
+
+image_width
+
+image_height
+
+num_colors
+
+
+
+ASCII header ends with #
+
+
+Immediately after #, binary data begins, starting with 
+num_colors R,G,B values for the palette (num_colors * 3 bytes)
+
+Immediately after the palette, image data starts, run-length encoded.
+
+
+Runs are encoded in bytes as follows:
+
+
+run_flag  run_length  data_byte(s)
+
+
+
+run_flag    is either
+ 
+            1:  if a run of repeating bytes follows
+            0:  if a run of non-repeating bytes follows
+
+
+run_length  is the length of the run, from 0 to 255
+
+data_byte   is a single byte for a run of repeating bytes (the palette index
+            for the entire run of pixels).
+
+data_bytes  is a string of run_length bytes for a non-repeating run (the
+            palette indices for each pixel in the run)
+
+
+
