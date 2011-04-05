@@ -1,1 +1,3 @@
 g++ -o tgaToJri tgaToJri.cpp jri.cpp ../../../io/file/linux/PathLinux.cpp ../../../util/stringUtils.cpp -I../../../..
+
+g++ -o jriToTga jriToTga.cpp jri.cpp ../../../io/file/linux/PathLinux.cpp ../../../util/stringUtils.cpp -I../../../..

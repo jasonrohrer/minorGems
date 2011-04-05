@@ -9,8 +9,120 @@
 rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
                        int *outWidth, int *outHeight ) {
     
+    int version, w, h, numColors;
+    
 
+    int numRead =
+        sscanf( (char *)inData, "%d %d %d %d", &version, &w, &h, &numColors );
+    
+    
+    if( numRead != 4 ) {
+        return NULL;
+        }
+    
+    if( version != JRI_VERSION ) {
+        return NULL;
+        }
+    
+    printf( "JRI data for %dx%d image with %d colors\n", w, h, numColors );
+
+
+    // skip header by looking for '#'
+
+    int index = 0;
+
+    while( index < inNumBytes ) {    
+        if( inData[index++] == '#' ) {
+            break;
+            }
+        }
+
+    printf( "Index of first data byte = %d\n", index );
+    
+    if( index >= inNumBytes ) {
+        return NULL;
+        }
+    
+
+    int numDataBytes = inNumBytes - index;
+    
+    inData = &( inData[ index ] );
+    
+
+    if( numDataBytes < 3 * numColors ) {
+        // not enough data for palette
+        return NULL;
+        }
+    
+    rgbaColor *colors = new rgbaColor[ numColors ];
+    
+
+    int b = 0;
+    
+    for( int c=0; c<numColors; c++ ) {
+        colors[c].r = inData[b++];
+        colors[c].g = inData[b++];
+        colors[c].b = inData[b++];
+        colors[c].a = 1;
+
+        printf( "Color %d,%d,%d\n", colors[c].r, colors[c].g, colors[c].b );
+        }
+
+    // skip palette
+    numDataBytes = numDataBytes - b;
+    inData = &( inData[ b ] );
+
+    
+    int numPixels = w * h;
+    
+
+    rgbaColor *pixels = new rgbaColor[ numPixels ];
+    int p = 0;
+
+    
+    b = 0;
+    while( b < numDataBytes ) {
+    
+        // a new run or non-run
+
+        int runType = inData[b++];
+        int runLength = inData[b++];
+        
+
+        if( runType == 1 ) {
+            // run
+
+            int runByte = inData[b++];
+
+            printf( "Length %d run of byte %d\n", runLength, runByte );
+
+            for( int r=0; r<runLength; r++ ) {
+                pixels[p++] = colors[ runByte ];
+                }
+            }
+        else {
+            // non-run
+            
+            printf( "Length %d non-run\n", runLength );
+
+            for( int r=0; r<runLength; r++ ) {
+                pixels[p++] = colors[ inData[b++] ];
+                }
+            }
+        }
+    
+
+
+    delete [] colors;
+    
+        
+
+    *outWidth = w;
+    *outHeight = h;
+    
+    return pixels;
     }
+
 
 
 
