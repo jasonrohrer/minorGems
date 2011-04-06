@@ -320,6 +320,21 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
             }
         }
     
+
+    // final runs?
+    outputNonRunBytes( &dataVector, &nonRunBytes );
+    
+    if( currentRunLength > 0 ) {
+        dataVector.push_back( 1 );
+        dataVector.push_back( currentRunLength );
+        dataVector.push_back( currentRunByte );
+        
+        printf( "Outputting %d-length run of byte %d\n", 
+                currentRunLength, currentRunByte );
+        }
+    
+
+    
     delete [] pixelIndices;
 
             
