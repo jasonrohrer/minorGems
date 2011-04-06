@@ -25,6 +25,9 @@
  *
  * 2010-February-24		Jason Rohrer
  * Optimized with a static function to avoid needless image copying.
+ *
+ * 2011-April-5     Jason Rohrer
+ * Fixed float-to-int conversion.  
  */
  
  
@@ -33,6 +36,7 @@
 
 #include <stdio.h> 
 #include <string.h>
+#include <math.h>
  
 #include "Image.h"
  
@@ -205,18 +209,18 @@ inline unsigned char *RGBAImage::getRGBABytes( Image *inImage ) {
     
         register int i = 0;
         for( int p=0; p<numPixels; p++ ) {
-            bytes[i++] = (unsigned char)( channelZero[p] * 255 );
-            bytes[i++] = (unsigned char)( channelOne[p] * 255 );
-            bytes[i++] = (unsigned char)( channelTwo[p] * 255 );
-            bytes[i++] = (unsigned char)( channelThree[p] * 255 );
+            bytes[i++] = (unsigned char)( lrint( channelZero[p] * 255 ) );
+            bytes[i++] = (unsigned char)( lrint( channelOne[p] * 255 ) );
+            bytes[i++] = (unsigned char)( lrint( channelTwo[p] * 255 ) );
+            bytes[i++] = (unsigned char)( lrint( channelThree[p] * 255 ) );
             }
         }
     else {
         register int i = 0;
         for( int p=0; p<numPixels; p++ ) {
-            bytes[i++] = (unsigned char)( channelZero[p] * 255 );
-            bytes[i++] = (unsigned char)( channelOne[p] * 255 );
-            bytes[i++] = (unsigned char)( channelTwo[p] * 255 );
+            bytes[i++] = (unsigned char)( lrint( channelZero[p] * 255 ) );
+            bytes[i++] = (unsigned char)( lrint( channelOne[p] * 255 ) );
+            bytes[i++] = (unsigned char)( lrint( channelTwo[p] * 255 ) );
             bytes[i++] = 255;  // default alpha
             }
         }

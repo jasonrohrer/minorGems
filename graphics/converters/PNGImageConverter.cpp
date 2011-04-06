@@ -6,6 +6,9 @@
  *
  * 2010-May-18    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2011-April-5     Jason Rohrer
+ * Fixed float-to-int conversion.  
  */
 
 
@@ -13,6 +16,8 @@
 
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/graphics/RGBAImage.h"
+
+#include <math.h>
 
 //#include "lodepng.h"
 
@@ -408,7 +413,7 @@ void PNGImageConverter::formatImage( Image *inImage,
 
             for( i=0; i<3; i++ ) {
                 rawScanlineBytes[ index ] =
-                    (unsigned char)( 255 * channels[i][pixelNumber] );
+                    (unsigned char)( lrint( 255 * channels[i][pixelNumber] ) );
 
                 index ++;
                 }

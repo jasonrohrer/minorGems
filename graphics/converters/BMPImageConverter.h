@@ -15,11 +15,17 @@
  *
  * 2001-September-22   Jason Rohrer
  * Changed to subclass LittleEndianImageConverter.
+ *
+ * 2011-April-5     Jason Rohrer
+ * Fixed float-to-int conversion.  
  */
  
  
 #ifndef BMP_IMAGE_CONVERTER_INCLUDED
 #define BMP_IMAGE_CONVERTER_INCLUDED 
+
+
+#include <math.h>
 
 
 #include "LittleEndianImageConverter.h"
@@ -134,11 +140,11 @@ inline void BMPImageConverter::formatImage( Image *inImage,
 			int imageIndex = y * width + x;
 			
 			raster[rasterIndex] = 
-				(unsigned char)( 255 * blue[imageIndex] );
+				(unsigned char)( lrint( 255 * blue[imageIndex] ) );
 			raster[rasterIndex + 1] = 
-				(unsigned char)( 255 * green[imageIndex] );
+				(unsigned char)( lrint( 255 * green[imageIndex] ) );
 			raster[rasterIndex + 2] = 
-				(unsigned char)( 255 * red[imageIndex] );
+				(unsigned char)( lrint( 255 * red[imageIndex] ) );
 			
 			rasterIndex += 3;
 			}

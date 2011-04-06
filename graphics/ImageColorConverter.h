@@ -19,10 +19,16 @@
  * 2001-September-24		Jason Rohrer
  * Added RGB<->YCbCr functions.
  * Abstracted out a common coefficient multiplying function.
+ *
+ * 2011-April-5     Jason Rohrer
+ * Fixed float-to-int conversion.  
  */
 
 #ifndef IMAGE_COLOR_CONVERTER_INCLUDED
 #define IMAGE_COLOR_CONVERTER_INCLUDED
+
+#include <math.h>
+
 
 #include "Image.h"
 
@@ -270,7 +276,7 @@ inline unsigned char *ImageColorConverter::
 	double *gray = inImage->getChannel( inChannelNumber );
 	
 	for( int i=0; i<numPixels; i++ ) {
-		bytes[i] = (unsigned char)( 255 * gray[i] );
+		bytes[i] = (unsigned char)( lrint( 255 * gray[i] ) );
 		}
 		
 	return bytes;
@@ -326,9 +332,9 @@ inline Image *ImageColorConverter::RGBToHSB( Image *inRGBImage ) {
 
 				
 	for( int i=0; i<numPixels; i++ ) {
-		int r = (int)( 255 * redChannel[i] );
-		int g = (int)( 255 * greenChannel[i] );
-		int b = (int)( 255 * blueChannel[i] );
+		int r = (int)( lrint( 255 * redChannel[i] ) );
+		int g = (int)( lrint( 255 * greenChannel[i] ) );
+		int b = (int)( lrint( 255 * blueChannel[i] ) );
 
 		double hue, sat, bright;
 				

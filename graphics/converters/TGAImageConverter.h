@@ -12,11 +12,15 @@
  *
  * 2011-April-5   Jason Rohrer
  * Fixed MAJOR bug causing double output size for 3-channel images.
+ * Fixed float-to-int conversion.  
  */
  
  
 #ifndef TGA_IMAGE_CONVERTER_INCLUDED
 #define TGA_IMAGE_CONVERTER_INCLUDED 
+
+
+#include <math.h>
 
 
 #include "LittleEndianImageConverter.h"
@@ -154,11 +158,11 @@ inline void TGAImageConverter::formatImage( Image *inImage,
 	if( numChannels == 3 ) {
 		for( int i=0; i<numPixels; i++ ) {
 			raster[rasterIndex] = 
-				(unsigned char)( 255 * blue[i] );
+				(unsigned char)( lrint( 255 * blue[i] ) );
 			raster[rasterIndex + 1] = 
-				(unsigned char)( 255 * green[i] );
+				(unsigned char)( lrint( 255 * green[i] ) );
 			raster[rasterIndex + 2] = 
-				(unsigned char)( 255 * red[i] );
+				(unsigned char)( lrint( 255 * red[i] ) );
 		
 			rasterIndex += 3;
 			}
@@ -168,13 +172,13 @@ inline void TGAImageConverter::formatImage( Image *inImage,
 		
 		for( int i=0; i<numPixels; i++ ) {
 			raster[rasterIndex] = 
-				(unsigned char)( 255 * blue[i] );
+				(unsigned char)( lrint( 255 * blue[i] ) );
 			raster[rasterIndex + 1] = 
-				(unsigned char)( 255 * green[i] );
+				(unsigned char)( lrint( 255 * green[i] ) );
 			raster[rasterIndex + 2] = 
-				(unsigned char)( 255 * red[i] );
+				(unsigned char)( lrint( 255 * red[i] ) );
 			raster[rasterIndex + 3] = 
-				(unsigned char)( 255 * alpha[i] );
+				(unsigned char)( lrint( 255 * alpha[i] ) );
 		
 			rasterIndex += 4;
 			}

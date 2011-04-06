@@ -41,6 +41,9 @@
  *
  * 2011-January-16     Jason Rohrer
  * Opt:  Changed to use memset to init large double arrays to 0.
+ *
+ * 2011-April-5     Jason Rohrer
+ * Fixed float-to-int conversion.  
  */
  
  
@@ -49,6 +52,7 @@
 
 #include <stdio.h> 
 #include <string.h>
+#include <math.h>
  
 #include "ChannelFilter.h"
 #include "Color.h"
@@ -580,7 +584,7 @@ inline int Image::serialize( OutputStream *inOutputStream ) {
 		// convert each 8-bit double pixel to one byte
 		for( int p=0; p<mNumPixels; p++ ) {
 			//numBytes += inOutputStream->writeDouble( mChannels[i][p] );
-			byteArray[p] = (unsigned char)( mChannels[i][p] * 255 );
+			byteArray[p] = (unsigned char)( lrint( mChannels[i][p] * 255 ) );
 			}
 		
 		numBytes += inOutputStream->write( byteArray, mNumPixels );

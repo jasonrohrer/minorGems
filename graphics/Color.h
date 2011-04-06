@@ -31,6 +31,7 @@
 *       Jason Rohrer    2008-October-23 Added alpha to print(), and set alpha 
 *                                       to 1 in default constructor.
 *       Jason Rohrer    2010-April-3    Added reverse HSV function. 
+*       Jason Rohrer    2011-April-5    Fixed float-to-int conversion. 
 */
 
 #ifndef COLOR_INCLUDED
@@ -38,6 +39,7 @@
 
 #include <stdio.h>
 #include <float.h>
+#include <math.h>
 
 class Color {
 	public :
@@ -440,8 +442,11 @@ inline Color *Color::linearSum( Color *inFirst, Color *inSecond,
 
 
 inline unsigned long Color::rebuildComposite() {
-	composite = ((int)(b*255)) | ((int)(g*255)) << 8 | ((int)(r*255)) << 16 |
-        ((int)(a*255)) << 24;
+	composite = 
+        ((int)(lrint(b*255))) | 
+        ((int)(lrint(g*255))) << 8 | 
+        ((int)(lrint(r*255))) << 16 |
+        ((int)(lrint(a*255))) << 24;
     mCompositeBuilt = true;
 	return composite;
 	}
@@ -523,7 +528,11 @@ inline float &Color::operator[](int rgbIndex) {
 	
 	
 inline unsigned long Color::getWeightedComposite( float weight ) {
-	return ((int)(b*255*weight)) | ((int)(g*255*weight)) << 8 | ((int)(r*255*weight)) << 16 | ((int)(a*255)) << 24;
+	return 
+        ((int)(lrint(b*255*weight))) | 
+        ((int)(lrint(g*255*weight))) << 8 | 
+        ((int)(lrint(r*255*weight))) << 16 | 
+        ((int)(lrint(a*255))) << 24;
 	}
 
 

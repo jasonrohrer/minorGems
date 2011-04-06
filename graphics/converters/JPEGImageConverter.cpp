@@ -8,6 +8,9 @@
  * Finished implementation.
  * Added an optimization to formatImage, but it did not improve
  * performance, so it has been commented out.
+ *
+ * 2011-April-5     Jason Rohrer
+ * Fixed float-to-int conversion.  
  */
  
 /**
@@ -27,6 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <string.h>
 
@@ -184,13 +188,13 @@ void JPEGImageConverter::formatImage( Image *inImage,
 
 			// red
 			row_pointer[0][ startRowIndex ] =
-				(JSAMPLE)( redChannel[ pixelIndex ] * 255 );
+				(JSAMPLE)( lrint( redChannel[ pixelIndex ] * 255 ) );
 			// green
 			row_pointer[0][ startRowIndex + 1 ] =
-				(JSAMPLE)( greenChannel[ pixelIndex ] * 255 );
+				(JSAMPLE)( lrint( greenChannel[ pixelIndex ] * 255 ) );
 			// blue
 			row_pointer[0][ startRowIndex + 2 ] =
-				(JSAMPLE)( blueChannel[ pixelIndex ] * 255 );
+				(JSAMPLE)( lrint( blueChannel[ pixelIndex ] * 255 ) );
 			}
 
 
