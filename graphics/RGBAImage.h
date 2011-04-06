@@ -27,7 +27,8 @@
  * Optimized with a static function to avoid needless image copying.
  *
  * 2011-April-5     Jason Rohrer
- * Fixed float-to-int conversion.  
+ * Fixed float-to-int conversion.
+ * See:  http://www.mega-nerd.com/FPcast/  
  */
  
  
