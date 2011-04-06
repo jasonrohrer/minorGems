@@ -24,7 +24,7 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
         return NULL;
         }
     
-    printf( "JRI data for %dx%d image with %d colors\n", w, h, numColors );
+    //printf( "JRI data for %dx%d image with %d colors\n", w, h, numColors );
 
 
     // skip header by looking for '#'
@@ -37,7 +37,7 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
             }
         }
 
-    printf( "Index of first data byte = %d\n", index );
+    //printf( "Index of first data byte = %d\n", index );
     
     if( index >= inNumBytes ) {
         return NULL;
@@ -65,7 +65,7 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
         colors[c].b = inData[b++];
         colors[c].a = 1;
 
-        printf( "Color %d,%d,%d\n", colors[c].r, colors[c].g, colors[c].b );
+        //printf( "Color %d,%d,%d\n", colors[c].r, colors[c].g, colors[c].b );
         }
 
     // skip palette
@@ -94,7 +94,7 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
 
             int runByte = inData[b++];
 
-            printf( "Length %d run of byte %d\n", runLength, runByte );
+            //printf( "Length %d run of byte %d\n", runLength, runByte );
 
             for( int r=0; r<runLength; r++ ) {
                 pixels[p++] = colors[ runByte ];
@@ -103,7 +103,7 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
         else {
             // non-run
             
-            printf( "Length %d non-run\n", runLength );
+            //printf( "Length %d non-run\n", runLength );
 
             for( int r=0; r<runLength; r++ ) {
                 pixels[p++] = colors[ inData[b++] ];
@@ -136,7 +136,7 @@ void outputNonRunBytes( SimpleVector<unsigned char> *dataVector,
         dataVector->push_back( 0 );
         dataVector->push_back( numNonRun );
         
-        printf( "Outputting %d-length non-run\n", numNonRun );
+        //printf( "Outputting %d-length non-run\n", numNonRun );
         
         for( int b=0; b<numNonRun; b++ ) {
             
@@ -211,7 +211,7 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
 
     int numColors = colors.size();
 
-    printf( "JRI found %d colors\n", numColors );
+    //printf( "JRI found %d colors\n", numColors );
     
 
     char *header = autoSprintf( "%d\n%d %d\n%d\n",
@@ -225,6 +225,8 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
 
     dataVector.push_back( (unsigned char*)header, strlen( header ) );
     
+    delete [] header;
+
     dataVector.push_back( '#' );
 
     // add palette bytes
@@ -268,8 +270,8 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
                 dataVector.push_back( currentRunLength );
                 dataVector.push_back( currentRunByte );
 
-                printf( "Outputting %d-length run of byte %d\n", 
-                        currentRunLength, currentRunByte );
+                //printf( "Outputting %d-length run of byte %d\n", 
+                //        currentRunLength, currentRunByte );
 
                 // start a fresh run
                 currentRunLength = 1;
@@ -311,8 +313,8 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
             dataVector.push_back( currentRunLength );
             dataVector.push_back( currentRunByte );
             
-            printf( "Outputting %d-length run of byte %d\n", 
-                    currentRunLength, currentRunByte );
+            //printf( "Outputting %d-length run of byte %d\n", 
+            //        currentRunLength, currentRunByte );
 
             // start a fresh run with this new, run-breaking byte
             currentRunLength = 1;
@@ -329,8 +331,8 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
         dataVector.push_back( currentRunLength );
         dataVector.push_back( currentRunByte );
         
-        printf( "Outputting %d-length run of byte %d\n", 
-                currentRunLength, currentRunByte );
+        //printf( "Outputting %d-length run of byte %d\n", 
+        //        currentRunLength, currentRunByte );
         }
     
 

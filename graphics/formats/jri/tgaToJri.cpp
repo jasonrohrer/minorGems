@@ -35,6 +35,8 @@ int main( char inNumArgs, char**inArgs  ) {
                          image->getWidth(), image->getHeight(),
                          &jriSize );
         
+        delete [] rgbaBytes;
+
         if( jriBytes != NULL ) {
             FILE *outFile = fopen( inArgs[2], "wb" );
             
@@ -54,6 +56,8 @@ int main( char inNumArgs, char**inArgs  ) {
                 printf( "Opening file '%s' for writing failed\n",
                         inArgs[2] );
                 }
+
+            delete [] jriBytes;
             }
         else {
             printf( "Converting image to JRI failed.  "
