@@ -9,6 +9,9 @@
  *
  * 2006-November-18   Jason Rohrer
  * Fixed two unused variable warnings.
+ *
+ * 2011-April-5   Jason Rohrer
+ * Fixed MAJOR bug causing double output size for 3-channel images.
  */
  
  
@@ -159,7 +162,6 @@ inline void TGAImageConverter::formatImage( Image *inImage,
 		
 			rasterIndex += 3;
 			}
-		inStream->write( raster, numPixels * 3 );
 		}
 	else {  // numChannels == 4
 		double *alpha = inImage->getChannel( 3 );
