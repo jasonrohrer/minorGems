@@ -126,15 +126,15 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
 
 
 
-void outputNonRunBytes( SimpleVector<unsigned char> *dataVector,
-                        SimpleVector<unsigned char> *nonRunBytes ) {
+static void outputNonRunBytes( SimpleVector<unsigned char> *dataVector,
+                               SimpleVector<unsigned char> *nonRunBytes ) {
     
     int numNonRun = nonRunBytes->size();
             
     if( numNonRun > 0 ) {
         
         dataVector->push_back( 0 );
-        dataVector->push_back( numNonRun );
+        dataVector->push_back( (unsigned char)numNonRun );
         
         //printf( "Outputting %d-length non-run\n", numNonRun );
         
@@ -194,7 +194,7 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
             if( colors.size() < 256 ) {
                 colors.push_back( inRGBA[p] );
                 
-                pixelIndices[p] = colors.size() - 1;
+                pixelIndices[p] = (unsigned char)( colors.size() - 1 );
                 }
             else {
                 // palette is full
@@ -223,7 +223,7 @@ unsigned char *generateJRI( rgbaColor *inRGBA, int inWidth, int inHeight,
     SimpleVector<unsigned char> dataVector;
     
 
-    dataVector.push_back( (unsigned char*)header, strlen( header ) );
+    dataVector.push_back( (unsigned char*)header, (int)strlen( header ) );
     
     delete [] header;
 
