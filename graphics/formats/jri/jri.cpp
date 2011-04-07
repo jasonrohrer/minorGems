@@ -63,7 +63,7 @@ rgbaColor *extractJRI( unsigned char *inData, int inNumBytes,
         colors[c].r = inData[b++];
         colors[c].g = inData[b++];
         colors[c].b = inData[b++];
-        colors[c].a = 1;
+        colors[c].a = 255;
 
         //printf( "Color %d,%d,%d\n", colors[c].r, colors[c].g, colors[c].b );
         }
