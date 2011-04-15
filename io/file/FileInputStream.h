@@ -17,17 +17,20 @@
  *
  * 2010-April-22   Jason Rohrer
  * Added support for text mode.
+ *
+ * 2011-April-15   Jason Rohrer
+ * Fixed compile order issue.
  */
 
 #include "minorGems/common.h"
 
+#include "File.h"
 
 
 #ifndef FILE_INPUT_STREAM_CLASS_INCLUDED
 #define FILE_INPUT_STREAM_CLASS_INCLUDED
 
 #include "minorGems/io/InputStream.h"
-#include "File.h"
 
 #include <stdio.h>
 
