@@ -56,13 +56,13 @@ OBJS = $(COMMON_OBJS) $(OTHER_OBJS)
 
 all: lib/$(PALIB) lib/$(PADLLV) tests
 
-tests: bin/ $(TESTS)
+tests: bin $(TESTS)
 
-lib/$(PALIB): lib/ $(OBJS) Makefile $(PAINC)
+lib/$(PALIB): lib $(OBJS) Makefile $(PAINC)
 	$(AR) ruv lib/$(PALIB) $(OBJS)
 	$(RANLIB) lib/$(PALIB)
 
-lib/$(PADLLV): lib/ $(OBJS) Makefile $(PAINC)
+lib/$(PADLLV): lib $(OBJS) Makefile $(PAINC)
 	$(CC) $(SHARED_FLAGS) -o lib/$(PADLLV) $(OBJS) $(DLL_LIBS)
 
 $(TESTS): bin/%: lib/$(PALIB) Makefile $(PAINC) pa_tests/%.c
