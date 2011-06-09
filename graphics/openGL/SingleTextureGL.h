@@ -31,7 +31,7 @@
 #ifndef SINGLE_TEXTURE_GL_INCLUDED
 #define SINGLE_TEXTURE_GL_INCLUDED 
 
-#include <GL/gl.h>
+#include "glInclude.h"
 #include <stdio.h>
 #include <string.h>
 
