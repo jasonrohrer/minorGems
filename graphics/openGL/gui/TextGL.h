@@ -43,7 +43,7 @@
 #include <stdarg.h>
 #include <math.h>
 
-#include <GL/gl.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 
 #include "minorGems/graphics/Color.h"
 #include "minorGems/graphics/Image.h"

@@ -38,7 +38,7 @@
 
 #include "GUIComponentGL.h"
 
-#include <GL/gl.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 
 #include "minorGems/graphics/openGL/MouseHandlerGL.h"
 #include "minorGems/graphics/openGL/KeyboardHandlerGL.h"

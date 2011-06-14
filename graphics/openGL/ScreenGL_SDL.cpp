@@ -119,8 +119,7 @@
 #include "ScreenGL.h" 
 #include "SingleTextureGL.h" 
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 
 #include <SDL/SDL.h>
 

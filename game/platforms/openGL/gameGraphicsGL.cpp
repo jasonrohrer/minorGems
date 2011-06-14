@@ -2,7 +2,7 @@
 
 #include "SpriteGL.h"
 
-#include <GL/gl.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 
 
 static float lastR, lastG, lastB;

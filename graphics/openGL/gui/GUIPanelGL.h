@@ -21,7 +21,7 @@
 
 #include "minorGems/graphics/Color.h"
 
-#include <GL/gl.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 
 
 /**

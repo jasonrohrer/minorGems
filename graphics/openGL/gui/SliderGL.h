@@ -43,7 +43,7 @@
 
 #include "minorGems/ui/event/ActionListenerList.h"
 
-#include <GL/gl.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 
 
 /**
