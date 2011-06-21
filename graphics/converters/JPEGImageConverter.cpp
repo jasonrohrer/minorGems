@@ -11,7 +11,12 @@
  *
  * 2011-April-5     Jason Rohrer
  * Fixed float-to-int conversion.  
+ *
+ * 2011-June-21   Jason Rohrer
+ * Added flag for forcing input to read until end.  Some JPG files
+ * contain more than one image and thus have FFD9 in the middle.   
  */
+
  
 /**
  * Unix-specific JPEGImageConverter implementation
@@ -367,14 +372,27 @@ Image *JPEGImageConverter::deformatImage( InputStream *inStream ) {
 	delete [] fileBuffer;
 	*/
 	
-	// write until EOI sequence seen (0xFFD9)
-	while( !( tempBuffer[0] == 0xD9 && previousByte == 0xFF ) ) {
-		previousByte = tempBuffer[0];
-		
-		inStream->read( tempBuffer, 1 );
 
-		fwrite( tempBuffer, 1, 1, tempFile );
-		}
+    if( !mReadInputToEnd ) {
+        
+        // read (and write to temp) until EOI sequence seen (0xFFD9)
+        while( !( tempBuffer[0] == 0xD9 && previousByte == 0xFF ) ) {
+            previousByte = tempBuffer[0];
+            
+            inStream->read( tempBuffer, 1 );
+            
+            fwrite( tempBuffer, 1, 1, tempFile );
+            }
+        }
+    else {
+        int numRead = inStream->read( tempBuffer, 1 );
+        
+        while( numRead == 1 ) {
+            fwrite( tempBuffer, 1, 1, tempFile );
+            numRead = inStream->read( tempBuffer, 1 );
+            }
+        }
+    
 		
 	// end of jpeg stream reached.
 	fclose( tempFile );

@@ -3,6 +3,10 @@
  *
  * 2001-April-27   Jason Rohrer
  * Created.   
+ *
+ * 2011-June-21   Jason Rohrer
+ * Added flag for forcing input to read until end.  Some JPG files
+ * contain more than one image and thus have FFD9 in the middle.   
  */
  
  
@@ -29,8 +33,12 @@ class JPEGImageConverter : public ImageConverter {
 		 *
 		 * @param inQuality a quality value in [0,100] for compression.
 		 *   100 specifies highest quality.
+         * @param inReadInputToEnd should input be read all the way until end 
+         *   when deformatting?
+         *   If false (default), input reading will stop at first occurrence
+         *   of FFD9 (JPEG end marker). 
 		 */
-		JPEGImageConverter( int inQuality );
+		JPEGImageConverter( int inQuality, char inReadInputToEnd=false );
 
 		
 		/**
@@ -60,12 +68,14 @@ class JPEGImageConverter : public ImageConverter {
 		
 	private:
 		int mQuality;
+        char mReadInputToEnd;
 	};
 
 
 
-inline JPEGImageConverter::JPEGImageConverter( int inQuality )
-	: mQuality( inQuality ) {
+inline JPEGImageConverter::JPEGImageConverter( int inQuality, 
+                                               char inReadInputToEnd )
+	: mQuality( inQuality ), mReadInputToEnd( inReadInputToEnd ) {
 
 	if( mQuality > 100 || mQuality < 0 ) {
 		printf( "JPEG quality must be in [0,100]\n" );
