@@ -5,7 +5,7 @@
 #include "minorGems/io/file/FileInputStream.h"
 
 
-int main( char inNumArgs, char**inArgs  ) {
+int main( int inNumArgs, char**inArgs  ) {
     
 
     if( inNumArgs != 3 ) {
