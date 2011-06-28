@@ -48,7 +48,7 @@
 (setq font-lock-maximum-size nil)          ; turn off limit on font lock mode
 
 ; turn on font-lock everywhere (if possible)
-(global-font-lock-mode 1 t)
+(global-font-lock-mode 1)
 
 ; make sure C-backspace kills a word
 ( global-set-key `[C-backspace]   `backward-kill-word )
@@ -59,9 +59,10 @@
 ; auto fill mode
 ( add-hook 'c-mode-common-hook 'turn-on-auto-fill )
 
+; these don't work in emacs 23
 ; fix comment syntax highlighting problems
-( setq font-lock-support-mode 'lazy-lock-mode )
-( setq lazy-lock-defer-time 0 )
+;( setq font-lock-support-mode 'lazy-lock-mode )
+;( setq lazy-lock-defer-time 0 )
 
 ; delete highlighted text as we type
 ( delete-selection-mode t )
