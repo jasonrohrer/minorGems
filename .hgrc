@@ -13,11 +13,11 @@ hgext.convert =
 cmd.xdiff = xxdiff
 
 
-# add new command to run ImageMagick compare
+# add new command to run ImageMagick compare.  Does not work on directories.
 
-# note:  could subsitute ImageMagick's "display" call instead of gqview for
+# note:  could subsitute ImageMagick's "display" call instead of "gqview" for
 # greater portability, but gqview is nicer
 
-cmd.imdiff = bash  
+cmd.imdiff = sh  
 opts.imdiff = -c 'compare $0 $1 compared.png; gqview compared.png'
 
