@@ -271,6 +271,14 @@ int pixelZoomFactor;
 
 
 
+typedef struct WebRequestRecord {
+        int handle;
+        WebRequest *request;
+    } WebRequestRecord;
+
+SimpleVector<WebRequestRecord> webRequestRecords;
+
+
 
 
 
@@ -311,7 +319,14 @@ void cleanUpAtExit() {
         fclose( aiffOutFile );
         aiffOutFile = NULL;
         }
-            
+    
+    for( int i=0; i<webRequestRecords.size(); i++ ) {
+        WebRequestRecord *r = webRequestRecords.getElement( i );
+        
+        delete r->request;
+        }
+    
+
     }
 
 
@@ -1557,6 +1572,156 @@ void takeScreenShot() {
 
     delete file;
     }
+
+
+
+
+
+
+int nextWebRequestHandle = 0;
+
+
+
+
+int startWebRequest( const char *inMethod, const char *inURL,
+                     const char *inBody ) {
+    
+    WebRequestRecord r;
+    
+    r.handle = nextWebRequestHandle;
+    nextWebRequestHandle ++;
+    
+
+    if( screen->isPlayingBack() ) {
+        // stop here, don't actually start a real web request
+        return r.handle;
+        }
+
+
+    r.request = new WebRequest( inMethod, inURL, inBody );
+    
+    webRequestRecords.push_back( r );
+    
+    return r.handle;
+    }
+
+
+
+static WebRequest *getRequestByHandle( int inHandle ) {
+    for( int i=0; i<webRequestRecords.size(); i++ ) {
+        WebRequestRecord *r = webRequestRecords.getElement( i );
+        
+        if( r->handle == inHandle ) {
+            return r->request;
+            }
+        }
+
+    // else not found?
+    AppLog::error( "Requested WebRequest handle not found\n" );
+    return NULL;
+    }
+
+
+
+int stepWebRequest( int inHandle ) {
+    
+    if( screen->isPlayingBack() ) {
+        // don't step request, because we're only simulating the response
+        // of the server
+        
+        int nextType = screen->getWebEventType( inHandle );
+        
+        if( nextType == 2 ) {
+            return 1;
+            }
+        else {        
+            return nextType;
+            }
+        }
+    
+
+    WebRequest *r = getRequestByHandle( inHandle );
+    
+    if( r != NULL ) {
+        
+        int stepResult = r->step();
+        
+        screen->registerWebEvent( inHandle, stepResult );
+        
+        return stepResult;
+        }
+    
+    return -1;
+    }
+
+
+
+// gets the response body as a \0-terminated string, destroyed by caller
+char *getWebResult( int inHandle ) {
+    if( screen->isPlayingBack() ) {
+        // return a recorded server result
+        
+        int nextType = screen->getWebEventType( inHandle );
+        
+        if( nextType == 2 ) {
+            return screen->getWebEventResultBody( inHandle );
+            }
+        else {        
+            AppLog::error( "Expecting a web result body in playback file, "
+                           "but found none." );
+            
+            return NULL;
+            }
+        }
+
+
+
+    WebRequest *r = getRequestByHandle( inHandle );
+    
+    if( r != NULL ) {
+        char *result = r->getResult();
+
+        if( result != NULL ) {    
+            screen->registerWebEvent( inHandle,
+                                      // the type for "result" is 2
+                                      2,
+                                      result );
+            }
+        
+        return result;
+        }
+    
+    return NULL;
+    }
+
+    
+
+
+// frees resources associated with a web request
+// if request is not complete, this cancels it
+// if hostname lookup is not complete, this call might block.
+void clearWebRequest( int inHandle ) {
+    
+    if( screen->isPlayingBack() ) {
+        // not a real request, do nothing
+        return;
+        }
+        
+
+    for( int i=0; i<webRequestRecords.size(); i++ ) {
+        WebRequestRecord *r = webRequestRecords.getElement( i );
+        
+        if( r->handle == inHandle ) {
+            delete r->request;
+            
+            webRequestRecords.deleteElement( i );
+            }
+        }
+
+    // else not found?
+    AppLog::error( "Requested WebRequest handle not found\n" );
+    }
+
 
 
 

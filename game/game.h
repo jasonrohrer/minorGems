@@ -220,3 +220,36 @@ char isGamePlayingBack();
 // save a screenshot to the "screenShots" folder
 // screenshot may be delayed until the end of the next redraw.
 void saveScreenShot( const char *inPrefix );
+
+
+
+// the supporting platform wraps web requests to ensure that web
+// data repeats during playback of recorded games
+
+// inMethod = GET, POST, etc.
+// inURL the url to retrieve
+// inBody the body of the request, can be NULL
+// request body must be in application/x-www-form-urlencoded format
+
+// returns unique int handle for web request 
+int startWebRequest( const char *inMethod, const char *inURL,
+                     const char *inBody );
+
+// take anoter non-blocking step
+// return 1 if request complete
+// return -1 if request hit an error
+// return 0 if request still in-progress
+int stepWebRequest( int inHandle );
+
+
+// gets the response body as a \0-terminated string, destroyed by caller
+char *getWebResult( int inHandle );
+
+
+// frees resources associated with a web request
+// if request is not complete, this cancels it
+// if hostname lookup is not complete, this call might block.
+void clearWebRequest( int inHandle );
+
+
+

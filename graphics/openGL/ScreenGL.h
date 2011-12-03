@@ -131,6 +131,16 @@ void callbackDisplay();
 void callbackIdle();
 
 
+
+typedef struct WebEvent {
+        int handle;
+        int type;
+        char *bodyText;
+    } WebEvent;
+
+
+
+
 /**
  * Object that handles general initialization of an OpenGL screen.
  *
@@ -271,6 +281,36 @@ class ScreenGL {
         void setKeyMapping( unsigned char inFromKey,
                             unsigned char inToKey );
         
+
+
+        // passes in a web event to be (possibly) added to the current
+        // game recording
+        // type encodes :
+        //    0 = normal request step completed (NULL body)
+        //    1 = request done step completed (NULL body)
+        //   -1 = error-returning request step completed (NULL body)
+        //    2 = result-fetch step completed (non-NULL body)
+        void registerWebEvent( int inHandle,
+                               int inType,
+                               const char *inBodyString = NULL );
+        
+        
+        // gets the type of the next pending web event (from playback)
+        // if the event has no result body, this call removes the event
+        // from the list.
+        // If it has a result body, getWebEventResultBody must be called.
+        int getWebEventType( int inHandle );
+
+        // gets a recorded event body text from the current frame matching 
+        //   inHandle
+        // result NULL if there is no event matching inHandle
+        // result destroyed by caller.
+        //
+        // This call removes the web event from the list of pending events.
+        char *getWebEventResultBody( int inHandle );
+        
+        
+
 
 
         /**
@@ -619,6 +659,9 @@ class ScreenGL {
         void writeEventBatchToFile();
         void playNextEventBatch();
         
+
+        SimpleVector<WebEvent> mPendingWebEvents;
+
 
         unsigned int mRandSeed;
         

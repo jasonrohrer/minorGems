@@ -538,6 +538,20 @@ ScreenGL::~ScreenGL() {
         
 
     delete [] mCustomRecordedGameData;    
+
+
+    for( int i=0; i<mPendingWebEvents.size(); i++ ) {
+        WebEvent *e = mPendingWebEvents.getElement( i );
+        
+        if( e->bodyText != NULL ) {
+            
+            delete [] e->bodyText;
+        
+            e->bodyText = NULL;
+            }
+        
+        }
+
 	}
 
 
@@ -845,6 +859,81 @@ void ScreenGL::setupSurface() {
 
 
 
+
+void ScreenGL::registerWebEvent( int inHandle,
+                                 int inType,
+                                 const char *inBodyString ) {
+
+    if( ! currentScreenGL->mRecordingEvents || 
+        ! currentScreenGL->mRecordingOrPlaybackStarted ) {
+    
+        // not recording!
+        return;
+        }
+    
+        
+    char *eventString;
+    
+    // only event type 2 has a body text payload
+    if( inType == 2 ) {
+        eventString = autoSprintf( "wb %u %d %u %s", inHandle, 
+                                   inType, 
+                                   strlen( inBodyString ), inBodyString );
+        }
+    else {
+        eventString = autoSprintf( "wb %u %d", inHandle, inType );
+        }
+
+    
+    mEventBatch.push_back( eventString );
+    }
+
+
+
+int ScreenGL::getWebEventType( int inHandle ) {
+    for( int i=0; i<mPendingWebEvents.size(); i++ ) {
+        WebEvent *e = mPendingWebEvents.getElement( i );
+        
+        if( e->handle == inHandle ) {
+            
+            int type = e->type;
+            
+            if( type != 2 ) {
+                mPendingWebEvents.deleteElement( i );
+                }
+
+            return type;
+            }
+        }
+
+    // no event record present?
+    // assume a normal, non-finished step occurred
+    return 0;
+    }
+
+
+
+char *ScreenGL::getWebEventResultBody( int inHandle ) {
+    
+    for( int i=0; i<mPendingWebEvents.size(); i++ ) {
+        WebEvent *e = mPendingWebEvents.getElement( i );
+        
+        if( e->handle == inHandle ) {
+            
+            char *returnValue = e->bodyText;
+            
+            mPendingWebEvents.deleteElement( i );
+
+            return returnValue;
+            }
+        }
+    
+    return NULL;
+    }
+
+
+
+
 void ScreenGL::writeEventBatchToFile() {
     
     int numInBatch = mEventBatch.size();
@@ -957,9 +1046,50 @@ void ScreenGL::playNextEventBatch() {
                     }
                 }
                 break;
+            case 'w': {
+                // special case:  incoming web event
+                // (simulating response from a web server during playback)
+                
+                WebEvent e;
+                fscanf( mEventFile, "%d %d", &( e.handle ), &( e.type ) );
+
+                e.bodyText = NULL;
+
+                if( e.type == 2 ) {
+                    // includes a body payload
+
+                    unsigned int length;
+                    
+                    fscanf( mEventFile, "%u", &length );
+
+                    // skip the space after length
+                    fgetc( mEventFile );
+                
+                
+                
+                    e.bodyText = new char[ length + 1 ];
+                
+                    unsigned int numRead = 
+                        fread( e.bodyText, 1, length, mEventFile );
+                
+                    e.bodyText[ length ] = '\0';
+
+                    if( numRead != length ) {
+                        AppLog::error( 
+                            "Failed to read web event body text from "
+                            "playback file" );
+                        delete [] e.bodyText;
+                        e.bodyText = NULL;
+                        }
+                    }
+                
+                mPendingWebEvents.push_back( e );
+                }
             default:
-                AppLog::error( "Unknown code '%s' in playback file\n",
-                               code );
+                AppLog::getLog()->logPrintf( 
+                    Log::ERROR_LEVEL, 
+                    "Unknown code '%s' in playback file\n",
+                    code );
             }            
         
         }
@@ -1272,10 +1402,7 @@ void ScreenGL::start() {
 
         
 
-        // record them?
-        if( mRecordingEvents && mRecordingOrPlaybackStarted ) {
-            writeEventBatchToFile();
-            }
+        
 
         if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
             mEventFile != NULL ) {
@@ -1415,6 +1542,15 @@ void ScreenGL::start() {
 
         // now all events handled, actually draw the screen
         callbackDisplay();
+
+
+        // record them?
+        // do this down here, AFTER display, since some events might be
+        // triggered by the drawing code (example:  web requests and results)
+        if( mRecordingEvents && mRecordingOrPlaybackStarted ) {
+            writeEventBatchToFile();
+            }
+
 
         int frameTime =
             Time::getMillisecondsSince( frameStartSec, frameStartMSec );
