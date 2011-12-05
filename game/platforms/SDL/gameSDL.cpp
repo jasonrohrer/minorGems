@@ -342,12 +342,10 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
         
         int numSamples = inLengthToFill / 4;
         
-        int numBytesToWrite = inLengthToFill;
         
         
         if( numSamples > samplesLeftToRecord ) {
             numSamples = samplesLeftToRecord;
-            numBytesToWrite = samplesLeftToRecord * 4;        
             }
 
         // reverse byte order
