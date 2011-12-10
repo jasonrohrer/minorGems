@@ -1038,6 +1038,12 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
 
 
 
+static int lastMouseX = 0;
+static int  lastMouseY = 0;
+static char mouseDown = false;
+static int mouseDownSteps = 0;
+
+
 
 
 void GameSceneHandler::drawScene() {
@@ -1100,6 +1106,93 @@ void GameSceneHandler::drawScene() {
             drawString( progressString );
 
             delete [] progressString;
+
+
+
+
+            // draw mouse position info
+            
+            if( mouseDown ) {
+                setDrawColor( 1, 0, 0, 0.5 );
+            
+                mouseDownSteps ++;
+                }
+            else {
+                setDrawColor( 1, 1, 1, 0.5 );
+                }
+            
+            float sizeFactor = 5.0f;
+            float clickSizeFactor = 5.0f;
+            char showClick = false;
+            float clickFade = 0.5f;
+            
+            if( mouseDown && mouseDownSteps < 10 ) {
+                clickSizeFactor *= mouseDownSteps / 2.0f;
+                showClick = true;
+
+                clickFade *= 1.0f - mouseDownSteps / 10.0f;
+                }
+            
+            
+            // mouse coordinates in screen space
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            
+            
+            // viewport is square of largest dimension, centered on screen
+
+            int bigDimension = screenWidth;
+            
+            if( screenHeight > bigDimension ) {
+                bigDimension = screenHeight;
+                }
+
+            float excessX = ( bigDimension - screenWidth ) / 2;
+            float excessY = ( bigDimension - screenHeight ) / 2;
+
+            glOrtho( -excessX, -excessX + bigDimension, 
+                     -excessY + bigDimension, -excessY, 
+                     -1.0f, 1.0f );
+            
+            glMatrixMode(GL_MODELVIEW);
+
+
+            double verts[8] = 
+                {lastMouseX - sizeFactor, lastMouseY - sizeFactor,
+                 lastMouseX - sizeFactor, lastMouseY + sizeFactor,
+                 lastMouseX + sizeFactor, lastMouseY + sizeFactor,
+                 lastMouseX + sizeFactor, lastMouseY - sizeFactor};
+
+            drawQuads( 1, verts );
+
+
+            if( showClick ) {
+                double clickVerts[8] = 
+                    {lastMouseX - clickSizeFactor, 
+                     lastMouseY - clickSizeFactor,
+                     lastMouseX - clickSizeFactor, 
+                     lastMouseY + clickSizeFactor,
+                     lastMouseX + clickSizeFactor, 
+                     lastMouseY + clickSizeFactor,
+                     lastMouseX + clickSizeFactor, 
+                     lastMouseY - clickSizeFactor};
+
+                setDrawFade( clickFade );
+                drawQuads( 1, clickVerts );
+                }
+            
+
+            // finally, darker black center over whole thing
+            double centerSize = 2;
+            double centerVerts[8] = 
+                {lastMouseX - centerSize, lastMouseY - centerSize,
+                 lastMouseX - centerSize, lastMouseY + centerSize,
+                 lastMouseX + centerSize, lastMouseY + centerSize,
+                 lastMouseX + centerSize, lastMouseY - centerSize};
+
+            setDrawColor( 0, 0, 0, 0.5 );
+            drawQuads( 1, centerVerts );
+                
             }
         
         }
@@ -1158,6 +1251,9 @@ void GameSceneHandler::mouseMoved( int inX, int inY ) {
     float x, y;
     screenToWorld( inX, inY, &x, &y );
     pointerMove( x, y );
+    
+    lastMouseX = inX;
+    lastMouseY = inY;
     }
 
 
@@ -1179,6 +1275,9 @@ void GameSceneHandler::mouseDragged( int inX, int inY ) {
     float x, y;
     screenToWorld( inX, inY, &x, &y );
     pointerDrag( x, y );
+
+    lastMouseX = inX;
+    lastMouseY = inY;
     }
 
 
@@ -1188,6 +1287,11 @@ void GameSceneHandler::mousePressed( int inX, int inY ) {
     float x, y;
     screenToWorld( inX, inY, &x, &y );
     pointerDown( x, y );
+
+    lastMouseX = inX;
+    lastMouseY = inY;
+    mouseDown = true;
+    mouseDownSteps = 0;
     }
 
 
@@ -1196,6 +1300,10 @@ void GameSceneHandler::mouseReleased( int inX, int inY ) {
     float x, y;
     screenToWorld( inX, inY, &x, &y );
     pointerUp( x, y );
+
+    lastMouseX = inX;
+    lastMouseY = inY;
+    mouseDown = false;
     }
 
 
