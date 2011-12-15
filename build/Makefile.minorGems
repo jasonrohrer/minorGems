@@ -398,6 +398,10 @@ ${ROOT_PATH}/minorGems/game/platforms/openGL/SpriteGL.o
 
 DOUBLE_PAIR_O = ${ROOT_PATH}/minorGems/game/doublePair.o
 
+FONT_O = ${ROOT_PATH}/minorGems/game/Font.o
+
+DRAW_UTILS_O = ${ROOT_PATH}/minorGems/game/drawUtils.o
+
 DEMO_CODE_CHECKER_O = \
 ${ROOT_PATH}/minorGems/game/platforms/SDL/DemoCodeChecker.o
 

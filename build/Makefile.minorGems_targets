@@ -191,6 +191,8 @@ s/^gameSDL.*\.o/$${GAME_SDL_O}/; \
 s/^gameGraphicsGL.*\.o/$${GAME_GRAPHICS_GL_O}/; \
 s/^SpriteGL.*\.o/$${SPRITE_GL_O}/; \
 s/^doublePair.*\.o/$${DOUBLE_PAIR_O}/; \
+s/^Font.*\.o/$${FONT_O}/; \
+s/^drawUtils.*\.o/$${DRAW_UTILS_O}/; \
 s/^DemoCodeChecker.*\.o/$${DEMO_CODE_CHECKER_O}/; \
 s/^aiff.*\.o/$${AIFF_O}/; \
 s/^jri.*\.o/$${JRI_O}/; \
