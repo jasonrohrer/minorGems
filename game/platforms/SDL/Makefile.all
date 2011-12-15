@@ -109,6 +109,8 @@ include ${LAYER_DEPENDS}
 #
 graphics/%.tga: %.png
 	convert $< $@
+graphics/%.tga: graphicsSource/%.png
+	convert $< $@
 music/%.tga: %.png
 	convert $< $@
 
