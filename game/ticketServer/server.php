@@ -1037,6 +1037,9 @@ function ts_emailOptIn() {
 
 
 function ts_showData() {
+    // these are global so they work in embeded function call below
+    global $skip, $search, $order_by, $password;
+
     $password = ts_checkPassword( "show_data" );
 
     global $tableNamePrefix, $remoteIP;
@@ -1060,6 +1063,11 @@ function ts_showData() {
         $search = $_REQUEST[ "search" ];
         }
 
+    $order_by = "last_download_date";
+    if( isset( $_REQUEST[ "order_by" ] ) ) {
+        $order_by = $_REQUEST[ "order_by" ];
+        }
+    
     $keywordClause = "";
     $searchDisplay = "";
     
@@ -1083,10 +1091,16 @@ function ts_showData() {
     $result = ts_queryDatabase( $query );
     $totalTickets = mysql_result( $result, 0, 0 );
 
+
+    $orderDir = "DESC";
+
+    if( $order_by == "name" || $order_by == "email" ) {
+        $orderDir = "ASC";
+        }
     
              
     $query = "SELECT * FROM $tableNamePrefix"."tickets $keywordClause".
-        "ORDER BY last_download_date DESC ".
+        "ORDER BY $order_by $orderDir ".
         "LIMIT $skip, $ticketsPerPage;";
     $result = ts_queryDatabase( $query );
     
@@ -1108,6 +1122,7 @@ function ts_showData() {
             <FORM ACTION="server.php" METHOD="post">
     <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="show_data">
+    <INPUT TYPE="hidden" NAME="order_by" VALUE="<?php echo $order_by;?>">
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="search"
              VALUE="<?php echo $search;?>">
     <INPUT TYPE="Submit" VALUE="Search">
@@ -1128,26 +1143,43 @@ function ts_showData() {
     
     if( $prevSkip >= 0 ) {
         echo "[<a href=\"server.php?action=show_data&password=$password" .
-            "&skip=$prevSkip&search=$search\">Previous Page</a>] ";
+            "&skip=$prevSkip&search=$search&order_by=$order_by\">".
+            "Previous Page</a>] ";
         }
     if( $nextSkip < $totalTickets ) {
         echo "[<a href=\"server.php?action=show_data&password=$password" .
-            "&skip=$nextSkip&search=$search\">Next Page</a>]";
+            "&skip=$nextSkip&search=$search&order_by=$order_by\">".
+            "Next Page</a>]";
         }
 
     echo "<br><br>";
     
     echo "<table border=1 cellpadding=5>\n";
 
+    function orderLink( $inOrderBy, $inLinkText ) {
+        global $password, $skip, $search, $order_by;
+        if( $inOrderBy == $order_by ) {
+            // already displaying this order, don't show link
+            return "<b>$inLinkText</b>";
+            }
+
+        // else show a link to switch to this order
+        return "<a href=\"server.php?action=show_data&password=$password" .
+            "&search=$search&skip=$skip&order_by=$inOrderBy\">$inLinkText</a>";
+        }
+
+    
+    echo "<tr>\n";    
     echo "<tr><td>Ticket ID</td>\n";
-    echo "<td>Name</td>\n";
-    echo "<td>Email</td>\n";
+    echo "<td>".orderLink( "name", "Name" )."</td>\n";
+    echo "<td>".orderLink( "email", "Email" )."</td>\n";
     echo "<td>Sent?</td>\n";
     echo "<td>Blocked?</td>\n";
-    echo "<td>Created</td>\n";
+    echo "<td>".orderLink( "sale_date", "Created" )."</td>\n";
     echo "<td>Test</td>\n";
-    echo "<td>Last DL</td>";
-    echo "<td>DL Count</td></tr>\n";
+    echo "<td>".orderLink( "last_download_date", "Last DL" )."</td>\n";
+    echo "<td>".orderLink( "download_count", "DL Count" )."</td>\n";
+    echo "</tr>\n";
 
 
     for( $i=0; $i<$numRows; $i++ ) {
