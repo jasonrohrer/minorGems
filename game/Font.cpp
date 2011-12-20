@@ -237,13 +237,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
     
     // character sprites are drawn on their centers, so the alignment
     // adjustments above aren't quite right.
-    if( !mFixedWidth ) {        
-        x += scale * mCharWidth[ (unsigned char)( inString[0] ) ] / 2 +
-            scale * mCharLeftEdgeOffset[ (unsigned char)( inString[0] ) ];
-        }
-    else {
-        x += scale * mSpriteWidth / 2;
-        }
+    x += scale * mSpriteWidth / 2;
     
 
     for( unsigned int i=0; i<numChars; i++ ) {
@@ -313,8 +307,11 @@ double Font::measureString( const char *inString ) {
         width += mCharSpacing * scale;
         }
 
-    // no extra space at end 
-    width -= mCharSpacing * scale;
+    if( numChars > 0 ) {    
+        // no extra space at end
+        // (added in last step of loop)
+        width -= mCharSpacing * scale;
+        }
     
     return width;
     }
