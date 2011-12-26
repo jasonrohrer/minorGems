@@ -315,3 +315,10 @@ double Font::measureString( const char *inString ) {
     
     return width;
     }
+
+
+
+double Font::getFontHeight() {
+    return scaleFactor * mScaleFactor * mSpriteHeight / 2;
+    }
+

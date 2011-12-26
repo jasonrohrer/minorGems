@@ -31,6 +31,10 @@ class Font {
 
 
         double measureString( const char *inString );
+        
+        // height of basic, non-accented characters
+        double getFontHeight();
+        
 
     private:
         
