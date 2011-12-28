@@ -231,7 +231,7 @@ void saveScreenShot( const char *inPrefix );
 // inBody the body of the request, can be NULL
 // request body must be in application/x-www-form-urlencoded format
 
-// returns unique int handle for web request 
+// returns unique int handle for web request, always > -1 
 int startWebRequest( const char *inMethod, const char *inURL,
                      const char *inBody );
 
