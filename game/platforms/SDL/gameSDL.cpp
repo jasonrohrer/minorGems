@@ -1193,7 +1193,13 @@ void GameSceneHandler::drawScene() {
                      lastMouseDownX + clickSizeFactor, 
                      lastMouseDownY - clickSizeFactor};
 
-                setDrawColor( 1, 0, 0, clickFade );
+                if( mouseDown ) {
+                    setDrawColor( 1, 0, 0, clickFade );
+                    }
+                else {
+                    setDrawColor( 0, 1, 0, clickFade );
+                    }
+
                 drawQuads( 1, clickVerts );
 
                 // draw pin-point at center of click
@@ -1335,6 +1341,11 @@ void GameSceneHandler::mouseReleased( int inX, int inY ) {
     lastMouseX = inX;
     lastMouseY = inY;
     mouseDown = false;
+
+    // start new animation for release
+    mouseDownSteps = 0;
+    lastMouseDownX = inX;
+    lastMouseDownY = inY;
     }
 
 
