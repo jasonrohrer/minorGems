@@ -1039,9 +1039,13 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
 
 
 static int lastMouseX = 0;
-static int  lastMouseY = 0;
+static int lastMouseY = 0;
+static int lastMouseDownX = 0;
+static int lastMouseDownY = 0;
+
 static char mouseDown = false;
-static int mouseDownSteps = 0;
+// start with last click expired
+static int mouseDownSteps = 1000;
 
 
 
@@ -1114,23 +1118,32 @@ void GameSceneHandler::drawScene() {
             
             if( mouseDown ) {
                 setDrawColor( 1, 0, 0, 0.5 );
-            
-                mouseDownSteps ++;
                 }
             else {
                 setDrawColor( 1, 1, 1, 0.5 );
                 }
             
+            // step mouse click animation even after mouse released
+            // (too hard to see it otherwise for fast clicks)
+            mouseDownSteps ++;
+
+
             float sizeFactor = 5.0f;
             float clickSizeFactor = 5.0f;
             char showClick = false;
-            float clickFade = 0.5f;
+            float clickFade = 1.0f;
             
-            if( mouseDown && mouseDownSteps < 10 ) {
-                clickSizeFactor *= mouseDownSteps / 2.0f;
+            int mouseClickDisplayDuration = 20 * 60 / targetFrameRate;
+
+            if( mouseDownSteps < mouseClickDisplayDuration ) {
+                
+                float mouseClickProgress = 
+                    mouseDownSteps / (float)mouseClickDisplayDuration;
+
+                clickSizeFactor *= 5 * mouseClickProgress;
                 showClick = true;
 
-                clickFade *= 1.0f - mouseDownSteps / 10.0f;
+                clickFade *= 1.0f - mouseClickProgress;
                 }
             
             
@@ -1166,24 +1179,39 @@ void GameSceneHandler::drawScene() {
             drawQuads( 1, verts );
 
 
+            double centerSize = 2;
+
+
             if( showClick ) {
                 double clickVerts[8] = 
-                    {lastMouseX - clickSizeFactor, 
-                     lastMouseY - clickSizeFactor,
-                     lastMouseX - clickSizeFactor, 
-                     lastMouseY + clickSizeFactor,
-                     lastMouseX + clickSizeFactor, 
-                     lastMouseY + clickSizeFactor,
-                     lastMouseX + clickSizeFactor, 
-                     lastMouseY - clickSizeFactor};
+                    {lastMouseDownX - clickSizeFactor, 
+                     lastMouseDownY - clickSizeFactor,
+                     lastMouseDownX - clickSizeFactor, 
+                     lastMouseDownY + clickSizeFactor,
+                     lastMouseDownX + clickSizeFactor, 
+                     lastMouseDownY + clickSizeFactor,
+                     lastMouseDownX + clickSizeFactor, 
+                     lastMouseDownY - clickSizeFactor};
 
-                setDrawFade( clickFade );
+                setDrawColor( 1, 0, 0, clickFade );
                 drawQuads( 1, clickVerts );
+
+                // draw pin-point at center of click
+                double clickCenterVerts[8] = 
+                    {lastMouseDownX - centerSize, 
+                     lastMouseDownY - centerSize,
+                     lastMouseDownX - centerSize, 
+                     lastMouseDownY + centerSize,
+                     lastMouseDownX + centerSize, 
+                     lastMouseDownY + centerSize,
+                     lastMouseDownX + centerSize, 
+                     lastMouseDownY - centerSize};
+                
+                drawQuads( 1, clickCenterVerts );
                 }
             
 
             // finally, darker black center over whole thing
-            double centerSize = 2;
             double centerVerts[8] = 
                 {lastMouseX - centerSize, lastMouseY - centerSize,
                  lastMouseX - centerSize, lastMouseY + centerSize,
@@ -1290,8 +1318,11 @@ void GameSceneHandler::mousePressed( int inX, int inY ) {
 
     lastMouseX = inX;
     lastMouseY = inY;
+
     mouseDown = true;
     mouseDownSteps = 0;
+    lastMouseDownX = inX;
+    lastMouseDownY = inY;
     }
 
 
