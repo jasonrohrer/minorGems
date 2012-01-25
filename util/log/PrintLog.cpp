@@ -144,9 +144,9 @@ void PrintLog::logPrintf( int inLevel, const char* inFormatString, ... ) {
 
 
 
-void PrintLog::logNPrintf( const char *inLoggerName,
-                           int inLevel, 
-                           const char* inFormatString, ... ) {
+void PrintLog::logPrintf( const char *inLoggerName,
+                          int inLevel, 
+                          const char* inFormatString, ... ) {
     
     unsigned int bufferSize = 200;
 

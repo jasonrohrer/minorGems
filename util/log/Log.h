@@ -125,8 +125,8 @@ class Log {
         virtual void logPrintf( int inLevel, const char* inFormatString, ... )
             = 0;
         
-        virtual void logNPrintf( const char *inLoggerName,
-                                 int inLevel, const char* inFormatString, ... )
+        virtual void logPrintf( const char *inLoggerName,
+                                int inLevel, const char* inFormatString, ... )
             = 0;
         
      
