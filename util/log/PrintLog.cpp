@@ -117,29 +117,13 @@ void PrintLog::logString( const char *inLoggerName, const char *inString,
 
 
 void PrintLog::logPrintf( int inLevel, const char* inFormatString, ... ) {
-    
-    unsigned int bufferSize = 200;
 
     va_list argList;
     va_start( argList, inFormatString );
 
-    char *buffer = new char[ bufferSize ];
-    
-    int stringLength =
-        vsnprintf( buffer, bufferSize, inFormatString, argList );
+    logVPrintf( inLevel, inFormatString, argList );
     
     va_end( argList );
-
-    if( stringLength == -1 || stringLength >= (int)bufferSize ) {
-        // too long!
-        delete [] buffer;
-        buffer = stringDuplicate( "Message too long" );
-        }
-    
-
-    logString( (char *)mDefaultLoggerName, buffer, inLevel ); 
-
-    delete [] buffer;
     }
 
 
@@ -147,19 +131,36 @@ void PrintLog::logPrintf( int inLevel, const char* inFormatString, ... ) {
 void PrintLog::logPrintf( const char *inLoggerName,
                           int inLevel, 
                           const char* inFormatString, ... ) {
-    
-    unsigned int bufferSize = 200;
 
     va_list argList;
     va_start( argList, inFormatString );
 
+    logVPrintf( inLoggerName, inLevel, inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void PrintLog::logVPrintf( int inLevel, const char* inFormatString,
+                           va_list inArgList ) {
+    
+    logVPrintf( mDefaultLoggerName, inLevel, inFormatString, inArgList );
+    }
+
+
+        
+void PrintLog::logVPrintf( const char *inLoggerName,
+                           int inLevel, const char* inFormatString,
+                           va_list inArgList ) {
+    
+    unsigned int bufferSize = 200;
+
     char *buffer = new char[ bufferSize ];
     
     int stringLength =
-        vsnprintf( buffer, bufferSize, inFormatString, argList );
+        vsnprintf( buffer, bufferSize, inFormatString, inArgList );
     
-    va_end( argList );
-
     if( stringLength == -1 || stringLength >= (int)bufferSize ) {
         // too long!
         delete [] buffer;
@@ -171,6 +172,7 @@ void PrintLog::logPrintf( const char *inLoggerName,
 
     delete [] buffer;
     }
+
 
 
 

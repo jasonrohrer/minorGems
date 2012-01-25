@@ -69,6 +69,13 @@ class PrintLog : public Log {
                                 int inLevel, const char* inFormatString, 
                                 ... );
         
+        virtual void logVPrintf( int inLevel, const char* inFormatString,
+                                 va_list inArgList );
+        
+        virtual void logVPrintf( const char *inLoggerName,
+                                int inLevel, const char* inFormatString,
+                                 va_list inArgList );
+
 
     protected:
 

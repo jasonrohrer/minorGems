@@ -23,6 +23,10 @@
 #include "minorGems/common.h"
 
 
+#include <stdarg.h>
+
+
+
 
 #ifndef LOG_INCLUDED
 #define LOG_INCLUDED
@@ -130,6 +134,13 @@ class Log {
             = 0;
         
      
+        virtual void logVPrintf( int inLevel, const char* inFormatString,
+                                 va_list inArgList ) = 0;
+        
+        virtual void logVPrintf( const char *inLoggerName,
+                                 int inLevel, const char* inFormatString,
+                                 va_list inArgList ) = 0;
+
 
     protected:
         
