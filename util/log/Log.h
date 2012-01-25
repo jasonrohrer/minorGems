@@ -104,13 +104,20 @@ class Log {
         /**
          * Logs a string in this log under the default logger name.
          *
-         * @param inString the string to log as a \0-terminated string.
-         *   Must be destroyed by caller.
          * @param inLevel the level to log inString at.
+         * @param inFormatString the string to log as a \0-terminated string,
+         *   may contain printf-style formatting information to be filled
+         *   by variable arguments that follow.
+         *   Must be destroyed by caller.
          */
-        virtual void logString( const char *inString, int inLevel ) = 0; 
+        virtual void logString( int inLevel, 
+                                const char *inFormatString, ... ) = 0; 
         
+        // for backwards compatibility
+        virtual void logPrintf( int inLevel, 
+                                const char *inFormatString, ... ) = 0; 
         
+
 
         /**
          * Logs a string in this log, specifying a logger name.
@@ -118,26 +125,23 @@ class Log {
          * @param inLoggerName the name of the logger
          *   as a \0-terminated string.
          *   Must be destroyed by caller.
-         * @param inString the string to log as a \0-terminated string.
-         *   Must be destroyed by caller.
          * @param inLevel the level to log inString at.
+         * @param inFormatString the string to log as a \0-terminated string,
+         *   may contain printf-style formatting information to be filled
+         *   by variable arguments that follow.
+         *   Must be destroyed by caller.
          */
-        virtual void logString( const char *inLoggerName, const char *inString,
-                                int inLevel ) = 0;
+        virtual void logString( const char *inLoggerName, int inLevel, 
+                                const char *inFormatString, ... ) = 0;
 
-        
-        virtual void logPrintf( int inLevel, const char* inFormatString, ... )
-            = 0;
-        
-        virtual void logPrintf( const char *inLoggerName,
-                                int inLevel, const char* inFormatString, ... )
-            = 0;
-        
-     
-        virtual void logVPrintf( int inLevel, const char* inFormatString,
+
+        // versions that take var-arg-lists explicitly
+        // lists must be va_end-ed by caller.
+
+        virtual void logStringV( int inLevel, const char* inFormatString,
                                  va_list inArgList ) = 0;
         
-        virtual void logVPrintf( const char *inLoggerName,
+        virtual void logStringV( const char *inLoggerName,
                                  int inLevel, const char* inFormatString,
                                  va_list inArgList ) = 0;
 

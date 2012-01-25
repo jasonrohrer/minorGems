@@ -79,16 +79,19 @@ FileLog::~FileLog() {
 
 
         
-void FileLog::logString( const char *inLoggerName, const char *inString,
-                         int inLevel ) {
+void FileLog::logStringV( const char *inLoggerName,
+                          int inLevel,
+                          const char *inFormatString,
+                          va_list inArgList ) {
 
     if( mLogFile != NULL ) {
         if( inLevel <= mLoggingLevel ) {
 
 
             char *message = PrintLog::generateLogMessage( inLoggerName,
-                                                          inString,
-                                                          inLevel );
+                                                          inLevel,
+                                                          inFormatString,
+                                                          inArgList );
 
             mLock->lock();
             fprintf( mLogFile, "%s\n", message );
@@ -96,7 +99,7 @@ void FileLog::logString( const char *inLoggerName, const char *inString,
             fflush( mLogFile );
 
             if( mPrintOutNextMessage ) {
-                printf( "%s\n", inString );
+                printf( "%s\n", message );
                 mPrintOutNextMessage = false;
                 }
             

@@ -46,79 +46,187 @@ LogPointerWrapper::~LogPointerWrapper() {
 
 void AppLog::criticalError( const char *inString ) {
     mLogPointerWrapper.mLog->logString(
-        inString, Log::CRITICAL_ERROR_LEVEL );
+        Log::CRITICAL_ERROR_LEVEL, inString );
     }
 
 
 
-void AppLog::criticalError( const char *inLoggerName, const char *inString ) {
-    mLogPointerWrapper.mLog->logString(
-        inLoggerName, inString, Log::CRITICAL_ERROR_LEVEL );
+void AppLog::criticalErrorF( const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV( Log::CRITICAL_ERROR_LEVEL, 
+                                         inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void AppLog::criticalError( const char *inLoggerName, 
+                            const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV(
+        inLoggerName, Log::CRITICAL_ERROR_LEVEL, inFormatString, argList );
+    
+    va_end( argList );
     }
 
 
 
 void AppLog::error( const char *inString ) {
-    mLogPointerWrapper.mLog->logString( inString, Log::ERROR_LEVEL );
+    mLogPointerWrapper.mLog->logString( Log::ERROR_LEVEL, inString );
     }
 
 
 
-void AppLog::error( const char *inLoggerName, const char *inString ) {
-    mLogPointerWrapper.mLog->logString(
-        inLoggerName, inString, Log::ERROR_LEVEL );
+void AppLog::errorF( const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV( Log::ERROR_LEVEL, inFormatString, 
+                                         argList );
+    
+    va_end( argList );
+    }
+
+
+
+void AppLog::error( const char *inLoggerName, 
+                    const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV(
+        inLoggerName, Log::ERROR_LEVEL, inFormatString, argList );
+    
+    va_end( argList );
     }
 
 
 
 void AppLog::warning( const char *inString ) {
-    mLogPointerWrapper.mLog->logString( inString, Log::WARNING_LEVEL );
+    mLogPointerWrapper.mLog->logString( Log::WARNING_LEVEL, inString );
     }
 
 
 
-void AppLog::warning( const char *inLoggerName, const char *inString ) {
-    mLogPointerWrapper.mLog->logString(
-        inLoggerName, inString, Log::WARNING_LEVEL );
+void AppLog::warningF( const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV( Log::WARNING_LEVEL, 
+                                         inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void AppLog::warning( const char *inLoggerName, 
+                      const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV(
+        inLoggerName, Log::WARNING_LEVEL, inFormatString, argList );
+    
+    va_end( argList );
     }
 
 
 
 void AppLog::info( const char *inString ) {
-    mLogPointerWrapper.mLog->logString( inString, Log::INFO_LEVEL );
+    mLogPointerWrapper.mLog->logString( Log::INFO_LEVEL, inString );
     }
 
 
 
-void AppLog::info( const char *inLoggerName, const char *inString ) {
-    mLogPointerWrapper.mLog->logString(
-        inLoggerName, inString, Log::INFO_LEVEL );
+void AppLog::infoF( const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV( Log::INFO_LEVEL, 
+                                         inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void AppLog::info( const char *inLoggerName, 
+                   const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV(
+        inLoggerName, Log::INFO_LEVEL, inFormatString, argList );
+    
+    va_end( argList );
     }
 
 
 
 void AppLog::detail( const char *inString ) {
-    mLogPointerWrapper.mLog->logString( inString, Log::DETAIL_LEVEL );
+    mLogPointerWrapper.mLog->logString( Log::DETAIL_LEVEL, inString );
     }
 
 
 
-void AppLog::detail( const char *inLoggerName, const char *inString ) {
-    mLogPointerWrapper.mLog->logString(
-        inLoggerName, inString, Log::DETAIL_LEVEL );
+void AppLog::detailF( const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV( Log::DETAIL_LEVEL, 
+                                         inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void AppLog::detail( const char *inLoggerName, 
+                     const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV(
+        inLoggerName, Log::DETAIL_LEVEL, inFormatString, argList );
+    
+    va_end( argList );
     }
 
 
 
 void AppLog::trace( const char *inString ) {
-    mLogPointerWrapper.mLog->logString( inString, Log::TRACE_LEVEL );
+    mLogPointerWrapper.mLog->logString( Log::TRACE_LEVEL, inString );
     }
 
 
 
-void AppLog::trace( const char *inLoggerName, const char *inString ) {
-    mLogPointerWrapper.mLog->logString(
-        inLoggerName, inString, Log::TRACE_LEVEL );
+void AppLog::traceF( const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV( Log::TRACE_LEVEL, 
+                                         inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void AppLog::trace( const char *inLoggerName, 
+                    const char *inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    mLogPointerWrapper.mLog->logStringV(
+        inLoggerName, Log::TRACE_LEVEL, inFormatString, argList );
+    
+    va_end( argList );
     }
 
 

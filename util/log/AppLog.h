@@ -54,23 +54,34 @@ class AppLog {
          */
         
         static void criticalError( const char *inString );
+        static void criticalErrorF( const char *inFormatString, ... );
         static void criticalError( const char *inLoggerName, 
-                                   const char *inString );
+                                   const char *inFormatString, ... );
 
         static void error( const char *inString );
-        static void error( const char *inLoggerName, const char *inString );
+        static void errorF( const char *inFormatString, ... );
+        static void error( const char *inLoggerName, 
+                           const char *inFormatString, ... );
 
         static void warning( const char *inString );
-        static void warning( const char *inLoggerName, const char *inString );
+        static void warningF( const char *inFormatString, ... );
+        static void warning( const char *inLoggerName, 
+                             const char *inFormatString, ... );
 
         static void info( const char *inString );
-        static void info( const char *inLoggerName, const char *inString );
+        static void infoF( const char *inFormatString, ... );
+        static void info( const char *inLoggerName, 
+                          const char *inFormatString, ... );
 
         static void detail( const char *inString );
-        static void detail( const char *inLoggerName, const char *inString );
+        static void detailF( const char *inFormatString, ... );
+        static void detail( const char *inLoggerName, 
+                            const char *inFormatString, ... );
 
         static void trace( const char *inString );
-        static void trace( const char *inLoggerName, const char *inString );
+        static void traceF( const char *inFormatString, ... );
+        static void trace( const char *inLoggerName, 
+                           const char *inFormatString, ... );
         
         
         /**

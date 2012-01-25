@@ -67,9 +67,10 @@ class FileLog : public PrintLog {
 
 
         
-        // overrides PrintLog::logString
-        virtual void logString( const char *inLoggerName, const char *inString,
-                                int inLevel );
+        // overrides PrintLog::logStringV
+        virtual void logStringV( const char *inLoggerName,
+                                 int inLevel, const char* inFormatString,
+                                 va_list inArgList );
 
 
         

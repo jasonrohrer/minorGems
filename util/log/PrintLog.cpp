@@ -82,16 +82,56 @@ int PrintLog::getLoggingLevel() {
 
 
 
-void PrintLog::logString( const char *inString, int inLevel ) {
-    logString( (char *)mDefaultLoggerName, inString, inLevel ); 
+void PrintLog::logString( int inLevel, const char* inFormatString, ... ) {
+
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    logStringV( inLevel, inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void PrintLog::logPrintf( int inLevel, const char* inFormatString, ... ) {
+
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    logStringV( inLevel, inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void PrintLog::logString( const char *inLoggerName,
+                          int inLevel, 
+                          const char* inFormatString, ... ) {
+
+    va_list argList;
+    va_start( argList, inFormatString );
+
+    logStringV( inLoggerName, inLevel, inFormatString, argList );
+    
+    va_end( argList );
+    }
+
+
+
+void PrintLog::logStringV( int inLevel, const char* inFormatString,
+                           va_list inArgList ) {
+    
+    logStringV( mDefaultLoggerName, inLevel, inFormatString, inArgList );
     }
 
 
         
-void PrintLog::logString( const char *inLoggerName, const char *inString,
-                         int inLevel ) {
-
-
+void PrintLog::logStringV( const char *inLoggerName,
+                           int inLevel, const char* inFormatString,
+                           va_list inArgList ) {
+    
     // not thread-safe to read mLoggingLevel here
     // without synchronization.
     // However, we want logging calls that are above
@@ -104,58 +144,26 @@ void PrintLog::logString( const char *inLoggerName, const char *inString,
 
         
         char *message = generateLogMessage( inLoggerName,
-                                            inString,
-                                            inLevel );
+                                            inLevel,
+                                            inFormatString, inArgList );
 
         threadPrintF( "%s\n", message );
         
         delete [] message;
-
         }
     }
 
 
 
-void PrintLog::logPrintf( int inLevel, const char* inFormatString, ... ) {
 
-    va_list argList;
-    va_start( argList, inFormatString );
-
-    logVPrintf( inLevel, inFormatString, argList );
-    
-    va_end( argList );
-    }
-
-
-
-void PrintLog::logPrintf( const char *inLoggerName,
-                          int inLevel, 
-                          const char* inFormatString, ... ) {
-
-    va_list argList;
-    va_start( argList, inFormatString );
-
-    logVPrintf( inLoggerName, inLevel, inFormatString, argList );
-    
-    va_end( argList );
-    }
-
-
-
-void PrintLog::logVPrintf( int inLevel, const char* inFormatString,
-                           va_list inArgList ) {
-    
-    logVPrintf( mDefaultLoggerName, inLevel, inFormatString, inArgList );
-    }
-
-
-        
-void PrintLog::logVPrintf( const char *inLoggerName,
-                           int inLevel, const char* inFormatString,
-                           va_list inArgList ) {
+char *PrintLog::generateLogMessage( const char *inLoggerName, 
+                                    int inLevel, 
+                                    const char *inFormatString,
+                                    va_list inArgList ) {
     
     unsigned int bufferSize = 200;
 
+    
     char *buffer = new char[ bufferSize ];
     
     int stringLength =
@@ -166,19 +174,7 @@ void PrintLog::logVPrintf( const char *inLoggerName,
         delete [] buffer;
         buffer = stringDuplicate( "Message too long" );
         }
-    
 
-    logString( inLoggerName, buffer, inLevel ); 
-
-    delete [] buffer;
-    }
-
-
-
-
-char *PrintLog::generateLogMessage( const char *inLoggerName, 
-                                    const char *inString,
-                                    int inLevel ) {
 
     unsigned long seconds, milliseconds;
     
@@ -200,10 +196,12 @@ char *PrintLog::generateLogMessage( const char *inLoggerName,
     
     char *messageBuffer = autoSprintf( "L%d | %s (%ld ms) | %s | %s",
                                        inLevel, dateString, milliseconds,
-                                       inLoggerName, inString );
+                                       inLoggerName, buffer );
     
     delete [] dateString;
     
+    delete [] buffer;
+
     
     return messageBuffer;
     }
