@@ -979,7 +979,16 @@ void setViewCenterPosition( float inX, float inY ) {
     viewCenterY = inY;
     redoDrawMatrix();
     }
+
+
     
+doublePair getViewCenterPosition() {
+    doublePair p = { viewCenterX, viewCenterY };
+    
+    return p;
+    }
+
+
 
 void setViewSize( float inSize ) {
     viewSize = inSize;

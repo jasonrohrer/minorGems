@@ -2,6 +2,7 @@
 // interface between a platform-independent game engine 
 // and the underlying platform
 
+#include "doublePair.h"
 
 
 
@@ -161,6 +162,9 @@ char isSoundRunning();
 
 // for moving view around
 void setViewCenterPosition( float inX, float inY );
+
+doublePair getViewCenterPosition();
+
 
 // 1:1 aspect ratio (truncated on shorter screen dimension)
 void setViewSize( float inSize );
