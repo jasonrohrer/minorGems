@@ -1119,8 +1119,13 @@ void GameSceneHandler::drawScene() {
             drawString( progressString );
 
             delete [] progressString;
+            
+            }
+        
 
-
+        if( screen->isPlayingBack() && 
+            screen->shouldShowPlaybackDisplay() &&
+            showMouseDuringPlayback() ) {
 
 
             // draw mouse position info

@@ -18,6 +18,10 @@ const char *getWindowTitle();
 // Result destroyed by caller
 char *getCustomRecordedGameData();
 
+// if returns true, then a marker is drawn on screen during playback to show
+// recorded mouse position and click activity.
+char showMouseDuringPlayback();
+
 // get secret salt data for secure hashing
 // Result destroyed by caller
 char *getHashSalt();
