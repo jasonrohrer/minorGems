@@ -62,9 +62,14 @@ void stopStencil();
 typedef void * SpriteHandle;
 
 
+// loads sprite from graphics directory
 // can be NULL on load failure
 SpriteHandle loadSprite( const char *inTGAFileName, 
                          char inTransparentLowerLeftCorner = true );
+
+// same, but loads from the main directory
+SpriteHandle loadSpriteBase( const char *inTGAFileName, 
+                             char inTransparentLowerLeftCorner = true );
 
 SpriteHandle fillSprite( Image *inImage, 
                          char inTransparentLowerLeftCorner = true );
@@ -81,8 +86,13 @@ SpriteHandle fillSpriteAlphaOnly( unsigned char *inA,
 
 
 
+// reads from the graphics directory
 // Image destroyed by caller
 Image *readTGAFile( const char *inTGAFileName );
+
+// same, but reads from the main directory
+Image *readTGAFileBase( const char *inTGAFileName );
+
 
 // write a TGA file into main directory
 // Image destroyed by caller

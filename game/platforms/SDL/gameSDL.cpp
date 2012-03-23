@@ -1506,25 +1506,62 @@ void GameSceneHandler::actionPerformed( GUIComponent *inTarget ) {
 
 
 
-Image *readTGAFile( const char *inTGAFileName ) {
+static Image *readTGAFile( File *inFile ) {
+    
+    if( !inFile->exists() ) {
+        char *fileName = inFile->getFullFileName();
+        
+        char *logString = autoSprintf( 
+            "CRITICAL ERROR:  TGA file %s does not exist",
+            fileName );
+        delete [] fileName;
+        
+        AppLog::criticalError( logString );
+        delete [] logString;
+    
+        return NULL;
+        }    
 
-    File tgaFile( new Path( "graphics" ), inTGAFileName );
-    FileInputStream tgaStream( &tgaFile );
+
+    FileInputStream tgaStream( inFile );
     
     TGAImageConverter converter;
     
     Image *result = converter.deformatImage( &tgaStream );
 
     if( result == NULL ) {        
+        char *fileName = inFile->getFullFileName();
+        
         char *logString = autoSprintf( 
             "CRITICAL ERROR:  could not read TGA file %s, wrong format?",
-            inTGAFileName );
+            fileName );
+        delete [] fileName;
+        
         AppLog::criticalError( logString );
         delete [] logString;
         }
     
     return result;
     }
+
+
+
+Image *readTGAFile( const char *inTGAFileName ) {
+
+    File tgaFile( new Path( "graphics" ), inTGAFileName );
+    
+    return readTGAFile( &tgaFile );
+    }
+
+
+
+Image *readTGAFileBase( const char *inTGAFileName ) {
+
+    File tgaFile( NULL, inTGAFileName );
+    
+    return readTGAFile( &tgaFile );
+    }
+
 
 
 void writeTGAFile( const char *inTGAFileName, Image *inImage ) {
@@ -1554,6 +1591,26 @@ SpriteHandle loadSprite( const char *inTGAFileName,
         return sprite;
         }
     }
+
+
+
+SpriteHandle loadSpriteBase( const char *inTGAFileName,
+                             char inTransparentLowerLeftCorner ) {
+    Image *result = readTGAFileBase( inTGAFileName );
+    
+    if( result == NULL ) {
+        return NULL;
+        }
+    else {
+        
+        SpriteHandle sprite = fillSprite( result, 
+                                          inTransparentLowerLeftCorner );
+
+        delete result;
+        return sprite;
+        }
+    }
+
 
 
 
