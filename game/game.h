@@ -100,6 +100,7 @@ void specialKeyUp( int inKeyCode );
 
 
 
+
 #include <stdint.h>
 typedef int16_t Sint16;
 typedef uint8_t Uint8;
@@ -134,6 +135,12 @@ unsigned int getRandSeed();
 // when inFromKey is pressed, an event for inToKey will be generated
 // (and no event for inFromKey will be generated)
 void mapKey( unsigned char inFromKey, unsigned char inToKey );
+
+
+// returns true if Control, Alt, or Meta key is down
+// behavior varies somewhat by platform
+// used for implementing platform-independent keyboard shortcuts (ctrl-z, etc)
+char isCommandKeyDown();
 
 
 

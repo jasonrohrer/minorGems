@@ -1501,6 +1501,24 @@ void GameSceneHandler::specialKeyReleased(
 
 
 
+char isCommandKeyDown() {
+    SDLMod modState = SDL_GetModState();
+    
+
+    if( ( modState & KMOD_CTRL )
+        ||
+        ( modState & KMOD_ALT )
+        ||
+        ( modState & KMOD_META ) ) {
+        
+        return true;
+        }
+
+    return false;
+    }
+
+
+
 void GameSceneHandler::actionPerformed( GUIComponent *inTarget ) {
     }
 
