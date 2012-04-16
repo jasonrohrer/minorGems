@@ -32,6 +32,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2012-April-16    Jason Rohrer
+ * Added whitespace trimming function.
  */
 
 
@@ -358,6 +361,48 @@ SimpleVector<char *> *tokenizeString( const char *inString ) {
     delete currentToken;
 
     return foundTokens;
+    }
+
+
+
+char *trimWhitespace( char *inString ) {
+    
+    // trim start
+    while( inString[0] != '\0' &&
+           ( inString[0] == ' '  || 
+             inString[0] == '\n' ||
+             inString[0] == '\r' || 
+             inString[0] == '\t'  ) ) {
+        
+        inString = &( inString[1] );
+        }
+
+    if( inString[0] == '\0' ) {
+        // nothing left
+        return stringDuplicate( "" );
+        }
+    
+    // trim end
+
+    char *tempString = stringDuplicate( inString );
+    
+    int length = strlen( tempString );
+    
+    while( length != 0 && 
+           ( tempString[ length - 1 ] == ' '  || 
+             tempString[ length - 1 ] == '\n' ||
+             tempString[ length - 1 ] == '\r' || 
+             tempString[ length - 1 ] == '\t' ) ) {
+        
+        tempString[ length - 1 ] = '\0';
+        length --;
+        }
+   
+    char *returnString = stringDuplicate( tempString );
+    
+    delete [] tempString;
+    
+    return returnString;
     }
 
 

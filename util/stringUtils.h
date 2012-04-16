@@ -51,6 +51,9 @@
  *
  * 2010-November-18    Jason Rohrer
  * Added upper-case function.
+ *
+ * 2012-April-16    Jason Rohrer
+ * Added whitespace trimming function.
  */
 
 
@@ -314,6 +317,21 @@ char *replaceTargetListWithSubstituteList(
  *   Vector and strings must be destroyed by caller.
  */
 SimpleVector<char *> *tokenizeString( const char *inString );
+
+
+
+
+/**
+ * Trim whitespace characters from the start and end of a string.
+ *
+ * @param inString the string to trim leading and trailing whitespace from.
+ *   Must be destroyed by caller.
+ *
+ * @return the trimmed version, as a newly-allocated string.
+ *   Must be destroyed by caller.
+ */
+char *trimWhitespace( char *inString );
+
 
 
 
