@@ -122,6 +122,46 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
 
 
 
+void enableScissor( double inX, double inY, double inWidth, double inHeight ) {
+    
+    double endX = inX + inWidth;
+    double endY = inY + inHeight;
+    
+    // scissor rectangle specified in integer screen coordinates
+
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+ 
+    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+    glGetDoublev( GL_PROJECTION_MATRIX, projection );
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    GLdouble winStartX, winStartY, winStartZ;
+    GLdouble winEndX, winEndY, winEndZ;
+
+    gluProject( inX, inY, 0, 
+                modelview, projection, viewport, 
+                &winStartX, &winStartY, &winStartZ );
+
+    gluProject( endX, endY, 0, 
+                modelview, projection, viewport, 
+                &winEndX, &winEndY, &winEndZ );
+
+
+    glScissor( lrint( winStartX ), lrint( winStartY ), 
+               lrint( winEndX - winStartX ), lrint( winEndY - winStartY ) );
+    glEnable( GL_SCISSOR_TEST );
+    }
+
+
+
+void disableScissor() {
+    glDisable( GL_SCISSOR_TEST );
+    }
+
+
+
 void startAddingToStencil( char inDrawColorToo, char inAdd ) {
     if( !inDrawColorToo ) {
         
@@ -175,13 +215,20 @@ void startDrawingThroughStencil( char inInvertStencil ) {
 
 
 void stopStencil() {
+    disableStencil();
+    
+    glClear( GL_STENCIL_BUFFER_BIT );
+    }
+
+
+
+void disableStencil() {
     // Re-enable update of color (just in case stencil drawing was not started)
     glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
     glDisable( GL_ALPHA_TEST );
 
     // back to unstenciled drawing
     glDisable( GL_STENCIL_TEST );
-    glClear( GL_STENCIL_BUFFER_BIT );
     }
 
 

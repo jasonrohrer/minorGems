@@ -45,6 +45,14 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
                          char inStrip=false, char inFan=false );
 
 
+// trims drawing operations to a rectangular region
+// values in view space
+void enableScissor( double inX, double inY, double inWidth, double inHeight );
+
+void disableScissor();
+
+
+
 // switch into stencil-buffer drawing mode
 // inAdd determines whether drawn primitives add to or subtract from
 //   pass-through area of stencil
@@ -56,6 +64,12 @@ void startDrawingThroughStencil( char inInvertStencil=false );
 
 // stop stenciling and clear stencil buffer
 void stopStencil();
+
+
+// stop stenciling without clearing stencil buffer
+// (more efficient in cases where the buffer doesn't need to be cleared)
+void disableStencil();
+
 
 
 
