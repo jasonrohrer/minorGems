@@ -53,14 +53,14 @@ $setup_footer = "
 
 
 
-// ensure that magic quotes are on (adding slashes before quotes
-// so that user-submitted data can be safely submitted in DB queries)
-if( !get_magic_quotes_gpc() ) {
-    // force magic quotes to be added
-    $_GET     = array_map( 'ts_addslashes_deep', $_GET );
-    $_POST    = array_map( 'ts_addslashes_deep', $_POST );
-    $_REQUEST = array_map( 'ts_addslashes_deep', $_REQUEST );
-    $_COOKIE  = array_map( 'ts_addslashes_deep', $_COOKIE );
+// ensure that magic quotes are OFF
+// we hand-filter all _REQUEST data with regexs before submitting it to the DB
+if( get_magic_quotes_gpc() ) {
+    // force magic quotes to be removed
+    $_GET     = array_map( 'ts_stripslashes_deep', $_GET );
+    $_POST    = array_map( 'ts_stripslashes_deep', $_POST );
+    $_REQUEST = array_map( 'ts_stripslashes_deep', $_REQUEST );
+    $_COOKIE  = array_map( 'ts_stripslashes_deep', $_COOKIE );
     }
     
 
@@ -404,9 +404,14 @@ function ts_sellTicket() {
         }
 
 
-    // name might have \' in it (magic quotes)
-    $name = ts_requestFilter( "name", "/[A-Z0-9.'\\\\ -]+/i" );
+    $name = ts_requestFilter( "name", "/[A-Z0-9.' -]+/i" );
 
+    // some names have ' in them
+    // need to escape this for use in DB query
+    $name = mysql_real_escape_string( $name );
+    
+
+        
     $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
 
     $order_number = ts_requestFilter( "reference", "/[A-Z0-9-]+/i" );
@@ -525,8 +530,12 @@ function ts_editTicket() {
     $ticket_id = strtoupper( $ticket_id );
     
     
-    // name might have \' in it (magic quotes)
-    $name = ts_requestFilter( "name", "/[A-Z0-9.'\\\\ -]+/i" );
+    $name = ts_requestFilter( "name", "/[A-Z0-9.' -]+/i" );
+
+    // some names have ' in them
+    // need to escape this for use in DB query
+    $name = mysql_real_escape_string( $name );
+    
     
     $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
 
@@ -1660,16 +1669,12 @@ function ts_sendAllNote() {
     if( isset( $_REQUEST[ "message_subject" ] ) ) {
         $message_subject = $_REQUEST[ "message_subject" ];
         }
-
-    $message_subject = stripslashes( $message_subject );
     
 
     $message_text = "";
     if( isset( $_REQUEST[ "message_text" ] ) ) {
         $message_text = $_REQUEST[ "message_text" ];
         }
-
-    $message_text = stripslashes( $message_text );
     
     
     $tag = ts_requestFilter( "tag", "/[A-Z0-9_-]+/i" );
@@ -1727,16 +1732,12 @@ function ts_sendAllFileNote() {
     if( isset( $_REQUEST[ "message_subject" ] ) ) {
         $message_subject = $_REQUEST[ "message_subject" ];
         }
-
-    $message_subject = stripslashes( $message_subject );
     
 
     $message_text = "";
     if( isset( $_REQUEST[ "message_text" ] ) ) {
         $message_text = $_REQUEST[ "message_text" ];
         }
-
-    $message_text = stripslashes( $message_text );
     
     
 
@@ -1926,7 +1927,7 @@ function ts_doesTableExist( $inTableName ) {
 function ts_log( $message ) {
     global $enableLog, $tableNamePrefix;
 
-    $slashedMessage = addslashes( $message );
+    $slashedMessage = mysql_real_escape_string( $message );
     
     if( $enableLog ) {
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
