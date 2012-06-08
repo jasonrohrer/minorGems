@@ -84,15 +84,9 @@ ts_connectToDatabase();
 
 
 // grab POST/GET variables
-$action = "";
-if( isset( $_REQUEST[ "action" ] ) ) {
-    $action = $_REQUEST[ "action" ];
-    }
+$action = ts_requestFilter( "action", "/[A-Z_]+/i" );
 
-$debug = "";
-if( isset( $_REQUEST[ "debug" ] ) ) {
-    $debug = $_REQUEST[ "debug" ];
-    }
+$debug = ts_requestFilter( "debug", "/[01]/" );
 
 $remoteIP = "";
 if( isset( $_SERVER[ "REMOTE_ADDR" ] ) ) {
@@ -361,11 +355,8 @@ function ts_sellTicket() {
     global $tableNamePrefix, $fastspringPrivateKeys, $remoteIP;
 
 
-    $tags = "";
-    if( isset( $_REQUEST[ "tags" ] ) ) {
-        $tags = $_REQUEST[ "tags" ];
-        }
-    else {
+    $tags = ts_requestFilter( "tags", "/[A-Z0-9_,-]+/i" );
+    if( $tags == "" ) {
         // no tag set?
         // default to first one
         $arrayKeys = array_keys( $fastspringPrivateKeys );
@@ -389,7 +380,10 @@ function ts_sellTicket() {
         }
     
 
-    
+    // no need to pass these through a regex, because they aren't passed
+    // anywhere, and we're not sure what characters security_data
+    // might contain anyway
+
     $security_data = $_REQUEST[ "security_data" ];
     $security_hash = $_REQUEST[ "security_hash" ];
 
@@ -409,30 +403,20 @@ function ts_sellTicket() {
         return;  /* FAILED CHECK */
         }
 
-    
-    $name = "";
-    if( isset( $_REQUEST[ "name" ] ) ) {
-        $name = $_REQUEST[ "name" ];
-        }
 
-    $email = "";
-    if( isset( $_REQUEST[ "email" ] ) ) {
-        $email = $_REQUEST[ "email" ];
-        }
+    // name might have \' in it (magic quotes)
+    $name = ts_requestFilter( "name", "/[A-Z0-9.'\\\\ -]+/i" );
 
-    $order_number = "";
-    if( isset( $_REQUEST[ "reference" ] ) ) {
-        $order_number = $_REQUEST[ "reference" ];
-        }
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+
+    $order_number = ts_requestFilter( "reference", "/[A-Z0-9-]+/i" );
 
 
     // these allow convenient linking back to main server site after
     // a manual order goes through
-    $manual = "0";
-    if( isset( $_REQUEST[ "manual" ] ) ) {
-        $manual = $_REQUEST[ "manual" ];
-        }
+    $manual = ts_requestFilter( "manual", "/[01]/", "0" );
 
+    // don't pass through regex... not passed to DB.
     $password = "";
     if( isset( $_REQUEST[ "password" ] ) ) {
         $password = $_REQUEST[ "password" ];
@@ -440,11 +424,8 @@ function ts_sellTicket() {
 
     // this allows manual ticket creation to override email opt-in
     // defaults to on if not specified
-    $email_opt_in = "1";
-    if( isset( $_REQUEST[ "email_opt_in" ] ) ) {
-        $email_opt_in = $_REQUEST[ "email_opt_in" ];
-        }
-    
+    $email_opt_in = ts_requestFilter( "email_opt_in", "/[01]/", "1" );
+        
     
 
     
@@ -539,36 +520,21 @@ function ts_editTicket() {
     global $tableNamePrefix, $remoteIP;
 
 
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
 
+    $ticket_id = strtoupper( $ticket_id );
     
-    $name = "";
-    if( isset( $_REQUEST[ "name" ] ) ) {
-        $name = $_REQUEST[ "name" ];
-        }
+    
+    // name might have \' in it (magic quotes)
+    $name = ts_requestFilter( "name", "/[A-Z0-9.'\\\\ -]+/i" );
+    
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
 
-    $email = "";
-    if( isset( $_REQUEST[ "email" ] ) ) {
-        $email = $_REQUEST[ "email" ];
-        }
+    $order_number = ts_requestFilter( "reference", "/[A-Z0-9-]+/i" );
 
-    $order_number = "";
-    if( isset( $_REQUEST[ "reference" ] ) ) {
-        $order_number = $_REQUEST[ "reference" ];
-        }
+    $tag = ts_requestFilter( "tag", "/[A-Z0-9_-]+/i" );
 
-    $tag = "";
-    if( isset( $_REQUEST[ "tag" ] ) ) {
-        $tag = $_REQUEST[ "tag" ];
-        }
-
-    $email_opt_in = "1";
-    if( isset( $_REQUEST[ "email_opt_in" ] ) ) {
-        $email_opt_in = $_REQUEST[ "email_opt_in" ];
-        }
+    $email_opt_in = ts_requestFilter( "email_opt_in", "/[01]/", "1" );
     
 
 
@@ -601,20 +567,14 @@ function ts_blockTicketID() {
 
 
     global $tableNamePrefix;
-        
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
+
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
     
 
-    $blocked = "";
-    if( isset( $_REQUEST[ "blocked" ] ) ) {
-        $blocked = $_REQUEST[ "blocked" ];
-        }
-
+    $blocked = ts_requestFilter( "blocked", "/[01]/", "0" );
+    
     
     global $remoteIP;
 
@@ -654,11 +614,8 @@ function ts_deleteTicketID() {
     $password = ts_checkPassword( "delete_ticket_id" );
 
     global $tableNamePrefix, $remoteIP;
-        
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
+
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
     
@@ -685,11 +642,8 @@ function ts_deleteTicketID() {
 
 function ts_downloadAllowed() {
 
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
-
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    
     $ticket_id = strtoupper( $ticket_id );    
     
     global $tableNamePrefix, $remoteIP;
@@ -815,10 +769,7 @@ function ts_printLink( $inFileName, $inTicketID ) {
 
 
 function ts_showDownloads() {
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );    
     
@@ -878,17 +829,11 @@ function ts_showDownloads() {
 
 
 function ts_download() {
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
-
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    
     $ticket_id = strtoupper( $ticket_id );    
 
-    $file_name = "";
-    if( isset( $_REQUEST[ "file_name" ] ) ) {
-        $file_name = $_REQUEST[ "file_name" ];
-        }
+    $file_name = ts_requestFilter( "file_name", "/[A-Z0-9_.-]+/i" );
 
     
     global $tableNamePrefix, $remoteIP;
@@ -960,18 +905,12 @@ function ts_download() {
 
 
 function ts_emailOptIn() {
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
-
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    
     $ticket_id = strtoupper( $ticket_id );    
 
-    $in = "";
-    if( isset( $_REQUEST[ "in" ] ) ) {
-        $in = $_REQUEST[ "in" ];
-        }
-
+    $in = ts_requestFilter( "in", "/[01]/", "1" );
+    
     
     global $tableNamePrefix, $remoteIP;
 
@@ -1051,22 +990,14 @@ function ts_showData() {
 
 
 
-    $skip = 0;
-    if( isset( $_REQUEST[ "skip" ] ) ) {
-        $skip = $_REQUEST[ "skip" ];
-        }
-
+    $skip = ts_requestFilter( "skip", "/[0-9]+/", 0 );
+    
     global $ticketsPerPage;
     
-    $search = "";
-    if( isset( $_REQUEST[ "search" ] ) ) {
-        $search = $_REQUEST[ "search" ];
-        }
+    $search = ts_requestFilter( "search", "/[A-Z0-9_@. -]+/i" );
 
-    $order_by = "last_download_date";
-    if( isset( $_REQUEST[ "order_by" ] ) ) {
-        $order_by = $_REQUEST[ "order_by" ];
-        }
+    $order_by = ts_requestFilter( "order_by", "/[A-Z_]+/i",
+                                  "last_download_date" );
     
     $keywordClause = "";
     $searchDisplay = "";
@@ -1428,16 +1359,13 @@ function ts_showData() {
 function ts_showDetail() {
     $password = ts_checkPassword( "show_detail" );
 
-     echo "[<a href=\"server.php?action=show_data&password=$password" .
+    echo "[<a href=\"server.php?action=show_data&password=$password" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
     
 
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
 
@@ -1550,27 +1478,18 @@ function ts_sendGroupEmail() {
     
     global $tableNamePrefix;
 
-    $confirm = "";
-    if( isset( $_REQUEST[ "confirm" ] ) ) {
-        $confirm = $_REQUEST[ "confirm" ];
-        }
-
+    $confirm = ts_requestFilter( "confirm", "/[01]/" );
+    
     if( $confirm != 1 ) {
         echo "You must check the Confirm box to send emails\n";
         return;
         }
     
 
-    $batch_size = "";
-    if( isset( $_REQUEST[ "batch_size" ] ) ) {
-        $batch_size = $_REQUEST[ "batch_size" ];
-        }
+    $batch_size = ts_requestFilter( "batch_size", "/[0-9]+/", 0 );
+    
 
-
-    $tag = "";
-    if( isset( $_REQUEST[ "tag" ] ) ) {
-        $tag = $_REQUEST[ "tag" ];
-        }
+    $tag = ts_requestFilter( "tag", "/[A-Z0-9_-]+/i" );
 
     $batchClause = "";
     if( $batch_size > 0 ) {
@@ -1596,23 +1515,17 @@ function ts_sendSingleEmail() {
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
-
-    $confirm = "";
-    if( isset( $_REQUEST[ "confirm" ] ) ) {
-        $confirm = $_REQUEST[ "confirm" ];
-        }
-
+ 
+    $confirm = ts_requestFilter( "confirm", "/[01]/" );
+    
     if( $confirm != 1 ) {
         echo "You must check the Confirm box to send emails\n";
         return;
         }
 
-    
-    $ticket_id = "";
-    if( isset( $_REQUEST[ "ticket_id" ] ) ) {
-        $ticket_id = $_REQUEST[ "ticket_id" ];
-        }
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
 
+    $ticket_id = strtoupper( $ticket_id );
 
     $query = "SELECT * FROM $tableNamePrefix"."tickets ".
         "WHERE ticket_id = '$ticket_id';";
@@ -1733,17 +1646,16 @@ function ts_sendAllNote() {
     
     global $tableNamePrefix;
 
-    $confirm = "";
-    if( isset( $_REQUEST[ "confirm" ] ) ) {
-        $confirm = $_REQUEST[ "confirm" ];
-        }
-
+    $confirm = ts_requestFilter( "confirm", "/[01]/" );
+    
     if( $confirm != 1 ) {
         echo "You must check the Confirm box to send emails\n";
         return;
         }
     
 
+    // pass subject and body through without regex filter
+    // these are put into emails and not put in the database
     $message_subject = "";
     if( isset( $_REQUEST[ "message_subject" ] ) ) {
         $message_subject = $_REQUEST[ "message_subject" ];
@@ -1760,11 +1672,7 @@ function ts_sendAllNote() {
     $message_text = stripslashes( $message_text );
     
     
-
-    $tag = "";
-    if( isset( $_REQUEST[ "tag" ] ) ) {
-        $tag = $_REQUEST[ "tag" ];
-        }
+    $tag = ts_requestFilter( "tag", "/[A-Z0-9_-]+/i" );
 
 
     
@@ -1806,17 +1714,15 @@ function ts_sendAllFileNote() {
     
     global $tableNamePrefix;
 
-    $confirm = "";
-    if( isset( $_REQUEST[ "confirm" ] ) ) {
-        $confirm = $_REQUEST[ "confirm" ];
-        }
-
+    $confirm = ts_requestFilter( "confirm", "/[01]/" );
+    
     if( $confirm != 1 ) {
         echo "You must check the Confirm box to send emails\n";
         return;
         }
     
 
+    // don't regex filter subject and body (destined for emails, not DB)
     $message_subject = "";
     if( isset( $_REQUEST[ "message_subject" ] ) ) {
         $message_subject = $_REQUEST[ "message_subject" ];
@@ -1834,10 +1740,7 @@ function ts_sendAllFileNote() {
     
     
 
-    $file_name = "";
-    if( isset( $_REQUEST[ "file_name" ] ) ) {
-        $file_name = $_REQUEST[ "file_name" ];
-        }
+    $file_name = ts_requestFilter( "file_name", "/[A-Z0-9_.-]+/i" );
 
     	
     $query = "SELECT DISTINCT email, name FROM $tableNamePrefix"."downloads ".
@@ -2103,6 +2006,28 @@ function ts_stripslashes_deep( $inValue ) {
         ( is_array( $inValue )
           ? array_map( 'sb_stripslashes_deep', $inValue )
           : stripslashes( $inValue ) );
+    }
+
+
+
+/**
+ * Filters a $_REQUEST variable using a regex match.
+ *
+ * Returns "" (or specified default value) if there is no match.
+ */
+function ts_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
+    if( ! isset( $_REQUEST[ $inRequestVariable ] ) ) {
+        return $inDefault;
+        }
+    
+    $numMatches = preg_match( $inRegex,
+                              $_REQUEST[ $inRequestVariable ], $matches );
+
+    if( $numMatches != 1 ) {
+        return $inDefault;
+        }
+        
+    return $matches[0];
     }
 
 
