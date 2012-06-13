@@ -1927,9 +1927,9 @@ function ts_doesTableExist( $inTableName ) {
 function ts_log( $message ) {
     global $enableLog, $tableNamePrefix;
 
-    $slashedMessage = mysql_real_escape_string( $message );
-    
     if( $enableLog ) {
+        $slashedMessage = mysql_real_escape_string( $message );
+    
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";
         $result = ts_queryDatabase( $query );
