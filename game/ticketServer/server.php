@@ -2140,7 +2140,7 @@ function ts_clearPasswordCookie() {
 
     $cookieName = $tableNamePrefix . "cookie_password_hash";
 
-    // expire 24 hours ago (to avoid timezone issues
+    // expire 24 hours ago (to avoid timezone issues)
     $expireTime = time() - 60 * 60 * 24;
 
     setcookie( $cookieName, "", $expireTime, "/" );
