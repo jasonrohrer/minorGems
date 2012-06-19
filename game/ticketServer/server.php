@@ -145,6 +145,9 @@ else if( $action == "send_all_file_note" ) {
 else if( $action == "email_opt_in" ) {
     ts_emailOptIn();
     }
+else if( $action == "logout" ) {
+    ts_logout();
+    }
 else if( $action == "ts_setup" ) {
     global $setup_header, $setup_footer;
     echo $setup_header; 
@@ -293,9 +296,9 @@ function ts_setupDatabase() {
 
 
 function ts_showLog() {
-    $password = ts_checkPassword( "show_log" );
+    ts_checkPassword( "show_log" );
 
-     echo "[<a href=\"server.php?action=show_data&password=$password" .
+     echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -308,7 +311,7 @@ function ts_showLog() {
 
 
 
-    echo "<a href=\"server.php?action=clear_log&password=$password\">".
+    echo "<a href=\"server.php?action=clear_log\">".
         "Clear log</a>";
         
     echo "<hr>";
@@ -327,9 +330,9 @@ function ts_showLog() {
 
 
 function ts_clearLog() {
-    $password = ts_checkPassword( "clear_log" );
+    ts_checkPassword( "clear_log" );
 
-     echo "[<a href=\"server.php?action=show_data&password=$password" .
+     echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -421,16 +424,26 @@ function ts_sellTicket() {
     // a manual order goes through
     $manual = ts_requestFilter( "manual", "/[01]/", "0" );
 
-    // don't pass through regex... not passed to DB.
-    $password = "";
-    if( isset( $_REQUEST[ "password" ] ) ) {
-        $password = $_REQUEST[ "password" ];
-        }
-
+    
     // this allows manual ticket creation to override email opt-in
     // defaults to on if not specified
     $email_opt_in = ts_requestFilter( "email_opt_in", "/[01]/", "1" );
+
+
+
+    // if manual, check password and display return-to-main link
+    if( $manual == 1 ) {
+        ts_checkPassword( "sell_ticket" );
         
+        // not returning generated ticket to FastSpring
+        // (manual order from ticket server interface)
+        // okay to show convenient HTML link back to main.
+        echo "[<a href=\"server.php?".
+            "action=show_data" .
+            "\">Main</a>]<br><br><br>";
+        }
+
+    
     
 
     
@@ -492,17 +505,6 @@ function ts_sellTicket() {
 
             
             echo "$ticket_id";
-
-            if( $manual == 1 ) {
-                // not returning generated ticket to FastSpring
-                // (manual order from ticket server interface)
-                // okay to show convenient HTML link back to main.
-                echo "<br><br>";
-                
-                echo "[<a href=\"server.php?".
-                    "action=show_data&password="."$password" .
-                    "\">Main</a>]<br><br><br>";
-                }
             }
         else {
             global $debug;
@@ -521,7 +523,7 @@ function ts_sellTicket() {
 
 function ts_editTicket() {
 
-    $password = ts_checkPassword( "edit_ticket" );
+    ts_checkPassword( "edit_ticket" );
     global $tableNamePrefix, $remoteIP;
 
 
@@ -572,7 +574,7 @@ function ts_editTicket() {
 
 
 function ts_blockTicketID() {
-    $password = ts_checkPassword( "block_ticket_id" );
+    ts_checkPassword( "block_ticket_id" );
 
 
     global $tableNamePrefix;
@@ -620,7 +622,7 @@ function ts_blockTicketID() {
 
 
 function ts_deleteTicketID() {
-    $password = ts_checkPassword( "delete_ticket_id" );
+    ts_checkPassword( "delete_ticket_id" );
 
     global $tableNamePrefix, $remoteIP;
 
@@ -637,8 +639,9 @@ function ts_deleteTicketID() {
         ts_log( "$ticket_id deleted by $remoteIP" );
 
         echo "$ticket_id deleted.<hr>";
-        
-        ts_showData();
+
+        // don't check password again here
+        ts_showData( false );
         }
     else {
         ts_log( "$ticket_id delete failed for $remoteIP" );
@@ -982,19 +985,33 @@ function ts_emailOptIn() {
 
 
 
+function ts_logout() {
+
+    ts_clearPasswordCookie();
+
+    echo "Logged out";
+    }
 
 
-function ts_showData() {
+
+
+function ts_showData( $checkPassword = true ) {
     // these are global so they work in embeded function call below
-    global $skip, $search, $order_by, $password;
+    global $skip, $search, $order_by;
 
-    $password = ts_checkPassword( "show_data" );
-
+    if( $checkPassword ) {
+        ts_checkPassword( "show_data" );
+        }
+    
     global $tableNamePrefix, $remoteIP;
     
 
-    echo "[<a href=\"server.php?action=show_data&password=$password" .
-            "\">Main</a>]<br><br><br>";
+    echo "<table width='100%' border=0><tr>".
+        "<td>[<a href=\"server.php?action=show_data" .
+            "\">Main</a>]</td>".
+        "<td align=right>[<a href=\"server.php?action=logout" .
+            "\">Logout</a>]</td>".
+        "</tr></table><br><br><br>";
 
 
 
@@ -1060,7 +1077,6 @@ function ts_showData() {
 ?>
         <hr>
             <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="show_data">
     <INPUT TYPE="hidden" NAME="order_by" VALUE="<?php echo $order_by;?>">
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="search"
@@ -1082,12 +1098,12 @@ function ts_showData() {
     $prevSkip = $skip - $ticketsPerPage;
     
     if( $prevSkip >= 0 ) {
-        echo "[<a href=\"server.php?action=show_data&password=$password" .
+        echo "[<a href=\"server.php?action=show_data" .
             "&skip=$prevSkip&search=$search&order_by=$order_by\">".
             "Previous Page</a>] ";
         }
     if( $nextSkip < $totalTickets ) {
-        echo "[<a href=\"server.php?action=show_data&password=$password" .
+        echo "[<a href=\"server.php?action=show_data" .
             "&skip=$nextSkip&search=$search&order_by=$order_by\">".
             "Next Page</a>]";
         }
@@ -1097,14 +1113,14 @@ function ts_showData() {
     echo "<table border=1 cellpadding=5>\n";
 
     function orderLink( $inOrderBy, $inLinkText ) {
-        global $password, $skip, $search, $order_by;
+        global $skip, $search, $order_by;
         if( $inOrderBy == $order_by ) {
             // already displaying this order, don't show link
             return "<b>$inLinkText</b>";
             }
 
         // else show a link to switch to this order
-        return "<a href=\"server.php?action=show_data&password=$password" .
+        return "<a href=\"server.php?action=show_data" .
             "&search=$search&skip=$skip&order_by=$inOrderBy\">$inLinkText</a>";
         }
 
@@ -1138,13 +1154,13 @@ function ts_showData() {
         if( $blocked ) {
             $blocked = "BLOCKED";
             $block_toggle = "<a href=\"server.php?action=block_ticket_id&".
-                "blocked=0&ticket_id=$ticket_id&password=$password\">unblock</a>";
+                "blocked=0&ticket_id=$ticket_id\">unblock</a>";
             
             }
         else {
             $blocked = "";
             $block_toggle = "<a href=\"server.php?action=block_ticket_id&".
-                "blocked=1&ticket_id=$ticket_id&password=$password\">block</a>";
+                "blocked=1&ticket_id=$ticket_id\">block</a>";
             
             }
 
@@ -1159,7 +1175,7 @@ function ts_showData() {
         echo "<tr>\n";
         
         echo "<td><b>$ticket_id</b> ($tag) ";
-        echo "[<a href=\"server.php?action=show_detail&password=$password" .
+        echo "[<a href=\"server.php?action=show_detail" .
             "&ticket_id=$ticket_id\">detail</a>]</td>\n";
         echo "<td>$name</td>\n";
         echo "<td>$email</td>\n";
@@ -1197,7 +1213,6 @@ function ts_showData() {
     <INPUT TYPE="hidden" NAME="security_data" VALUE="<?php echo $data;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="sell_ticket">
     <INPUT TYPE="hidden" NAME="manual" VALUE="1">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
              Email:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"><br>
     Name:
@@ -1249,7 +1264,6 @@ function ts_showData() {
         <td>
         Send download emails:<br>
             <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="send_group_email">
     Tag:
     <SELECT NAME="tag">
@@ -1279,7 +1293,6 @@ function ts_showData() {
 
 ?>
     <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="send_all_note">
     Subject:
     <INPUT TYPE="text" MAXLENGTH=80 SIZE=40 NAME="message_subject"><br>
@@ -1324,7 +1337,6 @@ function ts_showData() {
 
 ?>
     <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="send_all_file_note">
     Subject:
     <INPUT TYPE="text" MAXLENGTH=80 SIZE=40 NAME="message_subject"><br>
@@ -1356,7 +1368,7 @@ function ts_showData() {
 
 
     
-    echo "<a href=\"server.php?action=show_log&password=$password\">".
+    echo "<a href=\"server.php?action=show_log\">".
         "Show log</a>";
     echo "<hr>";
     echo "Generated for $remoteIP\n";
@@ -1366,9 +1378,9 @@ function ts_showData() {
 
 
 function ts_showDetail() {
-    $password = ts_checkPassword( "show_detail" );
+    ts_checkPassword( "show_detail" );
 
-    echo "[<a href=\"server.php?action=show_data&password=$password" .
+    echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -1384,7 +1396,6 @@ function ts_showDetail() {
         <hr>
         Send download email:<br>
             <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="send_single_email">
     <INPUT TYPE="hidden" NAME="ticket_id" VALUE="<?php echo $ticket_id;?>">
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
@@ -1417,7 +1428,6 @@ function ts_showDetail() {
         <hr>
         Edit ticket:<br>
             <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="password" VALUE="<?php echo $password;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="edit_ticket">
     <INPUT TYPE="hidden" NAME="ticket_id" VALUE="<?php echo $ticket_id;?>">
     Email:
@@ -1452,7 +1462,6 @@ function ts_showDetail() {
     echo "$numRows downloads for $ticket_id:";
 
     echo " [<a href=\"server.php?action=delete_ticket_id" .
-        "&password=$password" .
         "&ticket_id=$ticket_id\">DELETE this id</a>]";
     
     echo "<br><br><br>\n";
@@ -1479,10 +1488,10 @@ function ts_showDetail() {
 
 
 function ts_sendGroupEmail() {
-    $password = ts_checkPassword( "send_group_email" );
+    ts_checkPassword( "send_group_email" );
 
     
-    echo "[<a href=\"server.php?action=show_data&password=$password" .
+    echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -1517,10 +1526,10 @@ function ts_sendGroupEmail() {
 
 
 function ts_sendSingleEmail() {
-    $password = ts_checkPassword( "send_group_email" );
+    ts_checkPassword( "send_group_email" );
 
     
-    echo "[<a href=\"server.php?action=show_data&password=$password" .
+    echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -1647,10 +1656,10 @@ function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
 
 
 function ts_sendAllNote() {
-    $password = ts_checkPassword( "send_all_note" );
+    ts_checkPassword( "send_all_note" );
 
     
-    echo "[<a href=\"server.php?action=show_data&password=$password" .
+    echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -1711,10 +1720,10 @@ function ts_sendAllNote() {
 
 
 function ts_sendAllFileNote() {
-    $password = ts_checkPassword( "send_all_note" );
+    ts_checkPassword( "send_all_note" );
 
     
-    echo "[<a href=\"server.php?action=show_data&password=$password" .
+    echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
     global $tableNamePrefix;
@@ -2033,25 +2042,111 @@ function ts_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
 
 
 
+// this function checks the password directly from a request variable
+// or via hash from a cookie.
+//
+// It then sets a new cookie for the next request.
+//
+// This avoids storing the password itself in the cookie, so a stale cookie
+// (cached by a browser) can't be used to figure out the cookie and log in
+// later. 
 function ts_checkPassword( $inFunctionName ) {
     $password = "";
+    $password_hash = "";
+
+    $badCookie = false;
+    
+    
+    global $accessPassword, $tableNamePrefix, $remoteIP;
+
+    $cookieName = $tableNamePrefix . "cookie_password_hash";
+
+    
     if( isset( $_REQUEST[ "password" ] ) ) {
         $password = $_REQUEST[ "password" ];
-        }
 
-    global $accessPassword, $tableNamePrefix, $remoteIP;
+        // generate a new hash cookie from this password
+        $newSalt = time();
+        $newHash = md5( $newSalt . $password );
+        
+        $password_hash = $newSalt . "_" . $newHash;
+        }
+    else if( isset( $_COOKIE[ $cookieName ] ) ) {
+        $password_hash = $_COOKIE[ $cookieName ];
+        
+        // check that it's a good hash
+        
+        $hashParts = preg_split( "/_/", $password_hash );
+
+        // default, to show in log message on failure
+        // gets replaced if cookie contains a good hash
+        $password = "(bad cookie:  $password_hash)";
+
+        $badCookie = true;
+        
+        if( count( $hashParts ) == 2 ) {
+            
+            $salt = $hashParts[0];
+            $hash = $hashParts[1];
+            
+            $trueHash = md5( $salt . $accessPassword );
+            
+            if( $trueHash == $hash ) {
+                $password = $accessPassword;
+                $badCookie = false;
+                }
+            }
+        }
+    else {
+        // no request variable, no cookie
+        // cookie probably expired
+        $badCookie = true;
+        $password_hash = "(no cookie.  expired?)";
+        }
+    
+        
     
     if( $password != $accessPassword ) {
-        echo "Incorrect password.";
 
-        ts_log( "Failed $inFunctionName access with password:  $password" );
+        if( ! $badCookie ) {
+            
+            echo "Incorrect password.";
 
+            ts_log( "Failed $inFunctionName access with password:  ".
+                    "$password" );
+            }
+        else {
+            echo "Session expired.";
+                
+            ts_log( "Failed $inFunctionName access with bad cookie:  ".
+                    "$password_hash" );
+            }
+        
         die();
         }
-
-    return $password;
+    else {
+        // set cookie again, renewing it, expires in 24 hours
+        $expireTime = time() + 60 * 60 * 24;
+    
+        setcookie( $cookieName, $password_hash, $expireTime, "/" );
+        }
     }
+ 
 
+
+
+function ts_clearPasswordCookie() {
+    global $tableNamePrefix;
+
+    $cookieName = $tableNamePrefix . "cookie_password_hash";
+
+    // expire 24 hours ago (to avoid timezone issues
+    $expireTime = time() - 60 * 60 * 24;
+
+    setcookie( $cookieName, "", $expireTime, "/" );
+    }
+ 
+ 
 
 
 
