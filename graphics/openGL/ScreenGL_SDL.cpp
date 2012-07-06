@@ -113,6 +113,9 @@
  * 
  * 2011-March-14   Jason Rohrer
  * Changed Alt-Tab to explicitly release mouse.  
+ * 
+ * 2012-July-6   Jason Rohrer
+ * Added support for toggling key mapping.  
  */
 
 
@@ -167,7 +170,7 @@ char mapSDLKeyToASCII( int inSDLKey );
 
 
 static unsigned char keyMap[256];
-
+static char keyMapOn = true;
 
 
 // prototypes
@@ -1608,6 +1611,14 @@ void ScreenGL::setKeyMapping( unsigned char inFromKey,
         "Mapping key '%c' to '%c'", inFromKey, inToKey );
     }
 
+
+
+
+void ScreenGL::toggleKeyMapping( char inMappingOn ) {
+    keyMapOn = inMappingOn;
+    }
+
+
         
 
 
@@ -1733,7 +1744,9 @@ void callbackResize( int inW, int inH ) {
 void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
     // all playback events are already mapped
     if( ! ( currentScreenGL->mPlaybackEvents && 
-            currentScreenGL->mRecordingOrPlaybackStarted ) ) {
+            currentScreenGL->mRecordingOrPlaybackStarted )
+        && keyMapOn ) {
+        
         inKey = keyMap[inKey];
         }
     
@@ -1795,7 +1808,9 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
 void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
     // all playback events are already mapped
     if( ! ( currentScreenGL->mPlaybackEvents &&
-            currentScreenGL->mRecordingOrPlaybackStarted ) ) {
+            currentScreenGL->mRecordingOrPlaybackStarted )
+        && keyMapOn ) {
+        
         inKey = keyMap[inKey];
         }
     

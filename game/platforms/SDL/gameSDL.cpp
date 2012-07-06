@@ -971,6 +971,11 @@ void mapKey( unsigned char inFromKey, unsigned char inToKey ) {
     }
 
 
+void toggleKeyMapping( char inMappingOn ) {
+    screen->toggleKeyMapping( inMappingOn );
+    }
+
+
 
 
 

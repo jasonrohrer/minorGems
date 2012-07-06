@@ -98,6 +98,9 @@
  * 
  * 2011-March-14   Jason Rohrer
  * Changed Alt-Tab to explicitly release mouse.  
+ * 
+ * 2012-July-6   Jason Rohrer
+ * Added support for toggling key mapping.  
  */
  
  
@@ -280,6 +283,10 @@ class ScreenGL {
         // event for inToKey is generated instead
         void setKeyMapping( unsigned char inFromKey,
                             unsigned char inToKey );
+        
+
+        // turns key mapping on (default) or off
+        void toggleKeyMapping( char inMappingOn );
         
 
 

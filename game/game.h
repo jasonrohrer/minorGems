@@ -136,6 +136,8 @@ unsigned int getRandSeed();
 // (and no event for inFromKey will be generated)
 void mapKey( unsigned char inFromKey, unsigned char inToKey );
 
+void toggleKeyMapping( char inMappingOn );
+
 
 // returns true if Control, Alt, or Meta key is down
 // behavior varies somewhat by platform
