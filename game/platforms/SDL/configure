@@ -20,6 +20,9 @@
 # patch by Ori Avtalion.
 #
 
+mgPath="../minorGems"
+
+
 if [ "$#" -gt "0" ] ; then
   if [ "$1" -lt "4" ] ; then
     if [ "$1" -gt "0" ] ; then
@@ -27,6 +30,15 @@ if [ "$#" -gt "0" ] ; then
     fi
   fi
 fi
+
+
+
+if [ "$#" -gt "1" ] ; then
+  mgPath="$2";   
+fi
+
+
+
 
 while [ -z "$platformSelection" ]
 do
@@ -66,8 +78,8 @@ done
 
 
 # use partial makefiles from minorGems project
-makefileMinorGems="../minorGems/build/Makefile.minorGems"
-makefileMinorGemsTargets="../minorGems/build/Makefile.minorGems_targets"
+makefileMinorGems="$mgPath/build/Makefile.minorGems"
+makefileMinorGemsTargets="$mgPath/build/Makefile.minorGems_targets"
 
 
 
@@ -75,7 +87,7 @@ platformName="Generic"
 platformMakefile="generic"
 
 
-makefilePath="../minorGems/game/platforms/SDL"
+makefilePath="$mgPath/game/platforms/SDL"
 commonMakefile="$makefilePath/Makefile.common"
 
 makefileAll="$makefilePath/Makefile.all"
