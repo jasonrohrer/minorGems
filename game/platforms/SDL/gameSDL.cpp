@@ -1859,7 +1859,8 @@ static WebRequest *getRequestByHandle( int inHandle ) {
         }
 
     // else not found?
-    AppLog::error( "Requested WebRequest handle not found\n" );
+    AppLog::error( "gameSDL - getRequestByHandle:  "
+                   "Requested WebRequest handle not found\n" );
     return NULL;
     }
 
@@ -1957,11 +1958,15 @@ void clearWebRequest( int inHandle ) {
             delete r->request;
             
             webRequestRecords.deleteElement( i );
+            
+            // found, done
+            return;
             }
         }
 
     // else not found?
-    AppLog::error( "Requested WebRequest handle not found\n" );
+    AppLog::error( "gameSDL - clearWebRequest:  "
+                   "Requested WebRequest handle not found\n" );
     }
 
 
