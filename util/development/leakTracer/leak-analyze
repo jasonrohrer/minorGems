@@ -95,7 +95,7 @@ foreach (sort keys %AllocDealloc) {
 foreach (sort keys %Type) {
 	$thisAddr = $_;
 
-    print PIPE "echo \\n#-- $Type{$_}: counted $Count{$_}x";
+    print PIPE "echo \\n\\n#-- $Type{$_}: counted $Count{$_}x";
     if ($Size{$_} > 0) {
 	print PIPE " / total Size: $Size{$_}";
     }
@@ -108,7 +108,7 @@ foreach (sort keys %Type) {
 		# print stacktrace
 		print PIPE "set listsize 2\n";
 
-		print PIPE "echo Stack ($Stack{$_}):\\n\n";
+		print PIPE "echo #-- Example Stack:\\n\n";
 		@stackAddrs = split( /\|/, $Stack{$_} );
 		
 		# first one is "S|" marker, so skip it 
