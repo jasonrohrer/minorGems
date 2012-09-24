@@ -34,13 +34,16 @@ while (<LEAKS>) {
     #if (/^\s*L\s+(0x)?([0-9a-fA-F]+)\s+(0x)?([0-9a-fA-F]+)\s+(0x)?([0-9a-fA-F]+)\s+(\d+)/) {
     # Allocations, which have not been freed or deallocations which have not
     # been allocated.
-    #              1      2           3
-    if (/^\s*L\s+(0x)?([0-9a-fA-F]+)\s+(\d+)/) {
+    #              1      2              3        4
+    if (/^\s*L\s+(0x)?([0-9a-fA-F]+)\s+(\d+)\s*(S\|[x\|0-9a-fA-F]+)?/) {
         $addr="$2";  # ",$4,$6";
         $u++ if not exists $Type{$addr};
         $Count{$addr}++;
 	$Size{$addr} += $3; # $7;
 	$Type{$addr} = "Leak";
+		if( $4 ne "" ) {
+			$Stack{$addr} = $4;
+		}
         $n++;
     }
     elsif (/^\s*D\s+(0x)?([0-9a-fA-F]+)/) {
@@ -90,6 +93,8 @@ foreach (sort keys %AllocDealloc) {
 }
 
 foreach (sort keys %Type) {
+	$thisAddr = $_;
+
     print PIPE "echo \\n#-- $Type{$_}: counted $Count{$_}x";
     if ($Size{$_} > 0) {
 	print PIPE " / total Size: $Size{$_}";
@@ -98,6 +103,21 @@ foreach (sort keys %Type) {
     @addrs = split(/,/,$_);
     print PIPE "set listsize 2\n";
     print PIPE "l *0x" . (shift @addrs) . "\n";
+	
+	if( exists( $Stack{$_} ) ) {
+		# print stacktrace
+		print PIPE "set listsize 2\n";
+
+		print PIPE "echo Stack ($Stack{$_}):\\n\n";
+		@stackAddrs = split( /\|/, $Stack{$_} );
+		
+		# first one is "S|" marker, so skip it 
+		shift @stackAddrs;
+		foreach $a ( @stackAddrs ) {
+			print PIPE "l *$a\n"; 
+		}
+	}
+
     #print PIPE "echo ..called from :\n";
     #print PIPE "set listsize 1\n";
     # gdb bails out, if it cannot find an address.
