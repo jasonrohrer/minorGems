@@ -42,6 +42,15 @@
 #include <errno.h>
 
 
+
+// no execinfo stacktrace support on MinGW
+#ifdef __MINGW_H
+  #define NO_STACK_TRACE
+#else
+  #include <execinfo.h>
+#endif
+
+
 /*
  * underlying allocation, de-allocation used within 
  * this tool
@@ -103,6 +112,18 @@ typedef unsigned long magic_t;
  */
 #define MEMCLEAN    0xEE
 
+
+
+// number of stack return addresses to store for each allocation
+// used to print a trace when memory leak is detected
+#ifndef NO_STACK_TRACE
+  #define RECORDED_STACK_SIZE 20
+#else
+  #define RECORDED_STACK_SIZE 0
+#endif
+
+
+
 /**
  * Initial Number of memory allocations in our list.
  * Doubles for each re-allocation.
@@ -115,6 +136,9 @@ static class LeakTracer {
 		size_t      size;
 		const void *allocAddr;
 		bool        type;
+        int stackTraceSize;
+        void *stackTraceAddresses[ RECORDED_STACK_SIZE ];
+        
 		int         nextBucket;
 	};
 	
@@ -370,7 +394,12 @@ void* LeakTracer::registerAlloc (size_t size, bool type) {
 				leaks[i].size = size;
 				leaks[i].type = type;
 				leaks[i].allocAddr=__builtin_return_address(1);
-				firstFreeSpot = i+1;
+#ifndef NO_STACK_TRACE
+                leaks[i].stackTraceSize =
+                        backtrace( leaks[i].stackTraceAddresses,
+                                   RECORDED_STACK_SIZE );                
+#endif
+                firstFreeSpot = i+1;
 				// allow to lookup our index fast.
 				int *hashPos = &leakHash[ ADDR_HASH(p) ];
 				leaks[i].nextBucket = *hashPos;
@@ -512,8 +541,13 @@ void LeakTracer::writeLeakReport() {
 
 	if (newCount > 0) {
 		fprintf(report, "# LeakReport\n");
-		fprintf(report, "# %10s | %9s  # Pointer Addr\n",
-			"from new @", "size");
+		fprintf(report, "# %10s | %9s ",
+			"From new @", "Size");
+#ifndef NO_STACK_TRACE
+        fprintf( report, " | Stack " );
+#endif
+        fprintf( report, " #   Address,   Contents\n" );
+        
 	}
 	for (int i = 0; i <  leaksCount; i++)
 		if (leaks[i].addr != NULL) {
@@ -522,11 +556,22 @@ void LeakTracer::writeLeakReport() {
 			memcpy( (void *)memContents, (void *)( leaks[i].addr ),
 				leaks[i].size );
 			memContents[ leaks[i].size ] = '\0';
-			fprintf(report, "L %10p   %9ld  # %p   \"%s\"\n",
+			fprintf(report, "L %10p   %9ld",
 				leaks[i].allocAddr,
-				(long) leaks[i].size,
+				(long) leaks[i].size );
+#ifndef NO_STACK_TRACE
+            fprintf( report, "    S|" );
+            for( int s=0; s<leaks[i].stackTraceSize; s++ ) {
+                    fprintf( report, "%p", leaks[i].stackTraceAddresses[s] );
+                    if( s < leaks[i].stackTraceSize - 1 ) {
+                            fprintf( report, "|" );
+                        }
+                }
+#endif
+            fprintf(report, "  # %p,   \"%s\"\n",
 				leaks[i].addr,
 				memContents );
+
 			LT_FREE( memContents );
 		}
 	fprintf(report, "# total allocation requests: %6ld ; max. mem used"

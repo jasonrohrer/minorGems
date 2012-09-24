@@ -14,14 +14,20 @@ void foo() {
     int *x = new int;
 }
 
+void bar() {
+    foo();
+    }
+
+
 int main() {
     char *str = strdup( "Test String" );
 
     int *z = new int[10];
     foo();
     foo();
-    delete z;
-    delete z;   // delete value twice
+    bar();
+    //delete z;
+    //delete z;   // delete value twice
 
     
 }
