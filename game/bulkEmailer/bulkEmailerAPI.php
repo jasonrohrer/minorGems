@@ -18,6 +18,9 @@ function be_addMessage( $subject, $body, $recipientEmailArray ) {
     be_connectToDatabase();
 
     global $be_tableNamePrefix;
+
+    $subject = mysql_real_escape_string( $subject );
+    $body = mysql_real_escape_string( $body );
     
     
     $query = "INSERT INTO $be_tableNamePrefix"."messages ".

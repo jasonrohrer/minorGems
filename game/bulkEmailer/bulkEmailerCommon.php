@@ -3,6 +3,10 @@
 
 include( "bulkEmailerSettings.php" );
 
+
+$be_mysqlLink;
+
+
 // general-purpose functions in here, many copied from seedBlogs
 
 /**
@@ -10,13 +14,14 @@ include( "bulkEmailerSettings.php" );
  */  
 function be_connectToDatabase() {
     global $be_databaseServer,
-        $be_databaseUsername, $be_databasePassword, $be_databaseName;
+        $be_databaseUsername, $be_databasePassword, $be_databaseName,
+        $be_mysqlLink;
     
     
-    mysql_connect( $be_databaseServer, $be_databaseUsername,
-                   $be_databasePassword )
+    $be_mysqlLink = mysql_connect( $be_databaseServer, $be_databaseUsername,
+                                   $be_databasePassword )
         or be_fatalError( "Could not connect to database server: " .
-                       mysql_error() );
+                          mysql_error() );
     
 	mysql_select_db( $be_databaseName )
         or be_fatalError( "Could not select $be_databaseName database: " .
@@ -29,7 +34,9 @@ function be_connectToDatabase() {
  * Closes the database connection.
  */
 function be_closeDatabase() {
-    mysql_close();
+    global $be_mysqlLink;
+
+    mysql_close( $be_mysqlLink );
     }
 
 
@@ -42,8 +49,9 @@ function be_closeDatabase() {
  * @return a result handle that can be passed to other mysql functions.
  */
 function be_queryDatabase( $inQueryString ) {
-
-    $result = mysql_query( $inQueryString )
+    global $be_mysqlLink;
+    
+    $result = mysql_query( $inQueryString, $be_mysqlLink )
         or be_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
                        mysql_error() );
 
