@@ -1,0 +1,30 @@
+All returns are whitespace-delimited.
+
+
+
+Most calls can return 'DENIED' on failure
+
+
+
+
+=== Call:
+server.php?action=subscribe&email=[email address]
+
+Returns:
+Displays a web page about sending a confirmation message.
+
+
+
+=== Call:
+server.php?action=confirm&code=[confirmation code]
+
+Returns:
+Displays a web page about success.
+
+
+
+=== Call:
+server.php?action=remove&code=[confirmation code]
+
+Returns:
+Displays a web page about success.
