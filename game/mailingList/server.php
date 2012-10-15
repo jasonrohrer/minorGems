@@ -315,8 +315,24 @@ function ml_subscribe() {
         }
     
 
-    $email = ml_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+    $email = ml_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
+    if( $email == "" ) {
+        if( $manual ) {
+            echo "Invalid email address.<hr>";
+            ml_showData( false );
+            }
+        else {
+            eval( $header );
+            
+            echo "Invalid email address.";
+            
+            eval( $footer );
+            }
+        return;
+        }   
+
+    
     $email = strtolower( $email );
     
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."recipients ".
