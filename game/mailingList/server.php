@@ -162,7 +162,7 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
     $exists = ml_doesTableExist( $tableName );
         
     if( $exists  ) {
-        echo "Ticket Server database setup and ready";
+        echo "Mailing List Server database setup and ready";
         }
     else {
         // start the setup procedure
@@ -170,9 +170,9 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
         global $setup_header, $setup_footer;
         echo $setup_header; 
 
-        echo "<H2>Ticket Server Web-based Setup</H2>";
+        echo "<H2>Mailing List Server Web-based Setup</H2>";
     
-        echo "Ticket Server will walk you through a " .
+        echo "Mailing List Server will walk you through a " .
             "brief setup process.<BR><BR>";
         
         echo "Step 1: ".
@@ -405,7 +405,7 @@ function ml_subscribe() {
             be_addMessage( "Subscription:  $listName",
                            "To cofirm your subscription, ".
                            "follow this link:\n\n".
-                           "$fullServerURL&action=confirm".
+                           "$fullServerURL?action=confirm".
                            "&code=$confirmation_code\n\n",
                            array( $email ) );
             }
@@ -812,7 +812,8 @@ function ml_sendMessage() {
         $message_text = $_REQUEST[ "message_text" ];
         }
 
-    $query = "SELECT email FROM $tableNamePrefix"."recipients ".
+    $query = "SELECT email, confirmation_code ".
+        "FROM $tableNamePrefix"."recipients ".
         "WHERE confirmed = 1;";
 
     $result = ml_queryDatabase( $query );
@@ -821,14 +822,30 @@ function ml_sendMessage() {
 
     echo "Adding $numRows emails to the bulkEmailer queue...<br><br><br>\n";
 
+    // use %CUSTOM% replacement feature of bulkEmailer
+    // to generate custom unsubscribe links
+    
     $allEmails = array();
+    $allCodes = array();
+    
     for( $i=0; $i<$numRows; $i++ ) {
         $email = mysql_result( $result, $i, "email" );
+        $code = mysql_result( $result, $i, "confirmation_code" );
+        
         $allEmails[] = $email;
+        $allCodes[] = $code;
         }
+
+    global $fullServerURL;
+    
+    $message_text =
+        $message_text .
+        "\n\n--\n" .
+        "To unsubscribe, follow this link:\n".
+        "$fullServerURL?action=remove&code=%CUSTOM%\n\n";
     
     
-    be_addMessage( $message_subject, $message_text, $allEmails );
+    be_addMessage( $message_subject, $message_text, $allEmails, $allCodes );
 
     $query = "UPDATE $tableNamePrefix"."recipients SET ".
         "last_sent_date = CURRENT_TIMESTAMP, ".

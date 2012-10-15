@@ -65,7 +65,7 @@ $footer = "include( \"footer.php\" );";
 
 
 // parameters for emails that are sent out
-$listName = "My Releases List";
+$listName = "My Release List";
 
 
 $subscriptionMessage = "A confirmation message will be sent to your email address in a few hours.";

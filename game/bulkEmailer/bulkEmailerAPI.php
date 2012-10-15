@@ -14,7 +14,12 @@ include( "bulkEmailerSettings.php" );
 // note that a connection to bulkEmailer's database will be opened
 // and later closed by this function call
 
-function be_addMessage( $subject, $body, $recipientEmailArray ) {
+// $customDataArray is one data element for each email address
+// (might be all "") that will be plugged into $body text to replace
+// each occurrence of the %CUSTOM% tag.
+function be_addMessage( $subject, $body, $recipientEmailArray,
+                        $customDataArray ) {
+    
     be_connectToDatabase();
 
     global $be_tableNamePrefix;
@@ -30,9 +35,16 @@ function be_addMessage( $subject, $body, $recipientEmailArray ) {
 
     $message_id = mysql_insert_id();
 
+    $i = 0;
     foreach( $recipientEmailArray as $email ) {
+        $custom_data = $customDataArray[$i];
+        $i++;
+
+
+        $custom_data = mysql_real_escape_string( $custom_data );
+        
         $query = "INSERT INTO $be_tableNamePrefix"."recipients ".
-        "VALUES( '$email', $message_id );";
+        "VALUES( '$email', '$custom_data', $message_id );";
         be_queryDatabase( $query );
         }
 

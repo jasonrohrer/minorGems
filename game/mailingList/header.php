@@ -1,11 +1,10 @@
 <html>
 
 <head>
-<title>My Releases Mailing List</title>
+<title>My Release Mailing List</title>
 </head>
 
-<body bgcolor="#000000" text="#FFFFFF"
-      link="#ff8800" alink="#ffff00" vlink="#ff8800">
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#0000FF VLINK=#FF0000>
 
 <center>
 <br>

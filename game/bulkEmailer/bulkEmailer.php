@@ -107,6 +107,7 @@ function be_setupDatabase() {
         $query =
             "CREATE TABLE $tableName(" .
             "email CHAR(255) NOT NULL," .
+            "custom_data TEXT NOT NULL,".
             "message_id INT NOT NULL,".
             "PRIMARY KEY( email, message_id ) );";
         
@@ -127,7 +128,9 @@ function be_sendBatch() {
         $be_emailMaxBatchSize, $be_reportToEmailAddress;
 
     $numSent = 0;
-
+    
+    $reportBody = "";
+            
     $foundMessage = true;
 
     while( $foundMessage && $numSent < $be_emailMaxBatchSize ) {
@@ -151,11 +154,9 @@ function be_sendBatch() {
             $subject = $row[ "subject" ];
             $body = $row[ "body" ];
 
-            $reportBody = "";
-
             $numLeftInBatch = $be_emailMaxBatchSize - $numSent;
         
-            $query = "SELECT email ".
+            $query = "SELECT email, custom_data ".
                 "FROM $be_tableNamePrefix"."recipients ".
                 "WHERE message_id = $message_id LIMIT $numLeftInBatch";
             $result = be_queryDatabase( $query );
@@ -167,8 +168,12 @@ function be_sendBatch() {
                 echo "Message has $numRows recipients waiting\n";
                 for( $i=0; $i<$numRows; $i++ ) {
                     $email = mysql_result( $result, $i, "email" );
+                    $custom_data = mysql_result( $result, $i, "custom_data" );
 
-                    $success = be_sendEmail( $subject, $body, $email );
+                    $customBody =
+                        preg_replace('/%CUSTOM%/', $custom_data, $body );
+                    
+                    $success = be_sendEmail( $subject, $customBody, $email );
 
                     if( $success ) {
                         $reportBody = $reportBody . "$email SUCCESS\n";
@@ -184,12 +189,25 @@ function be_sendBatch() {
                     $numSent ++;
                     }
                 }
-            else {
+
+
+            // check again here to see if we're done with this message
+            // (so DONE message is included in same report email)
+
+            $query = "SELECT COUNT(*) ".
+                "FROM $be_tableNamePrefix"."recipients ".
+                "WHERE message_id = $message_id;";
+            $result = be_queryDatabase( $query );
+
+            $numLeft = mysql_result( $result, 0, 0 );
+            
+                        
+            if( $numLeft == 0 ) {
                 echo "Done with the message, removing\n";
                 
                 // done with this message
                 $reportBody = $reportBody .
-                    "DONE sending to all recipients\n\n";
+                    "\nDONE sending to all recipients\n\n";
                 $query = "DELETE ".
                     "FROM $be_tableNamePrefix"."messages ".
                     "WHERE message_id = $message_id;";
@@ -200,9 +218,14 @@ function be_sendBatch() {
             $reportBody = $reportBody .
                 "\n\nSubject:  $subject\n\nBody:\n$body\n\n";
 
-            be_sendEmail( "bulkEmailer Report:  Sent $numSent",
-                          $reportBody, $be_reportToEmailAddress );
+            
             }
+        }
+    
+
+    if( $numSent > 0 ) {
+        be_sendEmail( "bulkEmailer Report:  Sent $numSent",
+                      $reportBody, $be_reportToEmailAddress );
         }
     
 

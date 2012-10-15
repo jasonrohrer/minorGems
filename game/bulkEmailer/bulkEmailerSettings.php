@@ -31,8 +31,6 @@ $be_tableNamePrefix = "bulkEmailer_";
 
 $be_enableLog = 1;
 
-// for web-based admin access
-$be_accessPassword = "secret";
 
 
 // batch size for sending email
