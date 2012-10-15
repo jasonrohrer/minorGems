@@ -35,10 +35,13 @@ $be_enableLog = 1;
 $be_accessPassword = "secret";
 
 
-// batch size for sending email to all opt-in users
+// batch size for sending email
 // useful if your server has a "max emails per hour" limit
 // (My server has a limit of 500/hour)
-$be_emailMaxBatchSize = 400;
+// You can have cron invok this script multiple times per hour
+// Example:  408 emails/hour, invoked every 5 minutes (12 batches per hour)
+// 34 emails per batch
+$be_emailMaxBatchSize = 34;
 
 
 // parameters for emails that are sent out
