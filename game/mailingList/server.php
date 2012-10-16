@@ -113,6 +113,9 @@ else if( $action == "clear_log" ) {
 else if( $action == "subscribe" ) {
     ml_subscribe();
     }
+else if( $action == "mass_subscribe" ) {
+    ml_massSubscribe();
+    }
 else if( $action == "confirm" ) {
     ml_confirm();
     }
@@ -310,23 +313,72 @@ function ml_subscribe() {
     global $tableNamePrefix, $remoteIP, $header, $footer;
 
     $manual = ml_requestFilter( "manual", "/1/" );
+
+    $confirmed = 0;
     
     if( $manual == 1 ) {
         ml_checkPassword( "manual subscribe" );
+
+        // only allow force-confirmation for password-checked manual add
+        $confirmed = ml_requestFilter( "confirmed", "/1/", "0" );
         }
     
 
     $email = ml_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
+    ml_createSubscription( $email, $confirmed, $manual );
+
+    if( $manual ) {
+        echo "<hr>";
+        ml_showData( false );
+        }
+    }
+
+
+
+
+function ml_massSubscribe() {
+    global $tableNamePrefix, $remoteIP, $header, $footer;
+
+    ml_checkPassword( "mass subscribe" );
+
+    $confirmed = ml_requestFilter( "confirmed", "/1/", "0" );
+
+
+    // input filtering handled below
+    $emails = "";
+    if( isset( $_REQUEST[ "emails" ] ) ) {
+        $emails = $_REQUEST[ "emails" ];
+        }
+    
+    $emailArray = preg_split( "/\s+/", $emails );
+
+    foreach( $emailArray as $email ) {
+        ml_createSubscription( $email, $confirmed, 1 );
+        }
+
+    echo "<hr>";
+    ml_showData( false );
+    }
+
+
+
+
+// utility function used by both massSubscribe and subscribe
+// handles filtering of email address
+function ml_createSubscription( $email, $confirmed, $manual ) {
+    global $tableNamePrefix, $remoteIP, $header, $footer;
+
+    $email = ml_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
     if( $email == "" ) {
         if( $manual ) {
-            echo "Invalid email address.<hr>";
-            ml_showData( false );
+            echo "Invalid email address: $email<br>";
             }
         else {
             eval( $header );
             
-            echo "Invalid email address.";
+            echo "Invalid email address: <b>$email</b>";
             
             eval( $footer );
             }
@@ -346,13 +398,12 @@ function ml_subscribe() {
     if( $hitCount > 0 ) {
 
         if( $manual ) {
-            echo "Already subscribed.<hr>";
-            ml_showData( false );
+            echo "Already subscribed: $email<br>";
             }
         else {
             eval( $header );
             
-            echo "You're already subscribed.";
+            echo "You're already subscribed: <b>$email</b>";
             
             eval( $footer );
             }
@@ -392,11 +443,11 @@ function ml_subscribe() {
                                           $confirmation_code );
 
         $query = "INSERT INTO $tableNamePrefix". "recipients VALUES ( " .
-            "'$confirmation_code', '$email', 0, ".
+            "'$confirmation_code', '$email', $confirmed, ".
             "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0 );";
 
 
-        $result = mysql_query( $query );
+        $result = ml_queryDatabase( $query );
 
         if( $result ) {
             $found_unused_code = 1;
@@ -408,8 +459,7 @@ function ml_subscribe() {
                 $listName, $fullServerURL;
 
             if( $manual ) {
-                echo "Subscription added.<hr>";
-                ml_showData( false );
+                echo "Subscribed $email<br>";
                 }
             else {
                 eval( $header );
@@ -418,13 +468,17 @@ function ml_subscribe() {
                 
                 eval( $footer );
                 }
-            
-            be_addMessage( "Subscription:  $listName",
-                           "To cofirm your subscription, ".
-                           "follow this link:\n\n".
-                           "$fullServerURL?action=confirm".
-                           "&code=$confirmation_code\n\n",
-                           array( $email ) );
+
+            if( ! $confirmed ) {
+                
+                be_addMessage( "Subscription:  $listName",
+                               "To cofirm your subscription, ".
+                               "follow this link:\n\n".
+                               "$fullServerURL?action=confirm".
+                               "&code=$confirmation_code\n\n",
+                               array( $email ),
+                               array( ""  ) );
+                }
             }
         else {
             global $debug;
@@ -436,8 +490,10 @@ function ml_subscribe() {
             }
         }
 
-    }
 
+
+
+    }
 
 
 
@@ -748,23 +804,32 @@ function ml_showData( $checkPassword = true ) {
     
 
 
-    // fake a security hashes to include in form
-    global $fastspringPrivateKeys;
-    
-    $data = "abc";
 
     
     // form for force-creating a new id
 ?>
-        <td>
+        <td valign=top>
         Create new Subscription:<br><br>
             <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="security_data" VALUE="<?php echo $data;?>">
     <INPUT TYPE="hidden" NAME="action" VALUE="subscribe">
     <INPUT TYPE="hidden" NAME="manual" VALUE="1">
              Email:
-    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"><br><br>
-          
+    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"><br>
+    <input type='checkbox' name='confirmed' value='1'> Skip email confirmation<br><br>      
+    <INPUT TYPE="Submit" VALUE="Create">
+    </FORM>
+        </td>
+<?php
+
+    // form for force-creating group of new ids
+?>
+        <td>
+        Mass Subscription:<br><br>
+            <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="mass_subscribe">
+             Emails (one per line):<br>
+             <TEXTAREA NAME="emails" COLS=30 ROWS=10></TEXTAREA><br>
+    <input type='checkbox' name='confirmed' value='1'> Skip email confirmation<br><br>      
     <INPUT TYPE="Submit" VALUE="Create">
     </FORM>
         </td>
@@ -965,10 +1030,10 @@ function ml_doesTableExist( $inTableName ) {
 
 
 function ml_log( $message ) {
-    global $enableLog, $tableNamePrefix;
+    global $enableLog, $tableNamePrefix, $ml_mysqlLink;
 
     if( $enableLog ) {
-        $slashedMessage = mysql_real_escape_string( $message );
+        $slashedMessage = mysql_real_escape_string( $message, $ml_mysqlLink );
     
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";
@@ -1060,9 +1125,20 @@ function ml_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
     if( ! isset( $_REQUEST[ $inRequestVariable ] ) ) {
         return $inDefault;
         }
+
+    return ml_filter( $_REQUEST[ $inRequestVariable ], $inRegex, $inDefault );
+    }
+
+
+/**
+ * Filters a value  using a regex match.
+ *
+ * Returns "" (or specified default value) if there is no match.
+ */
+function ml_filter( $inValue, $inRegex, $inDefault = "" ) {
     
     $numMatches = preg_match( $inRegex,
-                              $_REQUEST[ $inRequestVariable ], $matches );
+                              $inValue, $matches );
 
     if( $numMatches != 1 ) {
         return $inDefault;
