@@ -323,8 +323,11 @@ function ml_subscribe() {
         $confirmed = ml_requestFilter( "confirmed", "/1/", "0" );
         }
     
-
-    $email = ml_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    // input filtering handled below
+    $email = "";
+    if( isset( $_REQUEST[ "email" ] ) ) {
+        $email = $_REQUEST[ "email" ];
+        }
 
     ml_createSubscription( $email, $confirmed, $manual );
 
@@ -353,10 +356,33 @@ function ml_massSubscribe() {
     
     $emailArray = preg_split( "/\s+/", $emails );
 
+    $failedCount = 0;
+    $alreadySubscribedCount = 0;
+    $successCount = 0;
     foreach( $emailArray as $email ) {
-        ml_createSubscription( $email, $confirmed, 1 );
+        $result = ml_createSubscription( $email, $confirmed, 1 );
+
+        switch( $result ) {
+            case 0:
+                $failedCount++;
+                break;
+            case 1:
+                $successCount++;
+                break;
+            case 2:
+                $alreadySubscribedCount++;
+                break;
+            }   
         }
 
+    $subscriptionWord = "Subscriptions";
+    if( $successCount == 1 ) {
+        $subscriptionWord = "Subscription";
+        }
+    
+    echo "Summary:  $failedCount Failed, ".
+        "$alreadySubscribedCount Already Subscribed, ".
+        "$successCount $subscriptionWord Created";
     echo "<hr>";
     ml_showData( false );
     }
@@ -366,23 +392,27 @@ function ml_massSubscribe() {
 
 // utility function used by both massSubscribe and subscribe
 // handles filtering of email address
+// returns 0 on invalid
+// returns 2 on already subscribed
+// returns 1 on success
 function ml_createSubscription( $email, $confirmed, $manual ) {
     global $tableNamePrefix, $remoteIP, $header, $footer;
 
+    $unfilteredEmail = $email;
     $email = ml_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
     if( $email == "" ) {
         if( $manual ) {
-            echo "Invalid email address: $email<br>";
+            echo "Invalid email address: $unfilteredEmail<br>";
             }
         else {
             eval( $header );
             
-            echo "Invalid email address: <b>$email</b>";
+            echo "Invalid email address: <b>$unfilteredEmail</b>";
             
             eval( $footer );
             }
-        return;
+        return 0;
         }   
 
     
@@ -407,7 +437,7 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
             
             eval( $footer );
             }
-        return;
+        return 2;
         }
     
     
@@ -479,6 +509,8 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
                                array( $email ),
                                array( ""  ) );
                 }
+
+            return 1;
             }
         else {
             global $debug;
