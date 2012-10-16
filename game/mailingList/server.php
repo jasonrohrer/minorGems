@@ -230,6 +230,7 @@ function ml_setupDatabase() {
             "CREATE TABLE $tableName(" .
             "confirmation_code CHAR(10) NOT NULL PRIMARY KEY," .
             "email CHAR(255) NOT NULL," .
+            "UNIQUE KEY( email )," .
             "confirmed TINYINT NOT NULL," .
             "creation_date DATETIME NOT NULL," .
             "last_sent_date DATETIME NOT NULL," .
