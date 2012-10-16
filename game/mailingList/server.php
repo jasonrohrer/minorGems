@@ -593,6 +593,12 @@ function ml_remove() {
             return;
             }
         }
+
+    $query = "SELECT email FROM $tableNamePrefix"."recipients ".
+        "WHERE confirmation_code = '$code';";
+    
+    $result = ml_queryDatabase( $query );
+    $email = mysql_result( $result, 0, "email" );
     
     
     $query = "DELETE FROM $tableNamePrefix"."recipients ".
@@ -601,6 +607,11 @@ function ml_remove() {
     $result = ml_queryDatabase( $query );
     $hitCount = mysql_affected_rows();
 
+    if( $hitCount == 1 ) {
+        ml_log( "subscription for $email [$code] ".
+                "removed by $remoteIP" );
+        }
+    
 
     if( $manual == 1 ) {
 
