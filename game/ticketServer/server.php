@@ -1853,6 +1853,7 @@ function ts_sendNote_p( $message_subject, $message_text, $inName, $inEmail ) {
 
 
 
+$ts_mysqlLink;
 
 
 // general-purpose functions down here, many copied from seedBlogs
@@ -1862,16 +1863,18 @@ function ts_sendNote_p( $message_subject, $message_text, $inName, $inEmail ) {
  */  
 function ts_connectToDatabase() {
     global $databaseServer,
-        $databaseUsername, $databasePassword, $databaseName;
+        $databaseUsername, $databasePassword, $databaseName,
+        $ts_mysqlLink;
     
     
-    mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
-        or ts_fatalError( "Could not connect to database server: " .
-                       mysql_error() );
+    $ts_mysqlLink =
+        mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
+        or ts_operationError( "Could not connect to database server: " .
+                              mysql_error() );
     
-	mysql_select_db( $databaseName )
-        or ts_fatalError( "Could not select $databaseName database: " .
-                       mysql_error() );
+    mysql_select_db( $databaseName )
+        or ts_operationError( "Could not select $databaseName database: " .
+                              mysql_error() );
     }
 
 
@@ -1880,7 +1883,9 @@ function ts_connectToDatabase() {
  * Closes the database connection.
  */
 function ts_closeDatabase() {
-    mysql_close();
+    global $ts_mysqlLink;
+    
+    mysql_close( $ts_mysqlLink );
     }
 
 
@@ -1893,10 +1898,45 @@ function ts_closeDatabase() {
  * @return a result handle that can be passed to other mysql functions.
  */
 function ts_queryDatabase( $inQueryString ) {
+    global $ts_mysqlLink;
+    
+    if( gettype( $ts_mysqlLink ) != "resource" ) {
+        // not a valid mysql link?
+        ts_connectToDatabase();
+        }
+    
+    $result = mysql_query( $inQueryString );
+    
+    if( $result == FALSE ) {
 
-    $result = mysql_query( $inQueryString )
-        or ts_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                       mysql_error() );
+        $errorNumber = mysql_errno();
+        echo "error: $errorNumber\n";
+        
+        // server lost or gone?
+        if( $errorNumber == 2006 ||
+            $errorNumber == 2013 ||
+            // access denied?
+            $errorNumber == 1044 ||
+            $errorNumber == 1045 ||
+            // no db selected?
+            $errorNumber == 1046 ) {
+
+            // connect again?
+            ts_closeDatabase();
+            ts_connectToDatabase();
+
+            $result = mysql_query( $inQueryString, $ts_mysqlLink )
+                or ts_operationError(
+                    "Database query failed:<BR>$inQueryString<BR><BR>" .
+                    mysql_error() );
+            }
+        else {
+            // some other error (we're still connected, so we can
+            // add log messages to database
+            ts_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
+                           mysql_error() );
+            }
+        }
 
     return $result;
     }

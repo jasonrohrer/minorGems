@@ -1002,12 +1002,12 @@ function ml_connectToDatabase() {
     
     $ml_mysqlLink =
         mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
-        or ml_fatalError( "Could not connect to database server: " .
-                       mysql_error() );
+        or ml_operationError( "Could not connect to database server: " .
+                              mysql_error() );
     
 	mysql_select_db( $databaseName )
-        or ml_fatalError( "Could not select $databaseName database: " .
-                       mysql_error() );
+        or ml_operationError( "Could not select $databaseName database: " .
+                              mysql_error() );
     }
 
 
@@ -1032,10 +1032,44 @@ function ml_closeDatabase() {
  */
 function ml_queryDatabase( $inQueryString ) {
     global $ml_mysqlLink;
+
+    if( gettype( $ml_mysqlLink ) != "resource" ) {
+        // not a valid mysql link?
+        ml_connectToDatabase();
+        }
     
-    $result = mysql_query( $inQueryString, $ml_mysqlLink )
-        or ml_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                       mysql_error() );
+    $result = mysql_query( $inQueryString, $ml_mysqlLink );
+    
+    if( $result == FALSE ) {
+
+        $errorNumber = mysql_errno();
+        echo "error: $errorNumber\n";
+        
+        // server lost or gone?
+        if( $errorNumber == 2006 ||
+            $errorNumber == 2013 ||
+            // access denied?
+            $errorNumber == 1044 ||
+            $errorNumber == 1045 ||
+            // no db selected?
+            $errorNumber == 1046 ) {
+
+            // connect again?
+            ml_closeDatabase();
+            ml_connectToDatabase();
+
+            $result = mysql_query( $inQueryString, $ml_mysqlLink )
+                or ml_operationError(
+                    "Database query failed:<BR>$inQueryString<BR><BR>" .
+                    mysql_error() );
+            }
+        else {
+            // some other error (we're still connected, so we can
+            // add log messages to database
+            ml_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
+                           mysql_error() );
+            }
+        }    
 
     return $result;
     }

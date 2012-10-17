@@ -20,12 +20,12 @@ function be_connectToDatabase() {
     
     $be_mysqlLink = mysql_connect( $be_databaseServer, $be_databaseUsername,
                                    $be_databasePassword )
-        or be_fatalError( "Could not connect to database server: " .
-                          mysql_error() );
+        or be_operationError( "Could not connect to database server: " .
+                              mysql_error() );
     
 	mysql_select_db( $be_databaseName )
-        or be_fatalError( "Could not select $be_databaseName database: " .
-                       mysql_error() );
+        or be_operationError( "Could not select $be_databaseName database: " .
+                              mysql_error() );
     }
 
 
@@ -50,11 +50,45 @@ function be_closeDatabase() {
  */
 function be_queryDatabase( $inQueryString ) {
     global $be_mysqlLink;
-    
-    $result = mysql_query( $inQueryString, $be_mysqlLink )
-        or be_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                       mysql_error() );
 
+    if( gettype( $be_mysqlLink ) != "resource" ) {
+        // not a valid mysql link?
+        be_connectToDatabase();
+        }
+    
+    $result = mysql_query( $inQueryString, $be_mysqlLink );
+    
+    if( $result == FALSE ) {
+
+        $errorNumber = mysql_errno();
+        echo "error: $errorNumber\n";
+        
+        // server lost or gone?
+        if( $errorNumber == 2006 ||
+            $errorNumber == 2013 ||
+            // access denied?
+            $errorNumber == 1044 ||
+            $errorNumber == 1045 ||
+            // no db selected?
+            $errorNumber == 1046 ) {
+
+            // connect again?
+            be_closeDatabase();
+            be_connectToDatabase();
+
+            $result = mysql_query( $inQueryString, $be_mysqlLink )
+                or be_operationError(
+                    "Database query failed:<BR>$inQueryString<BR><BR>" .
+                    mysql_error() );
+            }
+        else {
+            // some other error (we're still connected, so we can
+            // add log messages to database
+            be_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
+                           mysql_error() );
+            }
+        }
+    
     return $result;
     }
 
