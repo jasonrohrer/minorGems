@@ -122,6 +122,9 @@ else if( $action == "confirm" ) {
 else if( $action == "remove" ) {
     ml_remove();
     }
+else if( $action == "mass_remove" ) {
+    ml_massRemove();
+    }
 else if( $action == "show_data" ) {
     ml_showData();
     }
@@ -641,6 +644,74 @@ function ml_remove() {
 
 
 
+function ml_massRemove() {
+    global $tableNamePrefix, $remoteIP, $header, $footer;
+
+    ml_checkPassword( "mass remove" );
+
+    $confirm = ml_requestFilter( "confirm", "/1/" );
+
+
+     if( $confirm != 1 ) {
+         echo "Confirmation checkbox required<hr>";
+         
+         ml_showData( false );
+         return;
+         }
+
+    // input filtering handled below
+    $emails = "";
+    if( isset( $_REQUEST[ "emails" ] ) ) {
+        $emails = $_REQUEST[ "emails" ];
+        }
+    
+    $emailArray = preg_split( "/\s+/", $emails );
+
+    $failedCount = 0;
+    $successCount = 0;
+    foreach( $emailArray as $email ) {
+
+        $unfilteredEmail = $email;
+        $email = ml_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
+        if( $email == "" ) {
+            echo "Invalid email address: $unfilteredEmail<br>";
+            $failedCount++;
+            }
+        else {
+            $query = "DELETE FROM $tableNamePrefix"."recipients ".
+                "WHERE email = '$email';";
+    
+            $result = ml_queryDatabase( $query );
+            $hitCount = mysql_affected_rows();
+
+            if( $hitCount == 1 ) {
+                ml_log( "subscription for $email ".
+                        "mass removed by $remoteIP" );
+                echo "Removed: $email<br>";
+                $successCount++;
+                }
+            else {
+                echo "Not found: $email<br>";
+                $failedCount++;
+                }
+            }
+        }
+
+    $subscriptionWord = "Subscriptions";
+    if( $successCount == 1 ) {
+        $subscriptionWord = "Subscription";
+        }
+    
+    echo "Summary:  $failedCount Failed, ".
+        "$successCount $subscriptionWord Removed";
+    echo "<hr>";
+    ml_showData( false );
+    }
+
+
+
+
 
 
 
@@ -874,6 +945,20 @@ function ml_showData( $checkPassword = true ) {
              <TEXTAREA NAME="emails" COLS=30 ROWS=10></TEXTAREA><br>
     <input type='checkbox' name='confirmed' value='1'> Skip email confirmation<br><br>      
     <INPUT TYPE="Submit" VALUE="Create">
+    </FORM>
+        </td>
+<?php
+             
+    // form for force-removing group of new ids
+?>
+        <td>
+        Mass Removal:<br><br>
+            <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="mass_remove">
+             Emails (one per line):<br>
+             <TEXTAREA NAME="emails" COLS=30 ROWS=10></TEXTAREA><br>
+    <input type='checkbox' name='confirm' value='1'> Confirm<br><br>      
+    <INPUT TYPE="Submit" VALUE="Remove">
     </FORM>
         </td>
 <?php
