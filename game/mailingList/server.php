@@ -314,17 +314,6 @@ function ml_clearLog() {
 
 function ml_subscribe() {
     global $tableNamePrefix, $remoteIP, $header, $footer;
-
-    $manual = ml_requestFilter( "manual", "/1/" );
-
-    $confirmed = 0;
-    
-    if( $manual == 1 ) {
-        ml_checkPassword( "manual subscribe" );
-
-        // only allow force-confirmation for password-checked manual add
-        $confirmed = ml_requestFilter( "confirmed", "/1/", "0" );
-        }
     
     // input filtering handled below
     $email = "";
@@ -332,12 +321,7 @@ function ml_subscribe() {
         $email = $_REQUEST[ "email" ];
         }
 
-    ml_createSubscription( $email, $confirmed, $manual );
-
-    if( $manual ) {
-        echo "<hr>";
-        ml_showData( false );
-        }
+    ml_createSubscription( $email, 0, 0 );
     }
 
 
@@ -920,20 +904,6 @@ function ml_showData( $checkPassword = true ) {
 
 
     
-    // form for force-creating a new id
-?>
-        <td valign=top>
-        Create new Subscription:<br><br>
-            <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="action" VALUE="subscribe">
-    <INPUT TYPE="hidden" NAME="manual" VALUE="1">
-             Email:
-    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"><br>
-    <input type='checkbox' name='confirmed' value='1'> Skip email confirmation<br><br>      
-    <INPUT TYPE="Submit" VALUE="Create">
-    </FORM>
-        </td>
-<?php
 
     // form for force-creating group of new ids
 ?>
