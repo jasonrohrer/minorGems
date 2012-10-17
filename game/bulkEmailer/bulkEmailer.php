@@ -135,10 +135,15 @@ function be_sendBatch() {
 
     while( $foundMessage && $numSent < $be_emailMaxBatchSize ) {
         $foundMessage = false;
-    
+
+
+        // pick the message set that had messages sent the longest time
+        // ago
+        // (As messages are sent from a set, the send_time is updated).
+        // Thus, we never starve a message set if we have concurrent sets.
         $query = "SELECT message_id, subject, body ".
             "FROM $be_tableNamePrefix"."messages ".
-            "ORDER BY send_time DESC LIMIT 1";
+            "ORDER BY send_time ASC LIMIT 1";
         $result = be_queryDatabase( $query );
 
         $numRows = mysql_numrows( $result );
@@ -189,6 +194,15 @@ function be_sendBatch() {
 
                     $numSent ++;
                     }
+
+                // send_time tracks last time messages from this set were
+                // sent
+                // This allows us to juggle concurrent sets without
+                // starving any of them (see ORDER BY above)
+                $query = "UPDATE $be_tableNamePrefix"."messages ".
+                    "SET send_time = CURRENT_TIMESTAMP ".
+                    "WHERE message_id = '$message_id';";
+                be_queryDatabase( $query );
                 }
 
 
