@@ -61,7 +61,6 @@ function be_queryDatabase( $inQueryString ) {
     if( $result == FALSE ) {
 
         $errorNumber = mysql_errno();
-        echo "error: $errorNumber\n";
         
         // server lost or gone?
         if( $errorNumber == 2006 ||
