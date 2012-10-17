@@ -137,7 +137,8 @@ function be_sendBatch() {
         $foundMessage = false;
     
         $query = "SELECT message_id, subject, body ".
-            "FROM $be_tableNamePrefix"."messages ORDER BY send_time LIMIT 1";
+            "FROM $be_tableNamePrefix"."messages ".
+            "ORDER BY send_time DESC LIMIT 1";
         $result = be_queryDatabase( $query );
 
         $numRows = mysql_numrows( $result );
