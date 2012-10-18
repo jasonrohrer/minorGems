@@ -228,6 +228,10 @@ function be_sendBatch() {
                     "WHERE message_id = $message_id;";
                 be_queryDatabase( $query );
                 }
+            else {
+                $reportBody = $reportBody .
+                    "\nRemaining recipients:  $numLeft\n\n";
+                }
             
 
             $reportBody = $reportBody .
