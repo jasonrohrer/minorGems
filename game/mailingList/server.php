@@ -1241,7 +1241,7 @@ function ml_addslashes_deep( $inValue ) {
 function ml_stripslashes_deep( $inValue ) {
     return
         ( is_array( $inValue )
-          ? array_map( 'sb_stripslashes_deep', $inValue )
+          ? array_map( 'ml_stripslashes_deep', $inValue )
           : stripslashes( $inValue ) );
     }
 

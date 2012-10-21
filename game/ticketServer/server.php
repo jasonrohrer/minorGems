@@ -2053,7 +2053,7 @@ function ts_addslashes_deep( $inValue ) {
 function ts_stripslashes_deep( $inValue ) {
     return
         ( is_array( $inValue )
-          ? array_map( 'sb_stripslashes_deep', $inValue )
+          ? array_map( 'ts_stripslashes_deep', $inValue )
           : stripslashes( $inValue ) );
     }
 
