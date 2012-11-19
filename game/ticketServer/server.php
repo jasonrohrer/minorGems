@@ -531,12 +531,14 @@ function ts_getTicketID() {
     $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
 
     $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
-        "WHERE email = '$email';";
+        "WHERE email = '$email' AND blocked = '0';";
     $result = ts_queryDatabase( $query );
 
     $numRows = mysql_numrows( $result );
 
-    if( $numRows == 1 ) {
+    // could be more than one with this email
+    // return first only
+    if( $numRows > 0 ) {
         $ticket_id = mysql_result( $result, 0, "ticket_id" );
         }
     else {
@@ -559,7 +561,6 @@ function ts_getTicketID() {
 
     $ticketArray = str_split( $ticket_id );
     $mixArray = str_split( $hexToMix );
-    $resultArray = array();
     for( $i=0; $i<$ticketLength; $i++ ) {
         $result = strtoupper( dechex(
             hexdec( $ticketArray[$i] ) ^ hexdec( $mixArray[$i] ) ) );
