@@ -42,6 +42,13 @@ $enableLog = 1;
 $accessPassword = "secret";
 
 
+// secret used for encrypting a download code when it is requested for a
+// given email address
+// (for remote procedure calls that need to obtain a download code for a given
+//  user)
+$sharedEncryptionSecret = "secret2";
+
+
 // batch size for sending email to all opt-in users
 // useful if your server has a "max emails per hour" limit
 // (My server has a limit of 1000/hour)

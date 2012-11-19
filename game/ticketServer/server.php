@@ -121,6 +121,9 @@ else if( $action == "show_downloads" ) {
 else if( $action == "download" ) {
     ts_download();
     }
+else if( $action == "get_ticket_id" ) {
+    ts_getTicketID();
+    }
 else if( $action == "show_data" ) {
     ts_showData();
     }
@@ -516,6 +519,52 @@ function ts_sellTicket() {
             }
         }
 
+    }
+
+
+
+
+
+function ts_getTicketID() {
+    global $tableNamePrefix, $sharedEncryptionSecret;
+
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+
+    $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
+        "WHERE email = '$email';";
+    $result = ts_queryDatabase( $query );
+
+    $numRows = mysql_numrows( $result );
+
+    if( $numRows == 1 ) {
+        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+        }
+    else {
+        echo "DENIED";
+        return;
+        }
+
+    // back to hex
+    $digitArray =
+        array( "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" );
+    $letterArray =
+        array( "W", "H", "J", "K", "X", "M", "N", "P", "T", "Y" );
+
+    $ticket_id = str_replace( $letterArray, $digitArray, $ticket_id );
+
+    $ticketLength = strlen( $ticket_id );
+    
+    $hexToMix = strtoupper( substr( md5( $sharedEncryptionSecret ),
+                                    0, $ticketLength  ) );
+
+    $ticketArray = str_split( $ticket_id );
+    $mixArray = str_split( $hexToMix );
+    $resultArray = array();
+    for( $i=0; $i<$ticketLength; $i++ ) {
+        $result = strtoupper( dechex(
+            hexdec( $ticketArray[$i] ) ^ hexdec( $mixArray[$i] ) ) );
+        echo $result;
+        }
     }
 
 
