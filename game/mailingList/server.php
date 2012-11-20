@@ -585,7 +585,10 @@ function ml_remove() {
         "WHERE confirmation_code = '$code';";
     
     $result = ml_queryDatabase( $query );
-    $email = mysql_result( $result, 0, "email" );
+    $email = "";
+    if( mysql_affected_rows() > 0 ) {
+        $email = mysql_result( $result, 0, "email" );
+        }
     
     
     $query = "DELETE FROM $tableNamePrefix"."recipients ".
