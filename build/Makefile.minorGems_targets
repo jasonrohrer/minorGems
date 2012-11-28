@@ -196,6 +196,8 @@ s/^drawUtils.*\.o/$${DRAW_UTILS_O}/; \
 s/^DemoCodeChecker.*\.o/$${DEMO_CODE_CHECKER_O}/; \
 s/^aiff.*\.o/$${AIFF_O}/; \
 s/^jri.*\.o/$${JRI_O}/; \
+s/^SoundSamples.*\.o/$${SOUND_SAMPLES_O}/; \
+s/^ReverbSoundFilter.*\.o/$${REVERB_SOUND_FILTER_O}/; \
 '
 
 
