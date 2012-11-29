@@ -198,6 +198,7 @@ s/^aiff.*\.o/$${AIFF_O}/; \
 s/^jri.*\.o/$${JRI_O}/; \
 s/^SoundSamples.*\.o/$${SOUND_SAMPLES_O}/; \
 s/^ReverbSoundFilter.*\.o/$${REVERB_SOUND_FILTER_O}/; \
+s/^coefficientFilters.*\.o/$${COEFFICIENT_FILTERS_O}/; \
 '
 
 

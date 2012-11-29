@@ -14,6 +14,7 @@
 
 #include "SoundFilter.h"
 
+#include "coefficientFilters.h"
 
 
 /**
@@ -35,7 +36,8 @@ class ReverbSoundFilter : public SoundFilter {
          * @param inDelayInSamples the delay of the reverb.
          * @param inGain the gain level in the range [0,1].
          */
-        ReverbSoundFilter( unsigned long inDelayInSamples, double inGain );
+        ReverbSoundFilter( unsigned long inDelayInSamples, double inGain,
+                           int inSampleRate );
 
         
 
@@ -56,6 +58,8 @@ class ReverbSoundFilter : public SoundFilter {
 
 
         unsigned long mDelayBufferPosition;
+
+        CoeffFilterState mLowPassState;
     };
 
 

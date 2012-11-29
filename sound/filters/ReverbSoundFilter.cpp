@@ -11,11 +11,18 @@
 
 
 
+
+
+
+
+
 ReverbSoundFilter::ReverbSoundFilter( unsigned long inDelayInSamples,
-                                      double inGain )
+                                      double inGain,
+                                      int inSampleRate )
     : mDelayBuffer( new SoundSamples( inDelayInSamples ) ),
       mGain( inGain ),
-      mDelayBufferPosition( 0 ) {
+      mDelayBufferPosition( 0 ),
+      mLowPassState( initLowPass( 250, inSampleRate, 0.7 ) ) {
     
 
     }
@@ -49,9 +56,11 @@ SoundSamples *ReverbSoundFilter::filterSamples( SoundSamples *inSamples ) {
 
         // save our gained output in the delay buffer
         mDelayBuffer->mLeftChannel[ mDelayBufferPosition ] =
-            mGain * outputSamples->mLeftChannel[i];
+            mGain * coeffFilter( outputSamples->mLeftChannel[i], 
+                                 &mLowPassState );
         mDelayBuffer->mRightChannel[ mDelayBufferPosition ] =
-            mGain * outputSamples->mRightChannel[i];
+            mGain * coeffFilter( outputSamples->mRightChannel[i],
+                                 &mLowPassState );
         
         // step through delay buffer, wrapping around at end
         mDelayBufferPosition++;
