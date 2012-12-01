@@ -59,7 +59,8 @@ class ReverbSoundFilter : public SoundFilter {
 
         unsigned long mDelayBufferPosition;
 
-        CoeffFilterState mLowPassState;
+        CoeffFilterState mLowPassStateL;
+        CoeffFilterState mLowPassStateR;
     };
 
 

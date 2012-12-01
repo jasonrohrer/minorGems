@@ -22,7 +22,8 @@ ReverbSoundFilter::ReverbSoundFilter( unsigned long inDelayInSamples,
     : mDelayBuffer( new SoundSamples( inDelayInSamples ) ),
       mGain( inGain ),
       mDelayBufferPosition( 0 ),
-      mLowPassState( initLowPass( 250, inSampleRate, 0.7 ) ) {
+      mLowPassStateL( initLowPass( 500, inSampleRate, 0.7 ) ),
+      mLowPassStateR( initLowPass( 500, inSampleRate, 0.7 ) ) {
     
 
     }
@@ -57,10 +58,10 @@ SoundSamples *ReverbSoundFilter::filterSamples( SoundSamples *inSamples ) {
         // save our gained output in the delay buffer
         mDelayBuffer->mLeftChannel[ mDelayBufferPosition ] =
             mGain * coeffFilter( outputSamples->mLeftChannel[i], 
-                                 &mLowPassState );
+                                 &mLowPassStateL );
         mDelayBuffer->mRightChannel[ mDelayBufferPosition ] =
             mGain * coeffFilter( outputSamples->mRightChannel[i],
-                                 &mLowPassState );
+                                 &mLowPassStateR );
         
         // step through delay buffer, wrapping around at end
         mDelayBufferPosition++;
