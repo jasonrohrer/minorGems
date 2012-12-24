@@ -271,6 +271,16 @@ class Image : public Serializable {
                             int inWidth, int inHeight );
         
 
+        /**
+         * Generated a 4-channel (alpha) image from a 3-channel image
+         * by using the color of the lower left corner pixel as a transparent
+         * background color.
+         *
+         * @return a new 4-channel image.  Must be destoryed by caller.
+         */
+        Image *generateAlphaChannel();
+        
+
 		
 		// implement the Serializable interface
 		virtual int serialize( OutputStream *inOutputStream );
@@ -562,6 +572,56 @@ inline Image *Image::getSubImage( int inStartX, int inStartY,
         }
     
     return destImage;
+    }
+
+
+
+
+
+inline Image *Image::generateAlphaChannel() {
+    Image *fourChannelImage = new Image( getWidth(),
+                                         getHeight(),
+                                         4, false );
+        
+    // copy first three
+    for( int c=0; c<3; c++ ) {
+        fourChannelImage->pasteChannel( getChannel( c ),
+                                        c );
+        }
+
+    double *r = fourChannelImage->getChannel( 0 );
+    double *g = fourChannelImage->getChannel( 1 );
+    double *b = fourChannelImage->getChannel( 2 );
+        
+    // index of transparency
+    int tI = 
+        fourChannelImage->getWidth() * 
+        ( fourChannelImage->getHeight() - 1 );
+        
+    // color of transparency
+    double tR = r[tI];
+    double tG = g[tI];
+    double tB = b[tI];
+    
+    double *alpha = fourChannelImage->getChannel( 3 );
+    
+    int numPixels = 
+        fourChannelImage->getWidth() * 
+        fourChannelImage->getHeight();
+        
+    for( int i=0; i<numPixels; i++ ) {
+            
+        if( r[i] == tR && 
+            g[i] == tG && 
+            b[i] == tB ) {
+            alpha[i] = 0;
+            }
+        else {
+            alpha[i] = 1;
+            }
+        }
+    
+    return fourChannelImage;
     }
 
     

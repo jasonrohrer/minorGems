@@ -33,51 +33,8 @@ void SpriteGL::initTexture( Image *inImage,
     
     if( spriteImage->getNumChannels() == 3 && inTransparentLowerLeftCorner ) {
         // use lower-left corner color as transparent color for alpha
-
-        Image *fourChannelImage = new Image( spriteImage->getWidth(),
-                                             spriteImage->getHeight(),
-                                             4, false );
-        
-        // copy first three
-        for( int c=0; c<3; c++ ) {
-            fourChannelImage->pasteChannel( spriteImage->getChannel( c ),
-                                            c );
-            }
-
-        double *r = fourChannelImage->getChannel( 0 );
-        double *g = fourChannelImage->getChannel( 1 );
-        double *b = fourChannelImage->getChannel( 2 );
-        
-        // index of transparency
-        int tI = 
-            fourChannelImage->getWidth() * 
-            ( fourChannelImage->getHeight() - 1 );
-        
-        // color of transparency
-        double tR = r[tI];
-        double tG = g[tI];
-        double tB = b[tI];
-        
-        double *alpha = fourChannelImage->getChannel( 3 );
-        
-        int numPixels = 
-            fourChannelImage->getWidth() * 
-            fourChannelImage->getHeight();
-        
-        for( int i=0; i<numPixels; i++ ) {
-            
-            if( r[i] == tR && 
-                g[i] == tG && 
-                b[i] == tB ) {
-                alpha[i] = 0;
-                }
-            else {
-                alpha[i] = 1;
-                }
-            }
-
-        spriteImage = fourChannelImage;
-        imageToDelete = fourChannelImage;
+        spriteImage = spriteImage->generateAlphaChannel();
+        imageToDelete = spriteImage;
         }
     
                 
