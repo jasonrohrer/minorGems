@@ -1087,6 +1087,7 @@ void ScreenGL::playNextEventBatch() {
                     }
                 
                 mPendingWebEvents.push_back( e );
+                break;
                 }
             default:
                 AppLog::getLog()->logPrintf( 
