@@ -9,6 +9,9 @@
  * 2003-September-15   Jason Rohrer
  * Added support for hashing raw (non-string) data.
  * Removed legacy C code.
+ *
+ * 2013-January-7   Jason Rohrer
+ * Added HMAC-SHA1 implementation.
  */
 
 
@@ -134,6 +137,11 @@ char *computeSHA1Digest( unsigned char *inData, int inDataLength );
  *   Must be destroyed by caller.
  */
 char *computeSHA1Digest( char *inString );
+
+
+
+// computes SHA-1 based HMAC as defined in RFC 2104
+char *hmac_sha1( const char *inKey, const char *inData );
 
 
 

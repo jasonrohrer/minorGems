@@ -18,6 +18,9 @@
  *
  * 2004-January-13   Jason Rohrer
  * Fixed system includes.
+ *
+ * 2013-January-7   Jason Rohrer
+ * Added HMAC-SHA1 implementation.
  */
 
 
@@ -259,6 +262,109 @@ char *computeSHA1Digest( unsigned char *inData, int inDataLength ) {
     delete [] digest;
     
     return digestHexString;
+    }
+
+
+
+
+
+// returns new data buffer of length inALength + inBLength
+static unsigned char *dataConcat( unsigned char *inA, int inALength,
+                                  unsigned char *inB, int inBLength ) {
+    int netLength = inALength + inBLength;
+    
+    unsigned char *netData = new unsigned char[ netLength ];
+    int i=0;
+    for( int j=0; j<inALength; j++ ) {
+        netData[i] = inA[j];
+        i++;
+        }
+    for( int j=0; j<inBLength; j++ ) {
+        netData[i] = inB[j];
+        i++;
+        }
+    
+    return netData;
+    }
+
+
+
+
+#include "minorGems/util/stringUtils.h"
+ 
+char *hmac_sha1( const char *inKey, const char *inData ) {
+    unsigned char *keyRaw = (unsigned char*)stringDuplicate( inKey );
+    int keyLength = strlen( inKey );
+    
+    
+    //unsigned char *computeRawSHA1Digest( unsigned char *inData, int inDataLength 
+    
+    // shorten long keys down to 20 byte hash of key, if needed
+    if( keyLength > SHA1_BLOCK_LENGTH ) {
+        unsigned char *newKey = computeRawSHA1Digest( keyRaw, keyLength );
+        delete [] keyRaw;
+        keyRaw = newKey;
+        keyLength = SHA1_DIGEST_LENGTH;
+        }
+
+    // pad key out to blocksize with zeros 
+    if( keyLength < SHA1_BLOCK_LENGTH ) {
+        unsigned char *newKey = new unsigned char[ SHA1_BLOCK_LENGTH ];
+        memset( newKey, 0, SHA1_BLOCK_LENGTH );
+        
+        memcpy( newKey, keyRaw, keyLength );
+
+        delete [] keyRaw;
+
+        keyRaw = newKey;
+        keyLength = SHA1_BLOCK_LENGTH;
+        }
+    
+    // computer inner and outer keys by XORing with data block
+
+    unsigned char *outerKey = new unsigned char[ keyLength ];
+    unsigned char *innerKey = new unsigned char[ keyLength ];
+    
+    for( int i=0; i<keyLength; i++ ) {
+        outerKey[i] = 0x5c ^ keyRaw[i];
+        innerKey[i] = 0x36 ^ keyRaw[i];
+        }
+    delete [] keyRaw;
+
+
+    int dataLength = strlen( inData );
+
+    int innerDataLength = keyLength +dataLength;
+    
+    unsigned char *innerData = dataConcat( innerKey, keyLength,
+                                           (unsigned char*)inData, 
+                                           dataLength );
+    
+    delete [] innerKey;
+
+
+    unsigned char *innerHash = computeRawSHA1Digest( innerData, 
+                                                     innerDataLength );
+    
+    delete [] innerData;
+    
+
+    int outerDataLength = keyLength + SHA1_DIGEST_LENGTH;
+    
+    unsigned char *outerData = dataConcat( outerKey, keyLength,
+                                           innerHash, SHA1_DIGEST_LENGTH );
+    
+    delete [] outerKey;
+    delete [] innerHash;
+    
+    
+
+    char *digest = computeSHA1Digest( outerData, outerDataLength );
+    
+    delete [] outerData;
+    
+
+    return digest;
     }
 
 
