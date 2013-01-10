@@ -2137,7 +2137,7 @@ function ts_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
 // It then sets a new cookie for the next request.
 //
 // This avoids storing the password itself in the cookie, so a stale cookie
-// (cached by a browser) can't be used to figure out the cookie and log in
+// (cached by a browser) can't be used to figure out the password and log in
 // later. 
 function ts_checkPassword( $inFunctionName ) {
     $password = "";
@@ -2146,7 +2146,7 @@ function ts_checkPassword( $inFunctionName ) {
     $badCookie = false;
     
     
-    global $accessPassword, $tableNamePrefix, $remoteIP;
+    global $accessPasswords, $tableNamePrefix, $remoteIP, $enableYubikey;
 
     $cookieName = $tableNamePrefix . "cookie_password_hash";
 
@@ -2177,13 +2177,16 @@ function ts_checkPassword( $inFunctionName ) {
             
             $salt = $hashParts[0];
             $hash = $hashParts[1];
+
+            foreach( $accessPasswords as $truePassword ) {    
+                $trueHash = md5( $salt . $truePassword );
             
-            $trueHash = md5( $salt . $accessPassword );
-            
-            if( $trueHash == $hash ) {
-                $password = $accessPassword;
-                $badCookie = false;
+                if( $trueHash == $hash ) {
+                    $password = $truePassword;
+                    $badCookie = false;
+                    }
                 }
+            
             }
         }
     else {
@@ -2195,25 +2198,100 @@ function ts_checkPassword( $inFunctionName ) {
     
         
     
-    if( $password != $accessPassword ) {
+    if( ! in_array( $password, $accessPasswords ) ) {
 
         if( ! $badCookie ) {
             
             echo "Incorrect password.";
 
-            ts_log( "Failed $inFunctionName access with password:  ".
+            cd_log( "Failed $inFunctionName access with password:  ".
                     "$password" );
             }
         else {
             echo "Session expired.";
                 
-            ts_log( "Failed $inFunctionName access with bad cookie:  ".
+            cd_log( "Failed $inFunctionName access with bad cookie:  ".
                     "$password_hash" );
             }
         
         die();
         }
     else {
+        
+        if( $enableYubikey ) {
+            global $yubikeyIDs, $yubicoClientID, $yubicoSecretKey,
+                $serverSecretKey;
+            
+            $yubikey = $_REQUEST[ "yubikey" ];
+
+            $index = array_search( $password, $accessPasswords );
+            $yubikeyID = $yubikeyIDs[ $index ];
+
+            $providedID = substr( $yubikey, 0, 12 );
+
+            if( $providedID != $yubikeyID ) {
+                echo "Provided Yubikey does not match ID for this password.";
+                die();
+                }
+            
+            
+            $nonce = ts_hmac_sha1( $serverSecretKey, uniqid() );
+            
+            $callURL =
+                "http://api2.yubico.com/wsapi/2.0/verify?id=$yubicoClientID".
+                "&otp=$yubikey&nonce=$nonce";
+            
+            $result = trim( file_get_contents( $callURL ) );
+
+            $resultLines = preg_split( "/\s+/", $result );
+
+            sort( $resultLines );
+
+            $resultPairs = array();
+
+            $messageToSignParts = array();
+            
+            foreach( $resultLines as $line ) {
+                // careful here, because = is used in base-64 encoding
+                // replace first = in a line (the key/value separator)
+                // with #
+                
+                $lineToParse = preg_replace( '/=/', '#', $line, 1 );
+
+                // now split on # instead of =
+                $parts = preg_split( "/#/", $lineToParse );
+
+                $resultPairs[$parts[0]] = $parts[1];
+
+                if( $parts[0] != "h" ) {
+                    // include all but signature in message to sign
+                    $messageToSignParts[] = $line;
+                    }
+                }
+            $messageToSign = implode( "&", $messageToSignParts );
+
+            $trueSig =
+                base64_encode(
+                    hash_hmac( 'sha1',
+                               $messageToSign,
+                               // need to pass in raw key
+                               base64_decode( $yubicoSecretKey ),
+                               true) );
+            
+            if( $trueSig != $resultPairs["h"] ) {
+                echo "Yubikey authentication failed.<br>";
+                echo "Bad signature from authentication server<br>";
+                die();
+                }
+
+            $status = $resultPairs["status"];
+            if( $status != "OK" ) {
+                echo "Yubikey authentication failed: $status";
+                die();
+                }
+
+            }
+        
         // set cookie again, renewing it, expires in 24 hours
         $expireTime = time() + 60 * 60 * 24;
     
@@ -2292,5 +2370,12 @@ function ts_send_file( $path ) {
     return( (connection_status() == 0 ) and !connection_aborted() );
     }
 
+
+
+
+function ts_hmac_sha1( $inKey, $inData ) {
+    return hash_hmac( "sha1", 
+                      $inData, $inKey );
+    } 
 
 ?>

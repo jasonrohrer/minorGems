@@ -38,9 +38,23 @@ $tableNamePrefix = "ticketServer_";
 
 $enableLog = 1;
 
-// for web-based admin access
-$accessPassword = "secret";
 
+// should web-based admin require yubikey two-factor authentication?
+$enableYubikey = 1;
+
+// 12-character Yubikey IDs, one for each access password
+$yubikeyIDs = array( "ccccccbjlfbi", "ccccccbjlfbi" );
+
+// used for verifying response that comes back from yubico
+// Note that these are working values, but because they are in a public
+// repository, they are not secret and should be replaced with your own
+// values (go here:  https://upgrade.yubico.com/getapikey/ )
+$yubicoClientID = "9943";
+$yubicoSecretKey = "rcGgz0rca1gqqsa/GDMwXFAHjWw=";
+
+
+// for web-based admin access
+$accessPasswords = array( "secret", "secret2" );
 
 // secret used for encrypting a download code when it is requested for a
 // given email address
