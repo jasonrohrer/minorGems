@@ -42,8 +42,10 @@ $enableLog = 1;
 // should web-based admin require yubikey two-factor authentication?
 $enableYubikey = 1;
 
-// 12-character Yubikey IDs, one for each access password
-$yubikeyIDs = array( "ccccccbjlfbi", "ccccccbjlfbi" );
+// 12-character Yubikey IDs, one list for each access password
+// each list is a set of ids separated by :
+// (there can be more than one Yubikey ID associated with each password)
+$yubikeyIDs = array( "ccccccbjlfbi:ccccccbjlfbi", "ccccccbjlfbi" );
 
 // used for verifying response that comes back from yubico
 // Note that these are working values, but because they are in a public

@@ -2225,11 +2225,11 @@ function ts_checkPassword( $inFunctionName ) {
             $yubikey = $_REQUEST[ "yubikey" ];
 
             $index = array_search( $password, $accessPasswords );
-            $yubikeyID = $yubikeyIDs[ $index ];
+            $yubikeyIDList = preg_split( "/:/", $yubikeyIDs[ $index ] );
 
             $providedID = substr( $yubikey, 0, 12 );
 
-            if( $providedID != $yubikeyID ) {
+            if( ! in_array( $providedID, $yubikeyIDList ) ) {
                 echo "Provided Yubikey does not match ID for this password.";
                 die();
                 }
