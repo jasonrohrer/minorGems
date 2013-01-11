@@ -74,7 +74,8 @@ $accessPasswords = array( "secret", "secret2" );
 // given email address
 // (for remote procedure calls that need to obtain a download code for a given
 //  user)
-$sharedEncryptionSecret = "secret2";
+// MUST replace this to keep ticket ids secret from outsiders
+$sharedEncryptionSecret = "19fbc6168268d7a80945e35d999f0d0ddae4cdff";
 
 
 // batch size for sending email to all opt-in users
