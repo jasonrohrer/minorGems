@@ -36,6 +36,18 @@ $mainSiteURL = "http://sleepisdeath.net";
 $tableNamePrefix = "ticketServer_";
 
 
+// number of base-34 digits (A-NP-Z, 1-9) in each ticket ID
+// Tickets are broken up into clumps of 5 digits separated by "-"
+// max supported length is 210 (with separators inserted, this is a
+// 251-character string)
+$ticketIDLength = 10;
+
+// Replace this with a secret string.
+// Used when generating random, unguessable ticket IDs
+$ticketGenerationSecret = "b9336d21169bd0b46af2f655a7fda7b09cc2f7d7";
+
+
+
 $enableLog = 1;
 
 

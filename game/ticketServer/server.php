@@ -16,6 +16,15 @@ include( "settings.php" );
 // no end-user settings below this point
 
 
+// for use in readable base-32 encoding
+// elimates 0/O and 1/I
+global $readableBase32DigitArray;
+$readableBase32DigitArray =
+    array( "2", "3", "4", "5", "6", "7", "8", "9",
+           "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M",
+           "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" );
+
+
 
 // no caching
 //header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -251,7 +260,7 @@ function ts_setupDatabase() {
         // this table contains general info about each ticket
         $query =
             "CREATE TABLE $tableName(" .
-            "ticket_id CHAR(10) NOT NULL PRIMARY KEY," .
+            "ticket_id VARCHAR(255) NOT NULL PRIMARY KEY," .
             "sale_date DATETIME NOT NULL," .
             "last_download_date DATETIME NOT NULL," .
             "name TEXT NOT NULL, ".
@@ -359,6 +368,7 @@ function ts_clearLog() {
 
 function ts_sellTicket() {
     global $tableNamePrefix, $fastspringPrivateKeys, $remoteIP;
+    global $ticketIDLength, $ticketGenerationSecret;
 
 
     $tags = ts_requestFilter( "tags", "/[A-Z0-9_,-]+/i" );
@@ -456,29 +466,38 @@ function ts_sellTicket() {
     
     while( ! $found_unused_id ) {
 
-        $randVal = rand();
-        
-        $hash = md5( $name . uniqid( "$randVal"."$salt", true ) );
-
-        $hash = strtoupper( $hash );
         
         
-        $ticket_id = substr( $hash, 0, 10 );
+        $ticket_id = "";
 
+        // repeat hashing new rand values, mixed with our secret
+        // for security, until we have generated enough digits.
+        while( strlen( $ticket_id ) < $ticketIDLength ) {
+
+            $randVal = rand();
+            
+            $hash_bin =
+                ts_hmac_sha1_raw( $ticketGenerationSecret,
+                                  $name . uniqid( "$randVal"."$salt", true ) );
+
+            
+            $hash_base32 = ts_readableBase32Encode( $hash_bin );
+
+            $digitsLeft = $ticketIDLength - strlen( $ticket_id );
+
+            $ticket_id = $ticket_id . substr( $hash_base32, 0, $digitsLeft );
+            }
 
         
-        // make code more human-friendly (alpha only)
+        // break into "-" separated chunks of 5 digits
+        $ticket_id_chunks = str_split( $ticket_id, 5 );
 
-        $digitArray =
-            array( "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" );
-        $letterArray =
-            array( "W", "H", "J", "K", "X", "M", "N", "P", "T", "Y" );
-
-        $ticket_id = str_replace( $digitArray, $letterArray, $ticket_id );
-
+        $ticket_id = implode( "-", $ticket_id_chunks );
+        
+        
 
         /*
-"ticket_id CHAR(10) NOT NULL PRIMARY KEY," .
+"ticket_id VARCHAR(255) NOT NULL PRIMARY KEY," .
             "sale_date DATETIME NOT NULL," .
             "last_download_date DATETIME NOT NULL," .
             "name TEXT NOT NULL, ".
@@ -577,7 +596,7 @@ function ts_editTicket() {
     global $tableNamePrefix, $remoteIP;
 
 
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
     
@@ -629,7 +648,7 @@ function ts_blockTicketID() {
 
     global $tableNamePrefix;
 
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
     
@@ -676,7 +695,7 @@ function ts_deleteTicketID() {
 
     global $tableNamePrefix, $remoteIP;
 
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
     
@@ -704,7 +723,7 @@ function ts_deleteTicketID() {
 
 function ts_downloadAllowed() {
 
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
     
     $ticket_id = strtoupper( $ticket_id );    
     
@@ -831,7 +850,7 @@ function ts_printLink( $inFileName, $inTicketID ) {
 
 
 function ts_showDownloads() {
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );    
     
@@ -891,7 +910,7 @@ function ts_showDownloads() {
 
 
 function ts_download() {
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
     
     $ticket_id = strtoupper( $ticket_id );    
 
@@ -967,7 +986,7 @@ function ts_download() {
 
 
 function ts_emailOptIn() {
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
     
     $ticket_id = strtoupper( $ticket_id );    
 
@@ -1436,7 +1455,7 @@ function ts_showDetail() {
     global $tableNamePrefix;
     
 
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
 
@@ -1591,7 +1610,7 @@ function ts_sendSingleEmail() {
         return;
         }
 
-    $ticket_id = ts_requestFilter( "ticket_id", "/[A-Z]+/i" );
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
 
     $ticket_id = strtoupper( $ticket_id );
 
@@ -2150,8 +2169,11 @@ function ts_checkPassword( $inFunctionName ) {
 
     $cookieName = $tableNamePrefix . "cookie_password_hash";
 
+    $passwordSent = false;
     
     if( isset( $_REQUEST[ "password" ] ) ) {
+        $passwordSent = true;
+        
         $password = $_REQUEST[ "password" ];
 
         // generate a new hash cookie from this password
@@ -2218,7 +2240,7 @@ function ts_checkPassword( $inFunctionName ) {
         }
     else {
         
-        if( $enableYubikey ) {
+        if( $passwordSent && $enableYubikey ) {
             global $yubikeyIDs, $yubicoClientID, $yubicoSecretKey,
                 $serverSecretKey;
             
@@ -2378,4 +2400,51 @@ function ts_hmac_sha1( $inKey, $inData ) {
                       $inData, $inKey );
     } 
 
+ 
+function ts_hmac_sha1_raw( $inKey, $inData ) {
+    return hash_hmac( "sha1", 
+                      $inData, $inKey, true );
+    } 
+
+
+ 
+// convert a binary string into a "readable" base-32 encoding
+function ts_readableBase32Encode( $inBinaryString ) {
+    global $readableBase32DigitArray;
+    
+    $binaryDigits = str_split( $inBinaryString );
+
+    // string of 0s and 1s
+    $binString = "";
+    
+    foreach( $binaryDigits as $digit ) {
+        $binDigitString = decbin( ord( $digit ) );
+
+        // pad with 0s
+        $binDigitString =
+            substr( "00000000", 0, 8 - strlen( $binDigitString ) ) .
+            $binDigitString;
+
+        $binString = $binString . $binDigitString;
+        }
+    $length = strlen( $binString );
+    
+    // now have full string of 0s and 1s for $inBinaryString
+
+    // chunks of 5 bits
+    $chunksOfFive = str_split( $binString, 5 );
+
+    $encodedString = "";
+    foreach( $chunksOfFive as $chunk ) {
+        $index = bindec( $chunk );
+
+        $encodedString = $encodedString . $readableBase32DigitArray[ $index ];
+        }
+    
+    return $encodedString;
+    } 
+ 
+
+
+ 
 ?>
