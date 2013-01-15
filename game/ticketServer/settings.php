@@ -36,10 +36,11 @@ $mainSiteURL = "http://sleepisdeath.net";
 $tableNamePrefix = "ticketServer_";
 
 
-// number of base-34 digits (A-NP-Z, 1-9) in each ticket ID
+// number of "readable base-32" digits (2-9,A-H,J-N,P-Z) in each ticket ID
 // Tickets are broken up into clumps of 5 digits separated by "-"
 // max supported length is 210 (with separators inserted, this is a
 // 251-character string)
+// 5 bits of security per digit.
 $ticketIDLength = 10;
 
 // Replace this with a secret string.
