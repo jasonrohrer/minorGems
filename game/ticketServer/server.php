@@ -2195,7 +2195,8 @@ function ts_checkPassword( $inFunctionName ) {
     $badCookie = false;
     
     
-    global $accessPasswords, $tableNamePrefix, $remoteIP, $enableYubikey;
+    global $accessPasswords, $tableNamePrefix, $remoteIP, $enableYubikey,
+        $passwordHashingPepper;
 
     $cookieName = $tableNamePrefix . "cookie_password_hash";
 
@@ -2204,7 +2205,8 @@ function ts_checkPassword( $inFunctionName ) {
     if( isset( $_REQUEST[ "password" ] ) ) {
         $passwordSent = true;
         
-        $password = $_REQUEST[ "password" ];
+        $password = ts_hmac_sha1( $passwordHashingPepper,
+                                  $_REQUEST[ "password" ] );
 
         // generate a new hash cookie from this password
         $newSalt = time();
