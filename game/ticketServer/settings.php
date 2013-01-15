@@ -57,7 +57,7 @@ $enableYubikey = 1;
 // 12-character Yubikey IDs, one list for each access password
 // each list is a set of ids separated by :
 // (there can be more than one Yubikey ID associated with each password)
-$yubikeyIDs = array( "ccccccbjlfbi:ccccccbjlfbi", "ccccccbjlfbi" );
+$yubikeyIDs = array( "ccccccbjlfbi:ccccccbjnhjc:ccccccbjnhjn", "ccccccbjlfbi" );
 
 // used for verifying response that comes back from yubico
 // Note that these are working values, but because they are in a public
