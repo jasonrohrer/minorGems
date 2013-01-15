@@ -47,17 +47,42 @@ server.php
 Returned code is encrypted in the following fashion:
 
 
-  substring( md5( $sharedEncryptionSecret ), 10 ) XOR toHex( ticket_id )
+  substring( toBits( sha1( $sharedEncryptionSecret ) ), LENGTH ) 
+  XOR 
+  toBits( ticket_id )
 
 
-Where toHex converts a ticket ID back to hex with the following mapping:
+Where LENGTH is the number of bits in ticket_id.  If LENGTH is longer than
+160 bits (sha1 length), extra bits are generated and appended via:
 
-array( "W", "H", "J", "K", "X", "M", "N", "P", "T", "Y" );
- ==>
-array( "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" );
+  sha1( sha1( $sharedEncryptionSecret ) )
+
+If more bits are needed, extra bits are generated and appended via:
+
+  sha1( sha1( sha1( $sharedEncryptionSecret ) ) )
+
+And so on.
 
 
-and XOR is a bit-wise XOR on ten pairs of hex-encoded numbers.
+ticket_id values are in "readable base-32", which is base 32 with possibly
+confused characters (0/O and 1/I) removed for readability, and hyphens added
+to break the string into clusters of 5 digits.
+
+Numbers 0, ..., 31 are encoded by the following characters:
+
+"2", "3", "4", "5", "6", "7", "8", "9",
+"A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M",
+"N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+
+
+toBits simply converts a given encoding (hex or base-32) into binary.
+
+
+and XOR is a bit-wise XOR operation.
+
+
+The resulting bit string is re-encoded in readable base-32, without hyphens
+
 
 
 Returns DENIED if email not found or user blocked.

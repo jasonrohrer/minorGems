@@ -565,26 +565,56 @@ function ts_getTicketID() {
         return;
         }
 
-    // back to hex
-    $digitArray =
-        array( "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" );
-    $letterArray =
-        array( "W", "H", "J", "K", "X", "M", "N", "P", "T", "Y" );
 
-    $ticket_id = str_replace( $letterArray, $digitArray, $ticket_id );
-
-    $ticketLength = strlen( $ticket_id );
     
-    $hexToMix = strtoupper( substr( md5( $sharedEncryptionSecret ),
-                                    0, $ticketLength  ) );
+    // remove hyphens
+    $ticket_id = implode( preg_split( "/-/", $ticket_id ) );
 
-    $ticketArray = str_split( $ticket_id );
-    $mixArray = str_split( $hexToMix );
-    for( $i=0; $i<$ticketLength; $i++ ) {
-        $result = strtoupper( dechex(
-            hexdec( $ticketArray[$i] ) ^ hexdec( $mixArray[$i] ) ) );
-        echo $result;
+    $ticket_id_bits = ts_readableBase32DecodeToBitString( $ticket_id );
+
+    $ticketLengthBits = strlen( $ticket_id_bits );
+
+
+    // generate enough bits by hashing shared secret repeatedly
+    $hexToMixBits = "";
+
+    $runningSecret = sha1( $sharedEncryptionSecret );
+    while( strlen( $hexToMixBits ) < $ticketLengthBits ) {
+
+        $newBits = ts_hexDecodeToBitString( $runningSecret );
+
+        $hexToMixBits = $hexToMixBits . $newBits;
+
+        $runningSecret = sha1( $runningSecret );
         }
+
+    // trim down to bits that we need
+    $hexToMixBits = substr( $hexToMixBits, 0, $ticketLengthBits );
+
+    $mixBits = str_split( $hexToMixBits );
+    $ticketBits = str_split( $ticket_id_bits );
+
+    // bitwise xor
+    $i = 0;
+    foreach( $mixBits as $bit ) {
+        if( $bit == "1" ) {
+            if( $ticket_id_bits[$i] == "1" ) {
+                
+                $ticketBits[$i] = "0";
+                }
+            else {
+                $ticketBits[$i] = "1";
+                }
+            }
+        $i++;
+        }
+
+    $ticket_id_bits = implode( $ticketBits );
+
+    $encrypted_ticket_id =
+        ts_readableBase32EncodeFromBitString( $ticket_id_bits );
+
+    echo "$encrypted_ticket_id";
     }
 
 
@@ -2427,12 +2457,22 @@ function ts_readableBase32Encode( $inBinaryString ) {
 
         $binString = $binString . $binDigitString;
         }
-    $length = strlen( $binString );
-    
+
     // now have full string of 0s and 1s for $inBinaryString
 
+    return ts_readableBase32EncodeFromBitString( $inBinaryString );
+    } 
+
+
+
+
+// encodes a string of 0s and 1s into an ASCII readable-base32 string 
+function ts_readableBase32EncodeFromBitString( $inBitString ) {
+    global $readableBase32DigitArray;
+
+
     // chunks of 5 bits
-    $chunksOfFive = str_split( $binString, 5 );
+    $chunksOfFive = str_split( $inBitString, 5 );
 
     $encodedString = "";
     foreach( $chunksOfFive as $chunk ) {
@@ -2442,7 +2482,59 @@ function ts_readableBase32Encode( $inBinaryString ) {
         }
     
     return $encodedString;
-    } 
+    }
+ 
+
+
+// decodes an ASCII readable-base32 string into a string of 0s and 1s 
+function ts_readableBase32DecodeToBitString( $inBase32String ) {
+    global $readableBase32DigitArray;
+    
+    $digits = str_split( $inBase32String );
+
+    $bitString = "";
+
+    foreach( $digits as $digit ) {
+        $index = array_search( $digit, $readableBase32DigitArray );
+
+        $binDigitString = decbin( $index );
+
+        // pad with 0s
+        $binDigitString =
+            substr( "00000", 0, 5 - strlen( $binDigitString ) ) .
+            $binDigitString;
+
+        $bitString = $bitString . $binDigitString;
+        }
+
+    return $bitString;
+    }
+ 
+ 
+ 
+// decodes a ASCII hex string into an array of 0s and 1s 
+function ts_hexDecodeToBitString( $inHexString ) {
+        global $readableBase32DigitArray;
+    
+    $digits = str_split( $inHexString );
+
+    $bitString = "";
+
+    foreach( $digits as $digit ) {
+        $index = hexdec( $digit );
+
+        $binDigitString = decbin( $index );
+
+        // pad with 0s
+        $binDigitString =
+            substr( "0000", 0, 4 - strlen( $binDigitString ) ) .
+            $binDigitString;
+
+        $bitString = $bitString . $binDigitString;
+        }
+
+    return $bitString;
+    }
  
 
 
