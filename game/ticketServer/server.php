@@ -2258,13 +2258,13 @@ function ts_checkPassword( $inFunctionName ) {
             
             echo "Incorrect password.";
 
-            cd_log( "Failed $inFunctionName access with password:  ".
+            ts_log( "Failed $inFunctionName access with password:  ".
                     "$password" );
             }
         else {
             echo "Session expired.";
                 
-            cd_log( "Failed $inFunctionName access with bad cookie:  ".
+            ts_log( "Failed $inFunctionName access with bad cookie:  ".
                     "$password_hash" );
             }
         
@@ -2462,7 +2462,7 @@ function ts_readableBase32Encode( $inBinaryString ) {
 
     // now have full string of 0s and 1s for $inBinaryString
 
-    return ts_readableBase32EncodeFromBitString( $inBinaryString );
+    return ts_readableBase32EncodeFromBitString( $binString );
     } 
 
 
