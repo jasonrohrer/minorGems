@@ -146,6 +146,17 @@ char isCommandKeyDown();
 
 
 
+// true if clipboard works on this platform
+// false otherwise
+char isClipboardSupported();
+
+
+// gets text from system's copy/paste clipboard
+// returns newly allocated string
+char *getClipboardText();
+
+
+
 // sample rate shared by game engine and sound rendering platform
 //#define gameSoundSampleRate 22050
 //#define gameSoundSampleRate 44100

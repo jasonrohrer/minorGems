@@ -1973,6 +1973,17 @@ void clearWebRequest( int inHandle ) {
 
 
 
+char isClipboardSupported() {
+    return true;
+    }
+
+
+
+char *getClipboardText() {
+    return stringDuplicate( "CLIPBOARD" );
+    }
+
+
 
 
 
