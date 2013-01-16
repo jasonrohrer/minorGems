@@ -660,8 +660,9 @@ function ts_editTicket() {
     if( $result ) {
         ts_log( "$ticket_id data changed by $remoteIP" );
         echo "Update of $ticket_id succeeded<br><br>";
-        
-        ts_showDetail();
+
+        // don't check password again here
+        ts_showDetail( false );
         }
     else {
         ts_log( "$ticket_id data change failed for $remoteIP" );
@@ -1476,9 +1477,11 @@ function ts_showData( $checkPassword = true ) {
 
 
 
-function ts_showDetail() {
-    ts_checkPassword( "show_detail" );
-
+function ts_showDetail( $checkPassword = true ) {
+    if( $checkPassword ) {
+        ts_checkPassword( "show_detail" );
+        }
+    
     echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
