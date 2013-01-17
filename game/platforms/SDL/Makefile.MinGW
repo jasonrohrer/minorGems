@@ -23,7 +23,7 @@ PLATFORM_COMPILE_FLAGS = -DWIN_32 -DSTATICLIB
 
 # need various GL libraries, winmm, and portaudio
 # -mwindows tells mingw to hide the dos command window on launch
-PLATFORM_LINK_FLAGS = -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL -mwindows -lwsock32
+PLATFORM_LINK_FLAGS = -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL -mwindows -lwsock32 -static-libstdc++ -static-libgcc
 
 # not used for some builds
 PLATFORM_LIBJPEG_FLAG = -ljpeg
