@@ -2071,9 +2071,34 @@ char *getClipboardText() {
 
 
 #elif defined(__mac__)
+
+// pbpaste command line trick found here:
+// http://www.alecjacobson.com/weblog/?p=2376
+
 char *getClipboardText() {
-    return stringDuplicate( "" );
+    FILE* pipe = popen( "pbpaste", "r");
+    if( pipe == NULL ) {
+        return stringDuplicate( "" );
+        }
+    
+    char buffer[ 128 ];
+    
+    char *result = stringDuplicate( "" );
+    
+    // read until pipe closed
+    while( ! feof( pipe ) ) {
+        if( fgets( buffer, 128, pipe ) != NULL ) {            
+            char *newResult = concatonate( result, buffer );
+            delete [] result;
+            result = newResult;
+            }
+        }
+    pclose( pipe );
+
+    
+    return result;
     }
+
 #elif defined(WIN_32)
 
 // simple windows clipboard solution found here:
