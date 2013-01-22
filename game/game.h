@@ -37,6 +37,15 @@ const char *getFontTGAFileName();
 // String might contain multiple lines separated by '\n'
 void drawString( const char *inString );
 
+// called by platform to allow game to initialize resources needed for
+// drawing strings
+// drawString can be called BEFORE initFrameDrawer happens (to draw Loading
+// messages).
+void initDrawString( int inWidth, int inHeight );
+
+// called by platform after freeFrameDrawer
+void freeDrawString();
+
 
 // should demo code be obtained from user and checked against server?
 char isDemoMode();

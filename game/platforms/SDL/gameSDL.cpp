@@ -106,6 +106,8 @@ char demoMode = false;
 
 char writeFailed = false;
 
+char loadingMessageShown = false;
+char frameDrawerInited = false;
 
 
 // ^ and & keys to slow down and speed up for testing
@@ -295,10 +297,11 @@ void cleanUpAtExit() {
         }
     soundRunning = false;
 
-    if( !writeFailed ) {
+    if( frameDrawerInited ) {
         freeFrameDrawer();
         }
     
+    freeDrawString();
     
 
     SDL_Quit();
@@ -812,18 +815,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
 
     
-    
+    initDrawString( pixelZoomFactor * gameWidth, 
+                    pixelZoomFactor * gameHeight );
+        
 
     
     //glLineWidth( pixelZoomFactor );
     
-    if( !writeFailed ) {    
-        initFrameDrawer( pixelZoomFactor * gameWidth, 
-                         pixelZoomFactor * gameHeight, 
-                         targetFrameRate,
-                         screen->getCustomRecordedGameData(),
-                         screen->isPlayingBack() );
-        }
     
     if( demoMode ) {    
         showDemoCodePanel( screen, getFontTGAFileName(), gameWidth,
@@ -1093,6 +1091,20 @@ void GameSceneHandler::drawScene() {
 
             screen->startRecordingOrPlayback();
             }
+        }
+    else if( !loadingMessageShown ) {
+        drawString( translate( "loading" ) );
+
+        loadingMessageShown = true;
+        }
+    else if( !writeFailed && !frameDrawerInited ) {
+        initFrameDrawer( pixelZoomFactor * gameWidth, 
+                         pixelZoomFactor * gameHeight, 
+                         targetFrameRate,
+                         screen->getCustomRecordedGameData(),
+                         screen->isPlayingBack() );
+
+        frameDrawerInited = true;
         }
     else if( !writeFailed ) {
         // demo mode done or was never enabled
