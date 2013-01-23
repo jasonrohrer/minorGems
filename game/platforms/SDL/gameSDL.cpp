@@ -1026,6 +1026,17 @@ void setMouseReportingMode( char inWorldCoordinates ) {
     }
 
 
+
+static int lastMouseX = 0;
+static int lastMouseY = 0;
+static int lastMouseDownX = 0;
+static int lastMouseDownY = 0;
+
+static char mouseDown = false;
+// start with last click expired
+static int mouseDownSteps = 1000;
+
+
 static char ignoreNextMouseEvent = false;
 static int xCoordToIgnore, yCoordToIgnore;
 
@@ -1033,6 +1044,13 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
     *outNewMouseX = screenWidth / 2;
     *outNewMouseY = screenHeight / 2;
 
+    if( *outNewMouseX == lastMouseX && *outNewMouseY == lastMouseY ) {
+        // mouse already there, no need to warp
+        // (and warping when already there may or may not generate
+        //  an event on some platforms, which causes trouble when we
+        //  try to ignore the event)
+        return;
+        }
 
     if( SDL_GetAppState() & SDL_APPMOUSEFOCUS ) {
         
@@ -1050,14 +1068,6 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
 
 
 
-static int lastMouseX = 0;
-static int lastMouseY = 0;
-static int lastMouseDownX = 0;
-static int lastMouseDownY = 0;
-
-static char mouseDown = false;
-// start with last click expired
-static int mouseDownSteps = 1000;
 
 
 
