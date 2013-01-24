@@ -41,7 +41,7 @@ $tableNamePrefix = "ticketServer_";
 // max supported length is 210 (with separators inserted, this is a
 // 251-character string)
 // 5 bits of security per digit.
-$ticketIDLength = 10;
+$ticketIDLength = 20;
 
 // Replace this with a secret string.
 // Used when generating random, unguessable ticket IDs
