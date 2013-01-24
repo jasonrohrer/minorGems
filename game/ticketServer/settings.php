@@ -27,12 +27,15 @@ $mainSiteURL = "http://sleepisdeath.net";
 
 
 // Prefix to use in table names (in case more than one application is using
-// the same database).  Two tables are created:  "games" and "columns".
+// the same database).  Three tables are created:  "log", "tickets", and
+// "downloads".
 //
 // If $tableNamePrefix is "test_" then the tables will be named
-// "test_games" and "test_columns".  Thus, more than one server
-// installation can use the same database (or the server can share a database
-// with another application that uses similar table names).
+// "test_log" and "test_tickets" and "test_downloads".
+//
+// Thus, more than one server installation can use the same database
+// (or the server can share a database with another application that uses
+//  similar table names).
 $tableNamePrefix = "ticketServer_";
 
 
