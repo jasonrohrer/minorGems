@@ -137,7 +137,8 @@ $header = "include( \"header.php\" );";
 $footer = "include( \"footer.php\" );";
 
 $fileListHeader = $header .
-"echo \"<center><font size=6>Downloads</font></center><br><br>\";";
+'echo "<center><font size=6>Downloads</font><br><br>";' .
+'echo "Your Download Code is: <b>$ticket_id</b><br><br><br></center>";';
 
 
 
