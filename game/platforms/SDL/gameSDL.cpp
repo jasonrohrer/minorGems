@@ -1507,6 +1507,19 @@ void GameSceneHandler::keyReleased(
 
 
 
+// need to track these separately from SDL_GetModState so that
+// we replay isCommandKeyDown properly during recorded game playback
+static char rCtrlDown = false;
+static char lCtrlDown = false;
+
+static char rAltDown = false;
+static char lAltDown = false;
+
+static char rMetaDown = false;
+static char lMetaDown = false;
+
+
+
 void GameSceneHandler::specialKeyPressed(
 	int inKey, int inX, int inY ) {
     
@@ -1514,7 +1527,28 @@ void GameSceneHandler::specialKeyPressed(
         exit( 0 );
         }
     
-
+    switch( inKey ) {
+        case MG_KEY_RCTRL:
+            rCtrlDown = true;
+            break;
+        case MG_KEY_LCTRL:
+            lCtrlDown = true;
+            break;
+        case MG_KEY_RALT:
+            rAltDown = true;
+            break;
+        case MG_KEY_LALT:
+            lAltDown = true;
+            break;
+        case MG_KEY_RMETA:
+            rMetaDown = true;
+            break;
+        case MG_KEY_LMETA:
+            lMetaDown = true;
+            break;
+        }
+    
+    
     specialKeyDown( inKey );
 	}
 
@@ -1522,6 +1556,29 @@ void GameSceneHandler::specialKeyPressed(
 
 void GameSceneHandler::specialKeyReleased(
 	int inKey, int inX, int inY ) {
+    
+
+    switch( inKey ) {
+        case MG_KEY_RCTRL:
+            rCtrlDown = false;
+            break;
+        case MG_KEY_LCTRL:
+            lCtrlDown = false;
+            break;
+        case MG_KEY_RALT:
+            rAltDown = false;
+            break;
+        case MG_KEY_LALT:
+            lAltDown = false;
+            break;
+        case MG_KEY_RMETA:
+            rMetaDown = false;
+            break;
+        case MG_KEY_LMETA:
+            lMetaDown = false;
+            break;
+        }
+
 
     specialKeyUp( inKey );
     } 
@@ -1540,7 +1597,13 @@ char isCommandKeyDown() {
         
         return true;
         }
-
+    
+    if( rCtrlDown || lCtrlDown ||
+        rAltDown || lAltDown ||
+        rMetaDown || lMetaDown ) {
+        return true;
+        }
+    
     return false;
     }
 
