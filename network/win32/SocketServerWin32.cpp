@@ -17,6 +17,9 @@
  * 2004-February-23   Jason Rohrer
  * Added timeout code for accepting connections.
  * Removed use of shutdown on listening socket.
+ *
+ * 2013-January-25  Jason Rohrer
+ * Fixed signing inconsistencies.
  */
 
 
@@ -52,7 +55,7 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
 		}
 	
 	// create the socket
-	int sockID = socket( AF_INET, SOCK_STREAM, 0 );
+	unsigned int sockID = socket( AF_INET, SOCK_STREAM, 0 );
 	
 	if( sockID == INVALID_SOCKET ) {
 		printf( "Creating socket failed.\n" );
@@ -60,7 +63,7 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
     	}
 	
 	// store socket id in native object pointer
-	int *idStorage = new int[1];
+	unsigned int *idStorage = new unsigned int[1];
 	idStorage[0] = sockID;
 	mNativeObjectPointer = (void *)idStorage;
 	
@@ -93,8 +96,8 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
 
 SocketServer::~SocketServer() {
 	
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 	
     closesocket( socketID );
 	
@@ -112,8 +115,8 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
 
     // printf( "Waiting for a connection.\n" );
 	// extract socket id from native object pointer
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
 
     // same timeout code as in linux version
@@ -155,16 +158,16 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
 	struct sockaddr acceptedAddress;
 	//int addressLength = sizeof( struct sockaddr );
 	
-	int acceptedID = accept( socketID, 
+	unsigned int acceptedID = accept( socketID, 
 		&( acceptedAddress ), NULL );
 	
-	if( acceptedID == -1 ) {
+	if( acceptedID == INVALID_SOCKET ) {
 		printf( "Failed to accept a network connection.\n" );
 		return NULL;
 		}
 	
 	Socket *acceptedSocket = new Socket();
-	int *idStorage = new int[1];
+	unsigned int *idStorage = new unsigned int[1];
 	idStorage[0] = acceptedID;
 	acceptedSocket->mNativeObjectPointer = (void *)idStorage;
 	

@@ -72,6 +72,9 @@
  *
  * 2010-January-26  Jason Rohrer
  * Added support for disabling Nagle algorithm.
+ *
+ * 2013-January-25  Jason Rohrer
+ * Fixed signing inconsistencies and unused variable warning.
  */
 
 
@@ -130,8 +133,8 @@ int Socket::initSocketFramework() {
 
 
 Socket::~Socket() {
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     if( !mIsConnectionBroken ) {
         
@@ -153,8 +156,8 @@ int Socket::isConnected() {
         return 1;
         }
     
-    int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+    unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     int ret;
 	fd_set fsr;
@@ -202,15 +205,15 @@ int Socket::isConnected() {
 
 
 void Socket::setNoDelay( int inValue ) {
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     int flag = inValue;
-    int result = setsockopt( socketID,
-                             IPPROTO_TCP,
-                             TCP_NODELAY,
-                             (char *) &flag,
-                             sizeof(int) ); 
+    setsockopt( socketID,
+                IPPROTO_TCP,
+                TCP_NODELAY,
+                (char *) &flag,
+                sizeof(int) ); 
     }
 
 
@@ -220,8 +223,8 @@ int Socket::send( unsigned char *inBuffer, int inNumBytes,
                   char inAllowedToBlock,
                   char inAllowDelay ) {
 	
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     if( inAllowedToBlock ) {
         if( ! inAllowDelay ) {
@@ -277,8 +280,8 @@ int Socket::send( unsigned char *inBuffer, int inNumBytes,
 int Socket::receive( unsigned char *inBuffer, int inNumBytes,
 	long inTimeout ) {
 	
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 	
 	int numReceived = 0;
 	
@@ -362,8 +365,8 @@ int Socket::receive( unsigned char *inBuffer, int inNumBytes,
 
 
 void Socket::breakConnection() {
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     if( !mIsConnectionBroken ) {
 
@@ -378,8 +381,8 @@ void Socket::breakConnection() {
 
 HostAddress *Socket::getRemoteHostAddress() {
 
-    int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+    unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     // adapted from Unix Socket FAQ
     
@@ -414,8 +417,8 @@ HostAddress *Socket::getRemoteHostAddress() {
 
 
 HostAddress *Socket::getLocalHostAddress() {
-    int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+    unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
+	unsigned int socketID = socketIDptr[0];
 
     // adapted from GTK-gnutalla code, and elsewhere
 
