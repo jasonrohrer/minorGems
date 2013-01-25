@@ -2196,7 +2196,9 @@ char *getClipboardText() {
     if( OpenClipboard( NULL ) ) {
         HANDLE hData = GetClipboardData( CF_TEXT );
         char *buffer = (char*)GlobalLock( hData );
-        fromClipboard = stringDuplicate( buffer );
+        if( buffer != NULL ) {
+            fromClipboard = stringDuplicate( buffer );
+            }
         GlobalUnlock( hData );
         CloseClipboard();
         }
