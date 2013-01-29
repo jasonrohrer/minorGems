@@ -683,9 +683,18 @@ class ScreenGL {
         unsigned int mRandSeed;
         
         time_t mLastTimeValue;
-		
+        
+        time_t mLastRecordedTimeValue;
+        
         // for emulating time() values during playback where
         // time values were not recorded
+        
+        // detect whether any time values have been played back so far
+        // if so, we assume that more will come and that we should stick
+        // to those values.  If none have been played back yet, we simulate
+        // played back time() values locked to the playback-specified
+        // frame rate
+        char mTimeValuePlayedBack;
         unsigned int mFramesSinceLastTimeTick;
 
 	};

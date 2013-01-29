@@ -237,7 +237,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mRandSeed = time( NULL );
     
     mLastTimeValue = time( NULL );
+    mLastRecordedTimeValue = 0;
 
+    mTimeValuePlayedBack = false;
     mFramesSinceLastTimeTick = 0;
 
     mShouldShowPlaybackDisplay = true;
@@ -1424,20 +1426,24 @@ void ScreenGL::start() {
             mEventFile != NULL ) {
             
             
-            // maybe time() will be recorded in next event batch
-            // but if not (as a fix for earlier release that did not
-            // record time), fix time() values to go along with specified
-            // frame rate in recording file (so that a game played on a machine
-            // fast enough for 60fps will behave close to the same, 
-            // time()-wise, on a machine that can't play the game back at
-            // 60fps).
+            if( !mTimeValuePlayedBack ) {
+                
+                // so far, no time values have been played back yet.
+                // (as a fix for earlier release that did not
+                // record time), fix time() values to go along with specified
+                // frame rate in recording file (so that a game played on a 
+                // machine fast enough for 60fps will behave close to the 
+                // same, time()-wise, on a machine that can't play the game 
+                // back at 60fps).
 
-            mFramesSinceLastTimeTick ++;
+                mFramesSinceLastTimeTick ++;
             
-            if( mFramesSinceLastTimeTick >= mFullFrameRate ) {
-                mFramesSinceLastTimeTick = 0;
-                mLastTimeValue ++;
+                if( mFramesSinceLastTimeTick >= mFullFrameRate ) {
+                    mFramesSinceLastTimeTick = 0;
+                    mLastTimeValue ++;
+                    }
                 }
+            
 
             // this may overwrite the mLastTimeValue that we're emulating
             // if this recorded frame involved a recorded time() call.
@@ -1646,17 +1652,26 @@ time_t ScreenGL::getTime( time_t *__timer ) {
         return mLastTimeValue;
         }
     
-    // else just normal behavior
+
+    // else just normal behavior (platform's time() output)
     time_t currentTime = time( __timer );
 
     if( mRecordingEvents && 
         mRecordingOrPlaybackStarted ) {
         
-        // record it
+        // record it if it is different from the last value that we recorded
+        // thus, 't' events are sparse in our event file (and not repeated
+        // for every frame, or multiple times per frame, even if get_time()
+        // is called a lot).
 
-        char *eventString = autoSprintf( "t %d", currentTime );
-        
-        currentScreenGL->mEventBatch.push_back( eventString );
+        if( currentTime != mLastRecordedTimeValue ) {
+            
+            char *eventString = autoSprintf( "t %d", currentTime );
+            
+            mEventBatch.push_back( eventString );
+            
+            mLastRecordedTimeValue = currentTime;
+            }
         }
     
 
