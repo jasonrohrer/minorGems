@@ -116,6 +116,9 @@
  * 
  * 2012-July-6   Jason Rohrer
  * Added support for toggling key mapping.  
+ * 
+ * 2013-January-29   Jason Rohrer
+ * Added support for replay of time() values.  
  */
 
 
@@ -233,6 +236,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
     mRandSeed = time( NULL );
     
+    mLastTimeValue = time( NULL );
+
+    mFramesSinceLastTimeTick = 0;
 
     mShouldShowPlaybackDisplay = true;
 
@@ -1049,6 +1055,12 @@ void ScreenGL::playNextEventBatch() {
                     }
                 }
                 break;
+            case 't': {
+                int t;
+                fscanf( mEventFile, "%d", &t );
+                mLastTimeValue = t;
+                }
+                break;
             case 'w': {
                 // special case:  incoming web event
                 // (simulating response from a web server during playback)
@@ -1411,6 +1423,24 @@ void ScreenGL::start() {
         if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
             mEventFile != NULL ) {
             
+            
+            // maybe time() will be recorded in next event batch
+            // but if not (as a fix for earlier release that did not
+            // record time), fix time() values to go along with specified
+            // frame rate in recording file (so that a game played on a machine
+            // fast enough for 60fps will behave close to the same, 
+            // time()-wise, on a machine that can't play the game back at
+            // 60fps).
+
+            mFramesSinceLastTimeTick ++;
+            
+            if( mFramesSinceLastTimeTick >= mFullFrameRate ) {
+                mFramesSinceLastTimeTick = 0;
+                mLastTimeValue ++;
+                }
+
+            // this may overwrite the mLastTimeValue that we're emulating
+            // if this recorded frame involved a recorded time() call.
             playNextEventBatch();
 
 
@@ -1601,6 +1631,39 @@ unsigned int ScreenGL::getMaxFramerate() {
 unsigned int ScreenGL::getRandSeed() {
     return mRandSeed;
     }
+
+
+
+time_t ScreenGL::getTime( time_t *__timer ) {
+    
+    if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
+        mEventFile != NULL ) {
+        
+        if( __timer != NULL ) {
+            *__timer = mLastTimeValue;
+            }
+        
+        return mLastTimeValue;
+        }
+    
+    // else just normal behavior
+    time_t currentTime = time( __timer );
+
+    if( mRecordingEvents && 
+        mRecordingOrPlaybackStarted ) {
+        
+        // record it
+
+        char *eventString = autoSprintf( "t %d", currentTime );
+        
+        currentScreenGL->mEventBatch.push_back( eventString );
+        }
+    
+
+    return currentTime;
+    }
+
+
 
 
 void ScreenGL::setKeyMapping( unsigned char inFromKey,

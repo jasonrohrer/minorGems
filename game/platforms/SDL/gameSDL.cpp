@@ -2057,6 +2057,12 @@ void clearWebRequest( int inHandle ) {
 
 
 
+time_t game_time( time_t *__timer ) {
+    return screen->getTime( __timer );
+    }
+
+
+
 
 // platform-specific clipboard code
 

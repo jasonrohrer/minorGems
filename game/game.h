@@ -141,6 +141,14 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes );
 unsigned int getRandSeed();
 
 
+#include <time.h>
+
+// a replacement for time.h's time() implementation that makes time values
+// replayable during recorded game playback
+time_t game_time( time_t *__timer );
+
+
+
 // when inFromKey is pressed, an event for inToKey will be generated
 // (and no event for inFromKey will be generated)
 void mapKey( unsigned char inFromKey, unsigned char inToKey );

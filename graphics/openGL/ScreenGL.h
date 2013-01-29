@@ -101,6 +101,9 @@
  * 
  * 2012-July-6   Jason Rohrer
  * Added support for toggling key mapping.  
+ * 
+ * 2013-January-29   Jason Rohrer
+ * Added support for replay of time() values.  
  */
  
  
@@ -118,6 +121,9 @@
 #include "minorGems/math/geometry/Angle3D.h"
 
 #include "minorGems/util/SimpleVector.h"
+
+
+#include <time.h>
 
 
 // prototypes
@@ -275,8 +281,12 @@ class ScreenGL {
         
 
         // enables rand seed to be recorded and played back with
-        // even playback
+        // event playback
         unsigned int getRandSeed();
+        
+
+        // enables time() values to be recorded and played back
+        time_t getTime( time_t *__timer );
         
         
         // sets mapping so that when inFromKey is pressed, an
@@ -672,7 +682,12 @@ class ScreenGL {
 
         unsigned int mRandSeed;
         
+        time_t mLastTimeValue;
 		
+        // for emulating time() values during playback where
+        // time values were not recorded
+        unsigned int mFramesSinceLastTimeTick;
+
 	};
 
 
