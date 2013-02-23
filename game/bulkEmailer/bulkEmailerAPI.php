@@ -19,6 +19,31 @@ include( "bulkEmailerSettings.php" );
 // each occurrence of the %CUSTOM% tag.
 function be_addMessage( $subject, $body, $recipientEmailArray,
                         $customDataArray ) {
+
+    global $be_disableBatches;
+    
+    if( $be_disableBatches ) {
+        // alternative, send all emails NOW
+
+        $num = count( $recipientEmailArray );
+        
+        for( $i=0; $i<$num; $i++ ) {
+            $email = $recipientEmailArray[$i];
+            $custom_data = $customDataArray[$i];
+
+            $customBody =
+                preg_replace('/%CUSTOM%/', $custom_data, $body );
+                    
+            $success = be_sendEmail( $subject, $customBody, $email );
+            }
+
+
+        return;
+        }
+
+    // else add them to database to send in batches later
+
+
     
     be_connectToDatabase();
 
