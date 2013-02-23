@@ -32,6 +32,11 @@ $be_tableNamePrefix = "bulkEmailer_";
 $be_enableLog = 1;
 
 
+// if 1, then emails are NOT stored in database for batch sending, but instead
+// are sent immediately as they are generated.
+$be_disableBatches = 0;
+
+
 
 // batch size for sending email
 // useful if your server has a "max emails per hour" limit

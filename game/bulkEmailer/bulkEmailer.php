@@ -253,26 +253,7 @@ function be_sendBatch() {
 
 
 
-// sends a note email to a specific address
-// returns TRUE on success
-function be_sendEmail( $message_subject, $message_text, $inEmail ) {
-        
-    
-    global $be_siteEmailAddress;
-    $mailHeaders = "From: $be_siteEmailAddress";
 
-
-    $mailSubject = $message_subject;
-    
-    $mailBody = $message_text ."\n\n";
-
-    
-    $result = mail( $inEmail,
-                    $mailSubject,
-                    $mailBody,
-                    $mailHeaders );
-    return $result;
-    }
 
 
 
