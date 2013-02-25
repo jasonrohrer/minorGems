@@ -23,7 +23,7 @@ typedef union rgbaColor {
 
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
-            char inFixedWidth, double inScaleFactor )
+            char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
         : mScaleFactor( inScaleFactor ),
           mCharSpacing( inCharSpacing ), mSpaceWidth( inSpaceWidth ),
           mFixedWidth( inFixedWidth ) {
@@ -84,6 +84,14 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         mSpriteWidth = width / 16;
         mSpriteHeight = height / 16;
         
+        if( inFixedCharWidth == 0 ) {
+            mCharBlockWidth = mSpriteWidth;
+            }
+        else {
+            mCharBlockWidth = inFixedCharWidth;
+            }
+
+
         int pixelsPerChar = mSpriteWidth * mSpriteHeight;
             
         for( int i=0; i<256; i++ ) {
@@ -139,7 +147,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
 
             if( mFixedWidth ) {
                 mCharLeftEdgeOffset[i] = 0;
-                mCharWidth[i] = mSpriteWidth;
+                mCharWidth[i] = mCharBlockWidth;
                 }
             else if( allTransparent ) {
                 mCharLeftEdgeOffset[i] = 0;
@@ -275,7 +283,7 @@ double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
         }
     
     if( mFixedWidth ) {
-        return mSpriteWidth * scale;
+        return mCharBlockWidth * scale;
         }
     else {
         return mCharWidth[ inC ] * scale;
@@ -298,7 +306,7 @@ double Font::measureString( const char *inString ) {
             width += mSpaceWidth * scale;
             }
         else if( mFixedWidth ) {
-            width += mSpriteWidth * scale;
+            width += mCharBlockWidth * scale;
             }
         else {
             width += mCharWidth[ c ] * scale;

@@ -17,9 +17,12 @@ class Font {
     public:
         
         // file contains TGA with 16x16 ascii table
+        // if inFixedCharWidth > 0, it overrides sprite width for width
+        // of fixed-spacing characters.
         Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
               char inFixedWidth,
-              double inScaleFactor = 1.0 );
+              double inScaleFactor = 1.0,
+              int inFixedCharWidth = 0 );
         
         ~Font();
         
@@ -53,6 +56,9 @@ class Font {
         int mSpriteWidth;
         int mSpriteHeight;
         
+        int mCharBlockWidth;
+        
+
         // maps ascii chars to sprite IDs
         SpriteHandle mSpriteMap[ 256 ];
         
