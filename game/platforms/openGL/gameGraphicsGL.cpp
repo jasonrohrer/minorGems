@@ -279,3 +279,29 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
                   linearTextureFilterOn );
     }
 
+
+void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 
+                          double inZoom ) {
+
+    // ignores texture colors, use alpha only
+
+    // solution found here:
+    // http://stackoverflow.com/questions/2485370/
+    //      use-only-alpha-channel-of-texture-in-opengl
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+
+
+    drawSprite( inSprite, inCenter, inZoom );
+
+    // restore texture mode
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+    }
+
+    

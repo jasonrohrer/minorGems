@@ -122,6 +122,12 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
                  double inZoom = 1.0 );
 
 
+// draw with current draw color, but ignore sprite's colors and use
+// only it's alpha.
+void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 
+                          double inZoom = 1.0 );
+
+
 
 #endif
                  
