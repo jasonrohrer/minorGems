@@ -145,7 +145,7 @@ $fileListHeader = $header .
 
 // parameters for download emails that are sent out
 $siteName = "Sleep Is Death";
-$siteEmailAddress = "jcr13@cornell.edu";
+$siteEmailAddress = "Jason Rohrer <jcr13@cornell.edu>";
 
 // can be left blank to just give download information
 // should contain newlines to separate it from next part of email
@@ -162,6 +162,22 @@ $ticketsPerPage = 6;
 
 
 
+
+// SMTP settings
+
+// if off, then raw sendmail is used instead 
+$useSMTP = 0;
+
+// SMTP requires that the PEAR Mail package is installed
+
+
+$smtpHost = "ssl://mail.server.com";
+
+$smtpPort = "465";
+
+$smtpUsername = "jason@server.com";
+
+$smtpPassword = "secret";
 
 
 ?>

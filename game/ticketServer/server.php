@@ -1721,12 +1721,9 @@ function ts_sendEmail( $inTickeID ) {
 function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
         
     
-    global $siteName, $fullServerURL, $mainSiteURL, $siteEmailAddress,
+    global $siteName, $fullServerURL, $mainSiteURL,
            $extraEmailMessage;
     
-    //$mailHeaders = "From: $siteEmailAddress";
-    $mailHeaders = "From: $siteEmailAddress";
-
     $downloadURL = $fullServerURL.
         "?action=show_downloads&ticket_id=$inTickeID";
 
@@ -1748,10 +1745,9 @@ function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
     echo "Body: <br>\n<pre>$mailBody</pre><br>\n";
     */
     
-    $result = mail( $inEmail,
-                    $mailSubject,
-                    $mailBody,
-                    $mailHeaders );
+    $result = ts_mail( $inEmail,
+                       $mailSubject,
+                       $mailBody );
     return $result;
     }
 
@@ -1921,16 +1917,13 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
         flush();
         }
     }
-
-
+    
+    
 // sends a note email to a specific name address
 function ts_sendNote_p( $message_subject, $message_text, $inName, $inEmail ) {
         
     
-    global $siteName, $fullServerURL, $mainSiteURL, $siteEmailAddress;
-    //$mailHeaders = "From: $siteEmailAddress";
-    $mailHeaders = "From: $siteEmailAddress";
-
+    global $siteName, $fullServerURL, $mainSiteURL;
 
     $mailSubject = $message_subject;
     
@@ -1944,14 +1937,60 @@ function ts_sendNote_p( $message_subject, $message_text, $inName, $inEmail ) {
     echo "Body: <br>\n<pre>$mailBody</pre><br>\n";
     */
     
-    $result = mail( $inEmail,
-                    $mailSubject,
-                    $mailBody,
-                    $mailHeaders );
+    $result = ts_mail( $inEmail,
+                       $mailSubject,
+                       $mailBody );
     return $result;
     }
 
 
+ 
+function ts_mail( $inEmail,
+                  $inSubject,
+                  $inBody ) {
+    
+    global $useSMTP, $siteEmailAddress;
+
+    if( $useSMTP ) {
+        require_once "Mail.php";
+
+        global $smtpHost, $smtpPort, $smtpUsername, $smtpPassword;
+
+        $headers = array( 'From' => $siteEmailAddress,
+                          'To' => $inEmail,
+                          'Subject' => $inSubject );
+        
+        $smtp = Mail::factory( 'smtp',
+                               array ( 'host' => $smtpHost,
+                                       'port' => $smtpPort,
+                                       'auth' => true,
+                                       'username' => $smtpUsername,
+                                       'password' => $smtpPassword ) );
+
+
+        $mail = $smtp->send( $inEmail, $headers, $inBody );
+
+
+        if( PEAR::isError( $mail ) ) {
+            ts_log( "Email send failed:  " .
+                    $mail->getMessage() );
+            return false;
+            }
+        else {
+            return true;
+            }
+        }
+    else {
+        // raw sendmail
+        $mailHeaders = "From: $siteEmailAddress";
+        
+        return mail( $inEmail,
+                     $inSubject,
+                     $inBody,
+                     $mailHeaders );
+        }
+    }
+ 
 
 
 
