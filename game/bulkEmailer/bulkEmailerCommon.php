@@ -182,20 +182,65 @@ function be_operationError( $message ) {
 function be_sendEmail( $message_subject, $message_text, $inEmail ) {
         
     
-    global $be_siteEmailAddress;
-    $mailHeaders = "From: $be_siteEmailAddress";
-
-
     $mailSubject = $message_subject;
     
     $mailBody = $message_text ."\n\n";
 
     
-    $result = mail( $inEmail,
-                    $mailSubject,
-                    $mailBody,
-                    $mailHeaders );
+    $result = be_mail( $inEmail,
+                       $mailSubject,
+                       $mailBody );
     return $result;
+    }
+
+
+
+
+
+function be_mail( $inEmail,
+                  $inSubject,
+                  $inBody ) {
+    
+    global $be_useSMTP, $be_siteEmailAddress;
+
+    if( $be_useSMTP ) {
+        require_once "Mail.php";
+
+        global $be_smtpHost, $be_smtpPort, $be_smtpUsername, $be_smtpPassword;
+
+        $headers = array( 'From' => $be_siteEmailAddress,
+                          'To' => $inEmail,
+                          'Subject' => $inSubject );
+        
+        $smtp = Mail::factory( 'smtp',
+                               array ( 'host' => $be_smtpHost,
+                                       'port' => $be_smtpPort,
+                                       'auth' => true,
+                                       'username' => $be_smtpUsername,
+                                       'password' => $be_smtpPassword ) );
+
+
+        $mail = $smtp->send( $inEmail, $headers, $inBody );
+
+
+        if( PEAR::isError( $mail ) ) {
+            be_log( "Email send failed:  " .
+                    $mail->getMessage() );
+            return false;
+            }
+        else {
+            return true;
+            }
+        }
+    else {
+        // raw sendmail
+        $mailHeaders = "From: $be_siteEmailAddress";
+        
+        return mail( $inEmail,
+                     $inSubject,
+                     $inBody,
+                     $mailHeaders );
+        }
     }
 
 

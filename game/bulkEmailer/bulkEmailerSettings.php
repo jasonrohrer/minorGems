@@ -55,4 +55,23 @@ $be_siteEmailAddress = "jcr13@cornell.edu";
 $be_reportToEmailAddress = "jcr13@cornell.edu";
 
 
+
+
+// SMTP settings
+
+// if off, then raw sendmail is used instead 
+$be_useSMTP = 0;
+
+// SMTP requires that the PEAR Mail package is installed
+
+
+$be_smtpHost = "ssl://mail.server.com";
+
+$be_smtpPort = "465";
+
+$be_smtpUsername = "jason@server.com";
+
+$be_smtpPassword = "secret";
+
+
 ?>
