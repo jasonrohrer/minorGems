@@ -169,7 +169,11 @@ $ticketsPerPage = 6;
 $useSMTP = 0;
 
 // SMTP requires that the PEAR Mail package is installed
-
+// set the include path here for Mail.php, if needed:
+/*
+ini_set( 'include_path',
+         ini_get( 'include_path' ) . PATH_SEPARATOR . '/home/jcr13/php' );
+*/
 
 $smtpHost = "ssl://mail.server.com";
 
