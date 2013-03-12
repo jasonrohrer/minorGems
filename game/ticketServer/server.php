@@ -188,10 +188,11 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
     // quick (and incomplete) test to see if we should show instructions
     global $tableNamePrefix;
     
-    // check if our "games" table exists
-    $tableName = $tableNamePrefix . "tickets";
+    // check if our tables exist
+    $exists = ts_doesTableExist( $tableNamePrefix . "tickets" ) &&
+        ts_doesTableExist( $tableNamePrefix . "log" ) &&
+        ts_doesTableExist( $tableNamePrefix . "downloads" );
     
-    $exists = ts_doesTableExist( $tableName );
         
     if( $exists  ) {
         echo "Ticket Server database setup and ready";
@@ -289,7 +290,7 @@ function ts_setupDatabase() {
         // this table contains information about each download that occurred
         $query =
             "CREATE TABLE $tableName(" .
-            "ticket_id CHAR(10) NOT NULL," .
+            "ticket_id VARCHAR(255) NOT NULL," .
             "download_date DATETIME NOT NULL," .
             "file_name TEXT NOT NULL," .
             "blocked TINYINT NOT NULL," .
