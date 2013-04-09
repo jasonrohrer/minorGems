@@ -287,49 +287,64 @@ SimpleVector<WebRequestRecord> webRequestRecords;
 // function that destroys object when exit is called.
 // exit is the only way to stop the loop in  ScreenGL
 void cleanUpAtExit() {
-    AppLog::info( "exiting\n" );
+    AppLog::info( "exiting...\n" );
 
+    AppLog::info( "exiting: Deleting sceneHandler\n" );
     delete sceneHandler;
+
+    AppLog::info( "exiting: Deleting screen\n" );
     delete screen;
 
     if( getUsesSound() ) {
+        AppLog::info( "exiting: calling SDL_CloseAudio\n" );
+
         SDL_CloseAudio();
         }
     soundRunning = false;
 
     if( frameDrawerInited ) {
+        AppLog::info( "exiting: freeing frameDrawer\n" );
         freeFrameDrawer();
         }
     
+    AppLog::info( "exiting: freeing drawString\n" );
     freeDrawString();
     
-
+    AppLog::info( "exiting: calling SDL_Quit()\n" );
     SDL_Quit();
 
     if( screenShotPrefix != NULL ) {
+        AppLog::info( "exiting: deleting screenShotPrefix\n" );
+
         delete [] screenShotPrefix;
         screenShotPrefix = NULL;
         }
 
     if( lastFrame_rgbaBytes != NULL ) {
+        AppLog::info( "exiting: deleting lastFrame_rgbaBytes\n" ); 
+        
         delete [] lastFrame_rgbaBytes;
         lastFrame_rgbaBytes = NULL;
         }
 
 
     if( recordAudio ) {
+        AppLog::info( "exiting: closing audio output file\n" ); 
+
         recordAudio = false;
         fclose( aiffOutFile );
         aiffOutFile = NULL;
         }
     
     for( int i=0; i<webRequestRecords.size(); i++ ) {
+        AppLog::infoF( "exiting: Deleting lingering web request %d\n", i ); 
+                
         WebRequestRecord *r = webRequestRecords.getElement( i );
         
         delete r->request;
         }
     
-
+    AppLog::info( "exiting: Done.\n" );
     }
 
 
