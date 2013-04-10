@@ -296,9 +296,14 @@ void cleanUpAtExit() {
     delete screen;
 
     if( getUsesSound() ) {
-        AppLog::info( "exiting: calling SDL_CloseAudio\n" );
+        AppLog::info( "exiting: calling SDL_LockAudio\n" );
+        SDL_LockAudio();
 
+        AppLog::info( "exiting: calling SDL_CloseAudio\n" );
         SDL_CloseAudio();
+
+        AppLog::info( "exiting: calling SDL_UnlockAudio\n" );
+        SDL_UnlockAudio();
         }
     soundRunning = false;
 
