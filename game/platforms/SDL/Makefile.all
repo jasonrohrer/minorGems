@@ -60,6 +60,13 @@ ifeq ($(LINK_AGAINST_LIBPNG),yes)
 endif
 
 
+
+ifeq ($(LINK_HEADLESS),yes)
+	PLATFORM_LINK_FLAGS = $(PLATFORM_LINK_FLAGS_HEADLESS)
+endif
+
+
+
 # targets
 
 all2: ${APP_NAME} ${GAME_GRAPHICS}

@@ -22,6 +22,10 @@ PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.fra
 # static linking against zlib and libpng
 PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa mac/SDLMain.m
 
+# no linking change for headless on MacOSX
+PLATFORM_LINK_FLAGS_HEADLESS = ${PLATFORM_LINK_FLAGS}
+
+
 
 # not used for some builds
 PLATFORM_LIBJPEG_FLAG = /usr/lib/libjpeg.a

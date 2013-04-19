@@ -52,6 +52,10 @@ LINK_AGAINST_LIBJPEG = no
 LINK_AGAINST_LIBPNG = no
 
 
+# switch to yes to enable headless build target (no SDL or OpenGL on certain
+# platforms)
+LINK_HEADLESS = no
+
 
 # common to all platforms
 SOCKET_UDP_PLATFORM_PATH = unix
