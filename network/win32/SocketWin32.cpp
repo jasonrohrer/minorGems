@@ -75,6 +75,9 @@
  *
  * 2013-January-25  Jason Rohrer
  * Fixed signing inconsistencies and unused variable warning.
+ *
+ * 2013-April-23  Jason Rohrer
+ * Fixed interrupt handling during select (not a fatal error).
  */
 
 
@@ -467,11 +470,19 @@ int timed_read( int inSock, unsigned char *inBuf,
 		// printf( "Timed out waiting for data on socket receive.\n" );
 		return -2;
 		}
-	
+
+    while( ret<0 && errno == EINTR ) {
+        // interrupted
+        // try again
+        ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
+        }
+    
+
 	if( ret<0 ) {
-		printf( "Selecting socket during receive failed.\n" );
-		return ret;
-		}
+        perror( "Selecting socket during receive failed" );
+        return ret;
+        }
+	
 	
 	ret = recv( inSock, (char*)inBuf, inLen, 0 );
 	

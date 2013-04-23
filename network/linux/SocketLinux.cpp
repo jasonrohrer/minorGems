@@ -73,6 +73,9 @@
  *
  * 2010-January-26  Jason Rohrer
  * Added support for disabling Nagle algorithm.
+ *
+ * 2013-April-23  Jason Rohrer
+ * Fixed interrupt handling during select (not a fatal error).
  */
 
 
@@ -421,10 +424,17 @@ int timed_read( int inSock, unsigned char *inBuf,
 		return -2;
 		}
 	
+    while( ret<0 && errno == EINTR ) {
+        // interrupted
+        // try again
+        ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
+        }
+    
+
 	if( ret<0 ) {
-		printf( "Selecting socket during receive failed.\n" );
-		return ret;
-		}
+        perror( "Selecting socket during receive failed" );
+        return ret;
+        }
 
     // do not use MSG_WAITALL flag here, since we just want to return
     // data that is available
