@@ -471,7 +471,7 @@ int timed_read( int inSock, unsigned char *inBuf,
 		return -2;
 		}
 
-    while( ret<0 && errno == EINTR ) {
+    while( ret<0 && WSAGetLastError() == WSAEINTR ) {
         // interrupted
         // try again
         ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
