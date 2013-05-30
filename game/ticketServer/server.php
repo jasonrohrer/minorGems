@@ -1505,7 +1505,7 @@ function ts_showData( $checkPassword = true ) {
 
          <TEXTAREA NAME="coupon_codes" COLS=50 ROWS=10></TEXTAREA><br>
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
-    <INPUT TYPE="Submit" VALUE="Send">
+    <INPUT TYPE="Submit" VALUE="Add">
     </FORM>
     <hr>
 
@@ -1516,7 +1516,7 @@ function ts_showData( $checkPassword = true ) {
     Remove coupon codes matching prefix:
     <INPUT TYPE="text" MAXLENGTH=20 SIZE=10 NAME="coupon_prefix"><br>
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
-    <INPUT TYPE="Submit" VALUE="Send">
+    <INPUT TYPE="Submit" VALUE="Remove">
     </FORM>
     <hr>
 
