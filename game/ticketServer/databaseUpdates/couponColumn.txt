@@ -1,0 +1,4 @@
+
+ALTER TABLE ticketServer_tickets ADD coupon_code TEXT NOT NULL AFTER tag;
+
+UPDATE ticketServer_tickets SET coupon_code='';

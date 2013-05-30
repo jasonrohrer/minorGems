@@ -3,7 +3,7 @@
 
 
 global $ts_version;
-$ts_version = "1";
+$ts_version = "2";
 
 
 
@@ -151,6 +151,12 @@ else if( $action == "send_single_email" ) {
 else if( $action == "send_all_note" ) {
     ts_sendAllNote();
     }
+else if( $action == "add_coupon_codes" ) {
+    ts_addCouponCodes();
+    }
+else if( $action == "clear_coupon_codes" ) {
+    ts_clearCouponCodes();
+    }
 else if( $action == "send_all_file_note" ) {
     ts_sendAllFileNote();
     }
@@ -268,6 +274,7 @@ function ts_setupDatabase() {
             "email CHAR(255) NOT NULL," .
             "order_number CHAR(255) NOT NULL," .
             "tag CHAR(255) NOT NULL," .
+            "coupon_code TEXT NOT NULL," .
             "email_sent TINYINT NOT NULL," .
             "blocked TINYINT NOT NULL," .
             "download_count INT NOT NULL, ".
@@ -505,6 +512,7 @@ function ts_sellTicket() {
             "email CHAR(255) NOT NULL," .
             "order_number CHAR(255) NOT NULL," .
             "tag CHAR(255) NOT NULL," .
+            "coupon_code TEXT NOT NULL," .
             "email_sent TINYINT NOT NULL," .
             "blocked TINYINT NOT NULL," .
             "download_count INT, ".
@@ -515,7 +523,7 @@ function ts_sellTicket() {
         // opt-in to emails by default
         $query = "INSERT INTO $tableNamePrefix". "tickets VALUES ( " .
             "'$ticket_id', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ".
-            "'$name', '$email', '$order_number', '$tag', '0', '0', '0', " .
+            "'$name', '$email', '$order_number', '$tag', '', '0', '0', '0', " .
             "'$email_opt_in' );";
 
 
@@ -892,6 +900,20 @@ function ts_showDownloads() {
     if( ts_downloadAllowed() ) {
         global $fileList, $fileDescriptions, $fileListHeader, $footer;
 
+        $coupon_code = "";
+        
+        
+        $query = "SELECT coupon_code from $tableNamePrefix"."tickets ".
+            "WHERE ticket_id = '$ticket_id';";
+
+        $result = ts_queryDatabase( $query );
+    
+        $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+        
+        $coupon_code = $row[ "coupon_code" ];
+
+        
+    
 
         eval( $fileListHeader );
         
@@ -1135,6 +1157,7 @@ function ts_showData( $checkPassword = true ) {
         $keywordClause = "WHERE ( name LIKE '%$search%' " .
             "OR email LIKE '%$search%' ".
             "OR ticket_id LIKE '%$search%' ".
+            "OR coupon_code LIKE '%$search%' ".
             "OR tag LIKE '%$search%' ) ";
 
         $searchDisplay = " matching <b>$search</b>";
@@ -1232,6 +1255,7 @@ function ts_showData( $checkPassword = true ) {
     echo "<td>".orderLink( "email", "Email" )."</td>\n";
     echo "<td>Sent?</td>\n";
     echo "<td>Blocked?</td>\n";
+    echo "<td>Coupon</td>\n";
     echo "<td>".orderLink( "sale_date", "Created" )."</td>\n";
     echo "<td>Test</td>\n";
     echo "<td>".orderLink( "last_download_date", "Last DL" )."</td>\n";
@@ -1247,6 +1271,7 @@ function ts_showData( $checkPassword = true ) {
         $name = mysql_result( $result, $i, "name" );
         $email = mysql_result( $result, $i, "email" );
         $tag = mysql_result( $result, $i, "tag" );
+        $coupon_code = mysql_result( $result, $i, "coupon_code" );
         $blocked = mysql_result( $result, $i, "blocked" );
         $sent = mysql_result( $result, $i, "email_sent" );
 
@@ -1282,6 +1307,7 @@ function ts_showData( $checkPassword = true ) {
         echo "<td>$email</td>\n";
         echo "<td align=center>$sent_toggle</td>\n";
         echo "<td align=right>$blocked [$block_toggle]</td>\n";
+        echo "<td>$coupon_code</td>\n";
         echo "<td>$sale_date</td> ";
         echo "<td>[<a href=\"server.php?action=show_downloads".
             "&ticket_id=$ticket_id\">run test</a>]</td>";
@@ -1428,15 +1454,15 @@ function ts_showData( $checkPassword = true ) {
     </SELECT><br>
      Message:<br>
      (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
+     (<b>#COUPON_CODE#</b> will be replaced with individual's code)<br>
          <TEXTAREA NAME="message_text" COLS=50 ROWS=10></TEXTAREA><br>
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
     <INPUT TYPE="Submit" VALUE="Send">
     </FORM>
     <hr>
-<?php
 
 
-?>
+
     <FORM ACTION="server.php" METHOD="post">
     <INPUT TYPE="hidden" NAME="action" VALUE="send_all_file_note">
     Subject:
@@ -1463,7 +1489,38 @@ function ts_showData( $checkPassword = true ) {
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
     <INPUT TYPE="Submit" VALUE="Send">
     </FORM>
+
+
+
     <hr>
+
+
+
+
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="add_coupon_codes">
+    Add coupon codes:<br>
+    (One per line,
+     each user that does not already have a coupon code gets one.)<br>
+
+         <TEXTAREA NAME="coupon_codes" COLS=50 ROWS=10></TEXTAREA><br>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="Send">
+    </FORM>
+    <hr>
+
+
+
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="clear_coupon_codes">
+    Remove coupon codes matching prefix:
+    <INPUT TYPE="text" MAXLENGTH=20 SIZE=10 NAME="coupon_prefix"><br>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="Send">
+    </FORM>
+    <hr>
+
+          
 <?php
 
 
@@ -1852,7 +1909,10 @@ function ts_sendAllFileNote() {
     $file_name = ts_requestFilter( "file_name", "/[A-Z0-9_.-]+/i" );
 
     	
-    $query = "SELECT DISTINCT email, name FROM $tableNamePrefix"."downloads ".
+    $query = "SELECT DISTINCT email, name, ".
+        "$tableNamePrefix"."tickets.ticket_id, ".
+        "$tableNamePrefix"."tickets.coupon_code ".
+        "FROM $tableNamePrefix"."downloads ".
         "LEFT JOIN $tableNamePrefix"."tickets ON ".
         "$tableNamePrefix"."downloads.ticket_id = ".
         "$tableNamePrefix"."tickets.ticket_id ".
@@ -1864,6 +1924,152 @@ function ts_sendAllFileNote() {
     ts_sendNote_q( $query, $message_subject, $message_text, 0 );
     }
 
+
+
+
+function ts_addCouponCodes() {
+    ts_checkPassword( "add_coupon_codes" );
+
+    
+    echo "[<a href=\"server.php?action=show_data" .
+         "\">Main</a>]<br><br><br>";
+    
+    global $tableNamePrefix;
+
+    $confirm = ts_requestFilter( "confirm", "/[01]/" );
+    
+    if( $confirm != 1 ) {
+        echo "You must check the Confirm box to add coupons\n";
+        return;
+        }
+    
+
+    $coupon_codes = ts_requestFilter( "coupon_codes", "/[A-Z0-9 \n\r]+/" );
+
+    
+
+    $separateCodes = preg_split( "/\s+/", $coupon_codes );
+
+
+    $numCodes = count( $separateCodes );
+
+    echo "Adding <b>$numCodes</b> new coupon codes...<br>\n";
+    
+    
+    $query = "SELECT ticket_id, email FROM $tableNamePrefix"."tickets ".
+        "WHERE coupon_code = '' LIMIT $numCodes;";
+
+
+    $result = ts_queryDatabase( $query );
+
+    $numRows = mysql_numrows( $result );
+
+
+    if( $numRows < $numCodes ) {
+        echo "<b>Warning:</b>  ".
+            "More coupon codes than users still needing a code.<br>\n";
+        }
+    
+
+    echo "<table>\n";
+
+    $j = 0;
+    
+
+    for( $i=0; $i<$numRows && $j<$numCodes; $i++ ) {
+        $ticket_id = mysql_result( $result, $i, "ticket_id" );
+        $email = mysql_result( $result, $i, "email" );
+    
+        $coupon_code = $separateCodes[ $j ];
+
+        $unused = false;
+
+        while( ! $unused ) {
+            
+            $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets " .
+                "WHERE coupon_code = '$coupon_code';";
+            $countResult = ts_queryDatabase( $query );
+            
+            $alreadyUsingCount = mysql_result( $countResult, 0, 0 );
+
+            if( $alreadyUsingCount == 0 ) {
+                $unused = true;
+                }
+            else {
+                // try next one
+
+                echo "<b>WARNING:</b>  ".
+                    "Coupon <b><tt>$coupon_code</tt></b> already ".
+                    "used in database.<br>\n";
+                
+                $j ++;
+                if( $j >= $numCodes ) {
+                    break;
+                    }
+                
+                $coupon_code = $separateCodes[ $j ];
+                }    
+            }
+        
+        if( $j >= $numCodes ) {
+            break;
+            }
+        
+        echo "Setting coupon <b><tt>$coupon_code</tt></b> ".
+            "for ticket [<b><tt>$ticket_id</tt></b>] ($email)<br>\n";
+
+        
+    
+        $query = "UPDATE $tableNamePrefix"."tickets SET " .
+            "coupon_code = '$coupon_code' " .
+            "WHERE ticket_id = '$ticket_id';";
+        ts_queryDatabase( $query );
+
+        $j++;
+        }
+    echo "</table>\n";
+
+    echo "Done.<br>";
+    }
+
+
+
+
+
+
+function ts_clearCouponCodes() {
+    ts_checkPassword( "clear_coupon_codes" );
+
+    
+    echo "[<a href=\"server.php?action=show_data" .
+         "\">Main</a>]<br><br><br>";
+    
+    global $tableNamePrefix;
+
+    $confirm = ts_requestFilter( "confirm", "/[01]/" );
+    
+    if( $confirm != 1 ) {
+        echo "You must check the Confirm box to clear coupons\n";
+        return;
+        }
+    
+
+    $coupon_prefix = ts_requestFilter( "coupon_prefix", "/[A-Z0-9]+/" );
+
+
+    $query = "UPDATE $tableNamePrefix"."tickets ".
+        "SET coupon_code = '' ".
+        "WHERE coupon_code LIKE '$coupon_prefix%';";
+    
+    $result = ts_queryDatabase( $query );
+
+    $affected = mysql_affected_rows();
+
+    echo "Cleared <b>$affected</b> coupon codes.<br>\n";
+    }
+
+
+    
 
 
 // sends note emails for every result in a SQL query
@@ -1883,6 +2089,7 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
         $name = mysql_result( $result, $i, "name" );
         $email = mysql_result( $result, $i, "email" );
         $ticket_id = mysql_result( $result, $i, "ticket_id" );
+        $coupon_code = mysql_result( $result, $i, "coupon_code" );
 
         echo "[$i] Sending note to $email ... ";
 
@@ -1905,6 +2112,12 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
             preg_replace( '/#DOWNLOAD_LINK#/', $custom_link,
                           $custom_message_text );
 
+        $custom_message_text =
+            preg_replace( '/#COUPON_CODE#/', $coupon_code,
+                          $custom_message_text );
+
+        echo "Custom text=<br>$custom_message_text<br><br>";
+        
         $emailResult = ts_sendNote_p( $message_subject, $custom_message_text,
                                       $name, $email );
 

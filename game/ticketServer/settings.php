@@ -137,8 +137,13 @@ $header = "include( \"header.php\" );";
 $footer = "include( \"footer.php\" );";
 
 $fileListHeader = $header .
-'echo "<center><font size=6>Downloads</font><br><br>";' .
-'echo "Your Download Code is: <b>$ticket_id</b><br><br><br></center>";';
+'echo "<center><font size=6>Downloads</font><br><br>"; ' .
+'echo "Your Download Code is: <b>$ticket_id</b><br><br><br>"; '.
+'if( $coupon_code != "" ) { '.
+'    echo "Give this coupon code to a friend: "; '.
+'    echo "<b>$coupon_code</b><br><br><br>"; '.
+'    } '.
+'echo "</center>"; ';
 
 
 
