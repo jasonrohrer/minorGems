@@ -1230,6 +1230,19 @@ void ScreenGL::start() {
                     mWasInputGrabbedBeforeMinimize = false;
                     }
                 SDL_WM_GrabInput( SDL_GRAB_OFF );
+                
+                // record TAB keystroke so that it's properly
+                // played back
+                if( mRecordingEvents && 
+                    mRecordingOrPlaybackStarted ) {
+        
+                    int mouseX, mouseY;
+                    SDL_GetMouseState( &mouseX, &mouseY );
+                    char *eventString = autoSprintf( "kd %d %d %d", 
+                                                     9, mouseX, mouseY );
+        
+                    mEventBatch.push_back( eventString );
+                    }
                 }
             // handle alt-tab to minimize out of full-screen mode
             else if( mFullScreen &&
@@ -1259,6 +1272,19 @@ void ScreenGL::start() {
                     mWasInputGrabbedBeforeMinimize = false;
                     }
                 SDL_WM_GrabInput( SDL_GRAB_OFF );
+                
+                // record TAB keystroke so that it's properly
+                // played back
+                if( mRecordingEvents && 
+                    mRecordingOrPlaybackStarted ) {
+                    
+                    int mouseX, mouseY;
+                    SDL_GetMouseState( &mouseX, &mouseY );
+                    char *eventString = autoSprintf( "kd %d %d %d", 
+                                                     9, mouseX, mouseY );
+        
+                    mEventBatch.push_back( eventString );
+                    }
                 }
             // active event after minimizing from windowed mode
             else if( mMinimized && 
