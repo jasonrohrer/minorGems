@@ -1533,8 +1533,12 @@ void ScreenGL::start() {
                                     setMaxFrameRate( mFullFrameRate * 2 );
                                     }
                                 else if( asciiKey == '(' ) {
-                                    // fast forward
+                                    // fast fast forward
                                     setMaxFrameRate( mFullFrameRate * 4 );
+                                    }
+                                else if( asciiKey == ')' ) {
+                                    // fast fast fast forward
+                                    setMaxFrameRate( mFullFrameRate * 8 );
                                     }
                                 }
                             }

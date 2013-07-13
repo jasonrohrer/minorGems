@@ -1472,6 +1472,20 @@ void GameSceneHandler::keyPressed(
         }
     
 
+    if( inKey == 9 && isCommandKeyDown() &&
+        screen->isPlayingBack() ) {
+        
+        printf( "Caught alt-tab during playback, pausing\n" );
+        
+        // alt-tab pressed during playback
+        // but we aren't actually being minimized during playback
+        // (because there's nothing to bring us back)
+        // Still, force a pause, so that user's unpause action after
+        // tabbing back in replays correctly
+        mPaused = true;
+        }
+    
+
     if( enableSpeedControlKeys ) {
         
         if( inKey == '^' ) {
@@ -1487,8 +1501,12 @@ void GameSceneHandler::keyPressed(
             mScreen->setMaxFrameRate( targetFrameRate * 2 );
             }            
         if( inKey == '(' ) {
-            // fast forward
+            // fast fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 4 );
+            }            
+        if( inKey == ')' ) {
+            // fast fast fast forward
+            mScreen->setMaxFrameRate( targetFrameRate * 8 );
             }            
         }
     
