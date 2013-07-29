@@ -489,7 +489,7 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
             if( ! $confirmed ) {
                 
                 be_addMessage( "Subscription:  $listName",
-                               "To cofirm your subscription, ".
+                               "To confirm your subscription, ".
                                "follow this link:\n\n".
                                "$fullServerURL?action=confirm".
                                "&code=$confirmation_code\n\n",
