@@ -18,8 +18,11 @@ class WebRequest {
         // inURL the url to retrieve
         // inBody the body of the request, can be NULL
         // request body must be in application/x-www-form-urlencoded format
+        // inProxy is the address of a proxy in address:port format, 
+        //         or NULL to not use a proxy
+        //         defaults to NULL
         WebRequest( const char *inMethod, const char *inURL,
-                    const char *inBody );
+                    const char *inBody, const char *inProxy = NULL );
         
 
         // if request is not complete, destruction cancels it

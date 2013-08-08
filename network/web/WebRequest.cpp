@@ -8,7 +8,7 @@
 
 
 WebRequest::WebRequest( const char *inMethod, const char *inURL,
-                        const char *inBody )
+                        const char *inBody, const char *inProxy )
         : mError( false ), mURL( stringDuplicate( inURL ) ),
           mRequest( NULL ), mRequestPosition( -1 ),
           mResultReady( false ), mResult( NULL ),
@@ -36,23 +36,51 @@ WebRequest::WebRequest( const char *inMethod, const char *inURL,
     // find the first occurrence of "/", which is the end of the
     // server name
 
-    char *serverNameCopy = stringDuplicate( serverStart );
-        
-    char *serverEnd = strstr( serverNameCopy, "/" );
-
-    char *getPath = strstr( serverStart, "/" );
-
-        
-    if( serverEnd == NULL ) {
-        serverEnd = &( serverStart[ strlen( serverStart ) ] );
-        getPath = (char *)"/";
+    char *serverNameCopy;
+    char *requestHostNameCopy = stringDuplicate( serverStart );
+    
+    if( inProxy != NULL ) {
+        serverNameCopy = stringDuplicate( inProxy );
         }
-    // terminate the url here to extract the server name
-    serverEnd[0] = '\0';
+    else {
+        // will be same as parsed, request host name copy later 
+        serverNameCopy = NULL;
+        }
+    
+    
 
+    char *getPath;
+
+    if( inProxy != NULL ) {
+        // for proxy, pass entire URL as method target
+        getPath = (char*)inURL;
+        }
+    else {
+        // for direct connection, pass only file sub-path from URL
+        getPath = strstr( serverStart, "/" );
+        }
+    
+    
+    char *hostNameEnd = strstr( requestHostNameCopy, "/" );
+    if( hostNameEnd == NULL ) {
+        hostNameEnd = &( requestHostNameCopy[ strlen( requestHostNameCopy ) ] );
+        
+        if( inProxy == NULL ) {
+            getPath = (char *)"/";
+            }
+        }
+
+    // terminate the url here to extract the host name and port
+    hostNameEnd[0] = '\0';
+
+    if( inProxy == NULL ) {
+        serverNameCopy = stringDuplicate( requestHostNameCopy );
+        }
+
+    
     int portNumber = 80;
 
-        // look for a port number
+    // look for a port number
     char *colon = strstr( serverNameCopy, ":" );
     if( colon != NULL ) {
         char *portNumberString = &( colon[1] );
@@ -95,7 +123,7 @@ WebRequest::WebRequest( const char *inMethod, const char *inURL,
     tempStream.writeString( getPath );
     tempStream.writeString( " HTTP/1.0\r\n" );
     tempStream.writeString( "Host: " );
-    tempStream.writeString( serverNameCopy );
+    tempStream.writeString( requestHostNameCopy );
     tempStream.writeString( "\r\n" );
         
     if( inBody != NULL ) {
@@ -118,7 +146,8 @@ WebRequest::WebRequest( const char *inMethod, const char *inURL,
         
         
     delete [] serverNameCopy;
-
+    delete [] requestHostNameCopy;
+    
     delete [] urlCopy;    
     }
 

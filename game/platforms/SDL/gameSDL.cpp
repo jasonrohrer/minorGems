@@ -124,6 +124,10 @@ char blendOutputFramePairs = false;
 float blendOutputFrameFraction = 0;
 
 
+char *webProxy = NULL;
+
+
+
 static unsigned char *lastFrame_rgbaBytes = NULL;
 
 
@@ -342,6 +346,11 @@ void cleanUpAtExit() {
         
         delete r->request;
         }
+
+    if( webProxy != NULL ) {
+        delete [] webProxy;
+        webProxy = NULL;
+        }
     
     AppLog::info( "exiting: Done.\n" );
     }
@@ -559,7 +568,15 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     blendOutputFrameFraction = 
         SettingsManager::getFloatSetting( "blendOutputFrameFraction", 0.0f );
 
-
+    webProxy = SettingsManager::getStringSetting( "webProxy" );
+    
+    if( webProxy != NULL && 
+        strcmp( webProxy, "" ) == 0 ) {
+        
+        delete [] webProxy;
+        webProxy = NULL;
+        }
+    
 
     // make sure dir is writeable
     FILE *testFile = fopen( "testWrite.txt", "w" );
@@ -1957,7 +1974,7 @@ int startWebRequest( const char *inMethod, const char *inURL,
         }
 
 
-    r.request = new WebRequest( inMethod, inURL, inBody );
+    r.request = new WebRequest( inMethod, inURL, inBody, webProxy );
     
     webRequestRecords.push_back( r );
     
