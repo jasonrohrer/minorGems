@@ -245,6 +245,8 @@ class GameSceneHandler :
         // reduce sleep time when user hits keys to restore responsiveness
         unsigned int mPausedSleepTime;
 
+
+        char mBlockQuitting;
         
         
     protected:
@@ -889,6 +891,7 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     : mScreen( inScreen ),
       mPaused( false ),
       mPausedSleepTime( 0 ),
+      mBlockQuitting( false ),
       mStartTimeSeconds( time( NULL ) ),
       mPrintFrameRate( true ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
@@ -977,6 +980,19 @@ void pauseGame() {
 char isPaused() {
     return sceneHandler->mPaused;
     }
+
+
+
+void blockQuitting( char inNoQuitting ) {
+    sceneHandler->mBlockQuitting = inNoQuitting;
+    }
+
+
+
+char isQuittingBlocked() {
+    return sceneHandler->mBlockQuitting;
+    }
+
 
 
 void wakeUpPauseFrameRate() {
@@ -1483,7 +1499,7 @@ void GameSceneHandler::keyPressed(
     mPausedSleepTime = 0;
     
 
-    if( mPaused && inKey == '%' ) {
+    if( mPaused && inKey == '%' && ! mBlockQuitting ) {
         // % to quit from pause
         exit( 0 );
         }

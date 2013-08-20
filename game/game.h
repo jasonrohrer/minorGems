@@ -248,6 +248,15 @@ void pauseGame();
 char isPaused();
 
 
+// default behavior is to allow '%' key press to quit from paused state
+// set to true to block this behavior (for example, at times when quitting
+// is inappropriate)
+void blockQuitting( char inNoQuitting );
+
+char isQuittingBlocked();
+
+
+
 // pause mode eventually runs in reduced frame rate to reduce CPU usage
 // call this to temporarily increase framerate back to normal
 void wakeUpPauseFrameRate();
