@@ -518,6 +518,57 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
 
 
+    char useLargestWindowFound = false;
+    int readUseLargestWindow = 
+        SettingsManager::getIntSetting( "useLargestWindowFound", 
+                                        &useLargestWindowFound );
+    
+    char useLargestWindow = true;
+    
+    if( useLargestWindowFound && readUseLargestWindow == 0 ) {
+        useLargestWindow = false;
+        }
+
+
+    if( !fullscreen && useLargestWindow ) {
+        
+        const SDL_VideoInfo* currentScreenInfo = SDL_GetVideoInfo();
+        
+        int currentW = currentScreenInfo->current_w;
+        int currentH = currentScreenInfo->current_h;
+        
+        int blowUpFactor = 1;
+        
+        while( gameWidth * blowUpFactor < currentW &&
+               gameHeight * blowUpFactor < currentH ) {
+            
+            blowUpFactor++;
+            }
+
+        while( blowUpFactor > 1 &&
+               gameWidth * blowUpFactor >= currentW * 0.80 ||
+               gameHeight * blowUpFactor >= currentH * 0.80  ) {
+            
+            // scale back, because we don't want to totally
+            // fill the screen (annoying to manage such a big window)
+            
+            // stop at a window that fills < 80% of screen in either direction
+            blowUpFactor --;
+            }
+        
+        screenWidth = blowUpFactor * gameWidth;
+        screenHeight = blowUpFactor * gameHeight;
+            
+
+        AppLog::getLog()->logPrintf( 
+            Log::INFO_LEVEL,
+            "Screen dimensions for largest-window mode:  %dx%d\n",
+            screenWidth, screenHeight );
+        }
+    
+
+
+
     char frameRateFound = false;
     int readFrameRate = SettingsManager::getIntSetting( "halfFrameRate", 
                                                          &frameRateFound );
