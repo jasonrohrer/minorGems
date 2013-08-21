@@ -520,7 +520,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     char useLargestWindowFound = false;
     int readUseLargestWindow = 
-        SettingsManager::getIntSetting( "useLargestWindowFound", 
+        SettingsManager::getIntSetting( "useLargestWindow", 
                                         &useLargestWindowFound );
     
     char useLargestWindow = true;
