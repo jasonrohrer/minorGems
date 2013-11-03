@@ -119,6 +119,10 @@
  * 
  * 2013-January-29   Jason Rohrer
  * Added support for replay of time() values.  
+ *
+ * 2015-November-3   Jason Rohrer
+ * Fixed bug in frame timing (negative frame time measurements) if system time
+ * changes while we're running.
  */
 
 
@@ -1624,6 +1628,14 @@ void ScreenGL::start() {
 
         int frameTime =
             Time::getMillisecondsSince( frameStartSec, frameStartMSec );
+        
+
+        // frame time should never be negative
+        // BUT it can be if system time changes while game is running
+        // (example:  automatic daylight savings time adjustment)
+        if( frameTime < 0 ) {
+            frameTime = 0;
+            }
         
     
         // lock down to mMaxFrameRate frames per second
