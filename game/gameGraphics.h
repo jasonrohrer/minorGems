@@ -129,5 +129,11 @@ void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter,
 
 
 
+
+// both cooridinates must be in the range (0,0) to (width-1, height-1)
+Image *getScreenRegion( int inStartX, int inStartY, int inEndX, int inEndY );
+
+
+
 #endif
                  

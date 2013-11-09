@@ -1855,6 +1855,107 @@ void saveScreenShot( const char *inPrefix ) {
 
 
 
+
+// if inAllowBlend set, then any blend settings (for saving blended 
+// double-frames) are applied
+// can return NULL in this case (when this frame should not be output
+// according to blending settings)
+static Image *getScreenRegionInternal( 
+    int inStartX, int inStartY, int inEndX, int inEndY, char inAllowBlend ) {
+
+    int regionWidth = 1 + inEndX - inStartX;
+    int regionHeight = 1 + inEndY - inStartY;
+    
+    
+    int numBytes = regionWidth * regionHeight * 3;
+    
+    unsigned char *rgbBytes = 
+        new unsigned char[ numBytes ];
+
+    // w and h might not be multiples of 4
+    GLint oldAlignment;
+    glGetIntegerv( GL_PACK_ALIGNMENT, &oldAlignment );
+                
+    glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+    
+    glReadPixels( inStartX, inStartY, inEndX + 1, inEndY + 1, 
+                  GL_RGB, GL_UNSIGNED_BYTE, rgbBytes );
+    
+    glPixelStorei( GL_PACK_ALIGNMENT, oldAlignment );
+
+
+    if( inAllowBlend &&
+        ! manualScreenShot && 
+        blendOutputFramePairs && 
+        frameNumber % 2 != 0 && 
+        lastFrame_rgbaBytes != NULL ) {
+        
+        // save blended frames on odd frames
+        if( blendOutputFrameFraction > 0 ) {
+            float blendA = 1 - blendOutputFrameFraction;
+            float blendB = blendOutputFrameFraction;
+            
+            for( int i=0; i<numBytes; i++ ) {
+                rgbBytes[i] = 
+                    (unsigned char)(
+                        blendA * rgbBytes[i] + 
+                        blendB * lastFrame_rgbaBytes[i] );
+                }
+            }
+        
+        }
+    else if( !manualScreenShot &&
+             blendOutputFramePairs &&
+             frameNumber % 2 == 0 ) {
+        
+        // skip even frames, but save them for next blending
+        
+        if( lastFrame_rgbaBytes != NULL ) {
+            delete [] lastFrame_rgbaBytes;
+            lastFrame_rgbaBytes = NULL;
+            }
+
+        lastFrame_rgbaBytes = rgbBytes;
+        
+        return NULL;
+        }
+    
+
+    Image *screenImage = new Image( regionWidth, regionHeight, 3, false );
+
+    double *channels[3];
+    int c;
+    for( c=0; c<3; c++ ) {
+        channels[c] = screenImage->getChannel( c );
+        }
+    
+    // image of screen is upside down
+    int outputRow = 0;
+    for( int y=inEndY; y>=inStartY; y-- ) {
+        for( int x=inStartX; x<=inEndX; x++ ) {
+                        
+            int outputPixelIndex = outputRow * regionWidth + x;
+            
+            
+            int regionPixelIndex = y * regionWidth + x;
+            int byteIndex = regionPixelIndex * 3;
+                        
+            for( c=0; c<3; c++ ) {
+                channels[c][outputPixelIndex] =
+                    rgbBytes[ byteIndex + c ] / 255.0;
+                }
+            }
+        outputRow++;
+        }
+    
+    delete [] rgbBytes;
+
+    return screenImage;
+    }
+
+
+
+
 static int nextShotNumber = -1;
 static char shotDirExists = false;
 
@@ -1920,100 +2021,39 @@ void takeScreenShot() {
     
     delete [] fileName;
 
-
-    int numBytes = screenWidth * screenHeight * 3;
     
-    unsigned char *rgbBytes = 
-        new unsigned char[ numBytes ];
-
-    // w and h might not be multiples of 4
-    GLint oldAlignment;
-    glGetIntegerv( GL_PACK_ALIGNMENT, &oldAlignment );
-                
-    glPixelStorei( GL_PACK_ALIGNMENT, 1 );
     
-    glReadPixels( 0, 0, screenWidth, screenHeight, 
-                  GL_RGB, GL_UNSIGNED_BYTE, rgbBytes );
-    
-    glPixelStorei( GL_PACK_ALIGNMENT, oldAlignment );
 
+    Image *screenImage = 
+        getScreenRegionInternal( 0, 0, screenWidth-1, screenHeight-1, true );
 
-    if( ! manualScreenShot && 
-        blendOutputFramePairs && 
-        frameNumber % 2 != 0 && 
-        lastFrame_rgbaBytes != NULL ) {
-        
-        // save blended frames on odd frames
-        if( blendOutputFrameFraction > 0 ) {
-            float blendA = 1 - blendOutputFrameFraction;
-            float blendB = blendOutputFrameFraction;
-            
-            for( int i=0; i<numBytes; i++ ) {
-                rgbBytes[i] = 
-                    (unsigned char)(
-                        blendA * rgbBytes[i] + 
-                        blendB * lastFrame_rgbaBytes[i] );
-                }
-            }
-        
-        }
-    else if( !manualScreenShot &&
-             blendOutputFramePairs &&
-             frameNumber % 2 == 0 ) {
-        
-        // skip even frames, but save them for next blending
-        
-        if( lastFrame_rgbaBytes != NULL ) {
-            delete [] lastFrame_rgbaBytes;
-            lastFrame_rgbaBytes = NULL;
-            }
-
-        lastFrame_rgbaBytes = rgbBytes;
-        
+    if( screenImage == NULL ) {
+        // a skipped frame due to blending settings
         delete file;
         
         return;
         }
-
-    nextShotNumber++;
     
-    
-
-    Image screenImage( screenWidth, screenHeight, 3, false );
-
-    double *channels[3];
-    int c;
-    for( c=0; c<3; c++ ) {
-        channels[c] = screenImage.getChannel( c );
-        }
-    
-    // image of screen is upside down
-    int outputRow = 0;
-    for( int y=screenHeight-1; y>=0; y-- ) {
-        for( int x=0; x<screenWidth; x++ ) {
-                        
-            int outputPixelIndex = outputRow * screenWidth + x;
-            
-            
-            int screenPixelIndex = y * screenWidth + x;
-            int byteIndex = screenPixelIndex * 3;
-                        
-            for( c=0; c<3; c++ ) {
-                channels[c][outputPixelIndex] =
-                    rgbBytes[ byteIndex + c ] / 255.0;
-                }
-            }
-        outputRow++;
-        }
-    
-    delete [] rgbBytes;
 
 
     FileOutputStream tgaStream( file );
     
-    screenShotConverter.formatImage( &screenImage, &tgaStream );
+    screenShotConverter.formatImage( screenImage, &tgaStream );
 
+    delete screenImage;
+    
     delete file;
+
+    nextShotNumber++;
+    }
+
+
+
+
+Image *getScreenRegion( int inStartX, int inStartY, int inEndX, int inEndY ) {
+
+    return 
+        getScreenRegionInternal( inStartX, inStartY, inEndX, inEndY, false );
     }
 
 
