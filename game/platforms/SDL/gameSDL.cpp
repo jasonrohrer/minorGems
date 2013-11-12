@@ -1856,18 +1856,16 @@ void saveScreenShot( const char *inPrefix ) {
 
 
 
-// if inAllowBlend set, then any blend settings (for saving blended 
+// if manualScreenShot false, then any blend settings (for saving blended 
 // double-frames) are applied
 // can return NULL in this case (when this frame should not be output
 // according to blending settings)
+//
+// Region in screen pixels
 static Image *getScreenRegionInternal( 
-    int inStartX, int inStartY, int inEndX, int inEndY, char inAllowBlend ) {
-
-    int regionWidth = 1 + inEndX - inStartX;
-    int regionHeight = 1 + inEndY - inStartY;
-    
-    
-    int numBytes = regionWidth * regionHeight * 3;
+    int inStartX, int inStartY, int inWidth, int inHeight ) {    
+        
+    int numBytes = inWidth * inHeight * 3;
     
     unsigned char *rgbBytes = 
         new unsigned char[ numBytes ];
@@ -1878,14 +1876,13 @@ static Image *getScreenRegionInternal(
                 
     glPixelStorei( GL_PACK_ALIGNMENT, 1 );
     
-    glReadPixels( inStartX, inStartY, inEndX + 1, inEndY + 1, 
+    glReadPixels( inStartX, inStartY, inWidth, inHeight, 
                   GL_RGB, GL_UNSIGNED_BYTE, rgbBytes );
     
     glPixelStorei( GL_PACK_ALIGNMENT, oldAlignment );
 
 
-    if( inAllowBlend &&
-        ! manualScreenShot && 
+    if( ! manualScreenShot && 
         blendOutputFramePairs && 
         frameNumber % 2 != 0 && 
         lastFrame_rgbaBytes != NULL ) {
@@ -1921,7 +1918,7 @@ static Image *getScreenRegionInternal(
         }
     
 
-    Image *screenImage = new Image( regionWidth, regionHeight, 3, false );
+    Image *screenImage = new Image( inWidth, inHeight, 3, false );
 
     double *channels[3];
     int c;
@@ -1931,13 +1928,13 @@ static Image *getScreenRegionInternal(
     
     // image of screen is upside down
     int outputRow = 0;
-    for( int y=inEndY; y>=inStartY; y-- ) {
-        for( int x=inStartX; x<=inEndX; x++ ) {
+    for( int y=inHeight - 1; y>=0; y-- ) {
+        for( int x=0; x<inWidth; x++ ) {
                         
-            int outputPixelIndex = outputRow * regionWidth + x;
+            int outputPixelIndex = outputRow * inWidth + x;
             
             
-            int regionPixelIndex = y * regionWidth + x;
+            int regionPixelIndex = y * inWidth + x;
             int byteIndex = regionPixelIndex * 3;
                         
             for( c=0; c<3; c++ ) {
@@ -2025,7 +2022,7 @@ void takeScreenShot() {
     
 
     Image *screenImage = 
-        getScreenRegionInternal( 0, 0, screenWidth-1, screenHeight-1, true );
+        getScreenRegionInternal( 0, 0, screenWidth, screenHeight );
 
     if( screenImage == NULL ) {
         // a skipped frame due to blending settings
@@ -2050,10 +2047,48 @@ void takeScreenShot() {
 
 
 
-Image *getScreenRegion( int inStartX, int inStartY, int inEndX, int inEndY ) {
+Image *getScreenRegion( double inX, double inY, 
+                        double inWidth, double inHeight ) {
+    
+    double endX = inX + inWidth;
+    double endY = inY + inHeight;
+    
+    // rectangle specified in integer screen coordinates
 
-    return 
-        getScreenRegionInternal( inStartX, inStartY, inEndX, inEndY, false );
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+ 
+    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+    glGetDoublev( GL_PROJECTION_MATRIX, projection );
+    glGetIntegerv( GL_VIEWPORT, viewport );
+
+    GLdouble winStartX, winStartY, winStartZ;
+    GLdouble winEndX, winEndY, winEndZ;
+
+    gluProject( inX, inY, 0, 
+                modelview, projection, viewport, 
+                &winStartX, &winStartY, &winStartZ );
+
+    gluProject( endX, endY, 0, 
+                modelview, projection, viewport, 
+                &winEndX, &winEndY, &winEndZ );
+
+
+
+
+
+    manualScreenShot = true;
+
+    
+    Image *result = 
+            getScreenRegionInternal( 
+                lrint( winStartX ), lrint( winStartY ), 
+                lrint( winEndX - winStartX ), lrint( winEndY - winStartY ) );
+
+    manualScreenShot = false;
+    
+    return result;
     }
 
 
