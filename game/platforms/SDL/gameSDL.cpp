@@ -1920,12 +1920,10 @@ static Image *getScreenRegionInternal(
 
     Image *screenImage = new Image( inWidth, inHeight, 3, false );
 
-    double *channels[3];
-    int c;
-    for( c=0; c<3; c++ ) {
-        channels[c] = screenImage->getChannel( c );
-        }
-    
+    double *channelOne = screenImage->getChannel( 0 );
+    double *channelTwo = screenImage->getChannel( 1 );
+    double *channelThree = screenImage->getChannel( 2 );
+        
     // image of screen is upside down
     int outputRow = 0;
     for( int y=inHeight - 1; y>=0; y-- ) {
@@ -1936,11 +1934,15 @@ static Image *getScreenRegionInternal(
             
             int regionPixelIndex = y * inWidth + x;
             int byteIndex = regionPixelIndex * 3;
-                        
-            for( c=0; c<3; c++ ) {
-                channels[c][outputPixelIndex] =
-                    rgbBytes[ byteIndex + c ] / 255.0;
-                }
+                
+            // optimization found:  should unroll this loop over 3 channels
+            // divide by 255, with a multiply
+            channelOne[outputPixelIndex] = 
+                rgbBytes[ byteIndex++ ] * 0.003921569;
+            channelTwo[outputPixelIndex] = 
+                rgbBytes[ byteIndex++ ] * 0.003921569;
+            channelThree[outputPixelIndex] = 
+                rgbBytes[ byteIndex++ ] * 0.003921569;
             }
         outputRow++;
         }
