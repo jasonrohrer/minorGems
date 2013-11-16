@@ -20,7 +20,7 @@ PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.fra
 
 # various frameworks to support OpenGL and SDL
 # static linking against zlib and libpng
-PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa ../minorGems/game/platforms/SDL/mac/SDLMain.m
+PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa ../../minorGems/game/platforms/SDL/mac/SDLMain.m
 
 # no linking change for headless on MacOSX
 PLATFORM_LINK_FLAGS_HEADLESS = ${PLATFORM_LINK_FLAGS}
