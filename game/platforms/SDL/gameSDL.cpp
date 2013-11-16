@@ -458,8 +458,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         // arg 0 is the path to the app executable
         char *appDirectoryPath = stringDuplicate( inArgs[0] );
     
-        char *appNamePointer = strstr( appDirectoryPath,
-                                       "GameApp.app" );
+        char *bundleName = autoSprintf( "%s.app", getAppName() );
+
+        char *appNamePointer = strstr( appDirectoryPath, bundleName );
 
         if( appNamePointer != NULL ) {
             // terminate full app path to get parent directory
@@ -468,6 +469,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             chdir( appDirectoryPath );
             }
         
+        delete [] bundleName;
         delete [] appDirectoryPath;
     #endif
 

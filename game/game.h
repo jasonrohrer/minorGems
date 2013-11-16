@@ -12,6 +12,17 @@
 const char *getWindowTitle();
 
 
+
+// The platform-independent app name
+// Example:  CastleDoctrine
+//
+// On Windows, we might compile to CastleDoctrine.exe
+// On Mac, we might bundle to CastleDoctrine.app
+// But the app name is the same (CastleDoctrine) on both platforms.
+const char *getAppName();
+
+
+
 // get data that should be saved in the header of the game that is 
 // being recorded
 // Must be encoded as a single string with no whitespace.
