@@ -120,9 +120,14 @@
  * 2013-January-29   Jason Rohrer
  * Added support for replay of time() values.  
  *
- * 2015-November-3   Jason Rohrer
+ * 2013-November-3   Jason Rohrer
  * Fixed bug in frame timing (negative frame time measurements) if system time
  * changes while we're running.
+ *
+ * 2013-November-21   Jason Rohrer
+ * Added work-around for improper window de-minimization detection on some
+ * platforms so that isMinimized will always report true minimization state
+ * (thanks Joshua Collins).
  */
 
 
@@ -1150,7 +1155,17 @@ char ScreenGL::shouldShowPlaybackDisplay() {
 
 
 char ScreenGL::isMinimized() {
-    return mMinimized;
+    // we use mMinimized internally to keep track of whether we ever
+    // minimized ourself and were properly restored from that minimization
+    // (to do the things that we need to do when we come out of minimization)
+
+    // HOWEVER, on some platforms, we don't receive proper events when we
+    // come out of minimization, so we can't count on mMinimized to be
+    // correct.
+
+    // Actually test for real here.
+
+    return ( SDL_GetAppState() & SDL_APPACTIVE ) == 0;
     }
 
 
