@@ -548,13 +548,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             }
 
         while( blowUpFactor > 1 &&
-               ( gameWidth * blowUpFactor >= currentW * 0.80 ||
-                 gameHeight * blowUpFactor >= currentH * 0.80 ) ) {
+               ( gameWidth * blowUpFactor >= currentW * 0.85 ||
+                 gameHeight * blowUpFactor >= currentH * 0.85 ) ) {
             
             // scale back, because we don't want to totally
             // fill the screen (annoying to manage such a big window)
             
-            // stop at a window that fills < 80% of screen in either direction
+            // stop at a window that fills < 85% of screen in either direction
             blowUpFactor --;
             }
         
