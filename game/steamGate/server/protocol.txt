@@ -1,0 +1,8 @@
+
+
+// will prompt user to log into steam, if no steam key has been assigned to 
+// them yet
+
+server.php
+?action=get_steam_key
+&ticket_id=[ID]
