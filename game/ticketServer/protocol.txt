@@ -18,6 +18,18 @@ april_12
 
 
 
+// checks if download code is valid
+
+server.php
+?action=check_ticket
+&ticket_id=[ID]
+
+Return:
+VALID
+-or-
+INVALID
+
+
 
 // shows download links
 

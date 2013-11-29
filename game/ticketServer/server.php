@@ -124,6 +124,9 @@ else if( $action == "block_ticket_id" ) {
 else if( $action == "delete_ticket_id" ) {
     ts_deleteTicketID();
     }
+else if( $action == "check_ticket" ) {
+    ts_checkTicket();
+    }
 else if( $action == "show_downloads" ) {
     ts_showDownloads();
     }
@@ -885,6 +888,35 @@ function ts_downloadAllowed() {
 function ts_printLink( $inFileName, $inTicketID ) {
     echo "<a href=\"server.php?action=download&ticket_id=$inTicketID&" .
         "file_name=$inFileName\">$inFileName</a>";
+    }
+
+
+
+function ts_checkTicket() {
+    
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
+    
+    $ticket_id = strtoupper( $ticket_id );    
+    
+    global $tableNamePrefix, $remoteIP;
+
+
+    global $header, $footer;
+
+
+    
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
+        "WHERE ticket_id = '$ticket_id' AND blocked = 0;";
+    $result = ts_queryDatabase( $query );
+
+    $countMatching = mysql_result( $result, 0, 0 );
+
+    if( $countMatching == 1 ) {
+        echo "VALID";
+        }
+    else {
+        echo "INVALID";
+        }
     }
 
 
