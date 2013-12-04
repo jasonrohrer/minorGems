@@ -434,6 +434,8 @@ function sg_steamLoginReturn() {
             $query = "DELETE FROM ".
                 "$tableNamePrefix"."steam_key_bank ".
                 "WHERE steam_gift_key = '$steam_gift_key';";
+
+            sg_queryDatabase( $query );
             sg_queryDatabase( "COMMIT;" );
             sg_queryDatabase( "SET AUTOCOMMIT = 1;" );
 
