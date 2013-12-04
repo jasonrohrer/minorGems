@@ -108,6 +108,21 @@ else if( $action == "steam_login_return" ) {
 else if( $action == "get_steam_key" ) {
     sg_getSteamKey();
     }
+else if( $action == "show_data" ) {
+    sg_showData();
+    }
+else if( $action == "add_steam_gift_keys" ) {
+    sg_addSteamGiftKeys();
+    }
+else if( $action == "show_log" ) {
+    sg_showLog();
+    }
+else if( $action == "clear_log" ) {
+    sg_clearLog();
+    }
+else if( $action == "logout" ) {
+    sg_logout();
+    }
 else if( $action == "sg_setup" ) {
     global $setup_header, $setup_footer;
     echo $setup_header; 
@@ -181,11 +196,13 @@ sg_closeDatabase();
 function sg_setupDatabase() {
     global $tableNamePrefix;
 
+
     $tableName = $tableNamePrefix . "log";
     if( ! sg_doesTableExist( $tableName ) ) {
 
         $query =
             "CREATE TABLE $tableName(" .
+            "log_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ".
             "entry TEXT NOT NULL, ".
             "entry_time DATETIME NOT NULL );";
 
@@ -209,7 +226,8 @@ function sg_setupDatabase() {
             "steam_id VARCHAR(255) NOT NULL PRIMARY KEY," .
             "ticket_id VARCHAR(255) NOT NULL," .
             "INDEX(ticket_id),".
-            "steam_gift_key TEXT NOT NULL );";
+            "steam_gift_key TEXT NOT NULL,".
+            "creation_date DATETIME NOT NULL );";
 
         $result = sg_queryDatabase( $query );
 
@@ -369,8 +387,9 @@ function sg_steamLoginReturn() {
             
             // make a new record for them
             $query = "INSERT INTO $tableNamePrefix".
-                "mapping( steam_id, ticket_id, steam_gift_key ) ".
-                "VALUES( '$steam_id', '$ticket_id', '' );";
+                "mapping( steam_id, ticket_id, steam_gift_key, ".
+                "         creation_date ) ".
+                "VALUES( '$steam_id', '$ticket_id', '', CURRENT_TIMESTAMP );";
             sg_queryDatabase( $query );
             }
         }
@@ -487,6 +506,15 @@ function sg_getSteamKey() {
 
     // else need to generate one for them
 
+    // before even asking them to log in, make sure we have some left
+    if( sg_countKeysInBank() == 0 ) {
+        
+        echo "There are no Steam keys left.<br><br>";
+        global $helpEmail;
+        echo "Please email <b>$helpEmail</b>";
+        return;
+        }
+    
     echo "Log in with Steam to get your free Steam key:<br>";
 
     sg_showSteamLoginButton( $ticket_id );
@@ -527,6 +555,401 @@ function sg_checkTicketID( $inTicketID ) {
         return true;
         }
     }
+
+
+
+
+function sg_countKeysInBank() {
+    
+    global $tableNamePrefix, $remoteIP;
+    
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."steam_key_bank;";
+    
+    $result = sg_queryDatabase( $query );
+    
+    $keysLeftInBank = mysql_result( $result, 0, 0 );
+
+    return $keysLeftInBank;
+    }
+
+
+
+
+
+
+function sg_showData( $checkPassword = true ) {
+    // these are global so they work in embeded function call below
+    global $skip, $search, $order_by;
+
+    if( $checkPassword ) {
+        sg_checkPassword( "show_data" );
+        }
+    
+    global $tableNamePrefix, $remoteIP;
+    
+    $keysLeftInBank = sg_countKeysInBank();
+    
+
+    echo "<table width='100%' border=0><tr>".
+        "<td>[<a href=\"server.php?action=show_data" .
+            "\">Main</a>]</td>".
+        "<td align=center><b>$keysLeftInBank</b> unassigned keys remain</td>".
+        "<td align=right>[<a href=\"server.php?action=logout" .
+            "\">Logout</a>]</td>".
+        "</tr></table><br><br><br>";
+
+
+
+
+    $skip = sg_requestFilter( "skip", "/[0-9]+/", 0 );
+    
+    global $recordsPerPage;
+    
+    $search = sg_requestFilter( "search", "/[A-Z0-9_@. -]+/i" );
+
+    $order_by = sg_requestFilter( "order_by", "/[A-Z_]+/i",
+                                  "creation_date" );
+    
+    $keywordClause = "";
+    $searchDisplay = "";
+    
+    if( $search != "" ) {
+        
+
+        $keywordClause = "WHERE ( steam_id LIKE '%$search%' " .
+            "OR ticket_id LIKE '%$search%' ".
+            "OR steam_gift_key LIKE '%$search%' ) ";
+
+        $searchDisplay = " matching <b>$search</b>";
+        }
+    
+
+    
+
+    // first, count results
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."mapping $keywordClause;";
+
+    $result = sg_queryDatabase( $query );
+    $totalMappings = mysql_result( $result, 0, 0 );
+
+
+    $orderDir = "ASC";
+
+    if( $order_by == "creation_date" ) {
+        $orderDir = "DESC";
+        }
+    
+             
+    $query = "SELECT * FROM $tableNamePrefix"."mapping $keywordClause".
+        "ORDER BY $order_by $orderDir ".
+        "LIMIT $skip, $recordsPerPage;";
+    $result = sg_queryDatabase( $query );
+    
+    $numRows = mysql_numrows( $result );
+
+    $startSkip = $skip + 1;
+    
+    $endSkip = $startSkip + $recordsPerPage - 1;
+
+    if( $endSkip > $totalMappings ) {
+        $endSkip = $totalMappings;
+        }
+
+
+
+        // form for searching records
+?>
+        <hr>
+            <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="show_data">
+    <INPUT TYPE="hidden" NAME="order_by" VALUE="<?php echo $order_by;?>">
+    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="search"
+             VALUE="<?php echo $search;?>">
+    <INPUT TYPE="Submit" VALUE="Search">
+    </FORM>
+        <hr>
+<?php
+
+    
+
+    
+    echo "$totalMappings active mappings". $searchDisplay .
+        " (showing $startSkip - $endSkip):<br>\n";
+
+    
+    $nextSkip = $skip + $recordsPerPage;
+
+    $prevSkip = $skip - $recordsPerPage;
+    
+    if( $prevSkip >= 0 ) {
+        echo "[<a href=\"server.php?action=show_data" .
+            "&skip=$prevSkip&search=$search&order_by=$order_by\">".
+            "Previous Page</a>] ";
+        }
+    if( $nextSkip < $totalMappings ) {
+        echo "[<a href=\"server.php?action=show_data" .
+            "&skip=$nextSkip&search=$search&order_by=$order_by\">".
+            "Next Page</a>]";
+        }
+
+    echo "<br><br>";
+    
+    echo "<table border=1 cellpadding=5>\n";
+
+    function orderLink( $inOrderBy, $inLinkText ) {
+        global $skip, $search, $order_by;
+        if( $inOrderBy == $order_by ) {
+            // already displaying this order, don't show link
+            return "<b>$inLinkText</b>";
+            }
+
+        // else show a link to switch to this order
+        return "<a href=\"server.php?action=show_data" .
+            "&search=$search&skip=$skip&order_by=$inOrderBy\">$inLinkText</a>";
+        }
+
+    
+    echo "<tr>\n";    
+    echo "<td>".orderLink( "steam_id", "Steam ID" )."</td>\n";
+    echo "<td>".orderLink( "ticket_id", "Ticket ID" )."</td>\n";
+    echo "<td>".orderLink( "steam_gift_key", "Steam Gift Key" )."</td>\n";
+    echo "<td>".orderLink( "creation_date", "Creation Date" )."</td>\n";
+    echo "</tr>\n";
+
+
+    for( $i=0; $i<$numRows; $i++ ) {
+        $steam_id = mysql_result( $result, $i, "steam_id" );
+        $ticket_id = mysql_result( $result, $i, "ticket_id" );
+        $steam_gift_key = mysql_result( $result, $i, "steam_gift_key" );
+        $creation_date = mysql_result( $result, $i, "creation_date" );
+        
+        echo "<tr>\n";
+        
+        echo "<td>$steam_id</td>\n";
+        echo "<td>$ticket_id</td>\n";
+        echo "<td>$steam_gift_key</td>\n";
+        echo "<td>$creation_date</td>\n";
+
+        echo "</tr>\n";
+        }
+    echo "</table>";
+
+
+    echo "<hr>";
+    
+
+
+?>
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="add_steam_gift_keys">
+    Add Steam Gift Keys:<br>
+    (One per line)<br>
+
+         <TEXTAREA NAME="steam_gift_keys" COLS=50 ROWS=10></TEXTAREA><br>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="Add">
+    </FORM>
+    <hr>
+
+
+<?php
+
+
+
+    
+    echo "<a href=\"server.php?action=show_log\">".
+        "Show log</a>";
+    echo "<hr>";
+    echo "Generated for $remoteIP\n";
+
+    }
+
+
+
+
+function sg_addSteamGiftKeys() {
+    sg_checkPassword( "add_steam_gift_keys" );
+
+    
+    echo "[<a href=\"server.php?action=show_data" .
+         "\">Main</a>]<br><br><br>";
+    
+    global $tableNamePrefix;
+
+    $confirm = sg_requestFilter( "confirm", "/[01]/" );
+    
+    if( $confirm != 1 ) {
+        echo "You must check the Confirm box to add keys\n";
+        return;
+        }
+    
+
+    $keys =
+        sg_requestFilter( "steam_gift_keys", "/[A-Z0-9\- \n\r]+/" );
+
+    
+
+    $separateKeys = preg_split( "/\s+/", $keys );
+
+
+    $numKeys = count( $separateKeys );
+
+    echo "Adding <b>$numKeys</b> new Steam gift keys...<br>\n";
+
+
+    $query = "INSERT INTO $tableNamePrefix"."steam_key_bank ".
+        "VALUES ";
+
+    $firstKey = true;
+    
+    foreach( $separateKeys as $key ) {
+        if( $key != "" ) {
+            
+            if( ! $firstKey ) {
+                $query = $query .", ";
+                }
+            
+            $query = $query . " ('$key')";
+            
+            $firstKey = false;
+            }
+        }
+
+
+    if( $firstKey ) {
+        echo "<br>No valid keys were provided.";
+        return;
+        }
+
+    
+    $query = $query . ";";
+    
+
+    $result = sg_queryDatabase( $query );
+
+    $numInserted = mysql_affected_rows();
+
+    echo "<br>Successfully added $numInserted keys.";
+    }
+
+
+
+
+function sg_logout() {
+
+    sg_clearPasswordCookie();
+
+    echo "Logged out";
+    }
+
+
+
+
+
+
+function sg_showLog() {
+    sg_checkPassword( "show_log" );
+
+    echo "[<a href=\"server.php?action=show_data" .
+        "\">Main</a>]<br><br><br>";
+
+    $entriesPerPage = 1000;
+    
+    $skip = sg_requestFilter( "skip", "/\d+/", 0 );
+
+    
+    global $tableNamePrefix;
+
+
+    // first, count results
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."log;";
+
+    $result = sg_queryDatabase( $query );
+    $totalEntries = mysql_result( $result, 0, 0 );
+
+
+    
+    $query = "SELECT entry, entry_time FROM $tableNamePrefix"."log ".
+        "ORDER BY log_id DESC LIMIT $skip, $entriesPerPage;";
+    $result = sg_queryDatabase( $query );
+
+    $numRows = mysql_numrows( $result );
+
+
+
+    $startSkip = $skip + 1;
+    
+    $endSkip = $startSkip + $entriesPerPage - 1;
+
+    if( $endSkip > $totalEntries ) {
+        $endSkip = $totalEntries;
+        }
+
+    
+
+    
+    echo "$totalEntries Log entries".
+        " (showing $startSkip - $endSkip):<br>\n";
+
+    
+    $nextSkip = $skip + $entriesPerPage;
+
+    $prevSkip = $skip - $entriesPerPage;
+
+    if( $skip > 0 && $prevSkip < 0 ) {
+        $prevSkip = 0;
+        }
+    
+    if( $prevSkip >= 0 ) {
+        echo "[<a href=\"server.php?action=show_log" .
+            "&skip=$prevSkip\">".
+            "Previous Page</a>] ";
+        }
+    if( $nextSkip < $totalEntries ) {
+        echo "[<a href=\"server.php?action=show_log" .
+            "&skip=$nextSkip\">".
+            "Next Page</a>]";
+        }
+    
+        
+    echo "<hr>";
+
+        
+    
+    for( $i=0; $i<$numRows; $i++ ) {
+        $time = mysql_result( $result, $i, "entry_time" );
+        $entry = mysql_result( $result, $i, "entry" );
+
+        echo "<b>$time</b>:<br><pre>$entry</pre><hr>\n";
+        }
+
+    echo "<br><br><hr><a href=\"server.php?action=clear_log\">".
+        "Clear log</a>";
+    }
+
+
+
+function sg_clearLog() {
+    sg_checkPassword( "clear_log" );
+
+    echo "[<a href=\"server.php?action=show_data" .
+        "\">Main</a>]<br><br><br>";
+    
+    global $tableNamePrefix;
+
+    $query = "DELETE FROM $tableNamePrefix"."log;";
+    $result = sg_queryDatabase( $query );
+    
+    if( $result ) {
+        echo "Log cleared.";
+        }
+    else {
+        echo "DELETE operation failed?";
+        }
+    }
+
+
+
 
 
 
@@ -656,8 +1079,8 @@ function sg_log( $message ) {
     if( $enableLog ) {
         $slashedMessage = mysql_real_escape_string( $message );
     
-        $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
-            "'$slashedMessage', CURRENT_TIMESTAMP );";
+        $query = "INSERT INTO $tableNamePrefix"."log( entry, entry_time ) ".
+            "VALUES( '$slashedMessage', CURRENT_TIMESTAMP );";
         $result = sg_queryDatabase( $query );
         }
     }
@@ -945,5 +1368,23 @@ function sg_clearPasswordCookie() {
 
     setcookie( $cookieName, "", $expireTime, "/" );
     }
+
+
+
+
+function sg_hmac_sha1( $inKey, $inData ) {
+    return hash_hmac( "sha1", 
+                      $inData, $inKey );
+    } 
+
+ 
+function sg_hmac_sha1_raw( $inKey, $inData ) {
+    return hash_hmac( "sha1", 
+                      $inData, $inKey, true );
+    }
+
+
+
+
 
 ?>

@@ -88,5 +88,10 @@ $accessPasswords = array( "0d322c185021e42cccba40fa34ba1dd2f92a2509",
 
 
 
+// in admin list view
+$recordsPerPage = 50;
+
+
+
 
 ?>
