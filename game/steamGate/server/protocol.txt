@@ -6,3 +6,11 @@
 server.php
 ?action=get_steam_key
 &ticket_id=[ID]
+
+
+
+// will prompt user to log into steam
+server.php
+?action=show_download_link
+
+

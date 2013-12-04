@@ -108,6 +108,9 @@ else if( $action == "steam_login_return" ) {
 else if( $action == "get_steam_key" ) {
     sg_getSteamKey();
     }
+else if( $action == "show_download_link" ) {
+    sg_showDownloadLink();
+    }
 else if( $action == "show_data" ) {
     sg_showData();
     }
@@ -401,7 +404,6 @@ function sg_steamLoginReturn() {
     
     if( $steam_gift_key != "" ) {
         sg_showSteamKey( $steam_gift_key );
-        return;
         }
     else {
         // no steam key present... should we generate one?
@@ -413,17 +415,6 @@ function sg_steamLoginReturn() {
 
         if( $ownsGameAlready ) {
             echo "You already own the game on Steam.<br><br>";
-
-            global $ticketServerURL;
-
-            $downloadLink = $ticketServerURL .
-                "?action=show_downloads".
-                "&ticket_id=$ticket_id";
-
-            echo "Here's your download link to get the source code:<br>";
-            echo "<a href='$downloadLink'>$downloadLink</a>";
-            
-            return;
             }
         else {
             // give them a key
@@ -468,10 +459,18 @@ function sg_steamLoginReturn() {
 
 
             sg_showSteamKey( $steam_gift_key );
-            return;
             }
         
         }
+    
+    global $ticketServerURL;
+        
+    $downloadLink = $ticketServerURL .
+        "?action=show_downloads".
+        "&ticket_id=$ticket_id";
+    
+    echo "<br><br>Here's your download link to get the source code:<br>";
+    echo "<a href='$downloadLink'>$downloadLink</a>";
     }
 
 
@@ -519,6 +518,14 @@ function sg_getSteamKey() {
 
     sg_showSteamLoginButton( $ticket_id );
     
+    }
+
+
+
+function sg_showDownloadLink() {
+    echo "Log in with Steam to get your download link:<br>";
+
+    sg_showSteamLoginButton( "" );
     }
 
 
