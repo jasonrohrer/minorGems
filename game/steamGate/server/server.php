@@ -96,6 +96,21 @@ if( isset( $_SERVER[ "REMOTE_ADDR" ] ) ) {
     }
 
 
+$showHeaderAndFooter = false;
+
+// pages that are shown to end user have header and footer
+if( $action == "steam_login_return" ||
+    $action == "get_steam_key" ||
+    $action == "show_download_link" ) {
+
+    $showHeaderAndFooter = true;
+    
+    global $header;
+    eval( $header );
+    }
+
+    
+
 
 
 if( $action == "version" ) {
@@ -180,6 +195,14 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
 
         echo $setup_footer;
         }
+    }
+
+
+// pages that are shown to end user have header and footer
+if( $showHeaderAndFooter ) {
+
+    global $footer;
+    eval( $footer );
     }
 
 
