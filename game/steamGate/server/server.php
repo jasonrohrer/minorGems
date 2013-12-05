@@ -408,10 +408,12 @@ function sg_steamLoginReturn() {
     else {
         // no steam key present... should we generate one?
 
-        // FIXME:  verify game ownership with Steam API
+        // verify game ownership with Steam API
         // and then DO NOT generate a key for them if they already own the game
-        $ownsGameAlready = false;
+        $ownsGameAlready = sg_doesSteamUserOwnApp( $steam_id );
 
+        
+        
 
         if( $ownsGameAlready ) {
             echo "You already own the game on Steam.<br><br>";
@@ -580,6 +582,31 @@ function sg_countKeysInBank() {
     }
 
 
+
+
+// Checks ownership of $steamAppID (from settings.php)
+function sg_doesSteamUserOwnApp( $inSteamID ) {
+    global $steamAppID, $steamWebAPIKey;
+    
+    $url = "https://api.steampowered.com/ISteamUser/CheckAppOwnership/V0001".
+        "?format=xml".
+        "&key=$steamWebAPIKey".
+        "&steamid=$inSteamID".
+        "&appid=$steamAppID";
+
+    $result = file_get_contents( $url );
+
+    
+    preg_match( "#<ownsapp>(\w+)</ownsapp>#",
+                $result, $matches );
+
+    if( $matches[1] == "true" ) {
+        return true;
+        }
+    else {
+        return false;
+        }
+    }
 
 
 
