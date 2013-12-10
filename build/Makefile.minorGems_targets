@@ -162,6 +162,7 @@ s/^SettingsManager.*\.o/$${SETTINGS_MANAGER_O}/; \
 s/^TranslationManager.*\.o/$${TRANSLATION_MANAGER_O}/; \
 s/^stringUtils.*\.o/$${STRING_UTILS_O}/; \
 s/^sha1.*\.o/$${SHA1_O}/; \
+s/^cryptoRandom.*\.o/$${CRYPTO_RANDOM_O}/; \
 '
 
 MINOR_GEMS_SED_FIX_COMMAND_B = sed ' \

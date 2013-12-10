@@ -287,6 +287,12 @@ SHA1_CPP = ${SHA1}.cpp
 SHA1_O = ${SHA1}.o
 
 
+CRYPTO_RANDOM = ${ROOT_PATH}/minorGems/crypto/cryptoRandom
+CRYPTO_RANDOM_H = ${CRYPTO_RANDOM}.h
+CRYPTO_RANDOM_CPP = ${CRYPTO_RANDOM}.cpp
+CRYPTO_RANDOM_O = ${CRYPTO_RANDOM}.o
+
+
 
 
 MEMORY_TRACK_H = ${ROOT_PATH}/minorGems/util/development/memory/MemoryTrack.h
