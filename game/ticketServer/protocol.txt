@@ -31,6 +31,21 @@ INVALID
 
 
 
+
+// gets email address associated with a download ticket
+
+server.php
+?action=get_ticket_email
+&ticket_id=[ID]
+
+Return:
+email
+-or-
+INVALID
+
+
+
+
 // shows download links
 
 server.php

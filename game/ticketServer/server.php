@@ -127,6 +127,9 @@ else if( $action == "delete_ticket_id" ) {
 else if( $action == "check_ticket" ) {
     ts_checkTicket();
     }
+else if( $action == "get_ticket_email" ) {
+    ts_getTicketEmail();
+    }
 else if( $action == "show_downloads" ) {
     ts_showDownloads();
     }
@@ -898,11 +901,7 @@ function ts_checkTicket() {
     
     $ticket_id = strtoupper( $ticket_id );    
     
-    global $tableNamePrefix, $remoteIP;
-
-
-    global $header, $footer;
-
+    global $tableNamePrefix;
 
     
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
@@ -913,6 +912,33 @@ function ts_checkTicket() {
 
     if( $countMatching == 1 ) {
         echo "VALID";
+        }
+    else {
+        echo "INVALID";
+        }
+    }
+
+
+
+function ts_getTicketEmail() {
+    
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
+    
+    $ticket_id = strtoupper( $ticket_id );    
+    
+    global $tableNamePrefix;
+
+
+    
+    $query = "SELECT email FROM $tableNamePrefix"."tickets ".
+        "WHERE ticket_id = '$ticket_id' AND blocked = 0;";
+    $result = ts_queryDatabase( $query );
+
+    if( mysql_numrows( $result ) == 1 ) {
+        
+        $email = mysql_result( $result, 0, 0 );
+
+        echo $email;
         }
     else {
         echo "INVALID";
