@@ -16,6 +16,20 @@ $fullServerURL = "http://localhost/jcr13/steamGate/server.php";
 // This is used to validate ticket IDs.
 $ticketServerURL = "http://localhost/jcr13/ticketServer/server.php";
 
+
+// the tag to use for all force-generated tickets on the ticket server
+// (when making tickets for Steam-only users who didn't pay through
+// FastSpring).
+$ticketServerForcedSaleTag = "april_9";
+
+// for force-generating tickets on the server for Steam purchasers without
+// involving Fastspring
+// The dummy data must be signed with the $fastspringPrivateKey the same
+// way tha fastspring does ( md5( Data . key ), where '.' is concatonate).
+$ticketServerForcedSecurityData = "abc";
+$ticketServerForcedSecurityHash = "ffd5ec8d71cfffab9197d56faad2b74f";
+
+
 // users are prompted to email this address for help
 $helpEmail = "jasonrohrer@fastmail.fm";
 

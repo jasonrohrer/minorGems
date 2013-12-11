@@ -415,11 +415,7 @@ function sg_steamLoginReturn() {
                 }
             
             // make a new record for them
-            $query = "INSERT INTO $tableNamePrefix".
-                "mapping( steam_id, ticket_id, steam_gift_key, ".
-                "         creation_date ) ".
-                "VALUES( '$steam_id', '$ticket_id', '', CURRENT_TIMESTAMP );";
-            sg_queryDatabase( $query );
+            sg_newMappingRecord( $steam_id, $ticket_id );
             }
         }
     else {
@@ -578,10 +574,10 @@ function sg_checkTicketID( $inTicketID ) {
     global $ticketServerURL;
 
     
-    $result = file_get_contents(
-            "$ticketServerURL".
-            "?action=check_ticket".
-            "&ticket_id=$inTicketID" );
+    $result = trim( file_get_contents(
+                        "$ticketServerURL".
+                        "?action=check_ticket".
+                        "&ticket_id=$inTicketID" ) );
 
     if( $result != "VALID" ) {
         return false;
@@ -591,6 +587,31 @@ function sg_checkTicketID( $inTicketID ) {
         }
     }
 
+
+
+// result INVALID on failure, email adddress on success
+function sg_getTicketEmail( $inTicketID ) {
+    global $ticketServerURL;
+
+    
+    $result = file_get_contents(
+            "$ticketServerURL".
+            "?action=get_ticket_email".
+            "&ticket_id=$inTicketID" );
+
+    return trim( $result );
+    }
+
+
+
+
+function sg_newMappingRecord( $inSteamID, $inTicketID ) {
+    $query = "INSERT INTO $tableNamePrefix".
+        "mapping( steam_id, ticket_id, steam_gift_key, ".
+                "         creation_date ) ".
+        "VALUES( '$inSteamID', '$inTicketID', '', CURRENT_TIMESTAMP );";
+    sg_queryDatabase( $query );
+    }
 
 
 
@@ -637,12 +658,147 @@ function sg_doesSteamUserOwnApp( $inSteamID ) {
 
 
 
+// Maps AuthSessionTicket for $steamAppID (from settings.php) to
+// a Steam User ID
+//
+// Returns "" on failure
+function sg_getSteamIDFromUserTicket( $inTicket ) {
+    global $steamAppID, $steamWebAPIKey;
+    
+    $url =
+        "https://api.steampowered.com/ISteamUser/AuthenticateUserTicket/V0001".
+        "?format=xml".
+        "&key=$steamWebAPIKey".
+        "&appid=$steamAppID".
+        "&ticket=$inTicket";
+
+    $result = file_get_contents( $url );
+
+
+    // FIXME:
+    // Don't know what XML response looks like
+
+    /*
+
+    preg_match( "#<ownsapp>(\w+)</ownsapp>#", $result, $matches );
+
+    if( $matches[1] == "true" ) {
+        return true;
+        }
+    else {
+        return false;
+        }
+    */
+    }
+
+
+
+
 function sg_getAccount() {
+    global $tableNamePrefix;
+    
+    
     $auth_session_ticket = sg_requestFilter( "auth_sesssion_ticket", "/.*/" );
+
+    // for testing
+    // $steam_id = "76561198008561178";
+    $steam_id = sg_getSteamIDFromUserTicket( $auth_session_ticket );
+
+    if( $steam_id == "" ) {
+        echo "Bad Steam session ticket";
+        return;
+        }
+
+    if( ! sg_doesSteamUserOwnApp( $steam_id ) ) {
+
+        echo "You don't own the Steam App";
+        return;
+        }
+    
+
+    // okay, they own it!
+
+
+    $ticket_id = "";
+    $email = "";
+    
+    // has their ticket_id already been asigned?
+
+    $query = "SELECT ticket_id FROM ".
+        "$tableNamePrefix"."mapping ".
+        "WHERE steam_id = '$steam_id';";
+
+    $result = sg_queryDatabase( $query );
+    
+    if( mysql_numrows( $result ) == 1 ) {
+        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+
+        $email = sg_getTicketEmail( $ticket_id );
+        }
+    else {
+        // need to create one for them
+        global $ticketServerURL, $ticketServerForcedSaleTag,
+            $ticketServerForcedSecurityData, $ticketServerForcedSecurityHash;
+
+        // make a dummy email for them
+        $email = $steam_id . "@steamgames.com";
+
+        $dummyName = "steam_user_" . $steam_id;
+        
+        
+        $ticketGenURL = "$ticketServerURL".
+            "?action=sell_ticket".
+            "&security_data=$ticketServerForcedSecurityData".
+            "&email=$email".
+            "&name=$dummyName".
+            "&reference=steam".
+            "&tags=$ticketServerForcedSaleTag".
+            "&security_hash=$ticketServerForcedSecurityHash";
+
+        $ticket_id = trim( file_get_contents( $ticketGenURL ) );
+        }
+    
+    
+
+
     $client_public_key =
         sg_requestFilter( "client_public_key", "/[A-F0-9]+/i" );
 
-    // FIXME:  working on this
+    if( strlen( $client_public_key ) != 64 ) {
+        echo "Bad client_public_key";
+        return;
+        }
+    
+    
+    exec( "./curve25519GenKeys $client_public_key", $output );
+
+    if( count( $output ) != 2 ) {
+        echo "Unexpected output from curve25519GenKeys:<br><br>";
+        return;
+        }
+    
+    $ourPublicKeyHex = $output[0];
+    $sharedSecretHex = $output[1];
+
+    $sharedSecretBin = sg_hex2bin( $sharedSecretHex );    
+
+    
+    $encryptedTicketBytes = array();
+
+    $ticket_id_length = strlen( $ticket_id );
+
+    for( $i=0; $i<$ticket_id_length; $i++ ) {
+        $encryptedTicketBytes[$i] =
+            $sharedSecretBin[$i] ^ $ticket_id[$i];
+        }
+
+    $encryptedTicketHex =
+        strtoupper( bin2hex( implode( $encryptedTicketBytes ) ) );
+    
+
+    echo "$ourPublicKeyHex\n";
+    echo "$email\n";
+    echo "$encryptedTicketHex";
     }
 
 
@@ -1454,6 +1610,20 @@ function sg_hmac_sha1_raw( $inKey, $inData ) {
     }
 
 
+
+function sg_hex2bin( $inHexString ) {
+    $pos = 0;
+    $result = "";
+    $length = strlen( $inHexString );
+    
+    while( $pos < $length ) {
+        $code = hexdec( substr( $inHexString, $pos, 2 ) );
+        $pos = $pos + 2;
+        $result .= chr( $code ); 
+        }
+
+    return $result;
+    }
 
 
 
