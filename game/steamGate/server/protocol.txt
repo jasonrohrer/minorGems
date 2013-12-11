@@ -36,15 +36,32 @@ server.php
 server.php
 ?action=get_account
 &auth_session_ticket=[STEAM_TICKET]
-&dh_client_public_key=[KEY_HEX]
+&client_public_key=[KEY_HEX]
 
 
 Returns:
-dh_server_public_key
+server_public_key
 email
-dh_encrypted_ticket_id
+encrypted_ticket_id
 
 
 Where:
-dh_encrypted_ticket_id  is the ticket_id encrypted with the dh-derived shared
-secret.
+
+client_public_key  is the client's 32-byte curve25519 public key,
+hex-encoded as a 64-character string.
+
+server_public_key  is the server's 32-byte curve25519 public key,
+hex-encoded as a 64-character string.
+
+ 
+
+encrypted_ticket_id  is the ticket_id string, bytewise-XORed encrypted 
+with the curve25519-derived shared secret key, and hex encoded.
+
+Suppose the ticket_id is a 23-character string like:
+
+H6BZ8-8XNLF-F5MSQ-B5XDQ
+
+The ASCII byte representation of this string is XORed with the first 23 bytes
+of the shared secret key, and the result is hex encoded into 46 ASCII 
+characters.

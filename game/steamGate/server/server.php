@@ -126,6 +126,9 @@ else if( $action == "get_steam_key" ) {
 else if( $action == "show_download_link" ) {
     sg_showDownloadLink();
     }
+else if( $action == "get_account" ) {
+    sg_getAccount();
+    }
 else if( $action == "show_data" ) {
     sg_showData();
     }
@@ -631,6 +634,16 @@ function sg_doesSteamUserOwnApp( $inSteamID ) {
         }
     }
 
+
+
+
+function sg_getAccount() {
+    $auth_session_ticket = sg_requestFilter( "auth_sesssion_ticket", "/.*/" );
+    $client_public_key =
+        sg_requestFilter( "client_public_key", "/[A-F0-9]+/i" );
+
+    // FIXME:  working on this
+    }
 
 
 
