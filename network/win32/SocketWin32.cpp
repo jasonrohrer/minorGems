@@ -78,6 +78,10 @@
  *
  * 2013-April-23  Jason Rohrer
  * Fixed interrupt handling during select (not a fatal error).
+ *
+ * 2013-December-12  Jason Rohrer
+ * Fixed bug in handling partial receive with no timeout when socket is
+ * gracefully closed.
  */
 
 
@@ -333,23 +337,25 @@ int Socket::receive( unsigned char *inBuffer, int inNumBytes,
 			numReceived += numReceivedIn;
 			}
         else {
-            error = true;
-
             if( numReceivedIn == 0 ) {
                 // the socket was gracefully closed
-                errorReturnValue = -1;
+                // return whatever we have received
+                stopLooping = true;
                 }
             else if( numReceivedIn == SOCKET_ERROR ) {
+                error = true;
                 // socket error
                 errorReturnValue = -1;
                 }
             else if( numReceivedIn == -2 ) {
+                error = true;
                 // timeout
                 errorReturnValue = -2;
                 }
             else {
                 printf( "Unexpected return value from socket receive: %d.\n",
                         numReceivedIn );
+                error = true;
                 errorReturnValue = -1;
                 }
             
