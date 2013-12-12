@@ -4,16 +4,21 @@
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/network/web/WebClient.h"
 #include "minorGems/formats/encodingUtils.h"
+#include "minorGems/util/log/AppLog.h"
+#include "minorGems/util/log/FileLog.h"
 
 #include "minorGems/crypto/cryptoRandom.h"
 #include "minorGems/crypto/keyExchange/curve25519.h"
 
 
 static const char *steamGateServerURL = 
-"http://localhost/jcr13/steamGate/server.php";
+"http://192.168.0.3/jcr13/steamGate/server.php";
 
 
 int main() {
+
+    AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
+    AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
     char *code = SettingsManager::getStringSetting( "downloadCode" );
     char *email = SettingsManager::getStringSetting( "email" );
@@ -24,7 +29,7 @@ int main() {
         delete [] code;
         delete [] email;
         
-        printf( "steamGate:  We already have saved login info.  Exiting.\n" );
+        AppLog::info( "We already have saved login info.  Exiting." );
         
         return 0;
         }
@@ -38,8 +43,8 @@ int main() {
         delete [] email;
         }
      
-    printf( "steamGate:  No login info found.\n"
-            "steamGate:  Executing first-login protocol with server.\n" );
+    AppLog::info( "No login info found.  "
+                  "Executing first-login protocol with server." );
     
     unsigned char ourPubKey[32];
     unsigned char ourSecretKey[32];
@@ -48,8 +53,8 @@ int main() {
         getCryptoRandomBytes( ourSecretKey, 32 );
     
     if( ! gotSecret ) {
-        printf( "steamGate:  Failed to get secure random bytes for "
-                "key generation.\n" );
+        AppLog::error( "Failed to get secure random bytes for "
+                       "key generation." );
         return 0;
         }
     
@@ -72,7 +77,7 @@ int main() {
             
     delete [] ourPubKeyHex;
 
-    printf( "Web request to URL: %s\n", webRequest );
+    AppLog::infoF( "Web request to URL: %s", webRequest );
     
     int resultLength;
     char *webResult = WebClient::getWebPage( webRequest, &resultLength );
@@ -81,16 +86,10 @@ int main() {
     
 
     if( webResult == NULL ) {
-        printf( "steamGate:  Failed to get response from server.\n" );
+        AppLog::error( "Failed to get response from server." );
         return 0;
         }
     
-    /*
-Returns:
-server_public_key
-email
-encrypted_ticket_id
-    */
 
     SimpleVector<char *> *tokens = tokenizeString( webResult );
     
@@ -98,8 +97,8 @@ encrypted_ticket_id
     
     if( tokens->size() != 3 || 
         strlen( *( tokens->getElement( 0 ) ) ) != 64 ) {
-        printf( "steamGate:  Unexpected server response:\n%s\n",
-                webResult );
+        AppLog::errorF( "Unexpected server response:  %s",
+                        webResult );
         
         delete [] webResult;
         for( int i=0; i<tokens->size(); i++ ) {
@@ -119,8 +118,8 @@ encrypted_ticket_id
     delete [] serverPublicKeyHex;
     
     if( serverPublicKey == NULL ) {
-        printf( "steamGate:  Unexpected server response:\n%s\n",
-                webResult );
+        AppLog::errorF( "Unexpected server response:  %s",
+                        webResult );
         
         delete [] email;
         delete [] encryptedTicketHex;
@@ -142,8 +141,8 @@ encrypted_ticket_id
     delete [] encryptedTicketHex;
     
     if( encryptedTicket == NULL ) {
-        printf( "steamGate:  Unexpected server response:\n%s\n",
-                webResult );
+        AppLog::errorF( "Unexpected server response:  %s",
+                        webResult );
     
         delete [] email;
         delete [] webResult;
@@ -161,7 +160,10 @@ encrypted_ticket_id
     delete [] encryptedTicket;
 
 
-    printf( "Decrypted ticket as:  %s\n", plaintextTicket );
+    AppLog::infoF( "Decrypted ticket as:  %s", plaintextTicket );
+    
+    SettingsManager::setSetting( "email", email );
+    SettingsManager::setSetting( "downloadCode", plaintextTicket );
     
     
     delete [] plaintextTicket;
