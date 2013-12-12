@@ -1,0 +1,6 @@
+#!/bin/sh
+
+export MG_PATH="../../../../minorGems"
+export TARGET_MAKEFILE_PATH="."
+
+../../../../minorGems/game/platforms/SDL/configure
