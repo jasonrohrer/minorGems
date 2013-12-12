@@ -33,6 +33,9 @@
  *
  * 2008-September-25  Jason Rohrer
  * Added POST.
+ *
+ * 2013-December-12  Jason Rohrer
+ * Fixed POST function call name.  Fixed const char* warnings.
  */
 
 
@@ -57,7 +60,7 @@ char *WebClient::getWebPage( char *inURL, int *outContentLength,
 
 
 
-char *WebClient::getWebPagePost( char *inURL, char *inPostBody,
+char *WebClient::getWebPagePOST( char *inURL, char *inPostBody,
                                  int *outContentLength,
                                  char **outFinalURL,
                                  char **outMimeType,
@@ -89,7 +92,7 @@ char *WebClient::getMimeType( char *inURL ) {
 
 
 
-char *WebClient::executeWebMethod( char *inMethod,
+char *WebClient::executeWebMethod( const char *inMethod,
                                    char *inURL, 
                                    char *inBody,
                                    int *outContentLength,
@@ -100,7 +103,7 @@ char *WebClient::executeWebMethod( char *inMethod,
     char *returnString = NULL;
     
     
-    char *startString = "http://";
+    const char *startString = "http://";
 
     char *urlCopy = stringDuplicate( inURL );
 
@@ -124,7 +127,7 @@ char *WebClient::executeWebMethod( char *inMethod,
         
     char *serverEnd = strstr( serverNameCopy, "/" );
 
-    char *getPath = strstr( serverStart, "/" );
+    const char *getPath = strstr( serverStart, "/" );
 
         
     if( serverEnd == NULL ) {
@@ -227,7 +230,7 @@ char *WebClient::executeWebMethod( char *inMethod,
                                     "302 Object Moved" ) != NULL ) {
 
             // call ourself recursively to fetch the redirection
-            char *locationTag = "Location: ";
+            const char *locationTag = "Location: ";
             char *locationTagStart =
                 stringLocateIgnoreCase( received, locationTag );
 
@@ -258,8 +261,8 @@ char *WebClient::executeWebMethod( char *inMethod,
                 }                        
             }
 
-        char *contentStartString = "\r\n\r\n";
-        char *contentTypeStartString = "Content-type:";
+        const char *contentStartString = "\r\n\r\n";
+        const char *contentTypeStartString = "Content-type:";
 
         if( notFound ) {
             returnString = NULL;

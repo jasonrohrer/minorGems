@@ -17,6 +17,9 @@
  *
  * 2008-September-25  Jason Rohrer
  * Added POST.
+ *
+ * 2013-December-12  Jason Rohrer
+ * Fixed POST function call name.  Fixed const char* warnings.
  */
 
 #include "minorGems/common.h"
@@ -196,7 +199,7 @@ class WebClient {
          *   or NULL if fetching the page fails.
          *   Must be destroyed by caller if non-NULL.
          */
-        static char *executeWebMethod( char *inMethod, char *inURL,
+        static char *executeWebMethod( const char *inMethod, char *inURL,
                                        char *inBody,
                                        int *outContentLength,
                                        char **outFinalURL = NULL,
