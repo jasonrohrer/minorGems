@@ -13,6 +13,8 @@ LINK_HEADLESS = yes
 APP_NAME = steamGateClient
 ROOT_PATH = ../../../..
 
+# override windows icon file
+ICON_FILE =
 
 
 LAYER_SOURCE = \
