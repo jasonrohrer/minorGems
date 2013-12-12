@@ -11,7 +11,8 @@
 #include "minorGems/crypto/keyExchange/curve25519.h"
 
 
-#include "steam/steam_api.h"
+//#include "steam/steam_api.h"
+#include "openSteamworks/Steamclient.h"
 
 
 static const char *steamGateServerURL = 
@@ -49,13 +50,18 @@ int main() {
     AppLog::info( "No login info found.  "
                   "Executing first-login protocol with server." );
 
-    char initResult = SteamAPI_Init();
     
     if( ! SteamAPI_Init() ) {
         AppLog::error( "Could not init Steam API." );
         return 0;
         }
     
+
+    CSteamID id = SteamUser()->GetSteamID();
+    
+    uint64 rawID = id.ConvertToUint64();
+    
+    AppLog::infoF( "Steam ID %lli", rawID );
     
     unsigned char ourPubKey[32];
     unsigned char ourSecretKey[32];

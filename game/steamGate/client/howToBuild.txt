@@ -23,6 +23,12 @@ To build this client:
 4.  make
 
 
+Note that the open-steamworks headers seem to be the only way to keep
+MinGW builds on Windows from crashing:
+
+https://github.com/SteamRE/open-steamworks
+
+
 
 To test when not launching from Steam, you may need to edit steam_appid.txt
 to match the appID that you're testing.
