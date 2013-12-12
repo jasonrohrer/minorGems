@@ -10,6 +10,7 @@
 #include "minorGems/crypto/cryptoRandom.h"
 #include "minorGems/crypto/keyExchange/curve25519.h"
 
+#define STEAM_API_NON_VERSIONED_INTERFACES 1
 
 //#include "steam/steam_api.h"
 #include "openSteamworks/Steamclient.h"
