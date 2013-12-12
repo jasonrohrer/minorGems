@@ -6,21 +6,22 @@
 #ifdef WIN_32
 // special case for Windows which has no /dev/urandom
 
+#include <windows.h>
 #include <wincrypt.h>
 
 char getCryptoRandomBytes( unsigned char *outBytes, int inNumBytes ) {
     
-    HCRYPTPROV hCryptProv = NULL;
+    HCRYPTPROV hCryptProv;
     
     char result =
-        CryptAcquireContext( &hCryptProv, NULL, NULL, PRO_RSA_FULL, 0 );
+        CryptAcquireContext( &hCryptProv, NULL, NULL, PROV_RSA_FULL, 0 );
     
     if( !result ) {
         return false;
         }
     
 
-    result = CryptGenRandom( hcryptprov, inNumBytes, outBytes );
+    result = CryptGenRandom( hCryptProv, inNumBytes, outBytes );
 
 
     CryptReleaseContext( hCryptProv, 0 );
