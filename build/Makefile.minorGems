@@ -293,6 +293,13 @@ CRYPTO_RANDOM_CPP = ${CRYPTO_RANDOM}.cpp
 CRYPTO_RANDOM_O = ${CRYPTO_RANDOM}.o
 
 
+CURVE_25519 = ${ROOT_PATH}/minorGems/crypto/keyExchange/curve25519
+CURVE_25519_H = ${CURVE_25519}.h
+CURVE_25519_CPP = ${CURVE_25519}.cpp
+CURVE_25519_O = ${CURVE_25519}.o
+
+
+
 
 
 MEMORY_TRACK_H = ${ROOT_PATH}/minorGems/util/development/memory/MemoryTrack.h

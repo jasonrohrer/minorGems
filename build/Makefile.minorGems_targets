@@ -163,6 +163,7 @@ s/^TranslationManager.*\.o/$${TRANSLATION_MANAGER_O}/; \
 s/^stringUtils.*\.o/$${STRING_UTILS_O}/; \
 s/^sha1.*\.o/$${SHA1_O}/; \
 s/^cryptoRandom.*\.o/$${CRYPTO_RANDOM_O}/; \
+s/^curve25519.*\.o/$${CURVE_25519_O}/; \
 '
 
 MINOR_GEMS_SED_FIX_COMMAND_B = sed ' \
