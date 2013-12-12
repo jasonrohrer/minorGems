@@ -29,6 +29,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2013-December-12    Jason Rohrer
+ * Added dynamically increasing buffer size for longer log messages.
  */
 
 
@@ -169,10 +172,16 @@ char *PrintLog::generateLogMessage( const char *inLoggerName,
     int stringLength =
         vsnprintf( buffer, bufferSize, inFormatString, inArgList );
     
-    if( stringLength == -1 || stringLength >= (int)bufferSize ) {
+    while( stringLength == -1 || stringLength >= (int)bufferSize ) {
         // too long!
         delete [] buffer;
-        buffer = stringDuplicate( "Message too long" );
+
+        // double buffer size and try again
+        bufferSize *= 2;
+        buffer = new char[ bufferSize ];
+    
+        stringLength = 
+            vsnprintf( buffer, bufferSize, inFormatString, inArgList );
         }
 
 
