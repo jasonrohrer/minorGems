@@ -11,6 +11,9 @@
 #include "minorGems/crypto/keyExchange/curve25519.h"
 
 
+#include "steam/steam_api.h"
+
+
 static const char *steamGateServerURL = 
 "http://192.168.0.3/jcr13/steamGate/server.php";
 
@@ -45,6 +48,14 @@ int main() {
      
     AppLog::info( "No login info found.  "
                   "Executing first-login protocol with server." );
+
+    char initResult = SteamAPI_Init();
+    
+    if( ! SteamAPI_Init() ) {
+        AppLog::error( "Could not init Steam API." );
+        return 0;
+        }
+    
     
     unsigned char ourPubKey[32];
     unsigned char ourSecretKey[32];

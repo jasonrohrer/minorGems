@@ -1,0 +1,28 @@
+This is a headless client that uses the Steam API to find the Steam user's
+authentication credentials and then connects to the steamGate server to
+set up a download ticket for this Steam user.  The credentials obtained
+from the steamGate server are saved into:
+
+settings/email.ini
+settings/downloadCode.ini
+
+
+The idea is that this headless client can be launched before a game from
+within the game's working folder to obtain necessary login credentials before
+the game runs the first time.
+
+
+To build this client:
+
+1.  Copy all Steam .h header files into a "steam" directory here.
+
+2.  Copy the steam_api.lib (on Windows) or other platform library stub here.
+
+3.  ./configure
+
+4.  make
+
+
+
+To test when not launching from Steam, you may need to edit steam_appid.txt
+to match the appID that you're testing.
