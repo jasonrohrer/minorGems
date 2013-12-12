@@ -156,9 +156,11 @@ encrypted_ticket_id
     for( int i=0; i<numTicketBytes; i++ ) {
         plaintextTicket[i] = encryptedTicket[i] ^ sharedSecretKey[i];
         }
-    
+
     plaintextTicket[ numTicketBytes ] = '\0';
-    
+    delete [] encryptedTicket;
+
+
     printf( "Decrypted ticket as:  %s\n", plaintextTicket );
     
     
