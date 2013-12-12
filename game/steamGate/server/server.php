@@ -606,6 +606,8 @@ function sg_getTicketEmail( $inTicketID ) {
 
 
 function sg_newMappingRecord( $inSteamID, $inTicketID ) {
+    global $tableNamePrefix;
+    
     $query = "INSERT INTO $tableNamePrefix".
         "mapping( steam_id, ticket_id, steam_gift_key, ".
                 "         creation_date ) ".
@@ -756,6 +758,8 @@ function sg_getAccount() {
             "&security_hash=$ticketServerForcedSecurityHash";
 
         $ticket_id = trim( file_get_contents( $ticketGenURL ) );
+
+        sg_newMappingRecord( $steam_id, $ticket_id );
         }
     
     
