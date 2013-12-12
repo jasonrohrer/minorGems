@@ -25,8 +25,8 @@ PLATFORM_COMPILE_FLAGS = -DWIN_32 -DSTATICLIB
 # -mwindows tells mingw to hide the dos command window on launch
 PLATFORM_LINK_FLAGS = -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL -mwindows -lwsock32 -static-libstdc++ -static-libgcc
 
-# no linking change for headless on MinGW
-PLATFORM_LINK_FLAGS_HEADLESS = ${PLATFORM_LINK_FLAGS}
+# for headless builds with no GL or SDL
+PLATFORM_LINK_FLAGS_HEADLESS = -lmingw32 -mwindows -lwsock32 -static-libstdc++ -static-libgcc
 
 
 # not used for some builds
