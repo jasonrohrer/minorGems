@@ -646,10 +646,10 @@ function sg_doesSteamUserOwnApp( $inSteamID ) {
     $result = file_get_contents( $url );
 
     
-    preg_match( "#<ownsapp>(\w+)</ownsapp>#",
-                $result, $matches );
+    $matched = preg_match( "#<ownsapp>(\w+)</ownsapp>#",
+                           $result, $matches );
 
-    if( $matches[1] == "true" ) {
+    if( $matched && $matches[1] == "true" ) {
         return true;
         }
     else {
@@ -668,29 +668,34 @@ function sg_getSteamIDFromUserTicket( $inTicket ) {
     global $steamAppID, $steamWebAPIKey;
     
     $url =
-        "https://api.steampowered.com/ISteamUser/AuthenticateUserTicket/V0001".
+        "https://api.steampowered.com/ISteamUserAuth/".
+        "AuthenticateUserTicket/V0001".
         "?format=xml".
         "&key=$steamWebAPIKey".
         "&appid=$steamAppID".
         "&ticket=$inTicket";
 
     $result = file_get_contents( $url );
+    
+    $matched = preg_match( "#<result>(\w+)</result>#", $result, $matches );
 
+    if( $matched && $matches[1] == "OK" ) {
 
-    // FIXME:
-    // Don't know what XML response looks like
+        $matched =
+            preg_match( "#<steamid>([0-9]+)</steamid>#", $result, $matches );
 
-    /*
+        if( $matched ) {
+            return $matches[1];
+            }
 
-    preg_match( "#<ownsapp>(\w+)</ownsapp>#", $result, $matches );
-
-    if( $matches[1] == "true" ) {
-        return true;
+        return "";
         }
     else {
-        return false;
+        return "";
         }
-    */
+    
+    
+
     }
 
 
@@ -700,20 +705,21 @@ function sg_getAccount() {
     global $tableNamePrefix;
     
     
-    $auth_session_ticket = sg_requestFilter( "auth_sesssion_ticket", "/.*/" );
-
+    $auth_session_ticket = sg_requestFilter( "auth_session_ticket",
+                                             "/[A-F0-9]+/i" );
+    
     // for testing
-    // $steam_id = "76561198008561178";
+    //$steam_id = "76561198008561178";
     $steam_id = sg_getSteamIDFromUserTicket( $auth_session_ticket );
 
     if( $steam_id == "" ) {
-        echo "Bad Steam session ticket";
+        echo "FAILED: Bad Steam session ticket";
         return;
         }
 
     if( ! sg_doesSteamUserOwnApp( $steam_id ) ) {
 
-        echo "You don't own the Steam App";
+        echo "FAILED: You don't own the Steam App";
         return;
         }
     
@@ -769,7 +775,7 @@ function sg_getAccount() {
         sg_requestFilter( "client_public_key", "/[A-F0-9]+/i" );
 
     if( strlen( $client_public_key ) != 64 ) {
-        echo "Bad client_public_key";
+        echo "FAILED: Bad client_public_key";
         return;
         }
     
@@ -777,7 +783,7 @@ function sg_getAccount() {
     exec( "./curve25519GenKeys $client_public_key", $output );
 
     if( count( $output ) != 2 ) {
-        echo "Unexpected output from curve25519GenKeys:<br><br>";
+        echo "FAILED: Unexpected output from curve25519GenKeys:<br><br>";
         return;
         }
     
