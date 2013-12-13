@@ -32,3 +32,8 @@ https://github.com/SteamRE/open-steamworks
 
 To test when not launching from Steam, you may need to edit steam_appid.txt
 to match the appID that you're testing.
+
+
+
+Mac Notes:
+Instead of steam_api.lib, copy libsteam_api.dylib into build directory.

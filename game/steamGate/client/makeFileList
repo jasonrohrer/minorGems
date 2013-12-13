@@ -20,7 +20,7 @@ ICON_FILE =
 # link against steam api libraries on each platform
 CUSTOM_LINUX_LINK_FLAGS =
 CUSTOM_MINGW_LINK_FLAGS = steam_api.lib
-CUSTOM_MACOSX_LINK_FLAGS =
+CUSTOM_MACOSX_LINK_FLAGS = libsteam_api.dylib
 
 
 

@@ -12,8 +12,8 @@
 
 #define STEAM_API_NON_VERSIONED_INTERFACES 1
 
-//#include "steam/steam_api.h"
-#include "openSteamworks/Steamclient.h"
+#include "steam/steam_api.h"
+//#include "openSteamworks/Steamclient.h"
 
 
 static const char *steamGateServerURL = 
@@ -76,7 +76,7 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 int main() {
 
-    AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
+    //AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
     char *code = SettingsManager::getStringSetting( "downloadCode" );
@@ -144,7 +144,7 @@ int main() {
     // construct a listener to add it to Steam's listener pool
     AuthTicketListener *listener = new AuthTicketListener();
 
-    char authTicketData[2048];
+    unsigned char authTicketData[2048];
     unsigned int authTicketSize = 0;
     HAuthTicket ticketHandle =
         SteamUser()->GetAuthSessionTicket( 
@@ -171,18 +171,12 @@ int main() {
         return 0;
         }
     
-    // what format is auth ticket data in?  ASCII?
-    // make into a string
-    authTicketData[authTicketSize] = '\0';
+
+    char *authTicketHex = hexEncode( authTicketData, authTicketSize );
     
-    AppLog::infoF( "Auth ticket data:  %s", authTicketData );
+    AppLog::infoF( "Auth ticket data:  %s", authTicketHex );
 
-    SteamAPI_Shutdown();
 
-    // end here for testing
-    if( true ) {
-        return 0;
-        }
     
 
 
@@ -196,6 +190,7 @@ int main() {
     if( ! gotSecret ) {
         AppLog::error( "Failed to get secure random bytes for "
                        "key generation." );
+        SteamAPI_Shutdown();
         return 0;
         }
     
@@ -204,8 +199,6 @@ int main() {
     
 
     char *ourPubKeyHex = hexEncode( ourPubKey, 32 );
-
-    const char *dummyAuthTicket = "blahblahblah";
     
     char *webRequest = 
         autoSprintf( 
@@ -213,12 +206,17 @@ int main() {
             "&auth_session_ticket=%s"
             "&client_public_key=%s",
             steamGateServerURL,
-            dummyAuthTicket,
+            authTicketHex,
             ourPubKeyHex );
             
     delete [] ourPubKeyHex;
+    delete [] authTicketHex;
 
     AppLog::infoF( "Web request to URL: %s", webRequest );
+    
+    //printf( "Waiting....\n" );
+    //int read;
+    //scanf( "%d", &read );
     
     int resultLength;
     char *webResult = WebClient::getWebPage( webRequest, &resultLength );
@@ -228,6 +226,8 @@ int main() {
 
     if( webResult == NULL ) {
         AppLog::error( "Failed to get response from server." );
+        
+        SteamAPI_Shutdown();
         return 0;
         }
     
@@ -246,6 +246,8 @@ int main() {
             delete [] *( tokens->getElement(i) );
             }
         delete tokens;
+        
+        SteamAPI_Shutdown();
         return 0;
         }
 
@@ -266,6 +268,8 @@ int main() {
         delete [] encryptedTicketHex;
         delete [] webResult;
         delete tokens;
+        
+        SteamAPI_Shutdown();
         return 0;
         }
     
@@ -288,6 +292,8 @@ int main() {
         delete [] email;
         delete [] webResult;
         delete tokens;
+        
+        SteamAPI_Shutdown();
         return 0;
         }
     
@@ -312,6 +318,6 @@ int main() {
     delete [] webResult;
     delete tokens;
     
-
+    SteamAPI_Shutdown();
     return 0;
     }
