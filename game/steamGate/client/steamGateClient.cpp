@@ -16,8 +16,54 @@
 //#include "openSteamworks/Steamclient.h"
 
 
+/////////////////////
+// settings:
 static const char *steamGateServerURL = 
 "http://192.168.0.3/jcr13/steamGate/server.php";
+
+static const char *macLaunchTarget = "CastleDoctrine.app";
+static const char *winLaunchTarget = "CastleDoctrine.exe";
+
+// end settings
+/////////////////////
+
+
+
+#ifdef __mac__
+
+#include <unistd.h>
+#include <stdarg.h>
+
+static void launchGame() {
+    printf( "Launching game\n" );
+    int forkValue = fork();
+
+    if( forkValue == 0 ) {
+        // we're in child process, so exec command
+        char *arguments[3] = { "open", (char*)macLaunchTarget, NULL };
+                
+        execvp( "open", arguments );
+
+        // we'll never return from this call
+        }
+    }
+
+
+#elif defined(WIN_32)
+
+#include <windows.h>
+#include <process.h>
+
+static void launchGame() {
+    char *arguments[2] = { (char*)winLaunchTarget, NULL };
+    
+    _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+    }
+
+#endif
+
+
+
 
 
 static char authTicketCallbackCalled = false;
@@ -74,6 +120,10 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 
 
+
+
+
+
 int main() {
 
     //AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
@@ -89,7 +139,7 @@ int main() {
         delete [] email;
         
         AppLog::info( "We already have saved login info.  Exiting." );
-        
+        launchGame();
         return 0;
         }
 
@@ -319,5 +369,8 @@ int main() {
     delete tokens;
     
     SteamAPI_Shutdown();
+
+    launchGame();
+    
     return 0;
     }
