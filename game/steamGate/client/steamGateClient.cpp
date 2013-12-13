@@ -20,6 +20,60 @@ static const char *steamGateServerURL =
 "http://192.168.0.3/jcr13/steamGate/server.php";
 
 
+static char authTicketCallbackCalled = false;
+static char authTicketCallbackError = false;
+
+
+
+// a class that does nothing other than register itself as a Steam
+// callback listener when it is constructed
+class AuthTicketListener {
+        
+    public:
+        
+        AuthTicketListener() 
+                // initializing this member object is what actually
+                // registers our callback
+                : mAuthSessionTicketResponse( 
+                    this, 
+                    &AuthTicketListener::OnAuthSessionTicketResponse ) {
+            AppLog::info( "AuthTicketListener instantiated" );
+            }
+
+        
+        // callback when our AuthSessionTicket is ready
+        // this macro declares our callback function for us AND
+        // defines our member object
+        STEAM_CALLBACK( 
+            // class that the callback function is in
+            AuthTicketListener, 
+            // name of callback function
+            OnAuthSessionTicketResponse,
+            // type of callback
+            GetAuthSessionTicketResponse_t, 
+            // name of the member object       
+            mAuthSessionTicketResponse );
+
+
+    };
+
+
+
+void AuthTicketListener::OnAuthSessionTicketResponse( 
+    GetAuthSessionTicketResponse_t *inCallback ) {
+    
+    AppLog::info( "AuthTicketListener callback called" );
+
+    authTicketCallbackCalled = true;
+            
+    if ( inCallback->m_eResult != k_EResultOK ) {
+        authTicketCallbackError = true;
+        }
+    }        
+
+
+
+
 int main() {
 
     AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
@@ -61,8 +115,77 @@ int main() {
     CSteamID id = SteamUser()->GetSteamID();
     
     uint64 rawID = id.ConvertToUint64();
+
+    
     
     AppLog::infoF( "Steam ID %lli", rawID );
+
+
+    unsigned int appID = SteamUtils()->GetAppID();
+
+    AppLog::infoF( "App ID %d", appID );
+    
+
+    char loggedOn = SteamUser()->BLoggedOn();
+    
+    AppLog::infoF( "Logged onto steam: %d", loggedOn );
+
+    char behindNAT = SteamUser()->BIsBehindNAT();
+    
+    AppLog::infoF( "Behind NAT: %d", behindNAT );
+
+    /*
+    EUserHasLicenseForAppResult doesNotOwnApp =
+        SteamUser()->UserHasLicenseForApp( id, appID );
+    
+    AppLog::infoF( "doesNotOwnApp = %d", doesNotOwnApp );
+    */
+
+    // construct a listener to add it to Steam's listener pool
+    AuthTicketListener *listener = new AuthTicketListener();
+
+    char authTicketData[2048];
+    unsigned int authTicketSize = 0;
+    HAuthTicket ticketHandle =
+        SteamUser()->GetAuthSessionTicket( 
+            authTicketData, sizeof(authTicketData), 
+            &authTicketSize );
+        
+
+    AppLog::infoF( "GetAuthSessionTicket returned %d bytes, handle %d",
+                   authTicketSize, ticketHandle );
+
+    AppLog::info( "Waiting for Steam GetAuthSessionTicket callback..." );
+    
+    while( ! authTicketCallbackCalled ) {
+        SteamAPI_RunCallbacks();
+        }
+    AppLog::info( "...got callback." );
+
+    // de-register listener
+    delete listener;
+    
+    if( authTicketCallbackError ) {
+        AppLog::error( "GetAuthSessionTicket callback returned error." );
+        SteamAPI_Shutdown();
+        return 0;
+        }
+    
+    // what format is auth ticket data in?  ASCII?
+    // make into a string
+    authTicketData[authTicketSize] = '\0';
+    
+    AppLog::infoF( "Auth ticket data:  %s", authTicketData );
+
+    SteamAPI_Shutdown();
+
+    // end here for testing
+    if( true ) {
+        return 0;
+        }
+    
+
+
     
     unsigned char ourPubKey[32];
     unsigned char ourSecretKey[32];
