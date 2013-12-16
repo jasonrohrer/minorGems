@@ -32,6 +32,10 @@
  *
  * 2013-December-12    Jason Rohrer
  * Added dynamically increasing buffer size for longer log messages.
+ *
+ * 2013-December-16    Jason Rohrer
+ * Removed assumptions about 32-bit int time_t (time_t is a structure for MS
+ * compilers.
  */
 
 
@@ -189,11 +193,13 @@ char *PrintLog::generateLogMessage( const char *inLoggerName,
     
     Time::getCurrentTime( &seconds, &milliseconds );
 
+    time_t timeT = time( NULL );
+    
     
     // lock around ctime call, since it returns a static buffer
     mLock->lock();
 
-    char *dateString = stringDuplicate( ctime( (time_t *)( &seconds ) ) );
+    char *dateString = stringDuplicate( ctime( &timeT ) );
     
     // done with static buffer, since we made a copy
     mLock->unlock();
