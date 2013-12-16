@@ -21,8 +21,8 @@
 static const char *steamGateServerURL = 
 "http://192.168.0.3/jcr13/steamGate/server.php";
 
-static const char *macLaunchTarget = "CastleDoctrine.app";
-static const char *winLaunchTarget = "CastleDoctrine.exe";
+#define macLaunchTarget "CastleDoctrine.app"
+#define winLaunchTarget "CastleDoctrine.exe"
 
 // end settings
 /////////////////////
@@ -58,6 +58,16 @@ static void launchGame() {
     char *arguments[2] = { (char*)winLaunchTarget, NULL };
     
     _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+    }
+
+
+int main();
+
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                    LPSTR lpCmdLine, int nShowCMD ) {
+    
+    return main();
     }
 
 #endif
@@ -126,7 +136,7 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 int main() {
 
-    //AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
+    AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
     char *code = SettingsManager::getStringSetting( "downloadCode" );
@@ -195,7 +205,7 @@ int main() {
     AuthTicketListener *listener = new AuthTicketListener();
 
     unsigned char authTicketData[2048];
-    unsigned int authTicketSize = 0;
+    uint32 authTicketSize = 0;
     HAuthTicket ticketHandle =
         SteamUser()->GetAuthSessionTicket( 
             authTicketData, sizeof(authTicketData), 
