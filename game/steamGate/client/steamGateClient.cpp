@@ -158,7 +158,7 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 int main() {
 
-    //AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
+    AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
     char *code = SettingsManager::getStringSetting( "downloadCode" );
