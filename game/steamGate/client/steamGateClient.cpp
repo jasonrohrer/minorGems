@@ -21,6 +21,7 @@
 static const char *steamGateServerURL = 
 "http://192.168.0.3/jcr13/steamGate/server.php";
 
+#define linuxLaunchTarget "./CastleDoctrineApp"
 #define macLaunchTarget "CastleDoctrine.app"
 #define winLaunchTarget "CastleDoctrine.exe"
 
@@ -35,7 +36,7 @@ static const char *steamGateServerURL =
 #include <stdarg.h>
 
 static void launchGame() {
-    printf( "Launching game\n" );
+    AppLog::info( "Launching game." );
     int forkValue = fork();
 
     if( forkValue == 0 ) {
@@ -49,12 +50,33 @@ static void launchGame() {
     }
 
 
+#elif defined(LINUX)
+
+#include <unistd.h>
+#include <stdarg.h>
+
+static void launchGame() {
+    AppLog::info( "Launching game" );
+    int forkValue = fork();
+
+    if( forkValue == 0 ) {
+        // we're in child process, so exec command
+        char *arguments[2] = { (char*)linuxLaunchTarget, NULL };
+                
+        execvp( linuxLaunchTarget, arguments );
+
+        // we'll never return from this call
+        }
+    }
+
+
 #elif defined(WIN_32)
 
 #include <windows.h>
 #include <process.h>
 
 static void launchGame() {
+    AppLog::info( "Launching game" );
     char *arguments[2] = { (char*)winLaunchTarget, NULL };
     
     _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
@@ -136,7 +158,7 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 int main() {
 
-    AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
+    //AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
     char *code = SettingsManager::getStringSetting( "downloadCode" );
