@@ -108,6 +108,8 @@ static void launchGame() {
     }
 
 
+#include <stdlib.h>
+
 static void showMessage( const char *inTitle, const char *inMessage,
                          char inError = false ) {
     UINT uType = MB_OK;
@@ -119,7 +121,16 @@ static void showMessage( const char *inTitle, const char *inMessage,
         uType |= MB_ICONINFORMATION;    
         }
     
-    MessageBox( NULL, inMessage, inTitle, uType );
+    wchar_t *wideTitle = new wchar_t[ strlen( inTitle ) * 2 + 2 ];
+    mbstowcs( wideTitle, inTitle, strlen( inTitle ) + 1 );
+    
+    wchar_t *wideMessage = new wchar_t[ strlen( inMessage ) * 2 + 2 ];
+    mbstowcs( wideMessage, inMessage, strlen( inMessage ) + 1 );
+    
+    MessageBox( NULL, wideMessage, wideTitle, uType );
+
+    delete [] wideTitle;
+    delete [] wideMessage;
     }
 
 
