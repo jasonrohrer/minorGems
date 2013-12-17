@@ -6,6 +6,8 @@
 #include "minorGems/formats/encodingUtils.h"
 #include "minorGems/util/log/AppLog.h"
 #include "minorGems/util/log/FileLog.h"
+#include "minorGems/system/Thread.h"
+#include "minorGems/system/Time.h"
 
 #include "minorGems/crypto/cryptoRandom.h"
 #include "minorGems/crypto/keyExchange/curve25519.h"
@@ -70,6 +72,29 @@ static void launchGame() {
     }
 
 
+
+static void showMessage( const char *inTitle, const char *inMessage,
+                         char inError = false ) {
+    const char *zenCommand = "--info";
+    if( inError ) {
+        zenCommand = "--error";
+        }
+
+    char *command = autoSprintf( "zenity %s --text='%s' --title='%s'",
+                                 zenCommand, inMessage, inTitle );
+
+    FILE *zentityPipe = popen( command, "r" );
+    
+    if( zentityPipe == NULL ) {
+        AppLog::error( 
+            "Failed to open pipe to zenity for displaying GUI messages." );
+        }
+    else {
+        pclose( zentityPipe );
+        }
+    }
+
+
 #elif defined(WIN_32)
 
 #include <windows.h>
@@ -80,6 +105,21 @@ static void launchGame() {
     char *arguments[2] = { (char*)winLaunchTarget, NULL };
     
     _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+    }
+
+
+static void showMessage( const char *inTitle, const char *inMessage,
+                         char inError = false ) {
+    UINT uType = MB_OK;
+    
+    if( inError ) {
+        uType |= MB_ICONERROR;
+        }
+    else {
+        uType |= MB_ICONINFORMATION;    
+        }
+    
+    MessageBox( NULL, inMessage, inTitle, uType );
     }
 
 
@@ -152,6 +192,12 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 
 
+static void showTicketCreationError() {
+    showMessage( "The Castle Doctrine:  Error",
+                 "Could not create an account for you on the game server.",
+                 true );
+    }
+
 
 
 
@@ -183,12 +229,19 @@ int main() {
     if( email != NULL ) {
         delete [] email;
         }
-     
+    
+    showMessage( "The Castle Doctrine:  First Launch",
+                 "The game will try to create a server-side account for"
+                 " you through Steam.\n\nThis may take a few moments." );
+    
     AppLog::info( "No login info found.  "
                   "Executing first-login protocol with server." );
 
     
     if( ! SteamAPI_Init() ) {
+        showMessage( "The Castle Doctrine:  Error",
+                     "Failed to connect to Steam.",
+                     true );
         AppLog::error( "Could not init Steam API." );
         return 0;
         }
@@ -237,17 +290,47 @@ int main() {
     AppLog::infoF( "GetAuthSessionTicket returned %d bytes, handle %d",
                    authTicketSize, ticketHandle );
 
+    if( authTicketSize == 0 ) {
+        
+        showMessage( "The Castle Doctrine:  Error",
+                     "Could not get an Authentication Ticket from Steam.",
+                     true );
+        AppLog::error( "GetAuthSessionTicket returned 0 length." );
+        
+        SteamAPI_Shutdown();
+        return 0;
+        }
+    
+
     AppLog::info( "Waiting for Steam GetAuthSessionTicket callback..." );
     
+    double startTime = Time::getCurrentTime();
+    double maxTime = 20;
+    
     while( ! authTicketCallbackCalled ) {
+        if( Time::getCurrentTime() - startTime > maxTime ) {
+            showMessage( "The Castle Doctrine:  Error",
+                         "Timed out waiting for "
+                         "Authentication Ticket validation from Steam.",
+                         true );
+            AppLog::error( "Timed out." );
+            SteamAPI_Shutdown();
+            return 0;
+            }
+        
+        Thread::staticSleep( 100 );
         SteamAPI_RunCallbacks();
         }
+
     AppLog::info( "...got callback." );
 
     // de-register listener
     delete listener;
     
     if( authTicketCallbackError ) {
+        showMessage( "The Castle Doctrine:  Error",
+                     "Could not validate the Steam Authentication Ticket.",
+                     true );
         AppLog::error( "GetAuthSessionTicket callback returned error." );
         SteamAPI_Shutdown();
         return 0;
@@ -270,6 +353,10 @@ int main() {
         getCryptoRandomBytes( ourSecretKey, 32 );
     
     if( ! gotSecret ) {
+        showMessage( "The Castle Doctrine:  Error",
+                     "Could not get random data to generate an "
+                     "encryption key.",
+                     true );
         AppLog::error( "Failed to get secure random bytes for "
                        "key generation." );
         SteamAPI_Shutdown();
@@ -307,6 +394,7 @@ int main() {
     
 
     if( webResult == NULL ) {
+        showTicketCreationError();
         AppLog::error( "Failed to get response from server." );
         
         SteamAPI_Shutdown();
@@ -320,6 +408,7 @@ int main() {
     
     if( tokens->size() != 3 || 
         strlen( *( tokens->getElement( 0 ) ) ) != 64 ) {
+        showTicketCreationError();
         AppLog::errorF( "Unexpected server response:  %s",
                         webResult );
         
@@ -343,6 +432,7 @@ int main() {
     delete [] serverPublicKeyHex;
     
     if( serverPublicKey == NULL ) {
+        showTicketCreationError();
         AppLog::errorF( "Unexpected server response:  %s",
                         webResult );
         
@@ -368,6 +458,7 @@ int main() {
     delete [] encryptedTicketHex;
     
     if( encryptedTicket == NULL ) {
+        showTicketCreationError();
         AppLog::errorF( "Unexpected server response:  %s",
                         webResult );
     
@@ -401,6 +492,10 @@ int main() {
     delete tokens;
     
     SteamAPI_Shutdown();
+
+    showMessage( "The Castle Doctrine:  First Launch",
+                 "Your server account is set up.\n\n"
+                 "The game will launch now." );
 
     launchGame();
     
