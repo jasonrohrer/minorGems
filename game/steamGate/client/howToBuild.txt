@@ -16,17 +16,18 @@ To build this client:
 
 1.  Copy all Steam .h header files into a "steam" directory here.
 
-2.  Copy the steam_api.lib (on Windows) or other platform library stub here.
+2.  Copy the steam_api.lib (on Windows---see below) or other platform library
+    stub here.
 
 3.  ./configure
 
 4.  make
 
 
-Note that the open-steamworks headers seem to be the only way to keep
-MinGW builds on Windows from crashing:
 
-https://github.com/SteamRE/open-steamworks
+On Windows, proper Steamworks functionality seems to be impossible when
+building with MinGW.  Thus, MS Visual C++ seems to be necessary (instead
+of using make).  See the visualStudio directory for necessary headers.
 
 
 
@@ -36,4 +37,8 @@ to match the appID that you're testing.
 
 
 Mac Notes:
-Instead of steam_api.lib, copy libsteam_api.dylib into build directory.
+Instead of steam_api.lib, copy libsteam_api.dylib into the build directory.
+
+
+Linux Notes:
+Instead of steam_api.lib, copy libsteam_api.so into the build directory.
