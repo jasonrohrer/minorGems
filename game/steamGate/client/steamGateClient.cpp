@@ -67,7 +67,6 @@ static void showMessage( const char *inTitle, const char *inMessage,
     
     char *command = autoSprintf( commandFormat, inMessage, inTitle, 
                                  iconName );
-    printf( "Command = %s\n", command );
     
     FILE *osascriptPipe = popen( command, "r" );
     
