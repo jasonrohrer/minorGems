@@ -9,12 +9,12 @@ $databaseUsername = "testUser";
 $databasePassword = "testPassword";
 $databaseName = "test";
 
-$serverRootURL = "http://localhost";
-$fullServerURL = "http://localhost/jcr13/steamGate/server.php";
+$serverRootURL = "http://192.168.0.3";
+$fullServerURL = "http://192.168.0.3/jcr13/steamGate/server.php";
 
 // The URL of the ticket server's server.php script.
 // This is used to validate ticket IDs.
-$ticketServerURL = "http://localhost/jcr13/ticketServer/server.php";
+$ticketServerURL = "http://192.168.0.3/jcr13/ticketServer/server.php";
 
 
 // the tag to use for all force-generated tickets on the ticket server
