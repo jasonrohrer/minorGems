@@ -52,6 +52,38 @@ static void launchGame() {
     }
 
 
+static void showMessage( const char *inTitle, const char *inMessage,
+                         char inError = false ) {
+    const char *iconName = "note";
+    if( inError ) {
+        iconName = "stop";
+        }
+
+    const char *commandFormat =
+        "osascript -e 'tell app \"System Events\" to activate' "
+        "-e 'tell app \"System Events\" to display dialog \"%s\" "
+        "with title \"%s\" buttons \"Ok\" "
+        "with icon %s default button \"Ok\"' ";
+    
+    char *command = autoSprintf( commandFormat, inMessage, inTitle, 
+                                 iconName );
+    printf( "Command = %s\n", command );
+    
+    FILE *osascriptPipe = popen( command, "r" );
+    
+    delete [] command;
+    
+    if( osascriptPipe == NULL ) {
+        AppLog::error( 
+            "Failed to open pipe to osascript for displaying GUI messages." );
+        }
+    else {
+        pclose( osascriptPipe );
+        }
+    }
+
+
+
 #elif defined(LINUX)
 
 #include <unistd.h>
@@ -85,6 +117,8 @@ static void showMessage( const char *inTitle, const char *inMessage,
 
     FILE *zentityPipe = popen( command, "r" );
     
+    delete [] command;
+
     if( zentityPipe == NULL ) {
         AppLog::error( 
             "Failed to open pipe to zenity for displaying GUI messages." );
