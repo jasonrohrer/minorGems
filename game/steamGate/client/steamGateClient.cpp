@@ -21,7 +21,7 @@
 /////////////////////
 // settings:
 static const char *steamGateServerURL = 
-"http://192.168.0.3/jcr13/steamGate/server.php";
+"http://thecastledoctrine.net/sg/server.php";
 
 #define linuxLaunchTarget "./CastleDoctrineApp"
 #define macLaunchTarget "CastleDoctrine.app"
