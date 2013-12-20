@@ -2178,8 +2178,6 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
         $custom_message_text =
             preg_replace( '/#COUPON_CODE#/', $coupon_code,
                           $custom_message_text );
-
-        echo "<br>Message = <pre>$custom_message_text</pre><br>";
         
         $emailResult = ts_sendNote_p( $message_subject, $custom_message_text,
                                       $name, $email );
