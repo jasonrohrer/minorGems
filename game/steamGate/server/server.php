@@ -317,6 +317,8 @@ function sg_showSteamLoginButton( $inTicketID ) {
         $steamLoginURL . "?$formattedParams";
     
     echo "<a href='$buttonURL'><img border=0 src='$steamButtonURL'></a>";
+    echo "<br><br>";
+    
     }
 
 
@@ -371,7 +373,7 @@ function sg_steamLoginReturn() {
     $verifyResult = file_get_contents( $verifyURL );
 
     if( ! preg_match( "/is_valid\s*:\s*true/i", $verifyResult ) ) {
-        echo "Failed to validate your Steam ID with Valve.";
+        echo "Failed to validate your Steam ID with Valve.<br><br>";
         return;
         }
 
@@ -403,14 +405,14 @@ function sg_steamLoginReturn() {
                     
             echo "No record found for your Steam ID.<br><br>";
             echo "Please launch the game at least once through Steam ".
-                "and then try again.";
+                "and then try again.<br><br>";
             return;
             }
         else {
             // they passed in a ticket ID
             
             if( ! sg_checkTicketID( $ticket_id ) ) {
-                echo "Invalid download ticket.";
+                echo "Invalid download ticket.<br><br>";
                 return;
                 }
             
@@ -459,7 +461,7 @@ function sg_steamLoginReturn() {
                 
                 echo "There are no Steam keys left.<br><br>";
                 global $helpEmail;
-                echo "Please email <b>$helpEmail</b>";
+                echo "Please email <b>$helpEmail</b><br><br>";
                 return;
                 }
 
@@ -493,8 +495,8 @@ function sg_steamLoginReturn() {
         "?action=show_downloads".
         "&ticket_id=$ticket_id";
     
-    echo "<br><br>Here's your download link to get the source code:<br>";
-    echo "<a href='$downloadLink'>$downloadLink</a>";
+    echo "<br><br>Here's your download link to get the source code:<br><br>";
+    echo "<a href='$downloadLink'>$downloadLink</a><br><br>";
     }
 
 
@@ -507,7 +509,7 @@ function sg_getSteamKey() {
 
 
     if( ! sg_checkTicketID( $ticket_id ) ) {
-        echo "Invalid download ticket.";
+        echo "Invalid download ticket.<br><br>";
         return;
         }
 
@@ -534,11 +536,11 @@ function sg_getSteamKey() {
         
         echo "There are no Steam keys left.<br><br>";
         global $helpEmail;
-        echo "Please email <b>$helpEmail</b>";
+        echo "Please email <b>$helpEmail</b><br><br>";
         return;
         }
     
-    echo "Log in with Steam to get your free Steam key:<br>";
+    echo "Log in with Steam to get your free Steam key:<br><br>";
 
     sg_showSteamLoginButton( $ticket_id );
     
@@ -547,7 +549,7 @@ function sg_getSteamKey() {
 
 
 function sg_showDownloadLink() {
-    echo "Log in with Steam to get your download link:<br>";
+    echo "Log in with Steam to get your download link:<br><br>";
 
     sg_showSteamLoginButton( "" );
     }
@@ -555,7 +557,7 @@ function sg_showDownloadLink() {
 
  
  function sg_showSteamKey( $inKey ) {
-     echo "Your steam key is: <b>$inKey</b>";
+     echo "Your steam key is: <b>$inKey</b><br><br>";
      }
  
 
