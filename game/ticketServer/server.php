@@ -1512,7 +1512,8 @@ function ts_showData( $checkPassword = true ) {
     </SELECT><br>
      Message:<br>
      (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
-     (<b>#COUPON_CODE#</b> will be replaced with individual's code)<br>
+     (<b>#DOWNLOAD_CODE#</b> will be replaced with individual's DL code)<br>
+     (<b>#COUPON_CODE#</b> will be replaced with individual's coupon code)<br>
          <TEXTAREA NAME="message_text" COLS=50 ROWS=10></TEXTAREA><br>
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
     <INPUT TYPE="Submit" VALUE="Send">
@@ -2171,9 +2172,15 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
                           $custom_message_text );
 
         $custom_message_text =
+            preg_replace( '/#DOWNLOAD_CODE#/', $ticket_id,
+                          $custom_message_text );
+
+        $custom_message_text =
             preg_replace( '/#COUPON_CODE#/', $coupon_code,
                           $custom_message_text );
 
+        echo "<br>Message = <pre>$custom_message_text</pre><br>";
+        
         $emailResult = ts_sendNote_p( $message_subject, $custom_message_text,
                                       $name, $email );
 
