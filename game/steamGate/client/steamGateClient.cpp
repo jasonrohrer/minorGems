@@ -63,7 +63,8 @@ static void showMessage( const char *inTitle, const char *inMessage,
         "osascript -e 'tell app \"System Events\" to activate' "
         "-e 'tell app \"System Events\" to display dialog \"%s\" "
         "with title \"%s\" buttons \"Ok\" "
-        "with icon %s default button \"Ok\"' ";
+        "with icon %s default button \"Ok\"' "
+        "-e 'tell app \"System Events\" to quit' ";
     
     char *command = autoSprintf( commandFormat, inMessage, inTitle, 
                                  iconName );
