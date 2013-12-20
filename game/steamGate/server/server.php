@@ -135,6 +135,9 @@ else if( $action == "show_data" ) {
 else if( $action == "add_steam_gift_keys" ) {
     sg_addSteamGiftKeys();
     }
+else if( $action == "show_steam_key_link" ) {
+    sg_showSteamKeyLink();
+    }
 else if( $action == "show_log" ) {
     sg_showLog();
     }
@@ -992,7 +995,19 @@ function sg_showData( $checkPassword = true ) {
 
 <?php
 
+         
+?>
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="show_steam_key_link">
+    Get steam key link for ticket_id:
+    <INPUT TYPE="text" MAXLENGTH=40 SIZE=23 NAME="ticket_id"
+             VALUE="">
+    <INPUT TYPE="Submit" VALUE="Generate">
+    </FORM>
+    <hr>
 
+
+<?php
 
     
     echo "<a href=\"server.php?action=show_log\">".
@@ -1068,6 +1083,36 @@ function sg_addSteamGiftKeys() {
     $numInserted = mysql_affected_rows();
 
     echo "<br>Successfully added $numInserted keys.";
+    }
+
+
+
+// handle form entry from admin view that lets us quickly
+// generate a steam key link for someone's ticket
+function sg_showSteamKeyLink() {
+    sg_checkPassword( "show_steam_key_link" );
+
+    
+    echo "[<a href=\"server.php?action=show_data" .
+         "\">Main</a>]<br><br><br>";
+    
+    global $tableNamePrefix, $fullServerURL;
+
+    $ticket_id = sg_getQueryTicketID();
+
+
+    if( ! sg_checkTicketID( $ticket_id ) ) {
+        echo "Invalid download ticket.<br><br>";
+        return;
+        }
+
+    echo "Steam key link for <b>$ticket_id</b> is:<br><br>";
+
+    $url = "$fullServerURL?action=get_steam_key&ticket_id=$ticket_id";
+
+    echo "<a href='$url'>$url</a>";
+    
+    
     }
 
 
