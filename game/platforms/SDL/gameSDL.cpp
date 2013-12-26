@@ -1152,10 +1152,11 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
         return;
         }
 
-    if( SDL_GetAppState() & SDL_APPMOUSEFOCUS ) {
+    if( SDL_GetAppState() & SDL_APPINPUTFOCUS ) {
         
-        if( !demoMode ) {
+        if( frameDrawerInited ) {
             // not ignoring mouse events currently due to demo code panel
+            // or loading message... frame drawer not inited yet
             ignoreNextMouseEvent = true;
             xCoordToIgnore = *outNewMouseX;
             yCoordToIgnore = *outNewMouseY;
