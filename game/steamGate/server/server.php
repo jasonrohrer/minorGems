@@ -482,7 +482,9 @@ function sg_steamLoginReturn() {
             // remember key for them in the map
 
             $query = "UPDATE $tableNamePrefix"."mapping ".
-                "SET steam_gift_key = '$steam_gift_key';";
+                "SET steam_gift_key = '$steam_gift_key' ".
+                "WHERE steam_id = '$steam_id' ".
+                "AND ticket_id = '$ticket_id';";
 
             sg_queryDatabase( $query );
 
