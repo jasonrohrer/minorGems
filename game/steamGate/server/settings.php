@@ -36,7 +36,7 @@ $helpEmail = "jasonrohrer@fastmail.fm";
 
 // key to prove our publisher identity to Steam API
 // this key must be kept secret.
-$steamWebAPIKey = "47944ED0E998014D8E3C7889C605C337";
+$steamWebAPIKey = "REPLACE_ME";
 
 
 // the app ID that we check ownership for
