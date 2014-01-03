@@ -128,6 +128,9 @@
  * Added work-around for improper window de-minimization detection on some
  * platforms so that isMinimized will always report true minimization state
  * (thanks Joshua Collins).
+ *
+ * 2014-January-3   Jason Rohrer
+ * Added recording and playback of socket events.
  */
 
 
@@ -154,6 +157,7 @@
 #include "minorGems/system/Thread.h"
 
 #include "minorGems/crypto/hashes/sha1.h"
+#include "minorGems/formats/encodingUtils.h"
 
 
 
@@ -571,6 +575,17 @@ ScreenGL::~ScreenGL() {
             }
         
         }
+    for( int i=0; i<mPendingSocketEvents.size(); i++ ) {
+        SocketEvent *e = mPendingSocketEvents.getElement( i );
+        
+        if( e->bodyBytesHex != NULL ) {
+            
+            delete [] e->bodyBytesHex;
+        
+            e->bodyBytesHex = NULL;
+            }
+        
+        }
 
 	}
 
@@ -954,6 +969,95 @@ char *ScreenGL::getWebEventResultBody( int inHandle ) {
 
 
 
+void ScreenGL::registerSocketEvent( int inHandle,
+                                    int inType,
+                                    int inNumBodyBytes,
+                                    unsigned char *inBodyBytes ) {
+
+    if( ! currentScreenGL->mRecordingEvents || 
+        ! currentScreenGL->mRecordingOrPlaybackStarted ) {
+    
+        // not recording!
+        return;
+        }
+    
+        
+    char *eventString;
+    
+    // only event type 2 has a body byte payload
+    if( inType == 2 && inNumBodyBytes != 0 ) {
+
+        char *bodyHex = hexEncode( inBodyBytes, inNumBodyBytes );
+
+        eventString = autoSprintf( "xs %u %d %u %s", inHandle, 
+                                   inType, 
+                                   strlen( bodyHex ), bodyHex );
+        delete [] bodyHex;
+        }
+    else {
+        eventString = autoSprintf( "xs %u %d %d", inHandle, inType,
+                                   inNumBodyBytes );
+        }
+
+    
+    mEventBatch.push_back( eventString );
+    }
+
+
+
+void ScreenGL::getSocketEventTypeAndSize( int inHandle, int *outType,
+                                          int *outNumBodyBytes ) {
+    for( int i=0; i<mPendingSocketEvents.size(); i++ ) {
+        SocketEvent *e = mPendingSocketEvents.getElement( i );
+        
+        if( e->handle == inHandle ) {
+            
+            *outType = e->type;
+            *outNumBodyBytes = e->numBodyBytes;
+            
+            if( *outType != 2 || *outNumBodyBytes == 0 ) {
+                mPendingSocketEvents.deleteElement( i );
+                }
+
+            return;
+            }
+        }
+
+    // no event record present?
+    *outType = -1;
+    *outNumBodyBytes = 0;
+    return;
+    }
+
+
+
+unsigned char *ScreenGL::getSocketEventBodyBytes( int inHandle ) {
+    
+    for( int i=0; i<mPendingSocketEvents.size(); i++ ) {
+        SocketEvent *e = mPendingSocketEvents.getElement( i );
+        
+        if( e->handle == inHandle ) {
+            
+            
+            unsigned char *returnValue = NULL;
+
+            if( e->bodyBytesHex != NULL ) {
+                returnValue = hexDecode( e->bodyBytesHex );
+            
+                delete [] e->bodyBytesHex;
+                }
+            
+            mPendingSocketEvents.deleteElement( i );
+
+            return returnValue;
+            }
+        }
+    
+    return NULL;
+    }
+
+
+
 void ScreenGL::writeEventBatchToFile() {
     
     int numInBatch = mEventBatch.size();
@@ -1110,6 +1214,44 @@ void ScreenGL::playNextEventBatch() {
                     }
                 
                 mPendingWebEvents.push_back( e );
+                break;
+                }
+            case 'x': {
+                // special case:  incoming socket event
+                // (simulating response from a socket server during playback)
+                
+                SocketEvent e;
+                fscanf( mEventFile, "%d %d %d", 
+                        &( e.handle ), &( e.type ), &( e.numBodyBytes ) );
+
+                e.bodyBytesHex = NULL;
+
+                if( e.type == 2 && e.numBodyBytes != 0 ) {
+                    // includes a body payload
+
+                    // skip the space after numBodyBytes
+                    fgetc( mEventFile );
+                
+                    unsigned int hexLength = e.numBodyBytes * 2;
+                    
+
+                    e.bodyBytesHex = new char[ hexLength + 1 ];
+                
+                    unsigned int numRead = 
+                        fread( e.bodyBytesHex, 1, hexLength, mEventFile );
+                
+                    e.bodyBytesHex[ hexLength ] = '\0';
+
+                    if( numRead != hexLength ) {
+                        AppLog::error( 
+                            "Failed to read socket event body hex from "
+                            "playback file" );
+                        delete [] e.bodyBytesHex;
+                        e.bodyBytesHex = NULL;
+                        }
+                    }
+                
+                mPendingSocketEvents.push_back( e );
                 break;
                 }
             default:

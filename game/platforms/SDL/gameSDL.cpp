@@ -48,6 +48,8 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/io/file/File.h"
 
 #include "minorGems/network/HostAddress.h"
+#include "minorGems/network/Socket.h"
+#include "minorGems/network/SocketClient.h"
 
 #include "minorGems/network/upnp/portMapping.h"
 
@@ -286,6 +288,15 @@ typedef struct WebRequestRecord {
 
 SimpleVector<WebRequestRecord> webRequestRecords;
 
+
+
+
+typedef struct SocketConnectionRecord {
+        int handle;
+        Socket *sock;
+    } SocketConnectionRecord;
+
+SimpleVector<SocketConnectionRecord> socketConnectionRecords;
 
 
 
@@ -2249,6 +2260,224 @@ void clearWebRequest( int inHandle ) {
     AppLog::error( "gameSDL - clearWebRequest:  "
                    "Requested WebRequest handle not found\n" );
     }
+
+
+
+
+
+int nextSocketConnectionHandle = 0;
+
+
+
+int openSocketConnection( const char *inNumericalAddress, int inPort ) {
+    SocketConnectionRecord r;
+    
+    r.handle = nextSocketConnectionHandle;
+    nextSocketConnectionHandle++;
+
+
+    if( screen->isPlayingBack() ) {
+        // stop here, don't actually open a real socket
+        return r.handle;
+        }
+
+    HostAddress address( stringDuplicate( inNumericalAddress ), inPort );
+
+
+    char timedOut;
+    
+    // non-blocking connet
+    r.sock = SocketClient::connectToServer( &address, 0, &timedOut );
+    
+    if( r.sock != NULL ) {
+        socketConnectionRecords.push_back( r );
+        
+        return r.handle;
+        }
+    else {
+        return -1;
+        }
+    }
+
+
+
+static Socket *getSocketByHandle( int inHandle ) {
+    for( int i=0; i<socketConnectionRecords.size(); i++ ) {
+        SocketConnectionRecord *r = socketConnectionRecords.getElement( i );
+        
+        if( r->handle == inHandle ) {
+            return r->sock;
+            }
+        }
+
+    // else not found?
+    AppLog::error( "gameSDL - getSocketByHandle:  "
+                   "Requested Socket handle not found\n" );
+    return NULL;
+    }
+
+    
+
+
+
+// non-blocking send
+// returns number sent (maybe 0) on success, -1 on error
+int sendToSocket( int inHandle, unsigned char *inData, int inDataLength ) {
+    if( screen->isPlayingBack() ) {
+        // play back result of this send
+
+        int nextType, nextNumBodyBytes;
+        screen->getSocketEventTypeAndSize( inHandle, 
+                                           &nextType, &nextNumBodyBytes );
+        
+        if( nextType == 0 ) {
+            return nextNumBodyBytes;
+            }
+        else {        
+            return -1;
+            }
+        }
+    
+
+    Socket *sock = getSocketByHandle( inHandle );
+    
+    if( sock != NULL ) {
+        
+        int numSent = 0;
+        
+
+        if( sock->isConnected() ) {
+            
+            numSent = sock->send( inData, inDataLength, false, false );
+            
+            if( numSent == -2 ) {
+                // would block
+                numSent = 0;
+                }
+            }
+        
+        int type = 0;
+        
+        if( numSent == -1 ) {
+            type = 1;
+            numSent = 0;
+            }
+        
+        screen->registerSocketEvent( inHandle, type, numSent, NULL );
+        
+        return numSent;
+        }
+    
+    return -1;
+    }
+
+
+
+// non-blocking read
+// returns number of bytes read (maybe 0), -1 on error 
+int readFromSocket( int inHandle, 
+                    unsigned char *inDataBuffer, int inBytesToRead ) {
+    
+    if( screen->isPlayingBack() ) {
+        // play back result of this read
+
+        int nextType, nextNumBodyBytes;
+        screen->getSocketEventTypeAndSize( inHandle, 
+                                           &nextType, &nextNumBodyBytes );
+        
+        if( nextType == 2 ) {
+            
+            if( nextNumBodyBytes == 0 ) {
+                return 0;
+                }
+            // else there are body bytes waiting
+
+            if( nextNumBodyBytes > inBytesToRead ) {
+                AppLog::errorF( "gameSDL - readFromSocket:  "
+                                "Expecting to read at most %d bytes, but "
+                                "recording has %d bytes waiting\n",
+                                inBytesToRead, nextNumBodyBytes );
+                return -1;
+                }
+            
+            unsigned char *bodyBytes = 
+                screen->getSocketEventBodyBytes( inHandle );
+            
+            memcpy( inDataBuffer, bodyBytes, nextNumBodyBytes );
+            delete [] bodyBytes;
+            
+            
+            return nextNumBodyBytes;
+            }
+        else {        
+            return -1;
+            }
+        }
+    
+
+    Socket *sock = getSocketByHandle( inHandle );
+    
+    if( sock != NULL ) {
+        
+        int numRead = 0;
+        
+
+        if( sock->isConnected() ) {
+            
+            numRead = sock->receive( inDataBuffer, inBytesToRead, 0 );
+            
+            if( numRead == -2 ) {
+                // would block
+                numRead = 0;
+                }
+            }
+        
+        int type = 2;
+        if( numRead == -1 ) {
+            type = 3;
+            numRead = 0;
+            }
+        
+        unsigned char *bodyBytes = NULL;
+        if( numRead > 0 ) {
+            bodyBytes = inDataBuffer;
+            }
+        
+        screen->registerSocketEvent( inHandle, type, numRead, bodyBytes );
+        
+        return numRead;
+        }
+    
+    return -1;
+    }
+
+
+
+void closeSocket( int inHandle ) {
+    
+    if( screen->isPlayingBack() ) {
+        // not a real socket, do nothing
+        return;
+        }
+    
+    for( int i=0; i<socketConnectionRecords.size(); i++ ) {
+        SocketConnectionRecord *r = socketConnectionRecords.getElement( i );
+        
+        if( r->handle == inHandle ) {
+            delete r->sock;
+            
+            socketConnectionRecords.deleteElement( i );
+            
+            // found, done
+            return;
+            }
+        }
+
+    // else not found?
+    AppLog::error( "gameSDL - closeSocket:  "
+                   "Requested Socket handle not found\n" );
+    }
+
 
 
 

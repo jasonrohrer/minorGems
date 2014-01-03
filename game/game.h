@@ -318,3 +318,20 @@ void clearWebRequest( int inHandle );
 
 
 
+// returns unique int handle for socket connection, -1 on error
+int openSocketConnection( const char *inNumericalAddress, int inPort );
+
+// non-blocking send
+// returns number sent (maybe 0) on success, -1 on error
+int sendToSocket( int inHandle, unsigned char *inData, int inDataLength );
+
+
+// non-blocking read
+// returns number of bytes read (maybe 0), -1 on error 
+int readFromSocket( int inHandle, 
+                    unsigned char *inDataBuffer, int inBytesToRead );
+
+
+void closeSocket( int inHandle );
+
+

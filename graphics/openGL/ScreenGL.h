@@ -104,6 +104,9 @@
  * 
  * 2013-January-29   Jason Rohrer
  * Added support for replay of time() values.  
+ *
+ * 2014-January-3   Jason Rohrer
+ * Added recording and playback of socket events.
  */
  
  
@@ -146,6 +149,16 @@ typedef struct WebEvent {
         int type;
         char *bodyText;
     } WebEvent;
+
+
+typedef struct SocketEvent {
+        int handle;
+        int type;
+        int numBodyBytes;
+        // can be NULL even if numBodyBytes not 0 (in case of
+        // recorded send, where we don't need to record what was sent)
+        char *bodyBytesHex;
+    } SocketEvent;
 
 
 
@@ -326,6 +339,47 @@ class ScreenGL {
         // This call removes the web event from the list of pending events.
         char *getWebEventResultBody( int inHandle );
         
+
+
+
+
+        // passes in a socket event to be (possibly) added to the current
+        // game recording
+        // type encodes :
+        //    0 = send with number sent (NULL body)
+        //    1 = send resulting in error (NULL body)
+        //    2 = read with number read (non-NULL body if inNumBodyBytes != 0)
+        //    3 = read resulting in error (NULL body)
+        void registerSocketEvent( int inHandle,
+                                  int inType,
+                                  int inNumBodyBytes,
+                                  unsigned char *inBodyBytes = NULL );
+        
+        
+        // gets the type of the next pending socket event (from playback)
+        // if the event has no body bytes 
+        // (type 0, 1, or 3, OR type 2 with 0-length body), 
+        // this call removes the event from the list.
+        //
+        // In case of type 2 with outNumBodyBytes > 0, 
+        // getWebEventResultBody must be called.
+        //
+        // 
+        void getSocketEventTypeAndSize( int inHandle, 
+                                        int *outType, 
+                                        int *outNumBodyBytes );
+        
+        // gets a recorded socket event body bytes from the current 
+        // frame matching inHandle
+        // result NULL if there is no event matching inHandle
+        // result destroyed by caller.
+        //
+        // return value has length as set by last getSocketEventTypeAndSize
+        // call
+        //
+        // This call removes the socket event from the list of pending events.
+        unsigned char *getSocketEventBodyBytes( int inHandle );
+
         
 
 
@@ -678,6 +732,7 @@ class ScreenGL {
         
 
         SimpleVector<WebEvent> mPendingWebEvents;
+        SimpleVector<SocketEvent> mPendingSocketEvents;
 
 
         unsigned int mRandSeed;
