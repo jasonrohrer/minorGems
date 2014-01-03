@@ -135,6 +135,7 @@ MINOR_GEMS_SED_FIX_COMMAND_A = sed ' \
 s/^HostAddress.*\.o/$${HOST_ADDRESS_O}/; \
 s/^SocketServer.*\.o/$${SOCKET_SERVER_O}/; \
 s/^SocketClient.*\.o/$${SOCKET_CLIENT_O}/; \
+s/^SocketPoll.*\.o/$${SOCKET_POLL_O}/; \
 s/^SocketUDP.*\.o/$${SOCKET_UDP_O}/; \
 s/^SocketManager.*\.o/$${SOCKET_MANAGER_O}/; \
 s/^Socket.*\.o/$${SOCKET_O}/; \

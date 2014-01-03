@@ -6,6 +6,9 @@
  *
  * 2002-March-27		Jason Rohrer
  * Added a timeout to accept.
+ *
+ * 2014-January-3		Jason Rohrer
+ * Made native object pointer public for SocketPoll implementations.
  */
 
 #include "minorGems/common.h"
@@ -67,8 +70,6 @@ class SocketServer {
                                   char *outTimedOut = NULL );
 		
 
-
-	private:
 		
 		/**
 		 * Used by platform-specific implementations.
