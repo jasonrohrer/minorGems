@@ -2592,7 +2592,7 @@ function ts_checkPassword( $inFunctionName ) {
         
         if( $passwordSent && $enableYubikey ) {
             global $yubikeyIDs, $yubicoClientID, $yubicoSecretKey,
-                $serverSecretKey;
+                $ticketGenerationSecret;
             
             $yubikey = $_REQUEST[ "yubikey" ];
 
@@ -2607,7 +2607,7 @@ function ts_checkPassword( $inFunctionName ) {
                 }
             
             
-            $nonce = ts_hmac_sha1( $serverSecretKey, uniqid() );
+            $nonce = ts_hmac_sha1( $ticketGenerationSecret, uniqid() );
             
             $callURL =
                 "http://api2.yubico.com/wsapi/2.0/verify?id=$yubicoClientID".

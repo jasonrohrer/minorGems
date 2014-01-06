@@ -48,6 +48,7 @@ $ticketIDLength = 20;
 
 // Replace this with a secret string.
 // Used when generating random, unguessable ticket IDs
+// also used to generate nonces for Yubikey authentication
 $ticketGenerationSecret = "b9336d21169bd0b46af2f655a7fda7b09cc2f7d7";
 
 
