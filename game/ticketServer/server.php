@@ -593,14 +593,15 @@ function ts_getTicketID() {
     // generate enough bits by hashing shared secret repeatedly
     $hexToMixBits = "";
 
-    $runningSecret = sha1( $sharedEncryptionSecret );
+    $runningSecret = ts_hmac_sha1( $sharedEncryptionSecret, $email );
     while( strlen( $hexToMixBits ) < $ticketLengthBits ) {
 
         $newBits = ts_hexDecodeToBitString( $runningSecret );
 
         $hexToMixBits = $hexToMixBits . $newBits;
 
-        $runningSecret = sha1( $runningSecret );
+        $runningSecret = ts_hmac_sha1( $sharedEncryptionSecret,
+                                       $runningSecret );
         }
 
     // trim down to bits that we need

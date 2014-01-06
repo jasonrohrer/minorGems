@@ -74,7 +74,7 @@ server.php
 Returned code is encrypted in the following fashion:
 
 
-  substring( toBits( sha1( $sharedEncryptionSecret ) ), LENGTH ) 
+  substring( toBits( HMAC_SHA1( $sharedEncryptionSecret, $email ) ), LENGTH ) 
   XOR 
   toBits( ticket_id )
 
@@ -82,11 +82,14 @@ Returned code is encrypted in the following fashion:
 Where LENGTH is the number of bits in ticket_id.  If LENGTH is longer than
 160 bits (sha1 length), extra bits are generated and appended via:
 
-  sha1( sha1( $sharedEncryptionSecret ) )
+  HMAC_SHA1( $sharedEncryptionSecret,
+             HMAC_SHA1( $sharedEncryptionSecret, $email ) )
 
 If more bits are needed, extra bits are generated and appended via:
 
-  sha1( sha1( sha1( $sharedEncryptionSecret ) ) )
+  HMAC_SHA1( $sharedEncryptionSecret,
+             HMAC_SHA1( $sharedEncryptionSecret,
+                        HMAC_SHA1( $sharedEncryptionSecret, $email ) ) )
 
 And so on.
 
