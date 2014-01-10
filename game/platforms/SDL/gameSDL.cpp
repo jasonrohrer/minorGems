@@ -107,6 +107,9 @@ char hardToQuitMode = false;
 char demoMode = false;
 
 char writeFailed = false;
+char loadingFailedFlag = false;
+char *loadingFailedMessage = NULL;
+
 
 char loadingMessageShown = false;
 char frameDrawerInited = false;
@@ -312,7 +315,7 @@ void cleanUpAtExit() {
     AppLog::info( "exiting: Deleting screen\n" );
     delete screen;
 
-    if( getUsesSound() ) {
+    if( soundRunning ) {
         AppLog::info( "exiting: calling SDL_CloseAudio\n" );
         SDL_CloseAudio();
         }
@@ -995,6 +998,10 @@ GameSceneHandler::~GameSceneHandler() {
     if( writeFailed ) {
         freeWriteFailedPanel();
         }
+    if( loadingFailedMessage != NULL ) {
+        delete [] loadingFailedMessage;
+        loadingFailedMessage = NULL;
+        }
     
     
     }
@@ -1215,11 +1222,14 @@ void GameSceneHandler::drawScene() {
             }
         }
     else if( !loadingMessageShown ) {
-        drawString( translate( "loading" ) );
+        drawString( translate( "loading" ), true );
 
         loadingMessageShown = true;
         }
-    else if( !writeFailed && !frameDrawerInited ) {
+    else if( loadingFailedFlag ) {
+        drawString( loadingFailedMessage, true );
+        }
+    else if( !writeFailed && !loadingFailedFlag && !frameDrawerInited ) {
         initFrameDrawer( pixelZoomFactor * gameWidth, 
                          pixelZoomFactor * gameHeight, 
                          targetFrameRate,
@@ -1228,7 +1238,7 @@ void GameSceneHandler::drawScene() {
 
         frameDrawerInited = true;
         }
-    else if( !writeFailed ) {
+    else if( !writeFailed && !loadingFailedFlag  ) {
         // demo mode done or was never enabled
 
         // carry on with game
@@ -1555,7 +1565,7 @@ static unsigned char lastKeyPressed = '\0';
 void GameSceneHandler::keyPressed(
 	unsigned char inKey, int inX, int inY ) {
 
-    if( writeFailed ) {
+    if( writeFailed || loadingFailedFlag ) {
         exit( 0 );
         }
     
@@ -1653,7 +1663,7 @@ static char lMetaDown = false;
 void GameSceneHandler::specialKeyPressed(
 	int inKey, int inX, int inY ) {
     
-    if( writeFailed ) {
+    if( writeFailed || loadingFailedFlag ) {
         exit( 0 );
         }
     
@@ -2484,6 +2494,17 @@ void closeSocket( int inHandle ) {
 
 time_t game_time( time_t *__timer ) {
     return screen->getTime( __timer );
+    }
+
+
+
+void loadingFailed( const char *inFailureMessage ) {
+    loadingFailedFlag = true;
+
+    if( loadingFailedMessage != NULL ) {
+        delete [] loadingFailedMessage;
+        }
+    loadingFailedMessage = stringDuplicate( inFailureMessage );
     }
 
 

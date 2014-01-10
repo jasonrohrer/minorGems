@@ -1,3 +1,6 @@
+#ifndef GAME_H_INCLUDED
+#define GAME_H_INCLUDED
+
 
 // interface between a platform-independent game engine 
 // and the underlying platform
@@ -46,7 +49,9 @@ const char *getFontTGAFileName();
 // game can pick where these should be displayed (though platform ensures
 // that it is drawn after frame is drawn)
 // String might contain multiple lines separated by '\n'
-void drawString( const char *inString );
+// if inForceCenter is true, game engine should ignore its own placement
+// preferences and draw the string in the center.
+void drawString( const char *inString, char inForceCenter = false );
 
 // called by platform to allow game to initialize resources needed for
 // drawing strings
@@ -147,6 +152,12 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes );
 
 
 // These are called BY game engine (implemented by supporting platform)
+
+// can be called from inside initFrameDrawer to let game engine know
+// that loading has failed.  Message copied internally.
+// Game engine will display an error after initFrameDrawer is done.
+void loadingFailed( const char *inFailureMessage );
+
 
 
 unsigned int getRandSeed();
@@ -334,4 +345,7 @@ int readFromSocket( int inHandle,
 
 void closeSocket( int inHandle );
 
+
+
+#endif
 
