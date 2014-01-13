@@ -23,6 +23,9 @@
  *
  * 2002-October-8    Jason Rohrer
  * Added functions for extracting query arguments.
+ *
+ * 2014-January-13    Jason Rohrer
+ * Fixed hexEncode for URLs to work with actual reserved list.
  */
 
 
@@ -31,6 +34,7 @@
 
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/util/SimpleVector.h"
+#include "minorGems/formats/encodingUtils.h"
 
 #include <string.h>
 
@@ -103,7 +107,7 @@ char *URLUtils::getRootRelativePath( char *inURL ) {
 
 
 
-char *URLUtils::hexDecode( char *inString ) {
+char *URLUtils::urlDecode( char *inString ) {
 
     // first run through string and replace any + characters with spaces
 
@@ -215,7 +219,23 @@ char *URLUtils::hexDecode( char *inString ) {
 
 
 
-char *URLUtils::hexEncode( char *inString ) {
+char *URLUtils::urlEncode( char *inString ) {
+    
+    /*
+      Unreserved characters from RFC 3986
+      
+      Everything else must be percent-encoded
+      
+      A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S
+      T  U  V  W  X  Y  Z
+      a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s
+      t  u  v  w  x  y  z
+      0  1  2  3  4  5  6  7  8  9  -  _  .  ~
+      
+      To match application/x-www-form-urlencoded, we also encode ~ and
+      encode spaces as '+'
+    */
+
 
     SimpleVector<char> *returnStringVector = new SimpleVector<char>();
 
@@ -225,65 +245,35 @@ char *URLUtils::hexEncode( char *inString ) {
     int i;
     for( i=0; i<stringLength; i++ ) {
 
-        switch( inString[i] ) {
-            case '\n':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '0' );
-                returnStringVector->push_back( 'A' );
-                break;
-            case '\r':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '0' );
-                returnStringVector->push_back( 'D' );
-                break;
-            case '#':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '2' );
-                returnStringVector->push_back( '3' );
-                break;
-            case '&':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '2' );
-                returnStringVector->push_back( '6' );
-                break;
-            case '?':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '3' );
-                returnStringVector->push_back( 'F' );
-                break;
-            case '\\':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '5' );
-                returnStringVector->push_back( 'C' );
-                break;
-            case '/':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '2' );
-                returnStringVector->push_back( 'F' );
-                break;
-            case ':':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '3' );
-                returnStringVector->push_back( 'A' );
-                break;
-            case '.':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '2' );
-                returnStringVector->push_back( 'E' );
-                break;
-            case '+':
-                returnStringVector->push_back( '%' );
-                returnStringVector->push_back( '2' );
-                returnStringVector->push_back( 'B' );
-                break;
-            case ' ':
-                returnStringVector->push_back( '+' );
-                break;
-            default:
-                returnStringVector->push_back( inString[i] );
-                break;
+        char c = inString[i];
+
+        if( c >= 'A' && c <= 'Z'
+            ||
+            c >= 'a' && c <= 'z'
+            ||
+            c == '-'
+            ||
+            c == '_'
+            ||
+            c == '.' ) {
+            // unreserved
+            returnStringVector->push_back( c );
+            }
+        else if( c == ' ' ) {
+            // historical web form encoding of space as +
+            returnStringVector->push_back( '+' );
+            }
+        else {
+            // reserved to be replaced with percent-encoding
+            returnStringVector->push_back( '%' );
+
+            char *hexEncoding = hexEncode( (unsigned char *)( &c ), 1 );
+            
+            returnStringVector->appendElementString( hexEncoding );
+            delete [] hexEncoding;
             }
         }
+    
 
     int numChars = returnStringVector->size();
     char *returnString = new char[ numChars + 1 ];
@@ -349,7 +339,7 @@ char *URLUtils::extractArgumentRemoveHex( char *inHaystack,
 
     if( extractedArg != NULL ) {
 
-        char *convertedArg = URLUtils::hexDecode( extractedArg );
+        char *convertedArg = URLUtils::urlDecode( extractedArg );
 
         delete [] extractedArg;
 

@@ -9,6 +9,9 @@
  *
  * 2002-October-8    Jason Rohrer
  * Added functions for extracting query arguments.
+ *
+ * 2014-January-13    Jason Rohrer
+ * Changed url-encoding function names to not conflict with hexEncode/decode.
  */
 
 #include "minorGems/common.h"
@@ -80,7 +83,7 @@ class URLUtils {
          * @return a newly allocated converted string in \0-terminated form.
          *    Must be destroyed by caller.
          */
-        static char *hexDecode( char *inString );
+        static char *urlDecode( char *inString );
 
 
 
@@ -93,7 +96,7 @@ class URLUtils {
          *
          * @return an encoded string.  Must be destroyed by caller.
          */
-        static char *hexEncode( char *inString );
+        static char *urlEncode( char *inString );
 
 
 
