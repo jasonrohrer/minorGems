@@ -306,6 +306,13 @@ CURVE_25519_O = ${CURVE_25519}.o
 
 
 
+CRC32 = ${ROOT_PATH}/minorGems/util/crc32
+CRC32_H = ${CRC32}.h
+CRC32_CPP = ${CRC32}.cpp
+CRC32_O = ${CRC32}.o
+
+
+
 
 
 MEMORY_TRACK_H = ${ROOT_PATH}/minorGems/util/development/memory/MemoryTrack.h

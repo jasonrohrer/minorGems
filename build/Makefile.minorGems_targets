@@ -202,6 +202,7 @@ s/^jri.*\.o/$${JRI_O}/; \
 s/^SoundSamples.*\.o/$${SOUND_SAMPLES_O}/; \
 s/^ReverbSoundFilter.*\.o/$${REVERB_SOUND_FILTER_O}/; \
 s/^coefficientFilters.*\.o/$${COEFFICIENT_FILTERS_O}/; \
+s/^crc32.*\.o/$${CRC32_O}/; \
 '
 
 
