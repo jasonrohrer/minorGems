@@ -1477,48 +1477,9 @@ function ts_showData( $checkPassword = true ) {
     
     echo "<hr>";
 
+    // blank form
+    ts_printSendAllNoteForm( "", "" );
 ?>
-    <FORM ACTION="server.php" METHOD="post">
-    <INPUT TYPE="hidden" NAME="action" VALUE="send_all_note">
-    Subject:
-    <INPUT TYPE="text" MAXLENGTH=80 SIZE=40 NAME="message_subject"><br>
-    Tag:
-    <SELECT NAME="tag">
-<?php
-    // auto-gen ALL tags for batches
-
-    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
-         "WHERE blocked = '0' AND email_opt_in = '1';";
-    $result = ts_queryDatabase( $query );
-    $totalTickets = mysql_result( $result, 0, 0 );
-
-    $numToSkip = 0;
-    global $emailMaxBatchSize;
-    
-    while( $totalTickets > 0 ) {
-        echo "<OPTION VALUE=\"ALL_BATCH_$numToSkip\">".
-            "ALL_BATCH_$numToSkip</OPTION>";
-        $totalTickets -= $emailMaxBatchSize;
-        $numToSkip += $emailMaxBatchSize;
-        }
-    
-         
-    // auto-gen a drop-down list of available tags
-    global $allowedDownloadDates;
-    
-    foreach( $allowedDownloadDates as $tag => $date ){
-        echo "<OPTION VALUE=\"$tag\">$tag</OPTION>";
-        }
-?>
-    </SELECT><br>
-     Message:<br>
-     (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
-     (<b>#DOWNLOAD_CODE#</b> will be replaced with individual's DL code)<br>
-     (<b>#COUPON_CODE#</b> will be replaced with individual's coupon code)<br>
-         <TEXTAREA NAME="message_text" COLS=50 ROWS=10></TEXTAREA><br>
-    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
-    <INPUT TYPE="Submit" VALUE="Send">
-    </FORM>
     <hr>
 
 
@@ -1870,6 +1831,57 @@ function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
     }
 
 
+function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
+?>
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="send_all_note">
+    Subject:
+    <INPUT TYPE="text" MAXLENGTH=80 SIZE=40 NAME="message_subject"
+          value="<?php echo $inSetMessageSubject;?>" ><br>
+    Tag:
+    <SELECT NAME="tag">
+<?php
+    // auto-gen ALL tags for batches
+
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
+         "WHERE blocked = '0' AND email_opt_in = '1';";
+    $result = ts_queryDatabase( $query );
+    $totalTickets = mysql_result( $result, 0, 0 );
+
+    $numToSkip = 0;
+    global $emailMaxBatchSize;
+    
+    while( $totalTickets > 0 ) {
+        echo "<OPTION VALUE=\"ALL_BATCH_$numToSkip\">".
+            "ALL_BATCH_$numToSkip</OPTION>";
+        $totalTickets -= $emailMaxBatchSize;
+        $numToSkip += $emailMaxBatchSize;
+        }
+    
+         
+    // auto-gen a drop-down list of available tags
+    global $allowedDownloadDates;
+    
+    foreach( $allowedDownloadDates as $tag => $date ){
+        echo "<OPTION VALUE=\"$tag\">$tag</OPTION>";
+        }
+?>
+    </SELECT><br>
+     Message:<br>
+     (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
+     (<b>#DOWNLOAD_CODE#</b> will be replaced with individual's DL code)<br>
+     (<b>#COUPON_CODE#</b> will be replaced with individual's coupon code)<br>
+          <TEXTAREA NAME="message_text" COLS=50 ROWS=10><?php echo $inSetMessageBody;?></TEXTAREA><br>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="Send">
+    </FORM>
+    <hr>
+<?php
+
+    }
+
+
+
 
 function ts_sendAllNote() {
     ts_checkPassword( "send_all_note" );
@@ -1931,6 +1943,16 @@ function ts_sendAllNote() {
     
     // show opt-out URL at bottom of email
     ts_sendNote_q( $query, $message_subject, $message_text, 1 );
+
+
+    // show resend form
+    echo "<hr>";
+
+    echo "<br><br>Done sending for tag <b>$tag</b>.<br>";
+    echo "Send another batch?<br><br>";
+
+    ts_printSendAllNoteForm( $message_subject, $message_text );
+ 
     }
 
 
