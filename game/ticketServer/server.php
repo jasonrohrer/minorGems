@@ -1832,6 +1832,7 @@ function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
 
 
 function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
+    global $tableNamePrefix;
 ?>
     <FORM ACTION="server.php" METHOD="post">
     <INPUT TYPE="hidden" NAME="action" VALUE="send_all_note">
