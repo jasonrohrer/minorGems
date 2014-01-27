@@ -14,7 +14,8 @@ char getCryptoRandomBytes( unsigned char *outBytes, int inNumBytes ) {
     HCRYPTPROV hCryptProv;
     
     char result =
-        CryptAcquireContext( &hCryptProv, NULL, NULL, PROV_RSA_FULL, 0 );
+        CryptAcquireContext( &hCryptProv, NULL, NULL, PROV_RSA_FULL, 
+                             CRYPT_VERIFYCONTEXT );
     
     if( !result ) {
         return false;
