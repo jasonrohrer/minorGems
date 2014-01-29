@@ -1738,11 +1738,17 @@ char isCommandKeyDown() {
         return true;
         }
     
-    if( rCtrlDown || lCtrlDown ||
-        rAltDown || lAltDown ||
-        rMetaDown || lMetaDown ) {
-        return true;
+    if( screen->isPlayingBack() ) {
+        // ignore these, saved internally, unless we're playing back
+        // they can fall out of sync with keyboard reality as the user
+        // alt-tabs between windows and release events are lost.
+        if( rCtrlDown || lCtrlDown ||
+            rAltDown || lAltDown ||
+            rMetaDown || lMetaDown ) {
+            return true;
+            }
         }
+    
     
     return false;
     }
