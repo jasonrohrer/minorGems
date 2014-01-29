@@ -63,7 +63,20 @@ if( get_magic_quotes_gpc() ) {
     }
     
 
-
+// Check that the referrer header is this page, or kill the connection.
+// Used to block XSRF attacks on state-changing functions.
+// (To prevent it from being dangerous to surf other sites while you are
+// logged in as admin.)
+// Thanks Chris Cowan.
+function sg_checkReferrer() {
+    global $fullServerURL;
+    
+    if( !isset($_SERVER['HTTP_REFERER']) ||
+        strpos($_SERVER['HTTP_REFERER'], $fullServerURL) !== 0 ) {
+        
+        die( "Bad referrer header" );
+        }
+    }
 
 
 
@@ -1121,7 +1134,8 @@ function sg_showSteamKeyLink() {
 
 
 function sg_logout() {
-
+    sg_checkReferrer();
+    
     sg_clearPasswordCookie();
 
     echo "Logged out";
@@ -1203,7 +1217,7 @@ function sg_showLog() {
     
     for( $i=0; $i<$numRows; $i++ ) {
         $time = mysql_result( $result, $i, "entry_time" );
-        $entry = mysql_result( $result, $i, "entry" );
+        $entry = htmlspecialchars( mysql_result( $result, $i, "entry" ) );
 
         echo "<b>$time</b>:<br><pre>$entry</pre><hr>\n";
         }
@@ -1502,6 +1516,8 @@ function sg_checkPassword( $inFunctionName ) {
         $password_hash = $newSalt . "_" . $newHash;
         }
     else if( isset( $_COOKIE[ $cookieName ] ) ) {
+        sg_checkReferrer();
+        
         $password_hash = $_COOKIE[ $cookieName ];
         
         // check that it's a good hash
