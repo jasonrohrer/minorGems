@@ -56,7 +56,17 @@ void drawSquare( doublePair inCenter, double inRadius ) {
               inCenter.x + inRadius, inCenter.y + inRadius );
     }
 
+
+
+void drawRect( doublePair inCenter, 
+               double inHorizontalRadius, double inVerticalRadius ) {
     
+    drawRect( inCenter.x - inHorizontalRadius, 
+              inCenter.y - inVerticalRadius,
+              inCenter.x + inHorizontalRadius, 
+              inCenter.y + inVerticalRadius );
+    }  
+
 
 
 void drawCircle( doublePair inCenter, double inRadius ) {

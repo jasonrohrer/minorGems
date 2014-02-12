@@ -13,6 +13,9 @@ void drawRect( double inStartX, double inStartY,
 
 void drawSquare( doublePair inCenter, double inRadius );
 
+void drawRect( doublePair inCenter, 
+               double inHorizontalRadius, double inVerticalRadius );
+
 
 void drawCircle( doublePair inCenter, double inRadius );
 
