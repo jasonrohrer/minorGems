@@ -977,13 +977,14 @@ function ts_showDownloads() {
         $coupon_code = "";
         
         
-        $query = "SELECT coupon_code from $tableNamePrefix"."tickets ".
+        $query = "SELECT email, coupon_code from $tableNamePrefix"."tickets ".
             "WHERE ticket_id = '$ticket_id';";
 
         $result = ts_queryDatabase( $query );
     
         $row = mysql_fetch_array( $result, MYSQL_ASSOC );
         
+        $email = $row[ "email" ];
         $coupon_code = $row[ "coupon_code" ];
 
         

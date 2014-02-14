@@ -139,6 +139,7 @@ $footer = "include( \"footer.php\" );";
 
 $fileListHeader = $header .
 'echo "<center><font size=6>Downloads</font><br><br>"; ' .
+'echo "Your account email is: <b>$email</b><br><br>"; '.
 'echo "Your Download Code is: <b>$ticket_id</b><br><br><br>"; '.
 'if( $coupon_code != "" ) { '.
 '    echo "Give this coupon code to a friend: "; '.
