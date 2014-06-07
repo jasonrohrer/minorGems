@@ -7,6 +7,8 @@
  * 2009-February-5    Jason Rohrer
  * Added support for restoring from saved state.
  *
+ * 2014-June-6    Jason Rohrer
+ * Moved shared functionality into RandomSourc32 base class.
  */
 
 
@@ -14,9 +16,7 @@
 #ifndef CUSTOM_RANDOM_SOURCE_INCLUDED
 #define CUSTOM_RANDOM_SOURCE_INCLUDED
 
-#include <stdlib.h>
-#include <time.h>
-#include "RandomSource.h"
+#include "RandomSource32.h"
 
 
 /**
@@ -24,7 +24,7 @@
  *
  * Maintains its own internal state.
  */
-class CustomRandomSource : public RandomSource {
+class CustomRandomSource : public RandomSource32 {
 
     public:        
         
@@ -48,56 +48,36 @@ class CustomRandomSource : public RandomSource {
         
 
         void reseed( unsigned int inSeed );
-        
-            
-        // implements these functions
-        float getRandomFloat();    // in interval [0,1.0]
-        double getRandomDouble(); // in interval [0,1.0]
-        unsigned int getRandomInt();        // in interval [0,MAX]
-        unsigned int getIntMax();    // returns MAX
-        
-        int getRandomBoundedInt( int inRangeStart,
-            int inRangeEnd );    
 
-        double getRandomBoundedDouble( double inRangeStart,
-                                       double inRangeEnd );
-        char getRandomBoolean();
+
+
+    protected:
 
         
-    private:
-        double mInvMAXPlusOne; //  1 / ( MAX + 1 )
 
         unsigned int mState;
         
         unsigned int mSavedState;
         
-
+        // implements this core function
         // returns next number and updates state
-        unsigned int genRand32();
+        virtual unsigned int genRand32();
         
     };
 
 
 
-inline CustomRandomSource::CustomRandomSource() {
-    MAX = 4294967295U;
-    mState = (unsigned)( time(NULL) );
-    invMAX = (float)1.0 / ((float)MAX);
-    invDMAX = 1.0 / ((double)MAX);
-    mInvMAXPlusOne = 1.0 / ( ( (float)MAX ) + 1.0 );
 
+inline CustomRandomSource::CustomRandomSource()
+        : mState( (unsigned)( time(NULL) ) ) {
+    
     saveState();
     }
 
 
 
-inline CustomRandomSource::CustomRandomSource( unsigned int inSeed ) {
-    MAX = 4294967295U;
-    mState = inSeed;
-    invMAX = (float)1.0 / ((float)MAX);
-    invDMAX = 1.0 / ((double)MAX);
-    mInvMAXPlusOne = 1.0 / ( ( (double)MAX ) + 1.0 );
-
+inline CustomRandomSource::CustomRandomSource( unsigned int inSeed )
+        : mState( inSeed ) {
     saveState();
     }
 
@@ -166,78 +146,6 @@ inline unsigned int CustomRandomSource::genRand32() {
         (CustNum6( mState ) >> 22);
     
     return mState;
-    }
-
-
-    
-
-
-inline float CustomRandomSource::getRandomFloat() {
-    
-    return (float)(genRand32()) * invMAX;
-    }
-
-
-
-inline double CustomRandomSource::getRandomDouble() {
-    
-    return (double)(genRand32()) * invDMAX;
-    }
-
-
-
-inline unsigned int CustomRandomSource::getRandomInt() {
-    
-    return genRand32();
-    }
-
-
-
-inline unsigned int CustomRandomSource::getIntMax() {
-    
-    return MAX;
-    }
-
-
-
-inline int CustomRandomSource::getRandomBoundedInt( int inRangeStart,
-    int inRangeEnd ) {
-    
-    // float in range [0,1)
-    double randFloat = (double)( genRand32() ) * mInvMAXPlusOne;
-
-    int onePastRange = inRangeEnd + 1;
-
-    int magnitude = (int)( randFloat * ( onePastRange - inRangeStart ) );
-    
-    return magnitude + inRangeStart;
-    }
-
-
-inline double CustomRandomSource::getRandomBoundedDouble( double inRangeStart,
-    double inRangeEnd ) {
-    
-    // double in range [0,1]
-    double randDouble = getRandomDouble();
-
-    double magnitude = randDouble * ( inRangeEnd - inRangeStart );
-    
-    return magnitude + inRangeStart;
-    }
-
-
-
-inline char CustomRandomSource::getRandomBoolean() {
-
-    // float in range [0,1]
-    double randFloat = getRandomFloat();
-
-    if( randFloat < 0.5 ) {
-        return true;
-        }
-    else {
-        return false;
-        }
     }
 
 
