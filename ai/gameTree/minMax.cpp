@@ -11,14 +11,6 @@ static MinOrMax switchSide( MinOrMax inSide ) {
 
 
 
-static const char *sideName( MinOrMax inSide ) {
-    if( inSide == min ) {
-        return "MIN";
-        }
-    return "MAX";
-    }
-
-
 
 static int betterScore( MinOrMax inSide, int inScoreA, int inScoreB ) {
     if( inSide == min ) {
