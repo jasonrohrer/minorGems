@@ -87,7 +87,7 @@ GameState *minMaxPickMove( GameState *inCurrentState, MinOrMax inSide,
             }
         }
     
-    printf( "\n%d leaves examined\n", leavesHit );
+    //printf( "\n%d leaves examined\n", leavesHit );
 
     return bestPossible;
     }
