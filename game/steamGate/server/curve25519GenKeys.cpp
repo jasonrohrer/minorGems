@@ -10,7 +10,7 @@
 
 static void usage() {
     printf( "Generates a public key and a shared secret key from a\n"
-            "communication partner's shared secret key.\n\n" );
+            "communication partner's public key.\n\n" );
     
     printf( "Accepts and outputs 32-bit keys as hex-encoded,\n"
             "64-character strings.\n\n" );
