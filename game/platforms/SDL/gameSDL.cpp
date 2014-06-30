@@ -503,6 +503,16 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
 
 
+    if( doesOverrideGameImageSize() ) {
+        getGameImageSize( &gameWidth, &gameHeight );
+        }
+    
+    AppLog::getLog()->logPrintf( 
+        Log::INFO_LEVEL,
+        "Target game image size:  %dx%d\n",
+        gameWidth, gameHeight );
+
+
     // read screen size from settings
     char widthFound = false;
     int readWidth = SettingsManager::getIntSetting( "screenWidth", 
@@ -521,6 +531,19 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         Log::INFO_LEVEL,
         "Screen dimensions for fullscreen mode:  %dx%d\n",
         screenWidth, screenHeight );
+
+
+    if( screenWidth < gameWidth ) {
+        AppLog::info( 
+            "Screen width smaller than target game width, fixing" );
+        screenWidth = gameWidth;
+        }
+    if( screenHeight < gameHeight ) {
+        AppLog::info( 
+            "Screen height smaller than target game height, fixing" );
+        screenHeight = gameHeight;
+        }
+    
 
 
     char fullscreenFound = false;

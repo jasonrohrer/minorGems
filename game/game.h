@@ -15,6 +15,16 @@
 const char *getWindowTitle();
 
 
+// returns true or false
+// if false, game image size defaults to 320x240
+char doesOverrideGameImageSize();
+
+
+// only called if doesOverrideGameImageSize returns true
+void getGameImageSize( int *outWidth, int *outHeight );
+
+
+
 
 // The platform-independent app name
 // Example:  CastleDoctrine
