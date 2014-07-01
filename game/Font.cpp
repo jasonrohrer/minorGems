@@ -276,7 +276,12 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                             mSpriteWidth - 
                             ( mCharLeftEdgeOffset[i] + mCharWidth[i] );
                         
-                        if( minDistance > 0 ) {
+                        if( minDistance > 0 
+                            // make sure we don't have a full overhang
+                            // for characters that don't collide horizontally
+                            // at all
+                            && minDistance < mCharWidth[i] ) {
+                            
                             mKerningTable[i]->offset[j] = - minDistance;
                             }
                         }
