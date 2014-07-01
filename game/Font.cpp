@@ -65,24 +65,16 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         
         
 
-        // use corner color as transparency
-        // copy red channel into other channels
-        // (ignore other channels, even for transparency)
-        
-        spriteRGBA[0].comp.a = 0;
-        unsigned char tr;
-        tr = spriteRGBA[0].comp.r;
+        // use red channel intensity as transparency
+        // make entire image solid white and use transparency to 
+        // mask it
 
         for( int i=0; i<numPixels; i++ ) {
-            unsigned char r = spriteRGBA[i].comp.r;
+            spriteRGBA[i].comp.a = spriteRGBA[i].comp.r;
             
-            if( r == tr ) {
-                // matches corner r
-                spriteRGBA[i].comp.a = 0;
-                }
-                
-            spriteRGBA[i].comp.g = r;
-            spriteRGBA[i].comp.b = r;
+            spriteRGBA[i].comp.r = 255;
+            spriteRGBA[i].comp.g = 255;
+            spriteRGBA[i].comp.b = 255;
             }
             
                         
@@ -175,10 +167,10 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 for( int y=0; y<mSpriteHeight; y++ ) {
                     for( int x=0; x<mSpriteWidth; x++ ) {
                         
-                        unsigned char r = 
-                            charRGBA[ y * mSpriteWidth + x ].comp.r;
+                        unsigned char a = 
+                            charRGBA[ y * mSpriteWidth + x ].comp.a;
                         
-                        if( r > 0 ) {
+                        if( a > 0 ) {
                             someInk = true;
                             
                             if( x < farthestLeft ) {
@@ -241,11 +233,11 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                             for( int x=0; x<mSpriteWidth; x++ ) {
                                 int p = y * mSpriteWidth + x;
                                 
-                                if( savedCharacterRGBA[i][p].comp.r > 0 ) {
+                                if( savedCharacterRGBA[i][p].comp.a > 0 ) {
                                     rightExtreme = x;
                                     }
                                 if( x < leftExtreme &&
-                                    savedCharacterRGBA[j][p].comp.r > 0 ) {
+                                    savedCharacterRGBA[j][p].comp.a > 0 ) {
                                     
                                     leftExtreme = x;
                                     }
@@ -255,7 +247,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                                 // with no vertical gap)
                                 if( y > 0 && x < leftExtreme ) {
                                     int pp = (y-1) * mSpriteWidth + x;
-                                    if( savedCharacterRGBA[j][pp].comp.r 
+                                    if( savedCharacterRGBA[j][pp].comp.a 
                                         > 0 ) {
                                     
                                         leftExtreme = x;
@@ -265,7 +257,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                                     && x < leftExtreme ) {
                                     
                                     int pp = (y+1) * mSpriteWidth + x;
-                                    if( savedCharacterRGBA[j][pp].comp.r 
+                                    if( savedCharacterRGBA[j][pp].comp.a 
                                         > 0 ) {
                                     
                                         leftExtreme = x;
