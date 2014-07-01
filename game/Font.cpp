@@ -249,6 +249,28 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                                     
                                     leftExtreme = x;
                                     }
+                                // also check pixel rows above and below
+                                // for left character, to look for
+                                // diagonal collisions (perfect nesting
+                                // with no vertical gap)
+                                if( y > 0 && x < leftExtreme ) {
+                                    int pp = (y-1) * mSpriteWidth + x;
+                                    if( savedCharacterRGBA[j][pp].comp.r 
+                                        > 0 ) {
+                                    
+                                        leftExtreme = x;
+                                        }
+                                    }
+                                if( y < mSpriteHeight - 1 
+                                    && x < leftExtreme ) {
+                                    
+                                    int pp = (y+1) * mSpriteWidth + x;
+                                    if( savedCharacterRGBA[j][pp].comp.r 
+                                        > 0 ) {
+                                    
+                                        leftExtreme = x;
+                                        }
+                                    }
                                 }
                             
                             int rowDistance =
