@@ -26,7 +26,13 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
         : mScaleFactor( inScaleFactor ),
           mCharSpacing( inCharSpacing ), mSpaceWidth( inSpaceWidth ),
-          mFixedWidth( inFixedWidth ) {
+          mFixedWidth( inFixedWidth ), mEnableKerning( true ) {
+
+    for( int i=0; i<256; i++ ) {
+        mSpriteMap[i] = NULL;
+        mKerningTable[i] = NULL;
+        }
+    
 
 
     Image *spriteImage = readTGAFile( inFileName );
@@ -94,6 +100,11 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
 
         int pixelsPerChar = mSpriteWidth * mSpriteHeight;
             
+        // hold onto these for true kerning after
+        // we've read this data for all characters
+        rgbaColor *savedCharacterRGBA[256];
+        
+
         for( int i=0; i<256; i++ ) {
             int yOffset = ( i / 16 ) * mSpriteHeight;
             int xOffset = ( i % 16 ) * mSpriteWidth;
@@ -191,9 +202,97 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 }
                 
 
-            delete [] charRGBA;
+            if( !allTransparent && ! mFixedWidth ) {
+                savedCharacterRGBA[i] = charRGBA;
+                }
+            else {
+                savedCharacterRGBA[i] = NULL;
+                delete [] charRGBA;
+                }
             }
+        
+
+        // now that we've read in all characters, we can do real kerning
+        if( !mFixedWidth )
+        for( int i=0; i<256; i++ ) {
+            if( savedCharacterRGBA[i] != NULL ) {
+                
+                mKerningTable[i] = new KerningTable;
+
+
+                // for each character that could come after this character
+                for( int j=0; j<256; j++ ) {
+
+                    mKerningTable[i]->offset[j] = 0;
+
+                    // not a blank character
+                    if( savedCharacterRGBA[j] != NULL ) {
                         
+                        short minDistance = 2 * mSpriteWidth;
+
+                        // for each pixel row, find distance
+                        // between the right extreme of the first character
+                        // and the left extreme of the second
+                        for( int y=0; y<mSpriteHeight; y++ ) {
+                            
+                            int rightExtreme = 0;
+                            int leftExtreme = mSpriteWidth;
+                            
+                            for( int x=0; x<mSpriteWidth; x++ ) {
+                                int p = y * mSpriteWidth + x;
+                                
+                                if( savedCharacterRGBA[i][p].comp.r > 0 ) {
+                                    rightExtreme = x;
+                                    }
+                                if( x < leftExtreme &&
+                                    savedCharacterRGBA[j][p].comp.r > 0 ) {
+                                    
+                                    leftExtreme = x;
+                                    }
+                                }
+                            
+                            int rowDistance =
+                                ( mSpriteWidth - rightExtreme - 1 ) 
+                                + leftExtreme;
+
+                            if( rowDistance < minDistance ) {
+                                minDistance = rowDistance;
+                                }
+                            }
+                        
+                        // have min distance across all rows for 
+                        // this character pair
+
+                        // of course, we've already done pseudo-kerning
+                        // based on character width, so take that into account
+                        // true kerning is a tweak to that
+                        
+                        // pseudo-kerning already accounts for
+                        // gap to left of second character
+                        minDistance -= mCharLeftEdgeOffset[j];
+                        // pseudo-kerning already accounts for gap to right
+                        // of first character
+                        minDistance -= 
+                            mSpriteWidth - 
+                            ( mCharLeftEdgeOffset[i] + mCharWidth[i] );
+                        
+                        if( minDistance > 0 ) {
+                            mKerningTable[i]->offset[j] = - minDistance;
+                            }
+                        }
+                    }
+                
+                }
+            }
+        
+
+        for( int i=0; i<256; i++ ) {
+            if( savedCharacterRGBA[i] != NULL ) {
+                delete [] savedCharacterRGBA[i];
+                }
+            }
+        
+
         delete [] spriteRGBA;
         }
     }
@@ -204,6 +303,9 @@ Font::~Font() {
     for( int i=0; i<256; i++ ) {
         if( mSpriteMap[i] != NULL ) {
             freeSprite( mSpriteMap[i] );
+            }
+        if( mKerningTable[i] != NULL ) {
+            delete mKerningTable[i];
             }
         }
     }
@@ -254,6 +356,16 @@ double Font::drawString( const char *inString, doublePair inPosition,
         double charWidth = drawCharacter( (unsigned char)( inString[i] ), 
                                           charPos );
         x += charWidth + mCharSpacing * scale;
+        
+        if( !mFixedWidth && mEnableKerning 
+            && i < numChars - 1 
+            && mKerningTable[(unsigned char)( inString[i] )] != NULL ) {
+            // there's another character after this
+            // apply true kerning adjustment to the pair
+            int offset = mKerningTable[ (unsigned char)( inString[i] ) ]->
+                offset[ (unsigned char)( inString[i+1] ) ];
+            x += offset * scale;
+            }
         }
     // no spacing after last character
     x -= mCharSpacing * scale;
@@ -329,4 +441,11 @@ double Font::measureString( const char *inString ) {
 double Font::getFontHeight() {
     return scaleFactor * mScaleFactor * mSpriteHeight / 2;
     }
+
+
+
+void Font::enableKerning( char inKerningOn ) {
+    mEnableKerning = inKerningOn;
+    }
+
 

@@ -12,6 +12,16 @@ enum TextAlignment {
     };
 
 
+
+// a table for a given character
+// extra kerning offsets for each character that could follow
+// this character
+typedef struct KerningTable {
+        short offset[256];
+    } KerningTable;
+
+
+
 class Font {
         
     public:
@@ -37,6 +47,10 @@ class Font {
         
         // height of basic, non-accented characters
         double getFontHeight();
+        
+
+        // defaults to being on
+        void enableKerning( char inKerningOn );
         
 
     private:
@@ -67,6 +81,12 @@ class Font {
         int mCharWidth[ 256 ];
         
         
+        // sparse
+        // contains NULL for every blank character
+        KerningTable *mKerningTable[256];
+        
+
+        char mEnableKerning;
     };
 
 
