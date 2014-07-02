@@ -204,6 +204,10 @@ char isClipboardSupported();
 // returns newly allocated string
 char *getClipboardText();
 
+// sets text in system's copy/paste buffer
+void setClipboardText( const char *inText );
+
+
 
 
 // sample rate shared by game engine and sound rendering platform

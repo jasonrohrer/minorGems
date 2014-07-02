@@ -2636,6 +2636,28 @@ char *getClipboardText() {
     }
 
 
+void setClipboardText( const char *inText  ) {
+    // x copy paste is a MESS
+    // after claiming ownership of the clipboard, application needs
+    // to listen to x events forever to handle any consumers of the clipboard
+    // data.  Yuck!
+
+    // farm this out to xclip with -silent flag
+    // it forks its own process and keeps it live as long as the clipboard
+    // data is still needed (kills itself when the clipboard is claimed
+    // by someone else with new data)
+    
+    FILE* pipe = popen( "xclip -silent -selection clipboard -i", "w");
+    if( pipe == NULL ) {
+        return;
+        }
+    fputs( inText, pipe );
+    
+    pclose( pipe );
+    }
+
+
+
 #elif defined(__mac__)
 
 // pbpaste command line trick found here:
@@ -2665,6 +2687,20 @@ char *getClipboardText() {
     return result;
     }
 
+
+
+void setClipboardText( const char *inText  ) {
+    FILE* pipe = popen( "pbpaste", "w");
+    if( pipe == NULL ) {
+        return;
+        }
+    fputs( inText, pipe );
+    
+    pclose( pipe );
+    }
+
+
+
 #elif defined(WIN_32)
 
 // simple windows clipboard solution found here:
@@ -2690,6 +2726,25 @@ char *getClipboardText() {
 
     return fromClipboard;
     }
+
+
+void setClipboardText( const char *inText  ) {
+    if (OpenClipboard(NULL)) {
+        char *buffer;
+        
+        EmptyClipboard();
+        HGLOBAL clipBuffer = GlobalAlloc( GMEM_DDESHARE, strlen(inText) + 1 );
+        char *buffer = (char*)GlobalLock( clipBuffer );
+        
+        strcpy( buffer, inText );
+        GlobalUnlock( clipBuffer );
+        SetClipboardData( CF_TEXT, clipBuffer );
+        CloseClipboard();
+        }
+    }
+
+
+
 #else
 // unsupported platform
 char *getClipboardText() {
