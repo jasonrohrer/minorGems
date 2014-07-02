@@ -39,6 +39,7 @@
 *									vector expansion.
 *		Jason Rohrer	2-12-2011	Added push_front function.
 *		Jason Rohrer	2-18-2011	Missing member inits found by cppcheck.
+*		Jason Rohrer	7-2-2014	Auto-deallocating functions for c-strings.
 */
 
 #include "minorGems/common.h"
@@ -185,6 +186,29 @@ class SimpleVector {
         void setPrintMessageOnVectorExpansion( 
             char inPrintMessage, const char *inVectorName = "unnamed" );
         
+
+
+
+        /**
+		 * For vectors of char* elements (c-strings).
+         *
+         * De-allocates a specific char* elements in the vector (by calling 
+         * delete[] on it) and deletes it from the vector. 
+		 * 
+         * Returns true if found and deleted
+         */
+		char deallocateStringElement( int inIndex );
+
+
+
+        /**
+		 * For vectors of char* elements (c-strings).
+         *
+         * De-allocates all char* elements in the vector (by calling delete[] 
+         * on each element) and deletes them from the vector. 
+		 */
+		void deallocateStringElements();
+
 
 
 	protected:
@@ -545,6 +569,31 @@ inline void SimpleVector<Type>::setPrintMessageOnVectorExpansion(
     }
 
 
+
+
+template <>
+inline char SimpleVector<char*>::deallocateStringElement( int inIndex ) {
+    if( inIndex < numFilledElements ) {
+        delete [] elements[ inIndex ];
+        deleteElement( inIndex );
+        return true;
+        }
+    else {
+        return false;
+        }
+    }
+
+
+
+
+template <>
+inline void SimpleVector<char*>::deallocateStringElements() {
+    for( int i=0; i<numFilledElements; i++ ) {
+		delete [] elements[i];
+        }
+
+    deleteAll();
+    }
 
 
 
