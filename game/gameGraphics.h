@@ -10,8 +10,17 @@
 #include "minorGems/graphics/Image.h"
 
 
+typedef struct FloatColor {
+        float r, g, b, a;
+    } FloatColor;
+
+
+
 
 void setDrawColor( float inR, float inG, float inB, float inA );
+
+void setDrawColor( FloatColor inColor );
+
 
 void setDrawFade( float inA );
 

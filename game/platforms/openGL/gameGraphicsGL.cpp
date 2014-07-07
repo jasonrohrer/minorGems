@@ -17,6 +17,17 @@ void setDrawColor( float inR, float inG, float inB, float inA ) {
     }
 
 
+
+void setDrawColor( FloatColor inColor ) {
+    lastR = inColor.r;
+    lastG = inColor.g;
+    lastB = inColor.b;
+
+    glColor4f( inColor.r, inColor.g, inColor.b, inColor.a );
+    }
+
+
+
 void setDrawFade( float inA ) {    
     glColor4f( lastR, lastG, lastB, inA );
     }
