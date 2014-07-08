@@ -21,6 +21,14 @@ typedef union rgbaColor {
     } rgbaColor;
 
 
+// what alpha level counts as "ink" when measuring character width
+// and doing kerning
+// values at or below this level will not count as ink
+// this improves kerning and font spacing, because dim "tips" of pointed
+// glyphs don't cause the glyph to be logically wider than it looks visually 
+const unsigned char inkA = 127;
+
+
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -170,7 +178,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                         unsigned char a = 
                             charRGBA[ y * mSpriteWidth + x ].comp.a;
                         
-                        if( a > 0 ) {
+                        if( a > inkA ) {
                             someInk = true;
                             
                             if( x < farthestLeft ) {
@@ -233,11 +241,11 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                             for( int x=0; x<mSpriteWidth; x++ ) {
                                 int p = y * mSpriteWidth + x;
                                 
-                                if( savedCharacterRGBA[i][p].comp.a > 0 ) {
+                                if( savedCharacterRGBA[i][p].comp.a > inkA ) {
                                     rightExtreme = x;
                                     }
                                 if( x < leftExtreme &&
-                                    savedCharacterRGBA[j][p].comp.a > 0 ) {
+                                    savedCharacterRGBA[j][p].comp.a > inkA ) {
                                     
                                     leftExtreme = x;
                                     }
@@ -248,7 +256,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                                 if( y > 0 && x < leftExtreme ) {
                                     int pp = (y-1) * mSpriteWidth + x;
                                     if( savedCharacterRGBA[j][pp].comp.a 
-                                        > 0 ) {
+                                        > inkA ) {
                                     
                                         leftExtreme = x;
                                         }
@@ -258,7 +266,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                                     
                                     int pp = (y+1) * mSpriteWidth + x;
                                     if( savedCharacterRGBA[j][pp].comp.a 
-                                        > 0 ) {
+                                        > inkA ) {
                                     
                                         leftExtreme = x;
                                         }
