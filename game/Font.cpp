@@ -449,6 +449,16 @@ double Font::measureString( const char *inString ) {
             }
         else {
             width += mCharWidth[ c ] * scale;
+
+            if( mEnableKerning
+                && i < numChars - 1 
+                && mKerningTable[(unsigned char)( inString[i] )] != NULL ) {
+                // there's another character after this
+                // apply true kerning adjustment to the pair
+                int offset = mKerningTable[ (unsigned char)( inString[i] ) ]->
+                    offset[ (unsigned char)( inString[i+1] ) ];
+                width += offset * scale;
+                }
             }
     
         width += mCharSpacing * scale;
