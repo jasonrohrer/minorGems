@@ -51,6 +51,20 @@ class Font {
 
         // defaults to being on
         void enableKerning( char inKerningOn );
+
+
+        // sets minimum floating point precision for positioning
+        // the start of a string (to avoid round-off errors on graphics
+        // cards that don't handle sub-pixel polygon positioning consistently)
+        // In most cases, this should be the world dimensions of one
+        // screen pixel.
+        // Example:  if set to 0.5, the positions of 10.0, 10.5, 11.0
+        // are allowed, but 10.35 will be rounded down to 10.0 before the
+        // string is drawn.
+        // If set to 2, only even positions are allowed, and odd positions
+        // are rounded down.
+        // Defaults to 0, which indicates no precision limit.
+        void setMinimumPositionPrecision( double inMinimum );
         
 
     private:
@@ -87,6 +101,8 @@ class Font {
         
 
         char mEnableKerning;
+
+        double mMinimumPositionPrecision;
     };
 
 

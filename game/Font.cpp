@@ -34,7 +34,8 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
         : mScaleFactor( inScaleFactor ),
           mCharSpacing( inCharSpacing ), mSpaceWidth( inSpaceWidth ),
-          mFixedWidth( inFixedWidth ), mEnableKerning( true ) {
+          mFixedWidth( inFixedWidth ), mEnableKerning( true ),
+          mMinimumPositionPrecision( 0 ) {
 
     for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
@@ -375,6 +376,15 @@ double Font::drawString( const char *inString, doublePair inPosition,
     // character sprites are drawn on their centers, so the alignment
     // adjustments above aren't quite right.
     x += scale * mSpriteWidth / 2;
+
+
+    if( mMinimumPositionPrecision > 0 ) {
+        x /= mMinimumPositionPrecision;
+        
+        x = (int) x;
+        
+        x *= mMinimumPositionPrecision;
+        }
     
 
     for( unsigned int i=0; i<numChars; i++ ) {
@@ -484,5 +494,12 @@ double Font::getFontHeight() {
 void Font::enableKerning( char inKerningOn ) {
     mEnableKerning = inKerningOn;
     }
+
+
+
+void Font::setMinimumPositionPrecision( double inMinimum ) {
+    mMinimumPositionPrecision = inMinimum;
+    }
+
 
 
