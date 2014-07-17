@@ -67,6 +67,9 @@ class Font {
         void setMinimumPositionPrecision( double inMinimum );
         
 
+        double getCharSpacing();
+        
+
     private:
         
         // returns x coordinate to right of drawn character

@@ -344,6 +344,14 @@ static double scaleFactor = 1.0 / 16;
 
 
 
+double Font::getCharSpacing() {
+    double scale = scaleFactor * mScaleFactor;
+    
+    return mCharSpacing * scale;
+    }
+
+
+
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
     double scale = scaleFactor * mScaleFactor;
