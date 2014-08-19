@@ -40,6 +40,7 @@
 *		Jason Rohrer	2-12-2011	Added push_front function.
 *		Jason Rohrer	2-18-2011	Missing member inits found by cppcheck.
 *		Jason Rohrer	7-2-2014	Auto-deallocating functions for c-strings.
+*		Jason Rohrer	8-5-2014	Added getElementDirect (gets non-pointer).
 */
 
 #include "minorGems/common.h"
@@ -87,6 +88,13 @@ class SimpleVector {
 		Type *getElement(int index);		// get a ptr to element at index in vector
 
 		Type *getElementFast(int index); // no bounds checking
+
+        // get an element directly as a copy on the stack
+        // (changes to this returned element will not affect the element in the
+        //  vector)
+        // This is useful when the vector is storing pointers anyway.
+		Type getElementDirect(int index);
+
 		
 		
 		int size();		// return the number of allocated elements in the vector
@@ -333,6 +341,15 @@ inline Type *SimpleVector<Type>::getElement(int index) {
 template <class Type>
 inline Type *SimpleVector<Type>::getElementFast(int index) {
     return &(elements[index]);
+	}
+
+
+template <class Type>
+inline Type SimpleVector<Type>::getElementDirect(int index) {
+	if( index < numFilledElements && index >=0 ) {
+		return elements[index];
+		}
+	else return NULL;
 	}
 	
 
