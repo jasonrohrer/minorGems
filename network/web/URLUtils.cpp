@@ -247,9 +247,9 @@ char *URLUtils::urlEncode( char *inString ) {
 
         char c = inString[i];
 
-        if( c >= 'A' && c <= 'Z'
+        if( ( c >= 'A' && c <= 'Z' )
             ||
-            c >= 'a' && c <= 'z'
+            ( c >= 'a' && c <= 'z' )
             ||
             c == '-'
             ||

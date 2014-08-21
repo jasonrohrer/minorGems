@@ -2730,8 +2730,7 @@ char *getClipboardText() {
 
 void setClipboardText( const char *inText  ) {
     if (OpenClipboard(NULL)) {
-        char *buffer;
-        
+
         EmptyClipboard();
         HGLOBAL clipBuffer = GlobalAlloc( GMEM_DDESHARE, strlen(inText) + 1 );
         char *buffer = (char*)GlobalLock( clipBuffer );
