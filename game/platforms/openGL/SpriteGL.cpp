@@ -116,14 +116,13 @@ SpriteGL::~SpriteGL() {
 // only construct these once, not every draw call
 Vector3D corners[4];
 
-        
+double textXA, textXB, textYA, textYB;
 
-void SpriteGL::draw( int inFrame, 
-                     double inRotation, Vector3D *inPosition, 
-                     double inScale,
-                     char inLinearMagFilter,
-                     double inFadeFactor,
-                     Color *inColor ) {
+
+void SpriteGL::prepareDraw( int inFrame, 
+                            Vector3D *inPosition, 
+                            double inScale,
+                            char inLinearMagFilter ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -209,14 +208,24 @@ void SpriteGL::draw( int inFrame,
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
         }
     
-    double textXA = (1.0 / mNumPages) * mCurrentPage;
-    double textXB = textXA + (1.0 / mNumPages );
+    textXA = (1.0 / mNumPages) * mCurrentPage;
+    textXB = textXA + (1.0 / mNumPages );
 
 
-    double textYB = (1.0 / mNumFrames) * inFrame;
-    double textYA = textYB + (1.0 / mNumFrames );
+    textYB = (1.0 / mNumFrames) * inFrame;
+    textYA = textYB + (1.0 / mNumFrames );
+    }
+
+
+        
+
+void SpriteGL::draw( int inFrame, 
+                     Vector3D *inPosition, 
+                     double inScale,
+                     char inLinearMagFilter ) {
     
     
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
     
     glBegin( GL_QUADS ); {
         
@@ -235,5 +244,42 @@ void SpriteGL::draw( int inFrame,
     glEnd();
     mTexture->disable();
     }
+
+
+
+void SpriteGL::draw( int inFrame,
+                     Vector3D *inPosition,
+                     FloatColor inCornerColors[4],
+                     double inScale,
+                     char inLinearMagFilter ) {
+
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+    
+    glBegin( GL_QUADS ); {
+        
+        glColor4f( inCornerColors[0].r, inCornerColors[0].g, 
+                   inCornerColors[0].b, inCornerColors[0].a );
+        glTexCoord2f( textXA, textYA );
+        glVertex2d( corners[0].mX, corners[0].mY );
+        
+        glColor4f( inCornerColors[1].r, inCornerColors[1].g, 
+                   inCornerColors[1].b, inCornerColors[1].a );
+        glTexCoord2f( textXB, textYA );
+        glVertex2d( corners[1].mX, corners[1].mY );
+        
+        glColor4f( inCornerColors[2].r, inCornerColors[2].g, 
+                   inCornerColors[2].b, inCornerColors[2].a );
+        glTexCoord2f( textXB, textYB );
+        glVertex2d( corners[2].mX, corners[2].mY );
+        
+        glColor4f( inCornerColors[3].r, inCornerColors[3].g, 
+                   inCornerColors[3].b, inCornerColors[3].a );
+        glTexCoord2f( textXA, textYB );
+        glVertex2d( corners[3].mX, corners[3].mY );
+        }
+    glEnd();
+    mTexture->disable();
+    }
+
 
 

@@ -25,8 +25,23 @@ void setDrawColor( FloatColor inColor );
 void setDrawFade( float inA );
 
 
-// defaults to non-additive blending
+// defaults to non-additive (normal) blending
+// turning on replaces current blending mode
+// turning off goes back to normal blending
 void toggleAdditiveBlend( char inAdditive );
+
+// mutiplicative blending (good for simulating transparent inks and paints)
+// note that alpha values are ignored
+// turning on replaces current blending mode
+// turning off goes back to normal blending
+void toggleMultiplicativeBlend( char inMultiplicative );
+
+
+// distinct from additive fragment blending (above)
+// turning on makes texture and vertex color combination additive
+// turning off goes back to multiplicative combination of texture and vertex
+// colors
+void toggleAdditiveTextureColoring( char inAdditive );
 
 
 // defautls to nearest-neighbor texture magnification
@@ -128,6 +143,12 @@ void freeSprite( SpriteHandle inSprite );
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
+                 double inZoom = 1.0 );
+
+// draw sprite with separate colors set for each corner
+// corners in BL, BR, TR, TL order
+void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
+                 FloatColor inCornerColors[4],
                  double inZoom = 1.0 );
 
 

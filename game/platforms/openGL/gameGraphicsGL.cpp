@@ -34,14 +34,45 @@ void setDrawFade( float inA ) {
 
 
 
+
+static void setNormalBlend() {
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    }
+
+
+
 void toggleAdditiveBlend( char inAdditive ) {
     if( inAdditive ) {
         glBlendFunc( GL_SRC_ALPHA, GL_ONE );
         }
     else {
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        setNormalBlend();
         }
     }
+
+
+
+void toggleMultiplicativeBlend( char inMultiplicative ) {
+    if( inMultiplicative ) {
+        glBlendFunc( GL_DST_COLOR, GL_ZERO );
+        }
+    else {
+        setNormalBlend();
+        }
+    }
+
+
+
+void toggleAdditiveTextureColoring( char inAdditive ) {
+    if( inAdditive ) {
+        glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
+        }
+    else {
+        glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+        }
+    }
+
+
 
 
 static char linearTextureFilterOn = false;
@@ -284,11 +315,27 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     Vector3D pos( inCenter.x, inCenter.y, 0 );
 
     sprite->draw( 0,
-                  0, 
                   &pos,
                   inZoom,
                   linearTextureFilterOn );
     }
+
+
+
+void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
+                 FloatColor inCornerColors[4],
+                 double inZoom ) {
+    SpriteGL *sprite = (SpriteGL *)inSprite;
+    
+    Vector3D pos( inCenter.x, inCenter.y, 0 );
+
+    sprite->draw( 0,
+                  &pos,
+                  inCornerColors,
+                  inZoom,
+                  linearTextureFilterOn );
+    }
+
 
 
 void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 

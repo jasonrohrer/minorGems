@@ -3,7 +3,7 @@
 
 
 #include "minorGems/graphics/openGL/SingleTextureGL.h"
-#include "minorGems/graphics/Color.h"
+#include "minorGems/game/gameGraphics.h"
 
 
 #include "minorGems/math/geometry/Vector3D.h"
@@ -43,12 +43,19 @@ class SpriteGL{
         
 
         void draw( int inFrame,
-                   double inRotation, Vector3D *inPosition,
+                   Vector3D *inPosition,
                    double inScale = 1,
-                   char inLinearMagFilter = false,
-                   double inFadeFactor = 1,
-                   Color *inColor = NULL );
+                   char inLinearMagFilter = false );
         
+        // draw sprite with separate colors set for each corner
+        // corners in BL, BR, TR, TL order
+        void draw( int inFrame,
+                   Vector3D *inPosition,
+                   FloatColor inCornerColors[4],
+                   double inScale = 1,
+                   char inLinearMagFilter = false );
+        
+
 
         int getNumFrames() {
             return mNumFrames;
@@ -106,6 +113,13 @@ class SpriteGL{
                           int inNumFrames = 1,
                           int inNumPages = 1 );
         
+        
+
+        // common code for two different drawing functions
+        void prepareDraw( int inFrame, 
+                          Vector3D *inPosition, 
+                          double inScale,
+                          char inLinearMagFilter );
         
     };
 
