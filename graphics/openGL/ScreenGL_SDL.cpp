@@ -1174,6 +1174,7 @@ void ScreenGL::playNextEventBatch() {
                 int t;
                 fscanf( mEventFile, "%d", &t );
                 mLastTimeValue = t;
+                mTimeValuePlayedBack = true;
                 }
                 break;
             case 'w': {
