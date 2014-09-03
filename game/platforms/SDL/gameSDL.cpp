@@ -2690,7 +2690,7 @@ char *getClipboardText() {
 
 
 void setClipboardText( const char *inText  ) {
-    FILE* pipe = popen( "pbpaste", "w");
+    FILE* pipe = popen( "pbcopy", "w");
     if( pipe == NULL ) {
         return;
         }
