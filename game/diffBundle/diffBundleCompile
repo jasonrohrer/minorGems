@@ -1,1 +1,1 @@
-g++ -O3 -I../../.. -o diffBundle diffBundle.cpp ../../io/file/linux/PathLinux.cpp ../../util/stringUtils.cpp ../../formats/encodingUtils.cpp
+g++ -g -I../../.. -o diffBundle diffBundle.cpp ../../io/file/linux/PathLinux.cpp ../../util/stringUtils.cpp ../../formats/encodingUtils.cpp
