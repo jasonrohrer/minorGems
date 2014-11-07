@@ -1,0 +1,30 @@
+All returns are whitespace-delimited.
+
+
+
+=== Call:
+server.php?action=is_update_available
+          &platform=[platform code]
+          &old_version==[version number]
+
+Returns:
+1
+
+or
+
+0
+
+
+Valid platform codes are currently "mac" and "win"
+
+
+
+
+=== Call:
+server.php?action=get_update
+          &platform=[platform code]
+          &old_version=[version number]
+          
+
+Serves a .dbz diff bundle file that is sufficient to update old_version
+to the latest version.
