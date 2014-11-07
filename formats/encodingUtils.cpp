@@ -470,7 +470,8 @@ unsigned char *zipCompress( unsigned char *inData, int inDataLength,
         return NULL;
         }
     
-    printf( "Compressed %d bytes down to %d\n", inDataLength, compLength );
+    printf( "Compressed %d bytes down to %d\n", 
+            inDataLength, (int)compLength );
     
     unsigned char *shortBuffer = new unsigned char[ compLength ];
     
@@ -501,9 +502,9 @@ unsigned char *zipDecompress( unsigned char *inCompressedData,
         delete [] dataBuffer;
         return NULL;
         }
-    if( actualDataLength != inExpectedResultDataLength ) {
+    if( (int)actualDataLength != inExpectedResultDataLength ) {
         printf( "zipDecompress expecting %d result bytes, got %d\n",
-                inExpectedResultDataLength, actualDataLength );
+                inExpectedResultDataLength, (int)actualDataLength );
         delete [] dataBuffer;
         return NULL;
         }

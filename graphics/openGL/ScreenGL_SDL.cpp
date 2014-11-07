@@ -897,7 +897,8 @@ void ScreenGL::setupSurface() {
 
 void ScreenGL::registerWebEvent( int inHandle,
                                  int inType,
-                                 const char *inBodyString ) {
+                                 const char *inBodyString,
+                                 int inBodyLength ) {
 
     if( ! currentScreenGL->mRecordingEvents || 
         ! currentScreenGL->mRecordingOrPlaybackStarted ) {
@@ -908,12 +909,26 @@ void ScreenGL::registerWebEvent( int inHandle,
     
         
     char *eventString;
-    
+
     // only event type 2 has a body text payload
     if( inType == 2 ) {
-        eventString = autoSprintf( "wb %u %d %u %s", inHandle, 
-                                   inType, 
-                                   strlen( inBodyString ), inBodyString );
+        if( inBodyLength == -1 ) {
+            
+            eventString = autoSprintf( "wb %u %d %u %s", inHandle, 
+                                       inType, 
+                                       strlen( inBodyString ), inBodyString );
+            }
+        else {
+
+            char *bodyHex = hexEncode( (unsigned char*)inBodyString, 
+                                       inBodyLength );
+
+            eventString = autoSprintf( "wx %u %d %u %s", inHandle, 
+                                       inType, 
+                                       strlen( bodyHex ), bodyHex );
+            
+            delete [] bodyHex;
+            }
         }
     else {
         eventString = autoSprintf( "wb %u %d", inHandle, inType );
@@ -948,7 +963,7 @@ int ScreenGL::getWebEventType( int inHandle ) {
 
 
 
-char *ScreenGL::getWebEventResultBody( int inHandle ) {
+char *ScreenGL::getWebEventResultBody( int inHandle, int *outSize ) {
     
     for( int i=0; i<mPendingWebEvents.size(); i++ ) {
         WebEvent *e = mPendingWebEvents.getElement( i );
@@ -957,6 +972,10 @@ char *ScreenGL::getWebEventResultBody( int inHandle ) {
             
             char *returnValue = e->bodyText;
             
+            if( outSize != NULL ) {
+                *outSize = e->bodyLength;
+                }
+
             mPendingWebEvents.deleteElement( i );
 
             return returnValue;
@@ -1185,7 +1204,8 @@ void ScreenGL::playNextEventBatch() {
                 fscanf( mEventFile, "%d %d", &( e.handle ), &( e.type ) );
 
                 e.bodyText = NULL;
-
+                e.bodyLength = 0;
+                
                 if( e.type == 2 ) {
                     // includes a body payload
 
@@ -1197,20 +1217,57 @@ void ScreenGL::playNextEventBatch() {
                     fgetc( mEventFile );
                 
                 
+                    if( code[1] == 'b' ) {
+                        // plain text body
+                        e.bodyLength = length;
+                        e.bodyText = new char[ length + 1 ];
                 
-                    e.bodyText = new char[ length + 1 ];
+                        unsigned int numRead = 
+                            fread( e.bodyText, 1, length, mEventFile );
                 
-                    unsigned int numRead = 
-                        fread( e.bodyText, 1, length, mEventFile );
-                
-                    e.bodyText[ length ] = '\0';
+                        e.bodyText[ length ] = '\0';
 
-                    if( numRead != length ) {
-                        AppLog::error( 
-                            "Failed to read web event body text from "
-                            "playback file" );
-                        delete [] e.bodyText;
-                        e.bodyText = NULL;
+                        if( numRead != length ) {
+                            AppLog::error( 
+                                "Failed to read web event body text from "
+                                "playback file" );
+                            delete [] e.bodyText;
+                            e.bodyText = NULL;
+                            e.bodyLength = 0;
+                            }
+                        }
+                    else if( code[1] == 'x' ) {
+                        // hex-encoded body
+                        fgetc( mEventFile );
+                
+                        char *bodyHex = new char[ length ];
+                        
+                        unsigned int numRead = 
+                            fread( bodyHex, 1, length, mEventFile );
+                
+                        bodyHex[ length ] = '\0';
+
+                        if( numRead != length ) {
+                            AppLog::error( 
+                                "Failed to read web event body hex from "
+                                "playback file" );
+                            e.bodyText = NULL;
+                            e.bodyLength = 0;
+                            }
+                        else {
+                            unsigned char *bodyDecoded 
+                                = hexDecode( bodyHex );
+                            
+                            e.bodyLength = length / 2;
+                            e.bodyText = new char[ e.bodyLength + 1 ];
+                            
+                            memcpy( e.bodyText, bodyDecoded, e.bodyLength );
+                            
+                            e.bodyText[ e.bodyLength ] = '\0';
+                            
+                            delete [] bodyDecoded;
+                            }
+                        delete [] bodyHex;
                         }
                     }
                 

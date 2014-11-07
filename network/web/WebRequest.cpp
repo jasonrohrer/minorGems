@@ -368,6 +368,8 @@ int WebRequest::step() {
                         - strlen( contentStartString )
                         - (int)( contentStart - responseString );
 
+                    mResultSize = resultLength;
+                    
                     mResult = new char[ resultLength + 1 ];
                     memcpy( mResult,
                             content, resultLength );
@@ -409,11 +411,31 @@ int WebRequest::step() {
     return -1;
     }
 
+
+
+int WebRequest::getProgressSize() {
+    return mResponse.size();
+    }
+
+
         
 
 char *WebRequest::getResult() {
     if( mResultReady ) {
         return stringDuplicate( mResult );
+        }
+    else {
+        return NULL;
+        }
+    }
+
+
+unsigned char *WebRequest::getResult( int *outSize ) {
+    if( mResultReady ) {
+        unsigned char *result = new unsigned char[ mResultSize ];
+        memcpy( result, mResult, mResultSize );
+        
+        return result;
         }
     else {
         return NULL;

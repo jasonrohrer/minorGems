@@ -331,9 +331,16 @@ int startWebRequest( const char *inMethod, const char *inURL,
 // return 0 if request still in-progress
 int stepWebRequest( int inHandle );
 
+// number of bytes fetched in web request progress
+// (does not match size of eventual result)
+int getWebProgressSize( int inHandle );
+
 
 // gets the response body as a \0-terminated string, destroyed by caller
 char *getWebResult( int inHandle );
+
+// gets the response bytes, destroyed by caller
+unsigned char *getWebResult( int inHandle, int *outSize );
 
 
 // frees resources associated with a web request

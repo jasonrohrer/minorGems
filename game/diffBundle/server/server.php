@@ -79,9 +79,22 @@ function dbs_isUpdateAvailable() {
     $platform = dbs_getPlatform();
     $oldVersion = dbs_getOldVersion();    
 
+    $latest = dbs_getLatestVersion( $platform );
+    
+    if( $latest > $oldVersion ) {
 
-    if( dbs_getLatestVersion( $platform ) > $oldVersion ) {
-        return 1;
+        $updateName;
+        
+        if( $latest == $oldVersion + 1 ) {
+            $updateName = "$latest"."_inc_$platform".".dbz";
+            }
+        else {
+            $updateName = "$latest"."_full_$platform".".dbz";
+            }
+
+        global $downloadFilePath;
+
+        return filesize( $downloadFilePath . $updateName );
         }
     else {
         return 0;
@@ -102,7 +115,7 @@ function dbs_getUpdate() {
 
     $updateName;
     
-    if( $latest = $oldVersion + 1 ) {
+    if( $latest == $oldVersion + 1 ) {
         $updateName = "$latest"."_inc_$platform".".dbz";
         }
     else {

@@ -2268,6 +2268,91 @@ char *getWebResult( int inHandle ) {
     return NULL;
     }
 
+
+
+
+unsigned char *getWebResult( int inHandle, int *outSize ) {
+    if( screen->isPlayingBack() ) {
+        // return a recorded server result
+        
+        int nextType = screen->getWebEventType( inHandle );
+        
+        if( nextType == 2 ) {
+            return (unsigned char *)
+                screen->getWebEventResultBody( inHandle, outSize );
+            }
+        else {        
+            AppLog::error( "Expecting a web result body in playback file, "
+                           "but found none." );
+            
+            return NULL;
+            }
+        }
+
+
+
+    WebRequest *r = getRequestByHandle( inHandle );
+    
+    if( r != NULL ) {
+        unsigned char *result = r->getResult( outSize );
+
+        if( result != NULL ) {    
+            screen->registerWebEvent( inHandle,
+                                      // the type for "result" is 2
+                                      2,
+                                      (char*)result,
+                                      *outSize );
+            }
+        
+        return result;
+        }
+    
+    return NULL;
+    }
+
+
+
+int getWebProgressSize( int inHandle ) {
+    if( screen->isPlayingBack() ) {
+        // return a recorded server result
+        
+        int nextType = screen->getWebEventType( inHandle );
+        
+        if( nextType > 2 ) {
+            return nextType;
+            }
+        else {        
+            AppLog::error( 
+                "Expecting a web result progress event in playback file, "
+                "but found none." );
+            
+            return NULL;
+            }
+        }
+    
+
+
+    WebRequest *r = getRequestByHandle( inHandle );
+    
+    if( r != NULL ) {
+        int progress = r->getProgressSize();
+        if( progress > 2 ) {    
+            screen->registerWebEvent( inHandle,
+                                      // the type for "progress" is 
+                                      // the actual size
+                                      progress );
+            return progress;
+            }
+        else {
+            // progress of 2 or less is returned as 0, to keep consistency
+            // for recording and playback
+            return 0;
+            }
+        }
+    
+    return 0;
+    }
+
     
 
 

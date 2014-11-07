@@ -148,6 +148,7 @@ typedef struct WebEvent {
         int handle;
         int type;
         char *bodyText;
+        int bodyLength;
     } WebEvent;
 
 
@@ -320,9 +321,14 @@ class ScreenGL {
         //    1 = request done step completed (NULL body)
         //   -1 = error-returning request step completed (NULL body)
         //    2 = result-fetch step completed (non-NULL body)
+        //   >2 = web progress event, showing number of bytes fetched
+        //        (NULL body)
         void registerWebEvent( int inHandle,
                                int inType,
-                               const char *inBodyString = NULL );
+                               const char *inBodyString = NULL,
+                               // -1 means use string length
+                               // provide length for binary bodies
+                               int inBodyLength = -1 );
         
         
         // gets the type of the next pending web event (from playback)
@@ -337,7 +343,8 @@ class ScreenGL {
         // result destroyed by caller.
         //
         // This call removes the web event from the list of pending events.
-        char *getWebEventResultBody( int inHandle );
+        char *getWebEventResultBody( int inHandle,
+                                     int *outSize = NULL );
         
 
 

@@ -35,9 +35,18 @@ class WebRequest {
         // return 0 if request still in-progress
         int step();
         
+        // gets the number of bytes downloaded for the request so far
+        // note that this is only an estimate of result data size
+        int getProgressSize();
+        
 
         // gets the response body as a \0-terminated string
         char *getResult();
+
+
+        // gets the response body as bytes
+        unsigned char *getResult( int *outSize );
+        
         
 
     protected:
@@ -55,6 +64,7 @@ class WebRequest {
         
         char *mResult;
         
+        int mResultSize;
 
         HostAddress *mSuppliedAddress;
         HostAddress *mNumericalAddress;

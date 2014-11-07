@@ -8,7 +8,7 @@ server.php?action=is_update_available
           &old_version==[version number]
 
 Returns:
-1
+size_of_update
 
 or
 
