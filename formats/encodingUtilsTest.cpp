@@ -53,5 +53,37 @@ int main() {
     delete [] decoding;
     delete [] encoding;
 
+
+
+    printf( "zipCompressing the string:  %s\n", dataString );
+    
+    int compLength;
+    unsigned char *compressed = 
+        zipCompress( (unsigned char *)dataString, strlen( dataString ) + 1,
+                     &compLength );
+    
+    if( compressed != NULL ) {
+        
+
+        unsigned char *rawData = 
+            zipDecompress( compressed, 
+                           compLength,
+                           strlen( dataString ) + 1 );
+        
+        if( rawData != NULL ) {
+            printf( "zipDecompressed as: %s\n", rawData );
+            
+            if( strcmp( (char*)rawData, dataString ) == 0 ) {
+                printf( "Test passed\n" );
+                }
+            else {
+                printf( "Test failed\n" );
+                }
+
+            delete [] rawData;
+            }
+        delete [] compressed;
+        }
+
     return 0;
     }

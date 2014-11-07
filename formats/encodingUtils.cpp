@@ -450,4 +450,69 @@ unsigned char *base64Decode( char *inBase64String,
 
 
 
+#include "miniz.c"
+
+
+unsigned char *zipCompress( unsigned char *inData, int inDataLength,
+                            int *outCompressedDataLength ) {
+    
+    int maxCompLength = compressBound( inDataLength );
+    
+    unsigned char *compressBuffer = new unsigned char[ maxCompLength ];
+    
+    mz_ulong compLength = maxCompLength;
+    
+    int cmp_status = compress( compressBuffer, &compLength, 
+                               inData, inDataLength );
+    if( cmp_status != Z_OK ) {
+        printf( "zipCompress failed\n" );
+        delete [] compressBuffer;
+        return NULL;
+        }
+    
+    printf( "Compressed %d bytes down to %d\n", inDataLength, compLength );
+    
+    unsigned char *shortBuffer = new unsigned char[ compLength ];
+    
+    memcpy( shortBuffer, compressBuffer, compLength );
+    delete [] compressBuffer;
+    
+    *outCompressedDataLength = compLength;
+    
+    return shortBuffer;
+    }
+
+
+
+unsigned char *zipDecompress( unsigned char *inCompressedData, 
+                              int inCompressedDataLength,
+                              int inExpectedResultDataLength ) {
+
+    unsigned char *dataBuffer = 
+        new unsigned char[ inExpectedResultDataLength ];
+    
+    mz_ulong actualDataLength = inExpectedResultDataLength;
+
+    int cmp_status = uncompress( dataBuffer, &actualDataLength, 
+                                 inCompressedData, inCompressedDataLength );
+
+    if( cmp_status != Z_OK ) {
+        printf( "zipDecompress failed\n" );
+        delete [] dataBuffer;
+        return NULL;
+        }
+    if( actualDataLength != inExpectedResultDataLength ) {
+        printf( "zipDecompress expecting %d result bytes, got %d\n",
+                inExpectedResultDataLength, actualDataLength );
+        delete [] dataBuffer;
+        return NULL;
+        }
+
+    return dataBuffer;
+    }
+
+
+
+
+
  

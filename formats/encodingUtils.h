@@ -88,5 +88,27 @@ unsigned char *base64Decode( char *inBase64String,
                              int *outDataLength );
 
 
+
+
+
+// implements zlib-compatible compression and decompression
+
+// return NULL on failure, caller destroys result
+
+unsigned char *zipCompress( unsigned char *inData, int inDataLength,
+                            int *outCompressedDataLength );
+
+
+// we must know the size of the result before decompressing, because
+// there's no upper bound that we can determine from the compressed data
+// itself (so we must track raw data size along with our compressed data, 
+// always, so we know what to expect when we decompress it).
+unsigned char *zipDecompress( unsigned char *inCompressedData, 
+                              int inCompressedDataLength,
+                              int inExpectedResultDataLength );
+
+
+
+
  
 #endif
