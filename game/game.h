@@ -34,6 +34,12 @@ void getGameImageSize( int *outWidth, int *outHeight );
 // But the app name is the same (CastleDoctrine) on both platforms.
 const char *getAppName();
 
+// depending on directory structure for source builds, Linux app name
+// might be different than Windows or Mac app name (no .exe or .app extension
+// and can't be the same name as a directory).
+// Example:  CastleDoctrineApp
+const char *getLinuxAppName();
+
 
 
 // get data that should be saved in the header of the game that is 
@@ -365,6 +371,13 @@ int readFromSocket( int inHandle,
 
 
 void closeSocket( int inHandle );
+
+
+
+
+// relaunches the game from scratch as a new process
+// returns false if relaunch not supported on this platform
+char relaunchGame();
 
 
 
