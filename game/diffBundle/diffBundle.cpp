@@ -3,6 +3,8 @@
 #include "minorGems/io/file/File.h"
 #include "minorGems/formats/encodingUtils.h"
 
+#include <stdlib.h>
+
 
 // strips off the first step of a path
 // converts dirA/dirB/test.txt to dirB/test.txt
@@ -36,13 +38,44 @@ static char *getSubdirPath( char *inFullFilePath ) {
 
 
 
-static void bundleFiles( File **inFiles, int inNumFiles,
+static void bundleFiles( File **inDirs, int inNumDirs,
+                         File **inFiles, int inNumFiles,
                          char *inDBZTargetFile ) {
 
     SimpleVector<unsigned char> fileDataBuffer;
     
 
+    printf( "Bundling dirs...\n" );
+    
+    char *dirCount = autoSprintf( "%d ", inNumDirs );
+    fileDataBuffer.appendArray( (unsigned char*)dirCount, strlen( dirCount ) );
+    
+    delete [] dirCount;
+    
+
+    for( int i=0; i<inNumDirs; i++ ) {
+        char *fileName = inDirs[i]->getFullFileName();
+
+        char *fileSubdirName = getSubdirPath( fileName );
+        
+        char *header = autoSprintf( "%d %s ",
+                                    strlen( fileSubdirName ),
+                                    fileSubdirName );
+        fileDataBuffer.appendArray( (unsigned char*)header, strlen( header ) );
+        delete [] header;
+        }
+    
+
+
     printf( "Bundling files...\n" );
+    
+    char *fileCount = autoSprintf( "%d ", inNumFiles );
+    fileDataBuffer.appendArray( (unsigned char*)fileCount, 
+                                strlen( fileCount ) );
+    
+    delete [] fileCount;
+    
+
     for( int i=0; i<inNumFiles; i++ ) {
         char *fileName = inFiles[i]->getFullFileName();
 
@@ -84,7 +117,20 @@ static void bundleFiles( File **inFiles, int inNumFiles,
     int totalSize = fileDataBuffer.size();
     
     unsigned char *data = fileDataBuffer.getElementArray();
-        
+    
+
+    /*
+    // for testing, output uncompressed data too
+    char *rawFileName = autoSprintf( "%s.raw", inDBZTargetFile );
+    
+    FILE *outFile = fopen( rawFileName, "w" );
+
+    delete [] rawFileName;
+    
+    int numWritten = fwrite( data, 1, totalSize, outFile );
+
+    fclose( outFile );
+    */
 
     printf( "Compressing bundle...\n" );
 
@@ -169,21 +215,30 @@ int main( int inNumArgs, char **inArgs ) {
     printf( "Making full bundle...\n" );
     
     // exclude all dirs
+    SimpleVector<File*> newDirs;
     SimpleVector<File*> newNonDirs;
     for( int i=0; i<numNewChild; i++ ) {
         if( newChild[i]->isDirectory() ) {
-            continue;
+            newDirs.push_back( newChild[i] );
             }
-        newNonDirs.push_back( newChild[i] );
+        else {
+            newNonDirs.push_back( newChild[i] );
+            }
         }
     int numNewNonDirs = newNonDirs.size();
     File **newNonDirsArray = newNonDirs.getElementArray();
 
-    
-    printf( "%d files to bundle\n", numNewNonDirs );
+    int numNewDirs = newDirs.size();
+    File **newDirsArray = newDirs.getElementArray();
 
-    bundleFiles( newNonDirsArray, numNewNonDirs, inArgs[4] );
     
+    printf( "%d new directories, %d files to bundle\n", 
+            numNewDirs, numNewNonDirs );
+
+    bundleFiles( newDirsArray, numNewDirs,
+                 newNonDirsArray, numNewNonDirs, inArgs[4] );
+    
+    delete [] newDirsArray;
     delete [] newNonDirsArray;
 
 
@@ -192,13 +247,12 @@ int main( int inNumArgs, char **inArgs ) {
     printf( "Scanning files...\n" );
     
     
+    // directories in new that don't exist in old
+    newDirs.deleteAll();
+
     SimpleVector<File*> changedFiles;
     
-    for( int i=0; i<numNewChild; i++ ) {
-        
-        if( newChild[i]->isDirectory() ) {
-            continue;
-            }
+    for( int i=0; i<numNewChild; i++ ) {        
         
         char *newFileName = newChild[i]->getFullFileName();
         
@@ -217,24 +271,48 @@ int main( int inNumArgs, char **inArgs ) {
             if( strcmp( oldFileSubdirName, newFileSubdirName ) == 0 ) {
                 foundOldFile = true;
                 
-                int oldFileLength;
-                unsigned char *oldFileContents = 
-                    oldChild[j]->readFileContents( &oldFileLength );
+                char doneComparing = false;
                 
-                if( oldFileLength != newFileLength ) {
-                    changedFiles.push_back( newChild[i] );
-                    }
-                else {
-                    for( int b=0; b<newFileLength; b++ ) {
-                        if( oldFileContents[b] != newFileContents[b] ) {
-                            changedFiles.push_back( newChild[i] );
-                            break;
-                            }
+                if( newChild[i]->isDirectory() ) {
+                    if( oldChild[j]->isDirectory() ) {
+                        // both are dirs, no data contents
+                        doneComparing = true;
+                        }
+                    else {
+                        printf( "%s is dir in %s, but non-dir in %s\n",
+                                newFileSubdirName, inArgs[2], inArgs[1] );
+                        
+                        exit( 1 );
                         }
                     }
+                else if( oldChild[j]->isDirectory() ) {
+                    printf( "%s is non-dir in %s, but dir in %s\n",
+                            newFileSubdirName, inArgs[2], inArgs[1] );
+                    
+                    exit( 1 );
+                    }
                 
+                
+                if( !doneComparing ) {
+                
+                    int oldFileLength;
+                    unsigned char *oldFileContents = 
+                        oldChild[j]->readFileContents( &oldFileLength );
+                
+                    if( oldFileLength != newFileLength ) {
+                        changedFiles.push_back( newChild[i] );
+                        }
+                    else {
+                        for( int b=0; b<newFileLength; b++ ) {
+                            if( oldFileContents[b] != newFileContents[b] ) {
+                                changedFiles.push_back( newChild[i] );
+                                break;
+                                }
+                            }
+                        }
 
-                delete [] oldFileContents;
+                    delete [] oldFileContents;
+                    }
                 }
             
             delete [] oldFileName;
@@ -242,13 +320,35 @@ int main( int inNumArgs, char **inArgs ) {
             }
         
         if( !foundOldFile ) {
-            changedFiles.push_back( newChild[i] );
+            if( newChild[i]->isDirectory() ) {
+                newDirs.push_back( newChild[i] );
+                }
+            else {
+                changedFiles.push_back( newChild[i] );
+                }
             }
 
         delete [] newFileName;
         delete [] newFileSubdirName;
         delete [] newFileContents;
         }
+
+
+    printf( "%d new directories:\n", newDirs.size() );
+
+    for( int i=0; i<newDirs.size(); i++ ) {
+        char *fileName = 
+            (* newDirs.getElement( i ) )->getFullFileName();
+        
+        char *fileSubdirName = getSubdirPath( fileName );
+
+        printf( "  %s\n", fileSubdirName );
+
+        delete [] fileName;
+        delete [] fileSubdirName;
+        }
+
+
     
     printf( "%d changed files:\n", changedFiles.size() );
 
@@ -267,11 +367,16 @@ int main( int inNumArgs, char **inArgs ) {
     
     int numChanged = changedFiles.size();
     File **changedFilesArray = changedFiles.getElementArray();
+    
+    numNewDirs = newDirs.size();
+    newDirsArray = newDirs.getElementArray();
 
-    bundleFiles( changedFilesArray, numChanged, inArgs[3] );
+    bundleFiles( newDirsArray, numNewDirs,
+                 changedFilesArray, numChanged, inArgs[3] );
 
     delete [] changedFilesArray;
-
+    delete [] newDirsArray;
+    
     
     for( int i=0; i<numOldChild; i++ ) {
         delete oldChild[i];
