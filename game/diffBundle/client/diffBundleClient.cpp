@@ -2,14 +2,32 @@
 
 #include "minorGems/game/game.h"
 
+#include "minorGems/io/file/File.h"
+#include "minorGems/formats/encodingUtils.h"
 
-#define PLATFORM_CODE ""
 
 #if defined(__mac__)
     #define PLATFORM_CODE "mac"
 #elif defined(WIN_32)
     #define PLATFORM_CODE "win"
+#elif defined(LINUX)
+    #define PLATFORM_CODE "linux"
+#else
+    #define PLATFORM_CODE ""
 #endif
+
+
+
+#include <sys/stat.h>
+
+static void copyPermissions( char *inSourceFile, char *inDestFile ) {
+    struct stat sourceST;
+    
+    stat( inSourceFile, &sourceST );
+    
+    chmod( inDestFile, sourceST.st_mode );
+    }
+
 
 
 
@@ -32,11 +50,20 @@ static int oldVersionNumber;
 
 
 // returns handle
-void startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
+char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
+    File binaryFlagFile( NULL, "binary.txt" );
+    
+    if( ! binaryFlagFile.exists() ) {
+        return false;
+        }
+    
+
     char *fullURL = autoSprintf( "%s?action=is_update_available"
                                  "&platform=%s&old_version=%d",
                                  inUpdateServerURL, PLATFORM_CODE,
                                  inOldVersionNumber );
+    
+    printf( "Checking for latest update at %s\n", fullURL );
     
     webHandle = startWebRequest( "GET", fullURL, NULL );
     
@@ -48,20 +75,10 @@ void startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
 
     updateSize = -1;
     
-    updateServerURL = inUpdateServerURL;
+    updateServerURL = stringDuplicate( inUpdateServerURL );
     oldVersionNumber = inOldVersionNumber;
 
-    /*
-    char *fullURL = autoSprintf( "%s?action=get_update"
-                                 "&platform=%s&old_version=%d",
-                                 inUpdateServerURL, PLATFORM_CODE,
-                                 inOldVersionNumber );
-    
-    int handle = startWebRequest( "GET", fullURL, NULL );
-    
-    delete [] fullURL;
-    return handle;
-    */
+    return true;
     }
 
 
@@ -70,8 +87,8 @@ void startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
 // return 1 if request complete
 // return -1 if request hit an error
 // return 0 if request still in-progress
-int stepUpdate( int inHandle ) {
-    int result = stepWebRequest( inHandle );
+int stepUpdate() {
+    int result = stepWebRequest( webHandle );
 
     if( result == 1 ) {
         if( updateSize == -1 ) {
@@ -92,6 +109,9 @@ int stepUpdate( int inHandle ) {
             
             // have an update size
             
+            printf( "Found an update with %d bytes\n",
+                    updateSize );
+
             // start next request for update itself
             clearWebRequest( webHandle );
 
@@ -100,6 +120,9 @@ int stepUpdate( int inHandle ) {
                                          updateServerURL, PLATFORM_CODE,
                                          oldVersionNumber );
     
+            
+            printf( "Downloading update from %s\n", fullURL );
+
             webHandle = startWebRequest( "GET", fullURL, NULL );
     
             delete [] fullURL;
@@ -108,15 +131,221 @@ int stepUpdate( int inHandle ) {
             }
         else {
             // have update itself
+
             
-            // FIXME
+            printf( "Update download complete\n" );
+
             // process it, unzip, apply file changes, etc.
+            
+            int size;
+            unsigned char *result = getWebResult( webHandle, &size );
+
+            int rawSize, compSize;
+            int bytesScanned;
+            int numRead =
+                sscanf( (char*)result, "%d %d %n", 
+                        &rawSize, &compSize, &bytesScanned );
+            
+            // not sure whether %n counts as a read argument or not
+            if( numRead == 2 || numRead == 3 ) {
+                
+                unsigned char *compData = & result[ bytesScanned ];
+                
+                unsigned char *rawData = 
+                    zipDecompress( compData,
+                                   compSize,
+                                   rawSize );
+
+                delete [] result;
+                
+
+                int bytesUsed = 0;
+                
+                int numDirs;
+                int bytesScanned;
+                int numRead =
+                    sscanf( (char*)&rawData[bytesUsed], "%d %n", 
+                            &numDirs, &bytesScanned );
+                    
+                if( numRead != 1 && numRead != 2 ) {
+                    printf( "Failed to parse diff bundle\n" );
+                    delete [] rawData;
+                    return -1;
+                    }
+                bytesUsed += bytesScanned;
+                
+                printf( "Creating %d new directories\n", numDirs );
+                
+                for( int d=0; d<numDirs; d++ ) {
+                    
+                    int fileNameLength;
+                    
+                    int bytesScanned;
+                    
+                    int numRead =
+                        sscanf( (char*)&rawData[bytesUsed], "%d %n", 
+                                &fileNameLength, &bytesScanned );
+                    
+                    if( numRead != 1 && numRead != 2 ) {
+                        printf( "Failed to parse diff bundle\n" );
+                        delete [] rawData;
+                        return -1;
+                        }
+                    
+                    bytesUsed += bytesScanned;
+                    
+                    char *fileName = new char[ fileNameLength + 1 ];
+                    
+                    memcpy( fileName, &rawData[bytesUsed], fileNameLength );
+                    
+                    fileName[ fileNameLength ] = '\0';
+                    
+                    printf( "   %s\n", fileName );
+                    
+                    bytesUsed += fileNameLength + 1;
+
+                    File dirFile( NULL, fileName );
+
+                    if( dirFile.exists() ) {
+                        printf( "Directory exists %s\n",
+                                fileName );
+                        }
+                    else {
+                        char made = Directory::makeDirectory( &dirFile );
+                    
+                        if( !made ) {
+                            printf( "Failed to make directory %s\n",
+                                    fileName );
+                            
+                            delete [] fileName;
+                            
+                            delete [] rawData;
+                            return -1;
+                            }
+                        }
+                    
+                    
+                    delete [] fileName;
+                    }
+                
+
+
+                int numFiles;
+                numRead =
+                    sscanf( (char*)&rawData[bytesUsed], "%d %n", 
+                            &numFiles, &bytesScanned );
+                    
+                if( numRead != 1 && numRead != 2 ) {
+                    printf( "Failed to parse diff bundle\n" );
+                    delete [] rawData;
+                    return -1;
+                    }
+                bytesUsed += bytesScanned;
+                
+
+                printf( "Updating %d files\n", numFiles );
+                
+                for( int f=0; f<numFiles; f++ ) {
+                    
+                    int fileNameLength;
+                    
+                    int bytesScanned;
+                    
+                    int numRead =
+                        sscanf( (char*)&rawData[bytesUsed], "%d %n", 
+                                &fileNameLength, &bytesScanned );
+                    
+                    if( numRead != 1 && numRead != 2 ) {
+                        printf( "Failed to parse diff bundle\n" );
+                        delete [] rawData;
+                        return -1;
+                        }
+                    
+                    bytesUsed += bytesScanned;
+                    
+                    char *fileName = new char[ fileNameLength + 1 ];
+                    
+                    memcpy( fileName, &rawData[bytesUsed], fileNameLength );
+                    
+                    fileName[ fileNameLength ] = '\0';
+                    
+                    printf( "   %s\n", fileName );
+
+                    bytesUsed += fileNameLength + 1;
+
+                    int fileSize;
+                    
+                    numRead =
+                        sscanf( (char*)&rawData[bytesUsed], "%d %n", 
+                                &fileSize, &bytesScanned );
+                    
+                    if( numRead != 1 && numRead != 2 ) {
+                        printf( "Failed to parse diff bundle\n" );
+                        delete [] fileName;
+                        delete [] rawData;
+                        return -1;
+                        }
+                    bytesUsed += bytesScanned;
+                    
+
+                    File targetFile( NULL, fileName );
+
+                    char *backupName = NULL;
+                    
+                    if( targetFile.exists() ) {
+                        backupName = autoSprintf( "%s.bak", fileName );
+                        
+                        rename( fileName, backupName );
+                        
+                        printf( "File %s exists, moving temporariliy to %s\n",
+                                fileName, backupName );
+                        }
+                    
+
+                    FILE *file = fopen( fileName, "w" );
+                    
+                    
+                    if( file == NULL ) {
+                        printf( "Failed to open file %s for writing\n",
+                                fileName );
+                        }
+                    else {
+                        int numWritten = fwrite( &rawData[bytesUsed], 
+                                                 1, fileSize, file );
+                        if( numWritten != fileSize ) {
+                            printf( "Failed to write %d bytes to file  %s\n",
+                                    fileSize, fileName );
+                            }
+                        
+                        fclose( file );
+                        }
+                    
+                    
+                    if( backupName != NULL ) {
+                        copyPermissions( backupName, fileName );
+                        
+                        remove( backupName );
+                        
+                        delete [] backupName;
+                        }
+                    
+                    delete [] fileName;
+                    
+                    bytesUsed += fileSize;
+                    }
+                
+                printf( "Update complete\n" );
+                }
+            else {
+                printf( "Failed to parse diff bundle\n" );
+                delete [] result;
+                return -1;
+                }
             
             }
         }
-    else {
-        return result;
-        }
+    
+    return result;
     }
 
 

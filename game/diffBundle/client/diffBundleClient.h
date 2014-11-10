@@ -5,7 +5,9 @@ char isUpdatePlatformSupported();
 
 
 
-void startUpdate( char *inUpdateServerURL, int inOldVersionNumber );
+// returns true if update process started, or false if
+// auto-update not available
+char startUpdate( char *inUpdateServerURL, int inOldVersionNumber );
 
 // take anoter non-blocking step
 // return 1 if request complete

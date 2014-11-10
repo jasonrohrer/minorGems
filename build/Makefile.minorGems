@@ -431,6 +431,10 @@ DRAW_UTILS_O = ${ROOT_PATH}/minorGems/game/drawUtils.o
 DEMO_CODE_CHECKER_O = \
 ${ROOT_PATH}/minorGems/game/platforms/SDL/DemoCodeChecker.o
 
+DIFF_BUNDLE_CLIENT_O = \
+${ROOT_PATH}/minorGems/game/diffBundle/client/diffBundleClient.o
+
+
 
 
 AIFF_O = ${ROOT_PATH}/minorGems/sound/formats/aiff.o

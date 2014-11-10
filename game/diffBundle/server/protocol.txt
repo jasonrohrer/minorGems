@@ -15,7 +15,7 @@ or
 0
 
 
-Valid platform codes are currently "mac" and "win"
+Valid platform codes are currently "mac", "win", and "linux"
 
 
 
