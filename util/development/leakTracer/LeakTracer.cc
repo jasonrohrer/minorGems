@@ -307,6 +307,9 @@ public:
 	 * write a hexdump of the given area.
 	 */
 	void  hexdump(const unsigned char* area, int size);
+
+    void addStackTraceToReport( Leak inLeak );
+        
 	
 	/**
 	 * Terminate current running progam.
@@ -448,6 +451,24 @@ void LeakTracer::hexdump(const unsigned char* area, int size) {
 	fprintf(report, "\n");
 }
 
+
+void LeakTracer::addStackTraceToReport( Leak inLeak ) {
+#ifndef NO_STACK_TRACE
+        fprintf( report, "    S|" );
+        for( int s=0; s<inLeak.stackTraceSize; s++ ) {
+                fprintf( report, "%p", inLeak.stackTraceAddresses[s] );
+                if( s < inLeak.stackTraceSize - 1 ) {
+                        fprintf( report, "|" );
+                    }
+                else {
+                        fprintf( report, " " );
+                    }
+            }
+#endif
+    }
+
+
+
 void LeakTracer::registerFree (void *p, bool type) {
 	initialize();
 
@@ -481,25 +502,34 @@ void LeakTracer::registerFree (void *p, bool type) {
 
 		if (leaks[i].type != type) {
 			fprintf(report, 
-				"S %10p %10p  # new%s but delete%s "
-				"; size %d\n",
+				"S %10p %10p  ",
 				leaks[i].allocAddr,
-				__builtin_return_address(1),
+				__builtin_return_address(1) );
+			
+            addStackTraceToReport( leaks[i] );
+            
+            fprintf(report, 
+				"# new%s but delete%s "
+				"; size %d\n",
 				((!type) ? "[]" : " normal"),
 				((type) ? "[]" : " normal"),
-				leaks[i].size);
-			
+				leaks[i].size );
+
 			progAbort( NEW_DELETE_MISMATCH );
 		}
 #ifdef MAGIC
 		if ((SAVESIZE >= sizeof(magic_t)) && 
 		    *((magic_t*)((char*)p + leaks[i].size)) != MAGIC) {
-			fprintf(report, "O %10p %10p  "
-				"# memory overwritten beyond allocated"
-				" %d bytes\n",
+			fprintf(report, "O %10p %10p ",
 				leaks[i].allocAddr,
-				__builtin_return_address(1),
+				__builtin_return_address(1) );
+
+            addStackTraceToReport( leaks[i] );
+            
+            fprintf(report, "# memory overwritten beyond allocated"
+				" %d bytes\n",
 				leaks[i].size);
+
 			fprintf(report, "# %d byte beyond area:\n",
 				SAVESIZE);
 			hexdump((unsigned char*)p+leaks[i].size,
@@ -559,15 +589,9 @@ void LeakTracer::writeLeakReport() {
 			fprintf(report, "L %10p   %9ld",
 				leaks[i].allocAddr,
 				(long) leaks[i].size );
-#ifndef NO_STACK_TRACE
-            fprintf( report, "    S|" );
-            for( int s=0; s<leaks[i].stackTraceSize; s++ ) {
-                    fprintf( report, "%p", leaks[i].stackTraceAddresses[s] );
-                    if( s < leaks[i].stackTraceSize - 1 ) {
-                            fprintf( report, "|" );
-                        }
-                }
-#endif
+
+            addStackTraceToReport( leaks[i] );
+
             fprintf(report, "  # %p,   \"%s\"\n",
 				leaks[i].addr,
 				memContents );

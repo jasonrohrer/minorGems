@@ -54,12 +54,22 @@ while (<LEAKS>) {
         $n++;
     }
     # allocations/deallocations with other errornous conditions
-    #              1      2        3         4        5
-    elsif (/^\s*([SO])\s+(0x)?([0-9a-fA-F]+)\s+(0x)?([0-9a-fA-F]+)/) {
+    #              1      2        3            4        5               6
+    elsif (/^\s*([SO])\s+(0x)?([0-9a-fA-F]+)\s+(0x)?([0-9a-fA-F]+)\s*(S\|[x\|0-9a-fA-F]+)?/) {
 	$addrs = "$3,$5,$1";
+	
+	# these get cleared by the m// match regex below
+	$save6 = $6;
+
 	$AllocDealloc{$addrs} = ("$1" =~ m/S/) 
 	    ? "Different allocation schemes" 
 	    : "This Memory was overwritten";
+	
+	if( $save6 ne "" ) {
+			$Stack{$addrs} = $save6;
+		}
+	$n++;
+	$u++;
     }
 }
 
@@ -90,6 +100,19 @@ foreach (sort keys %AllocDealloc) {
     print PIPE "l *0x" . (shift @addrs) . "\necho ..free here :\n";
     print PIPE "set listsize 1\n";
     print PIPE "l *0x" . (shift @addrs) . "\n";
+    if( exists( $Stack{$_} ) ) {
+		# print stacktrace
+		print PIPE "set listsize 1\n";
+
+		print PIPE "echo #-- Example Stack:\\n\n";
+		@stackAddrs = split( /\|/, $Stack{$_} );
+		
+		# first one is "S|" marker, so skip it 
+		shift @stackAddrs;
+		foreach $a ( @stackAddrs ) {
+			print PIPE "l *$a\n"; 
+		}
+	}
 }
 
 foreach (sort keys %Type) {
