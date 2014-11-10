@@ -2326,7 +2326,7 @@ int getWebProgressSize( int inHandle ) {
                 "Expecting a web result progress event in playback file, "
                 "but found none." );
             
-            return NULL;
+            return 0;
             }
         }
     
@@ -2841,7 +2841,22 @@ char *getClipboardText() {
 
 
 
+
+#ifdef LINUX
     
+char relaunchGame() {
+    return false;
+    }
+
+#elif defined(__mac__)
+
+#elif defined(WIN_32)
 
 
+#else
+// unsupported platform
+char relaunchGame() {
+    return false;
+    }
+#endif
 
