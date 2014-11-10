@@ -435,6 +435,8 @@ unsigned char *WebRequest::getResult( int *outSize ) {
         unsigned char *result = new unsigned char[ mResultSize ];
         memcpy( result, mResult, mResultSize );
         
+        *outSize = mResultSize;
+
         return result;
         }
     else {
