@@ -39,7 +39,7 @@
 
 
 // default BSD case
-#elif defined(BSD)
+#elif defined(BSD) || defined(__APPLE__)
 #include <machine/endian.h>
 
 
