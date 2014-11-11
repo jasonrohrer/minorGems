@@ -328,7 +328,16 @@ int stepUpdate() {
                     if( backupName != NULL ) {
                         copyPermissions( backupName, fileName );
                         
-                        remove( backupName );
+                        if( remove( backupName ) != 0 ) {
+                            FILE *postRemoveListFile =
+                                fopen( "postRemoveList.txt", "a" );
+                            if( postRemoveListFile != NULL ) {    
+                                fprintf( postRemoveListFile, 
+                                         "%s\n", backupName );
+                                fclose( postRemoveListFile );
+                                }
+                            }
+                        
                         
                         delete [] backupName;
                         }
@@ -376,5 +385,43 @@ void clearUpdate() {
         }
     
     updateServerURL = NULL;
+    }
+
+
+
+void postUpdate() {
+
+    File postRemoveListFile( NULL, "postRemoveList.txt" );
+    
+    if( postRemoveListFile.exists() ) {
+        char *contents = postRemoveListFile.readFileContents();
+        
+        char allRemoved = true;
+        
+        if( contents != NULL ) {
+            
+            int numFiles;
+            char **fileNames = split( contents, "\n", &numFiles );
+
+            for( int i=0; i<numFiles; i++ ) {
+                if( remove( fileNames[i] ) != 0 ) {
+                    allRemoved = false;
+                    }
+                
+                delete [] fileNames[i];
+                }
+            delete [] fileNames;
+            
+            
+            delete [] contents;
+            }
+        else {
+            allRemoved = false;
+            }
+        
+        if( allRemoved ) {
+            postRemoveListFile.remove();
+            }
+        }
     }
 

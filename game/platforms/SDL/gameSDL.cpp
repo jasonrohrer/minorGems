@@ -75,6 +75,8 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/game/game.h"
 #include "minorGems/game/gameGraphics.h"
 
+#include "minorGems/game/diffBundle/client/diffBundleClient.h"
+
 
 
 #include "demoCodePanel.h"
@@ -1260,6 +1262,10 @@ void GameSceneHandler::drawScene() {
                          screen->isPlayingBack() );
 
         frameDrawerInited = true;
+        
+        // this is a good time, a while after launch, to do the post
+        // update step
+        postUpdate();
         }
     else if( !writeFailed && !loadingFailedFlag  ) {
         // demo mode done or was never enabled

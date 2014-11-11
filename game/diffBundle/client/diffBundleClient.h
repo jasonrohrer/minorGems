@@ -24,3 +24,14 @@ float getUpdateProgress();
 // if update is not complete, this cancels it (possibly in a partial state)
 // if hostname lookup is not complete, this call might block.
 void clearUpdate();
+
+
+
+// should be called from updated client after it loads
+// does post-update cleanup that cannot be done from old exe.
+//
+// Should be called at the end of launch to allow any old exe that forked
+// a new exe to quit and get out of the way.
+//
+// Note that this is safe to call at launch even if no update was done.
+void postUpdate();
