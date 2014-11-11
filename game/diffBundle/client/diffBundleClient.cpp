@@ -420,8 +420,12 @@ void postUpdate() {
             char **fileNames = split( contents, "\n", &numFiles );
 
             for( int i=0; i<numFiles; i++ ) {
-                if( remove( fileNames[i] ) != 0 ) {
-                    allRemoved = false;
+                File thisFile( NULL, fileNames[i] );
+                
+                if( thisFile.exists() ) {
+                    if( remove( fileNames[i] ) != 0 ) {
+                        allRemoved = false;
+                        }
                     }
                 
                 delete [] fileNames[i];
