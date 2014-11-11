@@ -66,7 +66,7 @@
 
 
 
-#elif defined(WIN_32) || \
+#elif defined(WIN_32) || defined(__MINGW32__) ||            \
       ( defined(__MWERKS__) && defined(__INTEL__) )  // windows case
 #define __LITTLE_ENDIAN 1234
 #define __BYTE_ORDER __LITTLE_ENDIAN
