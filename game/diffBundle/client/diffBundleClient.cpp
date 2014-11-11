@@ -48,6 +48,8 @@ char isUpdatePlatformSupported() {
 static int webHandle;
 static int updateSize = -1;
 
+static int updateProgressCompleteSteps;
+
 static char *updateServerURL = NULL;
 static int oldVersionNumber;
 
@@ -77,6 +79,7 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
         }
 
     updateSize = -1;
+    updateProgressCompleteSteps = 0;
     
     updateServerURL = stringDuplicate( inUpdateServerURL );
     oldVersionNumber = inOldVersionNumber;
@@ -132,8 +135,14 @@ int stepUpdate() {
             
             return 0;
             }
+        else if( updateProgressCompleteSteps < 1 ) {
+            // don't process data this step, wait until next step
+            updateProgressCompleteSteps++;
+            return 0;
+            }
         else {
-            // have update itself
+            // have update itself AND we've let one step go
+            // by for our final update progress to post
 
             
             printf( "Update download complete\n" );
@@ -367,7 +376,14 @@ int stepUpdate() {
 
 float getUpdateProgress() {
     if( updateSize > 0 ) {
-        return getWebProgressSize( webHandle ) / (float)updateSize;
+        float progress = getWebProgressSize( webHandle ) / (float)updateSize;
+        
+        if( progress > 1 ) {
+            // getWebProgressSize includes headers
+            progress = 1;
+            }
+        
+        return progress;
         }
     else {
         return 0;
