@@ -2840,18 +2840,95 @@ char *getClipboardText() {
 
 
 
+#define macLaunchExtension ".app"
+#define winLaunchExtension ".exe"
 
 
 #ifdef LINUX
-    
+
+#include <unistd.h>
+#include <stdarg.h>
+
 char relaunchGame() {
-    return false;
+    char *launchTarget = 
+        autoSprintf( "./%s", getLinuxAppName() );
+
+    AppLog::infoF( "Relaunching game %s", launchTarget );
+
+    int forkValue = fork();
+
+    if( forkValue == 0 ) {
+        // we're in child process, so exec command
+        char *arguments[2] = { launchTarget, NULL };
+        
+        execvp( launchTarget, arguments );
+
+        // we'll never return from this call
+                
+        // small memory leak here, but okay
+        delete [] launchTarget;
+        }
+    
+    delete [] launchTarget;
+    printf( "Returning from relaunching game, exiting this process\n" );
+    exit( 0 );
+    return true;
     }
+    
 
 #elif defined(__mac__)
 
+#include <unistd.h>
+#include <stdarg.h>
+
+char relaunchGame() {
+    char *launchTarget = 
+        autoSprintf( "%s%s", getAppName(), #macLaunchExtension );
+    
+    AppLog::infoF( "Relaunching game %s", launchTarget );
+    
+    int forkValue = fork();
+
+    if( forkValue == 0 ) {
+        // we're in child process, so exec command
+        char *arguments[3] = { "open", launchTarget, NULL };        
+
+        execvp( "open", arguments );
+        // we'll never return from this call
+        
+        // small memory leak here, but okay
+        delete [] launchTarget;
+        }
+    
+    delete [] launchTarget;
+    
+    printf( "Returning from relaunching game, exiting this process\n" );
+    exit( 0 );
+    return true;
+    }
+
+
 #elif defined(WIN_32)
 
+#include <windows.h>
+#include <process.h>
+
+static void launchGame() {
+    char *launchTarget = 
+        autoSprintf( "%s%s", getAppName(), #winLaunchExtension );
+    
+    AppLog::infoF( "Relaunching game %s", launchTarget );
+
+    char *arguments[2] = { (char*)launchTarget, NULL };
+    
+    _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+
+    delete [] launchTarget;
+    
+    printf( "Returning from relaunching game, exiting this process\n" );
+    exit( 0 );
+    return true;
+    }
 
 #else
 // unsupported platform
