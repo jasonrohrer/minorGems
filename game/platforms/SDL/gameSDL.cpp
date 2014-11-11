@@ -2883,7 +2883,7 @@ char relaunchGame() {
 
 char relaunchGame() {
     char *launchTarget = 
-        autoSprintf( "%s%s", getAppName(), #macLaunchExtension );
+        autoSprintf( "%s%s", getAppName(), macLaunchExtension );
     
     AppLog::infoF( "Relaunching game %s", launchTarget );
     
@@ -2913,15 +2913,15 @@ char relaunchGame() {
 #include <windows.h>
 #include <process.h>
 
-static void launchGame() {
+char relaunchGame() {
     char *launchTarget = 
-        autoSprintf( "%s%s", getAppName(), #winLaunchExtension );
+        autoSprintf( "%s%s", getAppName(), winLaunchExtension );
     
     AppLog::infoF( "Relaunching game %s", launchTarget );
 
     char *arguments[2] = { (char*)launchTarget, NULL };
     
-    _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+    _spawnvp( _P_NOWAIT, launchTarget, arguments );
 
     delete [] launchTarget;
     

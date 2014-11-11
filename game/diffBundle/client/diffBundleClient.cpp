@@ -32,7 +32,7 @@ static void copyPermissions( char *inSourceFile, char *inDestFile ) {
 
 
 char isUpdatePlatformSupported() {
-    if( PLATFORM_CODE == "" ) {
+    if( strcmp( PLATFORM_CODE, "" ) == 0 ) {
         return false;
         }
     else {
