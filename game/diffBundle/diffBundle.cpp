@@ -2,6 +2,7 @@
 
 #include "minorGems/io/file/File.h"
 #include "minorGems/formats/encodingUtils.h"
+#include "minorGems/crypto/hashes/sha1.h"
 
 #include <stdlib.h>
 
@@ -123,7 +124,7 @@ static void bundleFiles( File **inDirs, int inNumDirs,
     // for testing, output uncompressed data too
     char *rawFileName = autoSprintf( "%s.raw", inDBZTargetFile );
     
-    FILE *outFile = fopen( rawFileName, "w" );
+    FILE *outFile = fopen( rawFileName, "wb" );
 
     delete [] rawFileName;
     
@@ -137,9 +138,17 @@ static void bundleFiles( File **inDirs, int inNumDirs,
     int compSize;
     unsigned char *compData = zipCompress( data, totalSize, &compSize );
     
+
+    char *hash = computeSHA1Digest( compData, compSize );
+    
+    printf( "Compressed data has SHA1 = %s\n", hash );
+    
+    delete [] hash;
+
+
     if( compData != NULL ) {
         
-        FILE *outFile = fopen( inDBZTargetFile, "w" );
+        FILE *outFile = fopen( inDBZTargetFile, "wb" );
         
         if( outFile != NULL ) {
             
@@ -153,6 +162,8 @@ static void bundleFiles( File **inDirs, int inNumDirs,
                         "but wrote %d instead\n",
                         compSize, inDBZTargetFile, numWritten );
                 }
+            printf( "Wrote %d bytes to file %s\n", ftell( outFile ),
+                    inDBZTargetFile );
             fclose( outFile );
             }
         else {

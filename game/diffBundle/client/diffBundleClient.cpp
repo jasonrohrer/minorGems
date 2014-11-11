@@ -4,6 +4,9 @@
 
 #include "minorGems/io/file/File.h"
 #include "minorGems/formats/encodingUtils.h"
+#include "minorGems/crypto/hashes/sha1.h"
+
+#include "minorGems/util/log/AppLog.h"
 
 
 #if defined(__mac__)
@@ -151,6 +154,12 @@ int stepUpdate() {
                 
                 unsigned char *compData = & result[ bytesScanned ];
                 
+                char *hash = computeSHA1Digest( compData, compSize );
+
+                AppLog::infoF( "Received compressed data with SHA1 = %s\n",
+                               hash );
+                delete [] hash;
+
                 unsigned char *rawData = 
                     zipDecompress( compData,
                                    compSize,
@@ -162,8 +171,7 @@ int stepUpdate() {
                 int bytesUsed = 0;
                 
                 int numDirs;
-                int bytesScanned;
-                int numRead =
+                numRead =
                     sscanf( (char*)&rawData[bytesUsed], "%d %n", 
                             &numDirs, &bytesScanned );
                     
@@ -180,9 +188,7 @@ int stepUpdate() {
                     
                     int fileNameLength;
                     
-                    int bytesScanned;
-                    
-                    int numRead =
+                    numRead =
                         sscanf( (char*)&rawData[bytesUsed], "%d %n", 
                                 &fileNameLength, &bytesScanned );
                     
@@ -249,9 +255,7 @@ int stepUpdate() {
                     
                     int fileNameLength;
                     
-                    int bytesScanned;
-                    
-                    int numRead =
+                    numRead =
                         sscanf( (char*)&rawData[bytesUsed], "%d %n", 
                                 &fileNameLength, &bytesScanned );
                     
@@ -302,7 +306,7 @@ int stepUpdate() {
                         }
                     
 
-                    FILE *file = fopen( fileName, "w" );
+                    FILE *file = fopen( fileName, "wb" );
                     
                     
                     if( file == NULL ) {
