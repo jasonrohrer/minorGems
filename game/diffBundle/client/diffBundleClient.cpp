@@ -334,6 +334,8 @@ int stepUpdate() {
                     bytesUsed += fileSize;
                     }
                 
+                delete [] rawData;
+                
                 printf( "Update complete\n" );
                 }
             else {
