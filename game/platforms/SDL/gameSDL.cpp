@@ -2897,7 +2897,7 @@ char relaunchGame() {
 
     if( forkValue == 0 ) {
         // we're in child process, so exec command
-        char *arguments[3] = { "open", launchTarget, NULL };        
+        char *arguments[3] = { (char*)"open", launchTarget, NULL };        
 
         execvp( "open", arguments );
         // we'll never return from this call
