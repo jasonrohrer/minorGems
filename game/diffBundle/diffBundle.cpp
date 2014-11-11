@@ -84,7 +84,13 @@ static void bundleFiles( File **inDirs, int inNumDirs,
         int size = inFiles[i]->getLength();
         
         
-        char *header = autoSprintf( "%d %s %d ",
+        // use # as separator before file data instead of space
+        // because when parsing later, sscanf will scan multiple spaces
+        // (for example, spaces at the start of the file data itself) as 
+        // a single space, thus potentially eating part of the file data.
+        // But even if the file data starts with '#', we'll be okay here,
+        // because we can sscanf just a single # after the file size number.
+        char *header = autoSprintf( "%d %s %d#",
                                     strlen( fileSubdirName ),
                                     fileSubdirName,
                                     size );

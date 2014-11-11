@@ -89,6 +89,17 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
 
 
 
+static void dumpRawDataToFile( unsigned char *inRawBundleData,
+                               int inNumBytes ) {
+    FILE *dumpFile = fopen( "diffBundle_dump.raw", "wb" );
+    
+    if( dumpFile != NULL ) {
+        fwrite( inRawBundleData, 1, inNumBytes, dumpFile );
+        fclose( dumpFile );
+        }
+    }
+
+
 // take another non-blocking step
 // return 1 if request complete
 // return -1 if request hit an error
@@ -185,7 +196,8 @@ int stepUpdate() {
                             &numDirs, &bytesScanned );
                     
                 if( numRead != 1 && numRead != 2 ) {
-                    printf( "Failed to parse diff bundle\n" );
+                    printf( "Failed to parse dir count from diff bundle\n" );
+                    dumpRawDataToFile( rawData, rawSize );
                     delete [] rawData;
                     return -1;
                     }
@@ -202,7 +214,9 @@ int stepUpdate() {
                                 &fileNameLength, &bytesScanned );
                     
                     if( numRead != 1 && numRead != 2 ) {
-                        printf( "Failed to parse diff bundle\n" );
+                        printf( "Failed to parse directory name length "
+                                "from diff bundle\n" );
+                        dumpRawDataToFile( rawData, rawSize );
                         delete [] rawData;
                         return -1;
                         }
@@ -234,6 +248,7 @@ int stepUpdate() {
                             
                             delete [] fileName;
                             
+                            dumpRawDataToFile( rawData, rawSize );
                             delete [] rawData;
                             return -1;
                             }
@@ -251,7 +266,9 @@ int stepUpdate() {
                             &numFiles, &bytesScanned );
                     
                 if( numRead != 1 && numRead != 2 ) {
-                    printf( "Failed to parse diff bundle\n" );
+                    printf( "Failed to parse file count from diff bundle\n" );
+                    
+                    dumpRawDataToFile( rawData, rawSize );
                     delete [] rawData;
                     return -1;
                     }
@@ -269,7 +286,10 @@ int stepUpdate() {
                                 &fileNameLength, &bytesScanned );
                     
                     if( numRead != 1 && numRead != 2 ) {
-                        printf( "Failed to parse diff bundle\n" );
+                        printf( "Failed to parse file name length "
+                                "from diff bundle\n" );
+                        
+                        dumpRawDataToFile( rawData, rawSize );
                         delete [] rawData;
                         return -1;
                         }
@@ -288,13 +308,17 @@ int stepUpdate() {
 
                     int fileSize;
                     
+                    // single # separates the file size from the file data
                     numRead =
-                        sscanf( (char*)&rawData[bytesUsed], "%d %n", 
+                        sscanf( (char*)&rawData[bytesUsed], "%d#%n", 
                                 &fileSize, &bytesScanned );
                     
                     if( numRead != 1 && numRead != 2 ) {
-                        printf( "Failed to parse diff bundle\n" );
+                        printf( "Failed to parse file size "
+                                "from diff bundle\n" );
                         delete [] fileName;
+                        
+                        dumpRawDataToFile( rawData, rawSize );
                         delete [] rawData;
                         return -1;
                         }
