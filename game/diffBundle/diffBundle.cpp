@@ -64,6 +64,9 @@ static void bundleFiles( File **inDirs, int inNumDirs,
                                     fileSubdirName );
         fileDataBuffer.appendArray( (unsigned char*)header, strlen( header ) );
         delete [] header;
+
+        delete [] fileName;
+        delete [] fileSubdirName;
         }
     
 
