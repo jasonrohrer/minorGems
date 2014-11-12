@@ -188,6 +188,11 @@ int stepUpdate() {
                 delete [] result;
                 
 
+                if( rawData == NULL ) {
+                    printf( "Failed to decompress diff bundle\n" );
+                    return -1;
+                    }
+
                 int bytesUsed = 0;
                 
                 int numDirs;
