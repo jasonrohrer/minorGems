@@ -1249,9 +1249,7 @@ void ScreenGL::playNextEventBatch() {
                         }
                     else if( code[1] == 'x' ) {
                         // hex-encoded body
-                        fgetc( mEventFile );
-                
-                        char *bodyHex = new char[ length ];
+                        char *bodyHex = new char[ length + 1 ];
                         
                         unsigned int numRead = 
                             fread( bodyHex, 1, length, mEventFile );
