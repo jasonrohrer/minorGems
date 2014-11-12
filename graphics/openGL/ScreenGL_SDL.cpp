@@ -1087,8 +1087,19 @@ void ScreenGL::writeEventBatchToFile() {
             char **allEvents = mEventBatch.getElementArray();
             char *eventString = join( allEvents, numInBatch, " " );
             
-            fprintf( mEventFile, "%d %s\n", numInBatch, eventString );
+            fprintf( mEventFile, "%d ", numInBatch );
         
+            int eventStringLength = strlen( eventString );
+            
+            int numWritten = fwrite( eventString, 1, eventStringLength, 
+                                     mEventFile );
+            
+            if( numWritten != eventStringLength ) {
+                printf( "Failed to write %d-event batch of length %d "
+                        "to recording file\n", numInBatch, eventStringLength );
+                }
+
+            fprintf( mEventFile, "\n" );
             
             delete [] allEvents;
             delete [] eventString;
