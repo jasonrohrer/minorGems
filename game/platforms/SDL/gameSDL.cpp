@@ -374,18 +374,222 @@ void cleanUpAtExit() {
     }
 
 
+static int nextSoundSpriteHandle;
+
+typedef struct SoundSprite {
+        int handle;
+        int numSamples;
+        int samplesPlayed;
+        
+        Sint16 *samples;
+    };
+
+
+
+static SimpleVector<SoundSprite> soundSprites;
+
+static SimpleVector<SoundSprite> playingSoundSprites;
+
+
+
+int loadSoundSprite( const char *inAIFFFileName ) {
+    File aiffFile( new Path( "sounds" ), inAIFFFileName );
+
+    if( ! aiffFile.exists() ) {
+        printf( "File does not exist in sounds folder: %s\n", inAIFFFileName );
+        return -1;
+        }
+    
+    char *fileName = aiffFile.getFullFileName();
+
+    FILE *file = fopen( fileName, "rb" );
+    
+    delete [] fileName;
+
+    if( file == NULL ) {
+        printf( "Failed to open sound file for reading: %s\n", 
+                inAIFFFileName );
+        return -1;
+        }
+    
+    // skip 20 bytes of header to get to num channels
+    fseek( file, 20, SEEK_SET );
+    
+    unsigned char readBuffer[4];
+    
+    fread( readBuffer, 1, 2, file );
+    
+    if( readBuffer[0] != 0 || readBuffer[1] != 1 ) {
+        printf( "Sound file not mono: %s\n", inAIFFFileName );
+        fclose( file );
+        return -1;
+        }
+
+    // num sample frames
+    fread( readBuffer, 1, 4, file );
+
+    SoundSprite s;
+    
+    s.handle = nextSoundSpriteHandle ++;
+    s.numSamples = 
+        readBuffer[0] << 24 |
+        readBuffer[1] << 16 |
+        readBuffer[2] << 8 |
+        readBuffer[3];
+
+    s.samplesPlayed = 0;
+
+
+    // bits per sample
+    fread( readBuffer, 1, 2, file );
+    
+    if( readBuffer[0] != 0 || readBuffer[1] != 16 ) {
+        printf( "Sound file not 16-bit: %s\n", inAIFFFileName );
+        fclose( file );
+        return -1;
+        }
+
+    // 26 more bytes of header before samples
+    fseek( file, 26, SEEK_CUR );
+
+    unsigned char *rawSamples = new unsigned char[ 2 * s.numSamples ];
+
+    int numRead = fread( rawSamples, 1, s.numSamples * 2, file );
+    
+
+    if( numRead != s.numSamples * 2 ) {
+        printf( "Failed to read %d samples from file: %s\n", 
+                s.numSamples, inAIFFFileName );
+        
+        delete [] rawSamples;
+        fclose( file );
+        return -1;
+        }
+    
+
+    s.samples = new Sint16[ s.numSamples ];
+
+    int r = 0;
+    for( int i=0; i<s.numSamples; i++ ) {
+        s.samples[i] = 
+            ( rawSamples[r] << 8 ) |
+            rawSamples[r+1];
+        
+        r += 2;
+        }
+    delete [] rawSamples;
+    
+    
+
+    fclose( file );
+    
+    soundSprites.push_back( s );
+    
+    return s.handle;
+    }
+
+
+
+// plays sound sprite now
+void playSoundSprite( int inHandle ) {
+    for( int i=0; i<soundSprites.size(); i++ ) {
+        SoundSprite *s = soundSprites.getElement( i );
+        if( s->handle == inHandle ) {
+            s->samplesPlayed = 0;
+            
+            lockAudio();
+            playingSoundSprites.push_back( *s );
+            unlockAudio();
+            
+            break;
+            }
+        }
+    }
+
+
+
+void freeSoundSprite( int inHandle ) {
+    // make sure this sprite isn't playing
+    lockAudio();
+    
+    for( int i=playingSoundSprites.size()-1; i>=0; i-- ) {
+        SoundSprite *s = playingSoundSprites.getElement( i );
+        if( s->handle == inHandle ) {
+            // stop it abruptly
+            playingSoundSprites.deleteElement( i );
+            }
+        }
+    
+    unlockAudio();
+
+
+    for( int i=0; i<soundSprites.size(); i++ ) {
+        SoundSprite *s = soundSprites.getElement( i );
+        if( s->handle == inHandle ) {
+            delete [] s->samples;
+            soundSprites.deleteElement( i );
+            }
+        }
+    }
+
 
 
 
 void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
     getSoundSamples( inStream, inLengthToFill );
+    
+    int numSamples = inLengthToFill / 4;
 
 
-
-    if( recordAudio ) {
+    if( playingSoundSprites.size() > 0 ) {
         
-        int numSamples = inLengthToFill / 4;
+        for( int i=0; i<playingSoundSprites.size(); i++ ) {
+            SoundSprite *s = playingSoundSprites.getElement( i );
+            
+            int filled = 0;
+            
+            int filledBytes = 0;
+            
+            int samplesPlayed = s->samplesPlayed;
+            int spriteNumSamples = s->numSamples;
+            
+            while( filled < numSamples &&
+                   samplesPlayed < spriteNumSamples  ) {
+                
+                Sint16 sample = s->samples[ samplesPlayed ];
+                
+                Sint16 lSample = 
+                    (Sint16)( (inStream[filledBytes+1] << 8) | 
+                             inStream[filledBytes] );
+                Sint16 rSample = 
+                    (Sint16)( (inStream[filledBytes+3] << 8) | 
+                             inStream[filledBytes+2] );
+                
+                lSample += sample;
+                rSample += sample;
+
+                inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
+                inStream[filledBytes++] = (Uint8)( ( lSample >> 8 ) & 0xFF );
+                inStream[filledBytes++] = (Uint8)( rSample & 0xFF );
+                inStream[filledBytes++] = (Uint8)( ( rSample >> 8 ) & 0xFF );
         
+                filled ++;
+                samplesPlayed ++;
+                }
+
+            s->samplesPlayed = samplesPlayed;
+            }
+
+        // walk backward, removing any that are done
+        for( int i=playingSoundSprites.size()-1; i>=0; i-- ) {
+            SoundSprite *s = playingSoundSprites.getElement( i );
+            if( s->samplesPlayed >= s->numSamples ) {
+                playingSoundSprites.deleteElement( i );
+                }
+            }
+        }
+    
+    if( recordAudio ) {    
         
         
         if( numSamples > samplesLeftToRecord ) {
