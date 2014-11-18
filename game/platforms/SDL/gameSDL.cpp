@@ -382,7 +382,7 @@ typedef struct SoundSprite {
         int samplesPlayed;
         
         Sint16 *samples;
-    };
+    } SoundSprite;
 
 
 
