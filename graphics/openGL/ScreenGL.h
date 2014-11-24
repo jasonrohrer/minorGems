@@ -738,6 +738,13 @@ class ScreenGL {
         void playNextEventBatch();
         
 
+        // recording file may contain gaps between web event sequence
+        // numbers (if recording was trimmed by hand)
+        // adjust these so that they don't have gaps
+        int mLastReadWebEventHandle;
+        int mCurrentWebEventHandle;
+        int mNextUnusedWebEventHandle;
+        
         SimpleVector<WebEvent> mPendingWebEvents;
         SimpleVector<SocketEvent> mPendingSocketEvents;
 

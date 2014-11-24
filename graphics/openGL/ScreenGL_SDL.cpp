@@ -231,7 +231,10 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
     mCustomRecordedGameData = stringDuplicate( inCustomRecordedGameData );
     
-
+    mLastReadWebEventHandle = -1;
+    mCurrentWebEventHandle = 0;
+    mNextUnusedWebEventHandle = 0;
+    
 
     mAllowSlowdownKeysDuringPlayback = false;
 
@@ -1213,6 +1216,17 @@ void ScreenGL::playNextEventBatch() {
                 
                 WebEvent e;
                 fscanf( mEventFile, "%d %d", &( e.handle ), &( e.type ) );
+                
+                if( e.handle > mLastReadWebEventHandle ) {
+                    mLastReadWebEventHandle = e.handle;
+                    e.handle = mNextUnusedWebEventHandle;
+                    mCurrentWebEventHandle = e.handle;
+                    
+                    mNextUnusedWebEventHandle++;
+                    }
+                else {
+                    e.handle = mCurrentWebEventHandle;
+                    }
 
                 e.bodyText = NULL;
                 e.bodyLength = 0;
