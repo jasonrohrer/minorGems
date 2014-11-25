@@ -217,6 +217,14 @@ void toggleKeyMapping( char inMappingOn );
 char isCommandKeyDown();
 
 
+// toggle typing obscuring mode for event recording
+// (useful for hiding sensitive data like credit card numbers)
+// each printable ASCII number (48 through 57) will be replaced with 
+// inCharToRecordInstead
+void obscureRecordedNumericTyping( char inObscure, 
+                                   char inCharToRecordInstead );
+
+
 
 // true if clipboard works on this platform
 // false otherwise

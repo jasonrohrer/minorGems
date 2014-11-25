@@ -131,6 +131,9 @@
  *
  * 2014-January-3   Jason Rohrer
  * Added recording and playback of socket events.
+ *
+ * 2014-November-25   Jason Rohrer
+ * Added support for obscuring sensitive typing in recorded event file.
  */
 
 
@@ -2112,7 +2115,15 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
     if( currentScreenGL->mRecordingEvents && 
         currentScreenGL->mRecordingOrPlaybackStarted ) {
         
-        char *eventString = autoSprintf( "kd %d %d %d", inKey, inX, inY );
+        unsigned char keyToRecord = inKey;
+        
+        if( currentScreenGL->mObscureRecordedNumericTyping &&
+            inKey >= '0' && inKey <= '9' ) {
+            keyToRecord = currentScreenGL->mCharToRecordInstead;
+            }
+
+        char *eventString = autoSprintf( "kd %d %d %d", 
+                                         keyToRecord, inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
         }
@@ -2176,7 +2187,15 @@ void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
     if( currentScreenGL->mRecordingEvents &&
         currentScreenGL->mRecordingOrPlaybackStarted ) {
 
-        char *eventString = autoSprintf( "ku %d %d %d", inKey, inX, inY );
+        unsigned char keyToRecord = inKey;
+        
+        if( currentScreenGL->mObscureRecordedNumericTyping  &&
+            inKey >= '0' && inKey <= '9' ) {
+            keyToRecord = currentScreenGL->mCharToRecordInstead;
+            }
+
+        char *eventString = autoSprintf( "ku %d %d %d", 
+                                         keyToRecord, inX, inY );
         
         currentScreenGL->mEventBatch.push_back( eventString );
         }

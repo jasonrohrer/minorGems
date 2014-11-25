@@ -107,6 +107,9 @@
  *
  * 2014-January-3   Jason Rohrer
  * Added recording and playback of socket events.
+ *
+ * 2014-November-25   Jason Rohrer
+ * Added support for obscuring sensitive typing in recorded event file.
  */
  
  
@@ -614,6 +617,13 @@ class ScreenGL {
 		 */
 		void applyViewTransform();
 
+
+        
+        void obscureRecordedNumericTyping( char inObscure, 
+                                           char inCharToRecordInstead ) {
+            mObscureRecordedNumericTyping = inObscure;
+            mCharToRecordInstead = inCharToRecordInstead;
+            }
 		
 		
 		/**
@@ -721,6 +731,12 @@ class ScreenGL {
         char mRecordingEvents;
         char mPlaybackEvents;
         FILE *mEventFile;
+
+        char mObscureRecordedNumericTyping;
+        char mCharToRecordInstead;
+        
+
+        
 
         // length of open playback file
         int mEventFileNumBatches;

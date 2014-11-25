@@ -1988,6 +1988,16 @@ char isCommandKeyDown() {
 
 
 
+
+void obscureRecordedNumericTyping( char inObscure, 
+                                   char inCharToRecordInstead ) {
+    
+    screen->obscureRecordedNumericTyping( inObscure, inCharToRecordInstead );
+    }
+
+
+
+
 void GameSceneHandler::actionPerformed( GUIComponent *inTarget ) {
     }
 
