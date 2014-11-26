@@ -349,7 +349,7 @@ inline Type SimpleVector<Type>::getElementDirect(int index) {
 	if( index < numFilledElements && index >=0 ) {
 		return elements[index];
 		}
-	else return NULL;
+	else return (Type)NULL;
 	}
 	
 
