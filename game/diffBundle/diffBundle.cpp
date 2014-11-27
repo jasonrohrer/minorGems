@@ -171,7 +171,7 @@ static void bundleFiles( File **inDirs, int inNumDirs,
                         "but wrote %d instead\n",
                         compSize, inDBZTargetFile, numWritten );
                 }
-            printf( "Wrote %d bytes to file %s\n", ftell( outFile ),
+            printf( "Wrote %d bytes to file %s\n", (int)ftell( outFile ),
                     inDBZTargetFile );
             fclose( outFile );
             }
