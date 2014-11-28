@@ -81,6 +81,7 @@ do
     echo "  1 --  GNU/Linux"
     echo "  2 --  MacOSX"
     echo "  3 --  Win32 using MinGW"
+    echo "  4 --  Raspbian on Raspberry Pi"
     echo "  q --  quit"
 
     echo ""
@@ -97,7 +98,7 @@ do
 
     # use ASCII comparison.
 
-	if [ "$platformSelection" -gt "3" ]
+	if [ "$platformSelection" -gt "4" ]
     then
         platformSelection=""
     fi
@@ -145,6 +146,10 @@ case "$platformSelection" in
     "3" )
         platformName="Win32 MinGW"
         platformMakefile="$makefilePath/Makefile.MinGW"
+    ;;
+    "4" )
+        platformName="Raspbian"
+        platformMakefile="$makefilePath/Makefile.Raspbian"
     ;;
 
 
