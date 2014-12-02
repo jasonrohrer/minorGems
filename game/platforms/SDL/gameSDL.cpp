@@ -33,13 +33,15 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/graphics/openGL/SceneHandlerGL.h"
 #include "minorGems/graphics/Color.h"
 
-#include "minorGems/graphics/openGL/gui/GUIPanelGL.h"
-#include "minorGems/graphics/openGL/gui/GUITranslatorGL.h"
-#include "minorGems/graphics/openGL/gui/TextGL.h"
-#include "minorGems/graphics/openGL/gui/LabelGL.h"
-#include "minorGems/graphics/openGL/gui/TextFieldGL.h"
-#include "minorGems/graphics/openGL/gui/SliderGL.h"
+#include "minorGems/graphics/openGL/gui/GUIComponentGL.h"
+#include "minorGems/network/web/WebRequest.h"
 
+#include "minorGems/graphics/openGL/glInclude.h"
+
+#include "minorGems/graphics/openGL/SceneHandlerGL.h"
+#include "minorGems/graphics/openGL/MouseHandlerGL.h"
+#include "minorGems/graphics/openGL/KeyboardHandlerGL.h"
+#include "minorGems/ui/event/ActionListener.h"
 
 
 #include "minorGems/system/Time.h"
@@ -79,12 +81,34 @@ int main( int inArgCount, char **inArgs ) {
 
 
 
-#include "demoCodePanel.h"
 
 
 #ifdef RASPBIAN
+
 #include "minorGems/graphics/openGL/RaspbianGLSurface.cpp"
+
+// demo code panel uses non-GLES code
+void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
+                        int inWidth, int inHeight ) {
+    }
+char isDemoCodePanelShowing() {
+    return false;
+    }
+void freeDemoCodePanel() {
+    }
+void showWriteFailedPanel( ScreenGL *inScreen, const char *inFontTGAFileName,
+                           int inWidth, int inHeight ) {
+    }
+void freeWriteFailedPanel() {
+    }
+
+
+#else
+
+#include "demoCodePanel.h"
+
 #endif
+
 
 
 // some settings

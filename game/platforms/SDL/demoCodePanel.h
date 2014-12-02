@@ -2,7 +2,8 @@
 
 // shows panel until a correct code has been entered
 // assumes font TGA in "graphics" folder
-void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName );
+void showDemoCodePanel( ScreenGL *inScreen, const char *inFontTGAFileName,
+                        int inWidth, int inHeight );
 
 // use this to check if demo checking done
 char isDemoCodePanelShowing();
@@ -18,6 +19,7 @@ void freeDemoCodePanel();
 #include "minorGems/graphics/openGL/gui/GUITranslatorGL.h"
 #include "minorGems/graphics/openGL/gui/TextGL.h"
 #include "minorGems/graphics/openGL/gui/TextFieldGL.h"
+#include "minorGems/graphics/openGL/gui/LabelGL.h"
 #include "minorGems/graphics/Color.h"
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/util/log/AppLog.h"

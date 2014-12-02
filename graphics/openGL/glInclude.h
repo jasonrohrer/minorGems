@@ -3,6 +3,26 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 
+
+#elif defined(RASPBIAN)
+
+// GL ES
+#include <GLES/gl.h>
+
+// some things that aren't defined in GLES or have different names
+#define GLdouble     GLfloat
+#define GL_CLAMP     GL_CLAMP_TO_EDGE
+#define glClearDepth glClearDepthf
+#define glOrtho      glOrthof
+#define glFrustum    glFrustumf
+#define glGetDoublev glGetFloatv
+
+// regular mesa-supplied GLU should work
+#include <GL/glu.h>
+
+
+
+
 #else
 
 #include <GL/gl.h>
