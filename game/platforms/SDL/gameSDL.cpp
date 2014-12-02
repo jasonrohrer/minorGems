@@ -82,6 +82,10 @@ int main( int inArgCount, char **inArgs ) {
 #include "demoCodePanel.h"
 
 
+#ifdef RASPBIAN
+#include "minorGems/graphics/openGL/RaspbianGLSurface.cpp"
+#endif
+
 
 // some settings
 
@@ -331,6 +335,10 @@ void cleanUpAtExit() {
     AppLog::info( "exiting: freeing drawString\n" );
     freeDrawString();
     
+#ifdef RASPBIAN
+    raspbianReleaseSurface();
+#endif
+
     AppLog::info( "exiting: calling SDL_Quit()\n" );
     SDL_Quit();
 

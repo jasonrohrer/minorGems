@@ -164,6 +164,14 @@
 
 
 
+#ifdef RASPBIAN
+
+#include "RaspbianGLSurface.cpp"
+
+#endif
+
+
+
 /* ScreenGL to be accessed by callback functions.
  *
  * Note that this is a bit of a hack, but the callbacks
@@ -625,8 +633,13 @@ int computeAspectRatio( int inW, int inH ) {
 void ScreenGL::setupSurface() {
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	
-    int flags = SDL_OPENGL;
-    
+    int flags = 0;
+
+#ifndef RASPBIAN    
+    // don't have SDL create the GL surface
+    // (the SDL one is a software surface on Raspbian) 
+    flags = SDL_OPENGL;
+#endif
 
     // NOTE:  flags are also adjusted below if fullscreen resolution not
     // available
@@ -692,6 +705,9 @@ void ScreenGL::setupSurface() {
             mFullScreen = false;
             
             flags = SDL_OPENGL;
+#ifndef RASPBIAN  
+            flags = 0;
+#endif
             }
         }
     else{
@@ -871,7 +887,9 @@ void ScreenGL::setupSurface() {
     // current color depth
     SDL_Surface *screen = SDL_SetVideoMode( mWide, mHigh, 0, flags);
 
-
+#ifdef RASPBIAN
+    raspbianCreateSurface();
+#endif
 
 
     if ( screen == NULL ) {
@@ -2548,9 +2566,11 @@ void callbackDisplay() {
 		listener->postRedraw();
 		}
 
-	
+#ifdef RASPBIAN
+    raspbianSwapBuffers();
+#else
 	SDL_GL_SwapBuffers();
-
+#endif
 
     // thanks to Andrew McClure for the idea of doing this AFTER
     // the next redraw (for pretty minimization)
