@@ -1,1 +1,1 @@
-g++ -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -o testRaspbian testRaspbian.cpp -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host
+g++ -g -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -o testRaspbian testRaspbian.cpp -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host
