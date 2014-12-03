@@ -970,7 +970,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     // the screen vertically as well as we can
     pixelZoomFactor = screenHeight / gameHeight;
     
-
+    if( pixelZoomFactor < 1 ) {
+        pixelZoomFactor = 1;
+        }
+    
     // make sure game width fills the screen at this pixel zoom, even if game
     // height does not (letterbox on top/bottom, but never on left/rigtht)
 
