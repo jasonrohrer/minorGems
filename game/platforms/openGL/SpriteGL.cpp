@@ -112,6 +112,182 @@ SpriteGL::~SpriteGL() {
 
 
 
+
+#ifdef GLES
+
+
+// opt (found with profiler)
+// only construct these once, not every draw call
+GLfloat squareVertices[4*2];
+
+GLubyte squareColors[4*4];
+
+GLfloat squareTextureCoords[4*2];
+
+
+void SpriteGL::prepareDraw( int inFrame, 
+                            Vector3D *inPosition, 
+                            double inScale,
+                            char inLinearMagFilter ) {
+    /*
+    printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
+            (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
+            inFadeFactor );
+    */
+    
+    // profiler opt:
+    // this is expensive, and the game never needs it
+    // (all frame references are specific and never auto-cycling)
+    // inFrame = inFrame % mNumFrames;
+    
+
+    float xRadius = (float)( inScale * mBaseScaleX / 2 );
+    float yRadius = (float)( inScale * mBaseScaleY / 2 );
+
+    double xOffset = mHorizontalOffset * inScale;
+    
+
+    if( mFlipHorizontal ) {
+        xRadius = -xRadius;
+        }
+    
+
+
+    // first, set up corners relative to 0,0
+    // loop is unrolled here, with all offsets added in
+    // also, mZ ignored now, since rotation no longer done
+    float posX = (float)( inPosition->mX + xOffset );
+    float posY = (float)( inPosition->mY );
+    
+    squareVertices[0] = posX - xRadius;
+    squareVertices[1] = posY - yRadius;
+    
+    squareVertices[2] = posX + xRadius; 
+    squareVertices[3] = posY - yRadius;
+    
+    squareVertices[4] = posX - xRadius; 
+    squareVertices[5] = posY + yRadius;
+    
+    squareVertices[6] = posX + xRadius; 
+    squareVertices[7] = posY + yRadius,
+
+
+    mTexture->enable();
+    
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    
+    if( inLinearMagFilter ) {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        }
+    else {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        }
+
+
+    float textXA = (1.0f / mNumPages) * mCurrentPage;
+    float textXB = textXA + (1.0f / mNumPages );
+
+
+    float textYB = (1.0f / mNumFrames) * inFrame;
+    float textYA = textYB + (1.0f / mNumFrames );
+    
+    squareTextureCoords[0] = textXA;
+    squareTextureCoords[1] = textYA;
+
+    squareTextureCoords[2] = textXB;
+    squareTextureCoords[3] = textYA;
+    
+    squareTextureCoords[4] = textXA;
+    squareTextureCoords[5] = textYB;
+
+    squareTextureCoords[6] = textXB;
+    squareTextureCoords[7] = textYB;
+    }
+
+
+        
+
+void SpriteGL::draw( int inFrame, 
+                     Vector3D *inPosition, 
+                     double inScale,
+                     char inLinearMagFilter ) {
+    
+    
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+
+    glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
+    glEnableClientState( GL_VERTEX_ARRAY );
+    
+    //glColorPointer( 4, GL_FLOAT, 0, squareColors );
+    //glEnableClientState( GL_COLOR_ARRAY );
+    
+    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    mTexture->disable();
+    }
+
+
+
+void SpriteGL::draw( int inFrame,
+                     Vector3D *inPosition,
+                     FloatColor inCornerColors[4],
+                     double inScale,
+                     char inLinearMagFilter ) {
+
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+
+
+    glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
+    glEnableClientState( GL_VERTEX_ARRAY );
+
+
+    for( int c=0; c<4; c++ ) {
+        
+        int cDest = c;
+        if( c == 2 ) {
+            cDest = 3;
+            }
+        else if( c == 3 ) {
+            cDest = 2;
+            }
+
+        int start = cDest * 4;
+        squareColors[ start ] = inCornerColors[c].r;
+        squareColors[ start + 1 ] = inCornerColors[c].g;
+        squareColors[ start + 2 ] = inCornerColors[c].b;
+        squareColors[ start + 3 ] = inCornerColors[c].a;
+        }
+    
+    
+    glColorPointer( 4, GL_FLOAT, 0, squareColors );
+    glEnableClientState( GL_COLOR_ARRAY );
+    
+    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    mTexture->disable();
+    }
+
+
+
+
+
+
+
+#else
+
 // opt (found with profiler)
 // only construct these once, not every draw call
 Vector3D corners[4];
@@ -281,5 +457,8 @@ void SpriteGL::draw( int inFrame,
     mTexture->disable();
     }
 
+
+
+#endif
 
 
