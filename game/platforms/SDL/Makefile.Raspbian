@@ -15,7 +15,7 @@
 ##
 
 
-PLATFORM_COMPILE_FLAGS = -DLINUX -DRASPBIAN -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
+PLATFORM_COMPILE_FLAGS = -DLINUX -DRASPBIAN -DGLES -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
 
 
 # various GL and X windows  libraries needed for linux

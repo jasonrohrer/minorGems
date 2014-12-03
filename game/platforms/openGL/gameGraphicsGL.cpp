@@ -83,6 +83,194 @@ void toggleLinearMagFilter( char inLinearFilterOn ) {
 
 
 
+#ifdef GLES
+// GL ES versions of these functions
+
+
+static double *quadVertsToTriangles( int inNumQuads, double inVertices[] ) {
+    double *triangleVertices = new double[ 2 * inNumQuads * 6 ];
+    
+    for( int i=0; i<inNumQuads; i++ ) {
+        
+        int skipQ = 8 * i;
+        
+        int skipT = 12 * i;
+        
+        // first 0, 1, 2
+        triangleVertices[ skipT++ ] = inVertices[skipQ];
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 1];
+
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 2];
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 3];
+
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 4];
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 5];
+        
+        // then 0, 2, 3
+        triangleVertices[ skipT++ ] = inVertices[skipQ];
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 1];
+
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 4];
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 5];
+
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 6];
+        triangleVertices[ skipT++ ] = inVertices[skipQ + 7];
+        }
+    
+    return triangleVertices;
+    }
+
+
+void drawQuads( int inNumQuads, double inVertices[] ) {
+    
+    double *triangleVertices = quadVertsToTriangles( inNumQuads, inVertices );
+        
+    drawTriangles( inNumQuads * 2, triangleVertices );
+    delete [] triangleVertices;
+    }
+
+
+
+void drawQuads( int inNumQuads, double inVertices[], 
+                float inVertexColors[] ) {
+
+    double *triangleVertices = quadVertsToTriangles( inNumQuads, inVertices );
+    
+    float *triangleVertexColors = new float[ 3 * inNumQuads * 6 ];
+    
+    for( int i=0; i<inNumQuads; i++ ) {
+        
+        int skipQC = 12 * i;
+        
+        int skipTC = 18 * i;
+        
+        // first 0, 1, 2
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 1];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 2];
+
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 3];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 4];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 5];
+
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 6];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 7];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 8];
+
+        // then 0, 2, 3
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 1];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 2];
+
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 6];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 7];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 8];
+
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 9];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 10];
+        triangleVertexColors[ skipTC++ ] = inVertexColors[skipQC + 11];
+        }
+    
+    drawTrianglesColor( inNumQuads * 2, triangleVertices, 
+                        triangleVertexColors );
+    delete [] triangleVertices;
+    delete [] triangleVertexColors;
+    }
+
+
+
+void drawTriangles( int inNumTriangles, double inVertices[], 
+                    char inStrip, char inFan ) {
+    glEnableClientState( GL_VERTEX_ARRAY );
+
+    int numVerts;
+    if( inStrip ) {
+        numVerts = inNumTriangles + 2;
+        }
+    else if( inFan ) {
+        numVerts = inNumTriangles + 2;
+        }
+    else {
+        numVerts = inNumTriangles * 3;
+        }
+    
+    int numCoords = numVerts * 2;
+    
+    float *verts = new float[numCoords];
+    for( int i=0; i<numCoords; i++ ) {
+        verts[i] = (float)( inVertices[i] );
+        }
+
+    glVertexPointer( 2, GL_FLOAT, 0, verts );
+        
+    if( inStrip ) {
+        glDrawArrays( GL_TRIANGLE_STRIP, 0, inNumTriangles + 2 );
+        }
+    else if( inFan ) {
+        glDrawArrays( GL_TRIANGLE_FAN, 0, inNumTriangles + 2 );
+        }
+    else {
+        glDrawArrays( GL_TRIANGLES, 0, inNumTriangles * 3 );
+        }
+    
+    
+    glDisableClientState( GL_VERTEX_ARRAY );
+
+    delete [] verts;
+    }
+
+
+
+void drawTrianglesColor( int inNumTriangles, double inVertices[], 
+                         float inVertexColors[], char inStrip, char inFan ) {
+
+    glEnableClientState( GL_VERTEX_ARRAY );
+    
+    int numVerts;
+    if( inStrip ) {
+        numVerts = inNumTriangles + 2;
+        }
+    else if( inFan ) {
+        numVerts = inNumTriangles + 2;
+        }
+    else {
+        numVerts = inNumTriangles * 3;
+        }
+    
+    int numCoords = numVerts * 2;
+    
+    float *verts = new float[numCoords];
+    for( int i=0; i<numCoords; i++ ) {
+        verts[i] = (float)( inVertices[i] );
+        }
+
+
+    glVertexPointer( 2, GL_FLOAT, 0, verts );
+    
+    
+    glEnableClientState( GL_COLOR_ARRAY );
+    glColorPointer( 4, GL_FLOAT, 0, inVertexColors );
+    
+
+    if( inStrip ) {
+        glDrawArrays( GL_TRIANGLE_STRIP, 0, inNumTriangles + 2 );
+        }
+    else if( inFan ) {
+        glDrawArrays( GL_TRIANGLE_FAN, 0, inNumTriangles + 2 );
+        }
+    else {
+        glDrawArrays( GL_TRIANGLES, 0, inNumTriangles * 3 );
+        }
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+
+    delete [] verts;
+    }
+
+
+#else
+
 
 
 void drawQuads( int inNumQuads, double inVertices[] ) {
@@ -162,6 +350,7 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
     glDisableClientState( GL_COLOR_ARRAY );
     }
 
+#endif
 
 
 void enableScissor( double inX, double inY, double inWidth, double inHeight ) {

@@ -16,6 +16,8 @@
 #define glOrtho      glOrthof
 #define glFrustum    glFrustumf
 #define glGetDoublev glGetFloatv
+#define GL_SOURCE0_RGB GL_SRC0_RGB
+#define GL_SOURCE0_ALPHA GL_SRC0_ALPHA
 
 // regular mesa-supplied GLU should work
 #include <GL/glu.h>
