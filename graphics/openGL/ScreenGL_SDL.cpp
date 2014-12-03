@@ -899,13 +899,16 @@ void ScreenGL::setupSurface() {
                 SDL_GetError() );
         }
 
+#ifdef RASPBIAN
+    screenGLStencilBufferSupported = true;
+#else
     int setStencilSize;
     SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE, &setStencilSize );
     if( setStencilSize > 0 ) {
         // we have a stencil buffer
         screenGLStencilBufferSupported = true;
         }
-    
+#endif
 
 
     glEnable( GL_DEPTH_TEST );
