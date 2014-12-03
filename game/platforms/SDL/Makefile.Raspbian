@@ -19,7 +19,7 @@ PLATFORM_COMPILE_FLAGS = -DLINUX -DRASPBIAN -DGLES -I/opt/vc/include -I/opt/vc/i
 
 
 # various GL and X windows  libraries needed for linux
-PLATFORM_LINK_FLAGS = -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lGLU -lSDL -lpthread ${CUSTOM_LINUX_LINK_FLAGS}
+PLATFORM_LINK_FLAGS = -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lX11 -lGLU -lSDL -lpthread ${CUSTOM_LINUX_LINK_FLAGS}
 
 # for headless builds with no GL or SDL
 PLATFORM_LINK_FLAGS_HEADLESS = -lpthread ${CUSTOM_LINUX_LINK_FLAGS}
