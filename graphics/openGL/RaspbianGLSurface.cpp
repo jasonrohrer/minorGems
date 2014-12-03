@@ -96,21 +96,12 @@ static void raspbianCreateSurface() {
     // connect the context to the surface
     result = eglMakeCurrent( display, surface, surface, context );
     assert( EGL_FALSE != result );
-
-    // Set background color and clear buffers
-    glClearColor( 0.15f, 0.25f, 0.35f, 1.0f );
-
-    // Enable back face culling.
-    glEnable( GL_CULL_FACE );
-
-    glMatrixMode( GL_MODELVIEW );
     }
 
 
 
 
 static void raspbianSwapBuffers() {
-    glClear( GL_COLOR_BUFFER_BIT );
     eglSwapBuffers( display, surface );
     }
 
