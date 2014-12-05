@@ -81,7 +81,7 @@ do
     echo "  1 --  GNU/Linux"
     echo "  2 --  MacOSX"
     echo "  3 --  Win32 using MinGW"
-    echo "  4 --  Raspbian on Raspberry Pi"
+    echo "  4 --  Raspbian on Raspberry Pi (experimental)"
     echo "  q --  quit"
 
     echo ""
