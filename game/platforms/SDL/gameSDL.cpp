@@ -855,6 +855,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         targetFrameRate /= (int)pow( 2, readFrameRate );
         }
     
+    // can't draw less than 1 frame per second
+    if( targetFrameRate < 1 ) {
+        targetFrameRate = 1;
+        }
+    
 
     
     char recordFound = false;
