@@ -160,23 +160,6 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes );
 
 
 
-// NOTE:  to use sound sprites, getUsesSound must return true
-// and at least a no-op getSoundSamples must be implemented.
-
-// sound sprites are mixed with whatever getSoundSamples is producing
-
-// currently only supports mono 16-bit files at the same
-// sample rate as settings/soundSampleRate.ini
-
-// opens file from "sounds" folder
-
-// returns handle to sound sprite, or -1 on load failure
-int loadSoundSprite( const char *inAIFFFileName );
-
-// plays sound sprite now
-void playSoundSprite( int inHandle );
-
-void freeSoundSprite( int inHandle );
 
 
 
@@ -265,6 +248,31 @@ void unlockAudio();
 
 // returns true if sound started up and is running
 char isSoundRunning();
+
+
+// loudness in [0..1] for sound
+void setSoundLoudness( float inLoudness );
+
+// NOTE:  to use sound sprites, getUsesSound must return true
+// and at least a no-op getSoundSamples must be implemented.
+
+// sound sprites are mixed with whatever getSoundSamples is producing
+
+// currently only supports mono 16-bit files at the same
+// sample rate as settings/soundSampleRate.ini
+
+// opens file from "sounds" folder
+
+// returns handle to sound sprite, or -1 on load failure
+int loadSoundSprite( const char *inAIFFFileName );
+
+// plays sound sprite now
+void playSoundSprite( int inHandle );
+
+void freeSoundSprite( int inHandle );
+
+
+
 
 
 

@@ -422,6 +422,13 @@ static SimpleVector<SoundSprite> soundSprites;
 
 static SimpleVector<SoundSprite> playingSoundSprites;
 
+static float soundLoudness = 1.0f;
+
+
+void setSoundLoudness( float inLoudness ) {
+    soundLoudness = inLoudness;
+    }
+
 
 
 int loadSoundSprite( const char *inAIFFFileName ) {
@@ -620,6 +627,29 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 }
             }
         }
+
+    if( soundLoudness != 1.0f ) {
+        int nextByte = 0;
+        for( int i=0; i<numSamples; i++ ) {
+            Sint16 lSample = 
+                inStream[nextByte] | 
+                ( inStream[nextByte + 1] << 8 );
+            
+            Sint16 rSample = 
+                inStream[nextByte + 2] | 
+                ( inStream[nextByte + 3] << 8 );
+            
+            lSample = (Sint16)( lSample * soundLoudness );
+            rSample = (Sint16)( rSample * soundLoudness );
+            
+
+            inStream[nextByte++] = (Uint8)( lSample & 0xFF );
+            inStream[nextByte++] = (Uint8)( ( lSample >> 8 ) & 0xFF );
+            inStream[nextByte++] = (Uint8)( rSample & 0xFF );
+            inStream[nextByte++] = (Uint8)( ( rSample >> 8 ) & 0xFF );
+            }
+        }
+    
     
     if( recordAudio ) {    
         
