@@ -13,6 +13,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2015-May-12    Jason Rohrer
+ * Support for alternate languages that add keys to a language.
  */
 
 #include "minorGems/common.h"
@@ -92,8 +95,12 @@ class TranslationManager {
          *   select the English.txt language file.
          *   Language names must not contain spaces.
          *   Must be destroyed by caller.
+         * @param inClearOldKeys set to false to leave old keys in place
+         *   (from previous setLanguage call) and only add as-of-yet-unpresent
+         *   keys for this language.
          */
-        static void setLanguage( const char *inLanguageName );
+        static void setLanguage( const char *inLanguageName,
+                                 char inClearOldKeys = true );
         
 
 
@@ -101,7 +108,8 @@ class TranslationManager {
         // the file system.
         // Data string formated the same as a language file.
         // Data string destroyed by caller
-        static void setLanguageData( const char *inData );
+        static void setLanguageData( const char *inData,
+                                     char inClearOldKeys = true );
         
 
         
@@ -178,13 +186,15 @@ class TranslationManagerStaticMembers {
          *   Must be destroyed by caller.
          */
         void setDirectoryAndLanguage( const char *inDirectoryName,
-                                      const char *inLanguageName );
+                                      const char *inLanguageName,
+                                      char inClearOldKeys = true );
 
 
         // sets the data from a string
         // string contains same contents as a language file
         // string destroyed by caller
-        void setTranslationData( const char *inData );
+        void setTranslationData( const char *inData,
+                                 char inClearOldKeys = true );
 
         
         

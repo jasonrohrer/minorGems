@@ -15,6 +15,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2015-May-12    Jason Rohrer
+ * Support for alternate languages that add keys to a language.
  */
 
 #include "TranslationManager.h"
@@ -32,7 +35,8 @@ TranslationManagerStaticMembers TranslationManager::mStaticMembers;
 
 void TranslationManager::setDirectoryName( const char *inName ) {
     mStaticMembers.setDirectoryAndLanguage( inName,
-                                             mStaticMembers.mLanguageName );
+                                            mStaticMembers.mLanguageName,
+                                            true );
     }
 
 
@@ -94,15 +98,18 @@ char **TranslationManager::getAvailableLanguages( int *outNumLanguages ) {
 
 
 
-void TranslationManager::setLanguage( const char *inLanguageName ) {
+void TranslationManager::setLanguage( const char *inLanguageName,
+                                      char inClearOldKeys ) {
     mStaticMembers.setDirectoryAndLanguage( mStaticMembers.mDirectoryName,
-                                            inLanguageName );
+                                            inLanguageName,
+                                            inClearOldKeys );
     }
 
 
 
-void TranslationManager::setLanguageData( const char *inData ) {
-    mStaticMembers.setTranslationData( inData );
+void TranslationManager::setLanguageData( const char *inData,
+                                          char inClearOldKeys ) {
+    mStaticMembers.setTranslationData( inData, inClearOldKeys );
     }
 
 
@@ -162,7 +169,7 @@ TranslationManagerStaticMembers::TranslationManagerStaticMembers()
       mNaturalLanguageStrings( NULL ) {
 
     // default
-    setDirectoryAndLanguage( "languages", "English" );
+    setDirectoryAndLanguage( "languages", "English", true );
     }
 
 
@@ -183,6 +190,7 @@ TranslationManagerStaticMembers::~TranslationManagerStaticMembers() {
             delete [] *( mTranslationKeys->getElement( i ) );
             }
         delete mTranslationKeys;
+        mTranslationKeys = NULL;
         }
 
     if( mNaturalLanguageStrings != NULL ) {
@@ -192,6 +200,7 @@ TranslationManagerStaticMembers::~TranslationManagerStaticMembers() {
             delete [] *( mNaturalLanguageStrings->getElement( i ) );
             }
         delete mNaturalLanguageStrings;
+        mNaturalLanguageStrings = NULL;
         }
 
     }
@@ -200,23 +209,31 @@ TranslationManagerStaticMembers::~TranslationManagerStaticMembers() {
         
 void TranslationManagerStaticMembers::setDirectoryAndLanguage(
     const char *inDirectoryName,
-    const char *inLanguageName ) {
+    const char *inLanguageName,
+    char inClearOldKeys ) {
 
     // save temp copies first to allow caller to pass our own members in to us
     char *tempDirectoryName = stringDuplicate( inDirectoryName );
-    char *tempLanguageName = stringDuplicate( inLanguageName );
-
     
     if( mDirectoryName != NULL ) {
         delete [] mDirectoryName;
-        }
-    
-    if( mLanguageName != NULL ) {
-        delete [] mLanguageName;
-        }
+        }    
 
     mDirectoryName = tempDirectoryName;
-    mLanguageName = tempLanguageName;    
+
+
+    char *newLanguageName = stringDuplicate( inLanguageName );
+    
+    if( inClearOldKeys ) {
+        char *tempLanguageName = stringDuplicate( inLanguageName );
+        
+        if( mLanguageName != NULL ) {
+            delete [] mLanguageName;
+            }
+        
+        mLanguageName = tempLanguageName;    
+        }
+
 
     char dataSet = false;
     
@@ -225,7 +242,7 @@ void TranslationManagerStaticMembers::setDirectoryAndLanguage(
 
     if( directoryFile->exists() && directoryFile->isDirectory() ) {
 
-        char *languageFileName = autoSprintf( "%s.txt", mLanguageName );
+        char *languageFileName = autoSprintf( "%s.txt", newLanguageName );
         
         File *languageFile = directoryFile->getChildFile( languageFileName );
 
@@ -241,7 +258,7 @@ void TranslationManagerStaticMembers::setDirectoryAndLanguage(
                 
                 dataSet = true;
 
-                setTranslationData( languageData );
+                setTranslationData( languageData, inClearOldKeys );
                 delete [] languageData;
                 }
             delete languageFile;
@@ -249,13 +266,15 @@ void TranslationManagerStaticMembers::setDirectoryAndLanguage(
         }
 
     delete directoryFile;
-
-
+    
+    delete [] newLanguageName;
+    
+    
     if( !dataSet ) {
         // failed to open file...
         
         // set blank data to ensure that vectors are created
-        setTranslationData( "" );
+        setTranslationData( "", inClearOldKeys );
         }
     
     }
@@ -268,32 +287,41 @@ static inline char *stringSkip( const char *inString, int inNumChars ) {
 
 
 
-void TranslationManagerStaticMembers::setTranslationData( const char *inData ) {
+void TranslationManagerStaticMembers::setTranslationData(
+    const char *inData,
+    char inClearOldKeys ) {
     
-    // clear the old translation table
-    if( mTranslationKeys != NULL ) {
-        int numKeys = mTranslationKeys->size();
-
-        for( int i=0; i<numKeys; i++ ) {
-            delete [] *( mTranslationKeys->getElement( i ) );
+    if( inClearOldKeys ) {
+        
+        // clear the old translation table
+        if( mTranslationKeys != NULL ) {
+            int numKeys = mTranslationKeys->size();
+            
+            for( int i=0; i<numKeys; i++ ) {
+                delete [] *( mTranslationKeys->getElement( i ) );
+                }
+            delete mTranslationKeys;
+            mTranslationKeys = NULL;
             }
-        delete mTranslationKeys;
-        }
-
-    if( mNaturalLanguageStrings != NULL ) {
-        int numKeys = mNaturalLanguageStrings->size();
-
-        for( int i=0; i<numKeys; i++ ) {
-            delete [] *( mNaturalLanguageStrings->getElement( i ) );
+        
+        if( mNaturalLanguageStrings != NULL ) {
+            int numKeys = mNaturalLanguageStrings->size();
+            
+            for( int i=0; i<numKeys; i++ ) {
+                delete [] *( mNaturalLanguageStrings->getElement( i ) );
+                }
+            delete mNaturalLanguageStrings;
+            mNaturalLanguageStrings = NULL;
             }
-        delete mNaturalLanguageStrings;
         }
-
+    
+    if( mTranslationKeys == NULL ) {
+        mTranslationKeys = new SimpleVector<char *>();
+        mNaturalLanguageStrings = new SimpleVector<char *>();
+        }
+    
     
     // now read in the translation table
-    mTranslationKeys = new SimpleVector<char *>();
-    mNaturalLanguageStrings = new SimpleVector<char *>();
-            
 
     
     char readError = false;
@@ -326,12 +354,31 @@ void TranslationManagerStaticMembers::setTranslationData( const char *inData ) {
                 if( numRead == 1 ) {
                     inData = stringSkip( inData, 
                                          strlen( naturalLanguageString ) );
+                    
+                    // only insert strings for keys that don't
+                    // already exist
+                    char keyExists = false;
+                    
+                    char *trimmedKey = stringDuplicate( key );
 
-                    // trim the key and string and save them
-                    mTranslationKeys->push_back(
-                        stringDuplicate( key ) );
-                    mNaturalLanguageStrings->push_back(
-                        stringDuplicate( naturalLanguageString ) );
+                    for( int i=0; i<mTranslationKeys->size(); i++ ) {
+                        if( strcmp( *(mTranslationKeys->getElement(i) ),
+                                    trimmedKey ) == 0 ) {
+                            keyExists = true;
+                            break;
+                            }
+                        }
+                    
+                    if( !keyExists ) {
+                        
+                        // trim the key and string and save them
+                        mTranslationKeys->push_back( trimmedKey );
+                        mNaturalLanguageStrings->push_back(
+                            stringDuplicate( naturalLanguageString ) );
+                        }
+                    else {
+                        delete [] trimmedKey;
+                        }
                     }
                 else {
                     readError = true;

@@ -1061,7 +1061,16 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         if( numTokens > 0 ) {
             char *languageName = *( tokens->getElement( 0 ) );
         
-            TranslationManager::setLanguage( languageName );
+            TranslationManager::setLanguage( languageName, true );
+
+            // augment translation by adding other languages listed
+            // to fill in missing keys in top-line language
+            
+            for( int i=1; i<numTokens; i++ ) {
+                languageName = *( tokens->getElement( i ) );
+        
+                TranslationManager::setLanguage( languageName, false );
+                }
             }
         else {
             // default
@@ -1072,7 +1081,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             
             // Thus, we specify the default again here so that it looks
             // for its language files again.
-            TranslationManager::setLanguage( "English" );
+            TranslationManager::setLanguage( "English", true );
             }
         
         delete [] languageNameText;
