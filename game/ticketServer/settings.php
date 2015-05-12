@@ -153,6 +153,7 @@ $fileListHeader = $header .
 // parameters for download emails that are sent out
 $siteName = "Sleep Is Death";
 $siteEmailAddress = "Jason Rohrer <jcr13@cornell.edu>";
+$siteEmailDomain = "cornell.edu";
 
 // can be left blank to just give download information
 // should contain newlines to separate it from next part of email
