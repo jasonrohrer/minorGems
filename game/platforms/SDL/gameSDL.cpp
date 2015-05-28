@@ -342,8 +342,6 @@ void cleanUpAtExit() {
     AppLog::info( "exiting: Deleting sceneHandler\n" );
     delete sceneHandler;
 
-    AppLog::info( "exiting: Deleting screen\n" );
-    delete screen;
 
     if( soundRunning ) {
         AppLog::info( "exiting: calling SDL_CloseAudio\n" );
@@ -356,6 +354,11 @@ void cleanUpAtExit() {
         freeFrameDrawer();
         }
     
+    
+    AppLog::info( "exiting: Deleting screen\n" );
+    delete screen;
+
+
     AppLog::info( "exiting: freeing drawString\n" );
     freeDrawString();
     
