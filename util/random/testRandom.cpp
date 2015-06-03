@@ -194,6 +194,29 @@ void testRandom( RandomSource *inSource ) {
 
     delete [] drawnNumbers;
     delete [] drawnBits;
+
+
+    #define numBins 7
+
+    printf( "Uniform in %d-bin test:\n", numBins );
+    
+    int bins[numBins];
+    for( int i=0; i<numBins; i++ ) {
+        bins[i] = 0;    
+        }
+    
+    int totalCount = 100000000;
+    
+    for( int i=0; i<totalCount; i++ ) {
+        int val = inSource->getRandomBoundedInt(0,numBins-1);
+    
+        bins[val]++;
+        }
+    
+    for( int i=0; i<numBins; i++ ) {
+        printf( "Bin %d    Count = %d   Percent=%0.4f%%\n", i, bins[i],
+                100.0 * bins[i] / (float)totalCount );
+        }
     }
 
 
@@ -201,10 +224,12 @@ void testRandom( RandomSource *inSource ) {
 
 #include "CustomRandomSource.h"
 #include "StdRandomSource.h"
+#include "JenkinsRandomSource.h"
 
 int main() {
     
-    CustomRandomSource randSource( 11234258 );
+    JenkinsRandomSource randSource( 11234258 );
+    //CustomRandomSource randSource( 11234258 );
     //StdRandomSource randSource( 11 );
     
     testRandom( &randSource );
