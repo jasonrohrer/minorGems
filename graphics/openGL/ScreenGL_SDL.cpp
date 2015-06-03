@@ -1037,7 +1037,7 @@ void ScreenGL::registerSocketEvent( int inHandle,
 
         eventString = autoSprintf( "xs %u %d %u %s", inHandle, 
                                    inType, 
-                                   strlen( bodyHex ), bodyHex );
+                                   inNumBodyBytes, bodyHex );
         delete [] bodyHex;
         }
     else {
