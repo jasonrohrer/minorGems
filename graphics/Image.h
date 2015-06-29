@@ -44,6 +44,9 @@
  *
  * 2011-April-5     Jason Rohrer
  * Fixed float-to-int conversion.  
+ *
+ * 2015-June-29     Jason Rohrer
+ * Added image expansion function.  
  */
  
  
@@ -270,6 +273,13 @@ class Image : public Serializable {
         Image *getSubImage( int inStartX, int inStartY, 
                             int inWidth, int inHeight );
         
+
+
+        // centers this image in a new, larger image with a black border
+        Image *expandImage( int inExpandedWidth, int inExpandedHeight );
+
+        
+
 
         /**
          * Generated a 4-channel (alpha) image from a 3-channel image
@@ -566,6 +576,35 @@ inline Image *Image::getSubImage( int inStartX, int inStartY,
             memcpy( &( destChannel[ destY * inWidth ] ),
                     &( sourceChannel[ y * mWide + inStartX ] ),
                     sizeof( double ) * inWidth );
+            
+            destY ++;
+            }
+        }
+    
+    return destImage;
+    }
+
+
+
+inline Image *Image::expandImage( int inExpandedWidth, int inExpandedHeight ) {
+    Image *destImage = new Image( inExpandedWidth, inExpandedHeight,
+                                  mNumChannels, true );
+
+    int xOffset = ( inExpandedWidth - mWide ) / 2;
+    int yOffset = ( inExpandedHeight - mHigh ) / 2;
+    
+
+    for( int c=0; c<mNumChannels; c++ ) {
+        double *destChannel = destImage->getChannel( c );
+        double *sourceChannel = mChannels[c];
+        
+        int destY = yOffset;
+        for( int y=0; y<mHigh; y++ ) {
+            
+            // copy row
+            memcpy( &( destChannel[ destY * inExpandedWidth + xOffset ] ),
+                    &( sourceChannel[ y * mWide ] ),
+                    sizeof( double ) * mWide );
             
             destY ++;
             }
