@@ -162,6 +162,7 @@ s/^HTMLUtils.*\.o/$${HTML_UTILS_O}/; \
 s/^SettingsManager.*\.o/$${SETTINGS_MANAGER_O}/; \
 s/^TranslationManager.*\.o/$${TRANSLATION_MANAGER_O}/; \
 s/^stringUtils.*\.o/$${STRING_UTILS_O}/; \
+s/^StringTree.*\.o/$${STRING_TREE_O}/; \
 s/^sha1.*\.o/$${SHA1_O}/; \
 s/^cryptoRandom.*\.o/$${CRYPTO_RANDOM_O}/; \
 s/^curve25519.*\.o/$${CURVE_25519_O}/; \

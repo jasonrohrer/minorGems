@@ -287,6 +287,12 @@ STRING_UTILS_CPP = ${STRING_UTILS}.cpp
 STRING_UTILS_O = ${STRING_UTILS}.o
 
 
+STRING_TREE = ${ROOT_PATH}/minorGems/util/StringTree
+STRING_TREE_H = ${STRING_TREE}.h
+STRING_TREE_CPP = ${STRING_TREE}.cpp
+STRING_TREE_O = ${STRING_TREE}.o
+
+
 SHA1 = ${ROOT_PATH}/minorGems/crypto/hashes/sha1
 SHA1_H = ${SHA1}.h
 SHA1_CPP = ${SHA1}.cpp
