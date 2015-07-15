@@ -41,6 +41,7 @@
 *		Jason Rohrer	2-18-2011	Missing member inits found by cppcheck.
 *		Jason Rohrer	7-2-2014	Auto-deallocating functions for c-strings.
 *		Jason Rohrer	8-5-2014	Added getElementDirect (gets non-pointer).
+*		Jason Rohrer	7-15-2015	Fixed getElementDirect type warning.
 */
 
 #include "minorGems/common.h"
@@ -349,7 +350,8 @@ inline Type SimpleVector<Type>::getElementDirect(int index) {
 	if( index < numFilledElements && index >=0 ) {
 		return elements[index];
 		}
-	else return (Type)NULL;
+    // use 0 instead of NULL here to avoid type warnings
+	else return (Type)0;
 	}
 	
 
