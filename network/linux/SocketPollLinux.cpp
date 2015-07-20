@@ -191,6 +191,6 @@ SocketOrServer *SocketPoll::wait( int inTimeoutMS ) {
     
     // else we have an event!
     
-    return (SocketOrServer *)( returnedEvents[1].data.ptr );
+    return (SocketOrServer *)( returnedEvents[0].data.ptr );
     }
 
