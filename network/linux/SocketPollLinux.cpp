@@ -31,7 +31,7 @@ SocketPoll::~SocketPoll() {
 
     for( int i=0; i<mWatchedList.size(); i++ ) {
         SocketOrServer *s = *( mWatchedList.getElement( i ) );
-        delete [] s;
+        delete s;
         }
     }
 
