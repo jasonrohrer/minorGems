@@ -35,13 +35,15 @@
  *
  * 2012-April-16    Jason Rohrer
  * Added whitespace trimming function.
+ *
+ * 2015-July-21    Jason Rohrer
+ * Added version of autoSprintf that takes va_list explicitly.
  */
 
 
 
 #include "stringUtils.h"
 
-#include <stdarg.h>
 
 
 
@@ -408,18 +410,27 @@ char *trimWhitespace( char *inString ) {
 
 
 char *autoSprintf( const char* inFormatString, ... ) {
+    va_list argList;
+    va_start( argList, inFormatString );
+    
+    char *result = vautoSprintf( inFormatString, argList );
+    
+    va_end( argList );
+    
+    return result;
+    }
+
+
+
+char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
 
     unsigned int bufferSize = 50;
 
-    va_list argList;
-    va_start( argList, inFormatString );
 
     char *buffer = new char[ bufferSize ];
     
     int stringLength =
-        vsnprintf( buffer, bufferSize, inFormatString, argList );
-    
-    va_end( argList );
+        vsnprintf( buffer, bufferSize, inFormatString, inArgList );
 
 
     if( stringLength != -1 ) {
@@ -435,16 +446,11 @@ char *autoSprintf( const char* inFormatString, ... ) {
 
             bufferSize = (unsigned int)( stringLength + 1 );
 
-            va_list argList;
-            va_start( argList, inFormatString );
-
             buffer = new char[ bufferSize ];
 
             // can simply use vsprintf now
-            vsprintf( buffer, inFormatString, argList );
+            vsprintf( buffer, inFormatString, inArgList );
     
-            va_end( argList );
-
             return buffer;
             }
         else {
@@ -489,15 +495,10 @@ char *autoSprintf( const char* inFormatString, ... ) {
                 bufferSize = 2 * bufferSize;
                 }
 
-            va_list argList;
-            va_start( argList, inFormatString );
-
             buffer = new char[ bufferSize ];
     
             stringLength =
-                vsnprintf( buffer, bufferSize, inFormatString, argList );
-            
-            va_end( argList );            
+                vsnprintf( buffer, bufferSize, inFormatString, inArgList );
             }
 
         // trim the buffer to fit the string

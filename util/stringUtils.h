@@ -54,6 +54,9 @@
  *
  * 2012-April-16    Jason Rohrer
  * Added whitespace trimming function.
+ *
+ * 2015-July-21    Jason Rohrer
+ * Added version of autoSprintf that takes va_list explicitly.
  */
 
 
@@ -72,6 +75,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 
 
@@ -350,6 +354,10 @@ char *trimWhitespace( char *inString );
  *   Must be destroyed by caller.
  */
 char *autoSprintf( const char* inFormatString, ... );
+
+
+// same as above, but takes a va_list directly
+char *vautoSprintf( const char* inFormatString, va_list inArgList );
 
 
 
