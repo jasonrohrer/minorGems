@@ -423,6 +423,11 @@ char *autoSprintf( const char* inFormatString, ... ) {
 
 
 char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
+    
+    va_list argListCopyA;
+    
+    va_copy( argListCopyA, inArgList );
+    
 
     unsigned int bufferSize = 50;
 
@@ -449,8 +454,9 @@ char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
             buffer = new char[ bufferSize ];
 
             // can simply use vsprintf now
-            vsprintf( buffer, inFormatString, inArgList );
-    
+            vsprintf( buffer, inFormatString, argListCopyA );
+            
+            va_end( argListCopyA );
             return buffer;
             }
         else {
@@ -460,6 +466,7 @@ char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
             char *returnString = stringDuplicate( buffer );
             delete [] buffer;
             
+            va_end( argListCopyA );
             return returnString;
             }
         }
@@ -497,14 +504,20 @@ char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
 
             buffer = new char[ bufferSize ];
     
+            va_list argListCopyB;
+            va_copy( argListCopyB, argListCopyA );
+            
             stringLength =
-                vsnprintf( buffer, bufferSize, inFormatString, inArgList );
+                vsnprintf( buffer, bufferSize, inFormatString, argListCopyB );
+
+            va_end( argListCopyB );
             }
 
         // trim the buffer to fit the string
         char *returnString = stringDuplicate( buffer );
         delete [] buffer;
 
+        va_end( argListCopyA );
         return returnString;
         }
     }
