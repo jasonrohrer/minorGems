@@ -304,6 +304,7 @@ class ScreenGL {
 
         // enables time() values to be recorded and played back
         time_t getTime( time_t *__timer );
+        double getCurrentTime();
         
         
         // sets mapping so that when inFromKey is pressed, an
@@ -768,8 +769,10 @@ class ScreenGL {
         unsigned int mRandSeed;
         
         time_t mLastTimeValue;
-        
+        double mLastCurrentTimeValue;
+
         time_t mLastRecordedTimeValue;
+        double mLastRecordedCurrentTimeValue;
         
         // for emulating time() values during playback where
         // time values were not recorded

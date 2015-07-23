@@ -282,7 +282,9 @@ class GameSceneHandler :
 
 
         char mBlockQuitting;
-        
+
+        double mLastFrameRate;
+
         
     protected:
 
@@ -292,8 +294,7 @@ class GameSceneHandler :
         char mPrintFrameRate;
         unsigned long mNumFrames;
         unsigned long mFrameBatchSize;
-        unsigned long mFrameBatchStartTimeSeconds;
-        unsigned long mFrameBatchStartTimeMilliseconds;
+        double mFrameBatchStartTimeSeconds;
         
 
 
@@ -1270,11 +1271,11 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
       mPaused( false ),
       mPausedSleepTime( 0 ),
       mBlockQuitting( false ),
+      mLastFrameRate( targetFrameRate ),
       mStartTimeSeconds( time( NULL ) ),
       mPrintFrameRate( true ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
-      mFrameBatchStartTimeSeconds( time( NULL ) ),
-      mFrameBatchStartTimeMilliseconds( 0 ),
+      mFrameBatchStartTimeSeconds( -1 ),
       mBackgroundColor( 0, 0, 0, 1 ) { 
     
     
@@ -1509,6 +1510,38 @@ void GameSceneHandler::drawScene() {
                   mBackgroundColor->b,
                   mBackgroundColor->a );
     */
+
+
+
+
+    // do this here, because it involves game_getCurrentTime() calls
+    // which are recorded, and aren't available for playback in fireRedraw
+    mNumFrames ++;
+
+    if( mPrintFrameRate ) {
+        
+        if( mFrameBatchStartTimeSeconds == -1 ) {
+            mFrameBatchStartTimeSeconds = game_getCurrentTime();
+            }
+
+        if( mNumFrames % mFrameBatchSize == 0 ) {
+            // finished a batch
+            
+            double timeDelta = 
+                game_getCurrentTime() - mFrameBatchStartTimeSeconds;
+            
+            mLastFrameRate =
+                (double)mFrameBatchSize / (double)timeDelta;
+            
+            //AppLog::getLog()->logPrintf( 
+            //    Log::DETAIL_LEVEL,
+            printf(
+                "Frame rate = %f frames/second\n", mLastFrameRate );
+            
+            mFrameBatchStartTimeSeconds = game_getCurrentTime();
+            }
+        }
+
 	
 
     redoDrawMatrix();
@@ -1847,29 +1880,6 @@ void GameSceneHandler::fireRedraw() {
         }
 
 
-    mNumFrames ++;
-
-    if( mPrintFrameRate ) {
-        
-        if( mNumFrames % mFrameBatchSize == 0 ) {
-            // finished a batch
-            
-            unsigned long timeDelta =
-                Time::getMillisecondsSince( mFrameBatchStartTimeSeconds,
-                                            mFrameBatchStartTimeMilliseconds );
-
-            double frameRate =
-                1000 * (double)mFrameBatchSize / (double)timeDelta;
-            
-            //AppLog::getLog()->logPrintf( 
-            //    Log::DETAIL_LEVEL,
-            printf(
-                "Frame rate = %f frames/second\n", frameRate );
-            
-            Time::getCurrentTime( &mFrameBatchStartTimeSeconds,
-                                  &mFrameBatchStartTimeMilliseconds );
-            }
-        }
     }
 
 
@@ -2910,6 +2920,17 @@ void closeSocket( int inHandle ) {
 
 time_t game_time( time_t *__timer ) {
     return screen->getTime( __timer );
+    }
+
+
+
+double game_getCurrentTime() {
+    return screen->getCurrentTime();
+    }
+
+
+double getRecentFrameRate() {
+    return sceneHandler->mLastFrameRate;
     }
 
 

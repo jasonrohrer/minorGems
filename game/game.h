@@ -186,6 +186,14 @@ unsigned int getRandSeed();
 time_t game_time( time_t *__timer );
 
 
+// a replacement for Time::getCurrentTime that is replayable
+double game_getCurrentTime();
+
+
+// frames per second, recomputed over a batch of frames
+double getRecentFrameRate();
+
+
 
 // when inFromKey is pressed, an event for inToKey will be generated
 // (and no event for inFromKey will be generated)

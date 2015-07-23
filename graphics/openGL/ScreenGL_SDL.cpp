@@ -266,6 +266,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mLastTimeValue = time( NULL );
     mLastRecordedTimeValue = 0;
 
+    mLastCurrentTimeValue = Time::getCurrentTime();
+    mLastRecordedCurrentTimeValue = 0;
+
     mTimeValuePlayedBack = false;
     mFramesSinceLastTimeTick = 0;
 
@@ -1234,6 +1237,13 @@ void ScreenGL::playNextEventBatch() {
                 mTimeValuePlayedBack = true;
                 }
                 break;
+            case 'T': {
+                double t;
+                fscanf( mEventFile, "%lf", &t );
+                mLastCurrentTimeValue = t;
+                mTimeValuePlayedBack = true;
+                }
+                break;
             case 'w': {
                 // special case:  incoming web event
                 // (simulating response from a web server during playback)
@@ -1733,6 +1743,7 @@ void ScreenGL::start() {
                 if( mFramesSinceLastTimeTick >= mFullFrameRate ) {
                     mFramesSinceLastTimeTick = 0;
                     mLastTimeValue ++;
+                    mLastCurrentTimeValue += 1.0;
                     }
                 }
             
@@ -1975,6 +1986,44 @@ time_t ScreenGL::getTime( time_t *__timer ) {
             mEventBatch.push_back( eventString );
             
             mLastRecordedTimeValue = currentTime;
+            }
+        }
+    
+
+    return currentTime;
+    }
+
+
+
+
+double ScreenGL::getCurrentTime() {
+    
+    if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
+        mEventFile != NULL ) {
+        
+
+        return mLastCurrentTimeValue;
+        }
+    
+
+    // else just normal behavior (platform's output)
+    double currentTime = Time::getCurrentTime();
+
+    if( mRecordingEvents && 
+        mRecordingOrPlaybackStarted ) {
+        
+        // record it if it is different from the last value that we recorded
+        // thus, 't' events are sparse in our event file (and not repeated
+        // for every frame, or multiple times per frame, even if get_time()
+        // is called a lot).
+
+        if( currentTime != mLastRecordedCurrentTimeValue ) {
+            
+            char *eventString = autoSprintf( "T %lf", currentTime );
+            
+            mEventBatch.push_back( eventString );
+            
+            mLastRecordedCurrentTimeValue = currentTime;
             }
         }
     
