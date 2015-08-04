@@ -2080,6 +2080,11 @@ char isCommandKeyDown() {
 
 
 
+char isLastMouseButtonRight() {
+    return screen->isLastMouseButtonRight();
+    }
+
+
 
 void obscureRecordedNumericTyping( char inObscure, 
                                    char inCharToRecordInstead ) {

@@ -633,7 +633,11 @@ class ScreenGL {
 		//KeyboardHandlerGL *getKeyHandler();
 		//MouseHandlerGL *getMouseHandler();
 		//SceneHandlerGL *getSceneHandler();
+        
 
+        char isLastMouseButtonRight() {
+            return mLastMouseButtonRight;
+            }
 
 
 
@@ -784,6 +788,9 @@ class ScreenGL {
         // frame rate
         char mTimeValuePlayedBack;
         unsigned int mFramesSinceLastTimeTick;
+
+
+        char mLastMouseButtonRight;
 
 	};
 

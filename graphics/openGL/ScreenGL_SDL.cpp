@@ -2519,6 +2519,14 @@ void callbackMouse( int inButton, int inState, int inX, int inY ) {
         return;
         }
     
+    if( inButton == SDL_BUTTON_RIGHT ) {
+        currentScreenGL->mLastMouseButtonRight = true;
+        }
+    else {
+        currentScreenGL->mLastMouseButtonRight = false;
+        }
+    
+
     if( currentScreenGL->mRecordingEvents &&
         currentScreenGL->mRecordingOrPlaybackStarted ) {
 

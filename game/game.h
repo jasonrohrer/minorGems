@@ -124,6 +124,12 @@ void pointerDrag( float inX, float inY );
 void pointerUp( float inX, float inY );
 
 
+// called by game to check which button was pressed
+// for now, can only differentiate right clicks from other clicks
+char isLastMouseButtonRight();
+
+
+
 void keyDown( unsigned char inASCII );
 
 void keyUp( unsigned char inASCII );
