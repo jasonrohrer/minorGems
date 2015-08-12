@@ -69,6 +69,12 @@ class SocketPoll {
         
         SimpleVector<SocketOrServer*> mWatchedList;
         
+
+        // used internally by some implementations to track queue of
+        // ready sockets/servers (unused by other implementations)
+        // any elements in mReadyList are also in mWatchedList
+        SimpleVector<SocketOrServer*> mReadyList;
+        
         
     };
 
