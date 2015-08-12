@@ -1,9 +1,6 @@
 
 #include "minorGems/network/SocketPoll.h"
 
-#include <sys/epoll.h>
-#include <unistd.h>
-
 
 // implementation of SocketPoll for unix-like platforms
 // that don't have epoll (non-linux)
@@ -95,9 +92,6 @@ void SocketPoll::removeSocket( Socket *inSock ) {
     for( int i=0; i<mWatchedList.size(); i++ ) {
         SocketOrServer *s = *( mWatchedList.getElement( i ) );
         if( s->sock == inSock ) {
-            struct epoll_event ev;
-            
-            epoll_ctl( epollHandle, EPOLL_CTL_DEL, socketID, &ev );
 
             delete [] s;
             mWatchedList.deleteElement( i );
@@ -112,10 +106,7 @@ void SocketPoll::removeSocketServer( SocketServer *inServer ) {
     for( int i=0; i<mWatchedList.size(); i++ ) {
         SocketOrServer *s = *( mWatchedList.getElement( i ) );
         if( s->server == inServer ) {
-            struct epoll_event ev;
             
-            epoll_ctl( epollHandle, EPOLL_CTL_DEL, socketID, &ev );
-
             delete [] s;
             mWatchedList.deleteElement( i );
             return;
@@ -144,12 +135,12 @@ SocketOrServer *SocketPoll::wait( int inTimeoutMS ) {
     // are ready to our ready list
     while( nextSocketOrServer < mWatchedList.size() ) {
 
-        SimpleVector< SocketOrServer *s> checkList;
+        SimpleVector<SocketOrServer *> checkList;
         SimpleVector<int> checkIDList;
 
         fd_set fdr;
 
-        FD_ZERO( &fsr );
+        FD_ZERO( &fdr );
 
         int maxSocketID = 0;
 
@@ -162,20 +153,20 @@ SocketOrServer *SocketPoll::wait( int inTimeoutMS ) {
             
             checkList.push_back( s );
             
-            int *socketIDptr = (int *)( inSock->mNativeObjectPointer );
+            int *socketIDptr;
 	
             if( s->isSocket ) {
-                *socketIDptr = (int *)( s->sock->mNativeObjectPointer );
+                socketIDptr = (int *)( s->sock->mNativeObjectPointer );
                 }
             else {
-                *socketIDptr = (int *)( s->server->mNativeObjectPointer );
+                socketIDptr = (int *)( s->server->mNativeObjectPointer );
                 }
             
             int socketID = socketIDptr[0];
 
             checkIDList.push_back( socketID );
 
-            FD_SET( socketID, &fsr );
+            FD_SET( socketID, &fdr );
             
             if( socketID > maxSocketID ) {
                 maxSocketID = socketID;
@@ -186,11 +177,12 @@ SocketOrServer *SocketPoll::wait( int inTimeoutMS ) {
         
         
         // poll, no block
+        struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 0;
     
 
-        int ret = select( maxSocketID + 1, &fsr, NULL, NULL, NULL, &tv );
+        int ret = select( maxSocketID + 1, &fdr, NULL, NULL, &tv );
 
         if( ret > 0 ) {
             
@@ -200,7 +192,7 @@ SocketOrServer *SocketPoll::wait( int inTimeoutMS ) {
             
             for( int i=0; i<numChecked; i++ ) {
                 
-                if( FD_ISSET( checkIDList.getElementDirect( i ), &fsr ) ) {
+                if( FD_ISSET( checkIDList.getElementDirect( i ), &fdr ) ) {
                     
                     mReadyList.push_back( checkList.getElementDirect( i ) );
                     }
