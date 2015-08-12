@@ -75,6 +75,8 @@ class SocketPoll {
         // any elements in mReadyList are also in mWatchedList
         SimpleVector<SocketOrServer*> mReadyList;
         
+        // used by some implementations to do round-robin selects
+        int mNextSocketOrServer;
         
     };
 
