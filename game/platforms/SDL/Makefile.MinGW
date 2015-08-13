@@ -26,7 +26,7 @@ PLATFORM_COMPILE_FLAGS = -DWIN_32 -DSTATICLIB
 PLATFORM_LINK_FLAGS = -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL -mwindows -lwsock32 -static-libstdc++ -static-libgcc ${CUSTOM_MINGW_LINK_FLAGS}
 
 # for headless builds with no GL or SDL
-PLATFORM_LINK_FLAGS_HEADLESS = -lmingw32 -mwindows -lwsock32 -static-libstdc++ -static-libgcc ${CUSTOM_MINGW_LINK_FLAGS}
+PLATFORM_LINK_FLAGS_HEADLESS = -lmingw32 -mconsole -mwindows -lwsock32 -static-libstdc++ -static-libgcc ${CUSTOM_MINGW_LINK_FLAGS}
 
 
 # not used for some builds
