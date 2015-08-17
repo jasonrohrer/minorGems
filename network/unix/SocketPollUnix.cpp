@@ -109,7 +109,7 @@ void SocketPoll::removeSocket( Socket *inSock ) {
         SocketOrServer *s = *( mWatchedList.getElement( i ) );
         if( s->sock == inSock ) {
 
-            delete [] s;
+            delete s;
             mWatchedList.deleteElement( i );
             return;
             }
@@ -123,7 +123,7 @@ void SocketPoll::removeSocketServer( SocketServer *inServer ) {
         SocketOrServer *s = *( mWatchedList.getElement( i ) );
         if( s->server == inServer ) {
             
-            delete [] s;
+            delete s;
             mWatchedList.deleteElement( i );
             return;
             }

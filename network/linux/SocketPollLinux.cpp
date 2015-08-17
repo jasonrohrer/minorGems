@@ -137,7 +137,7 @@ void SocketPoll::removeSocket( Socket *inSock ) {
             
             epoll_ctl( epollHandle, EPOLL_CTL_DEL, socketID, &ev );
 
-            delete [] s;
+            delete s;
             mWatchedList.deleteElement( i );
             return;
             }
@@ -164,7 +164,7 @@ void SocketPoll::removeSocketServer( SocketServer *inServer ) {
             
             epoll_ctl( epollHandle, EPOLL_CTL_DEL, socketID, &ev );
 
-            delete [] s;
+            delete s;
             mWatchedList.deleteElement( i );
             return;
             }
