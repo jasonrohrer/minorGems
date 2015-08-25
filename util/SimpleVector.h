@@ -42,6 +42,7 @@
 *		Jason Rohrer	7-2-2014	Auto-deallocating functions for c-strings.
 *		Jason Rohrer	8-5-2014	Added getElementDirect (gets non-pointer).
 *		Jason Rohrer	7-15-2015	Fixed getElementDirect type warning.
+*		Jason Rohrer	8-25-2015	Fixed getElementDirect to handle structs.
 */
 
 #include "minorGems/common.h"
@@ -351,7 +352,10 @@ inline Type SimpleVector<Type>::getElementDirect(int index) {
 		return elements[index];
 		}
     // use 0 instead of NULL here to avoid type warnings
-	else return (Type)0;
+	else {
+        Type t;
+        return t;
+        }
 	}
 	
 
