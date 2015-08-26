@@ -353,7 +353,7 @@ inline Type SimpleVector<Type>::getElementDirect(int index) {
 		}
     // use 0 instead of NULL here to avoid type warnings
 	else {
-        Type t;
+        Type t = Type();
         return t;
         }
 	}
