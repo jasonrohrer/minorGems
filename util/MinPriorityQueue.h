@@ -57,9 +57,6 @@ class MinPriorityQueue {
                 return t;
                 }
             
-            Type *root = mStorage.getElement( 0 );
-            unsigned int *rootP = mPriority.getElement( 0 );
-            
             Type returnValue = mStorage.getElementDirect( 0 );
             
 
