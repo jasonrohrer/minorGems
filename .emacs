@@ -251,3 +251,7 @@
   (count-words-region (point-min) (point-max) )
 )
  
+
+
+;; so that gcc smart quotes are displayed properly
+(prefer-coding-system 'utf-8)
