@@ -142,20 +142,24 @@ void freeSprite( SpriteHandle inSprite );
 
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
+// Rotation is in fractions of a full clockwise rotation (0.25 is 90 deg cw)
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
-                 double inZoom = 1.0 );
+                 double inZoom = 1.0,
+                 double inRotation = 0.0 );
 
 // draw sprite with separate colors set for each corner
 // corners in BL, BR, TR, TL order
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
                  FloatColor inCornerColors[4],
-                 double inZoom = 1.0 );
+                 double inZoom = 1.0,
+                 double inRotation = 0.0 );
 
 
 // draw with current draw color, but ignore sprite's colors and use
 // only it's alpha.
 void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 
-                          double inZoom = 1.0 );
+                          double inZoom = 1.0,
+                          double inRotation = 0.0 );
 
 
 

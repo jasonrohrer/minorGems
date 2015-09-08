@@ -128,7 +128,8 @@ GLfloat squareTextureCoords[4*2];
 void SpriteGL::prepareDraw( int inFrame, 
                             Vector3D *inPosition, 
                             double inScale,
-                            char inLinearMagFilter ) {
+                            char inLinearMagFilter,
+                            double inRotation ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -169,7 +170,25 @@ void SpriteGL::prepareDraw( int inFrame,
     squareVertices[5] = posY + yRadius;
     
     squareVertices[6] = posX + xRadius; 
-    squareVertices[7] = posY + yRadius,
+    squareVertices[7] = posY + yRadius;
+    
+    
+    if( inRotation != 0 ) {
+        double cosAngle = cos( - 2 * M_PI * inRotation );
+        double sinAngle = sin( - 2 * M_PI * inRotation );
+        
+        int index = 0;
+        for( int i=0; i<4; i++ ) {
+            double x = squareVertices[ index ];
+            double y = squareVertices[ index + 1 ];
+            
+            squareVertices[ index ] = x * cosAngle - y * sinAngle;
+            squareVertices[ index + 1 ] = x * sinAngle + y * cosAngle;
+            
+            index += 2;
+            }
+        }
+    
 
 
     mTexture->enable();
@@ -210,10 +229,12 @@ void SpriteGL::prepareDraw( int inFrame,
 void SpriteGL::draw( int inFrame, 
                      Vector3D *inPosition, 
                      double inScale,
-                     char inLinearMagFilter ) {
+                     char inLinearMagFilter,
+                     double inRotation ) {
     
     
-    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inRotation );
 
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
     glEnableClientState( GL_VERTEX_ARRAY );
@@ -238,9 +259,11 @@ void SpriteGL::draw( int inFrame,
                      Vector3D *inPosition,
                      FloatColor inCornerColors[4],
                      double inScale,
-                     char inLinearMagFilter ) {
+                     char inLinearMagFilter,
+                     double inRotation ) {
 
-    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inRotation );
 
 
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
@@ -298,7 +321,8 @@ double textXA, textXB, textYA, textYB;
 void SpriteGL::prepareDraw( int inFrame, 
                             Vector3D *inPosition, 
                             double inScale,
-                            char inLinearMagFilter ) {
+                            char inLinearMagFilter,
+                            double inRotation ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -328,22 +352,55 @@ void SpriteGL::prepareDraw( int inFrame,
     // also, mZ ignored now, since rotation no longer done
     double posX = inPosition->mX + xOffset;
     double posY = inPosition->mY;
-    
-    corners[0].mX = posX - xRadius;
-    corners[0].mY = posY - yRadius;
-    //corners[0].mZ = 0;
 
-    corners[1].mX = posX + xRadius;
-    corners[1].mY = posY - yRadius;
-    //corners[1].mZ = 0;
+    if( inRotation == 0 ) {
+        
+        corners[0].mX = posX - xRadius;
+        corners[0].mY = posY - yRadius;
+        //corners[0].mZ = 0;
+        
+        corners[1].mX = posX + xRadius;
+        corners[1].mY = posY - yRadius;
+        //corners[1].mZ = 0;
+        
+        corners[2].mX = posX + xRadius;
+        corners[2].mY = posY + yRadius;
+        //corners[2].mZ = 0;
+        
+        corners[3].mX = posX - xRadius;
+        corners[3].mY = posY + yRadius;
+        //corners[3].mZ = 0;
+        }
+    else {
+        corners[0].mX = - xRadius;
+        corners[0].mY = - yRadius;
+        //corners[0].mZ = 0;
+        
+        corners[1].mX = xRadius;
+        corners[1].mY = - yRadius;
+        //corners[1].mZ = 0;
+        
+        corners[2].mX = xRadius;
+        corners[2].mY = yRadius;
+        //corners[2].mZ = 0;
+        
+        corners[3].mX = - xRadius;
+        corners[3].mY = yRadius;
 
-    corners[2].mX = posX + xRadius;
-    corners[2].mY = posY + yRadius;
-    //corners[2].mZ = 0;
+        double cosAngle = cos( - 2 * M_PI * inRotation );
+        double sinAngle = sin( - 2 * M_PI * inRotation );
+        
+        for( int i=0; i<4; i++ ) {
+            double x = corners[i].mX;
+            double y = corners[i].mY;
+            
+            corners[i].mX = x * cosAngle - y * sinAngle;
+            corners[i].mY = x * sinAngle + y * cosAngle;
 
-    corners[3].mX = posX - xRadius;
-    corners[3].mY = posY + yRadius;
-    //corners[3].mZ = 0;
+            corners[i].mX += posX;
+            corners[i].mY += posY;
+            }
+        }
 
     // int i;
     
@@ -398,10 +455,11 @@ void SpriteGL::prepareDraw( int inFrame,
 void SpriteGL::draw( int inFrame, 
                      Vector3D *inPosition, 
                      double inScale,
-                     char inLinearMagFilter ) {
+                     char inLinearMagFilter,
+                     double inRotation ) {
     
-    
-    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inRotation );
     
     glBegin( GL_QUADS ); {
         
@@ -427,9 +485,11 @@ void SpriteGL::draw( int inFrame,
                      Vector3D *inPosition,
                      FloatColor inCornerColors[4],
                      double inScale,
-                     char inLinearMagFilter ) {
+                     char inLinearMagFilter,
+                     double inRotation ) {
 
-    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter );
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inRotation );
     
     glBegin( GL_QUADS ); {
         

@@ -498,7 +498,7 @@ void freeSprite( SpriteHandle inSprite ) {
 
 // draw with current draw color
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
-                 double inZoom ) {
+                 double inZoom, double inRotation  ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
     
     Vector3D pos( inCenter.x, inCenter.y, 0 );
@@ -506,14 +506,14 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     sprite->draw( 0,
                   &pos,
                   inZoom,
-                  linearTextureFilterOn );
+                  linearTextureFilterOn, inRotation );
     }
 
 
 
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
                  FloatColor inCornerColors[4],
-                 double inZoom ) {
+                 double inZoom, double inRotation ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
     
     Vector3D pos( inCenter.x, inCenter.y, 0 );
@@ -522,13 +522,13 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
                   &pos,
                   inCornerColors,
                   inZoom,
-                  linearTextureFilterOn );
+                  linearTextureFilterOn, inRotation );
     }
 
 
 
 void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 
-                          double inZoom ) {
+                          double inZoom, double inRotation ) {
 
     // ignores texture colors, use alpha only
 
@@ -545,7 +545,7 @@ void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter,
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
 
-    drawSprite( inSprite, inCenter, inZoom );
+    drawSprite( inSprite, inCenter, inZoom, inRotation );
 
     // restore texture mode
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
