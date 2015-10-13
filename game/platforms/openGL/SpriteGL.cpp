@@ -129,7 +129,7 @@ void SpriteGL::prepareDraw( int inFrame,
                             Vector3D *inPosition, 
                             double inScale,
                             char inLinearMagFilter,
-                            double inRotation ) {
+                            double inRotation, inFlipH ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -210,6 +210,12 @@ void SpriteGL::prepareDraw( int inFrame,
     float textYB = (1.0f / mNumFrames) * inFrame;
     float textYA = textYB + (1.0f / mNumFrames );
     
+    if( inFlipH ) {
+        double temp = textXA;
+        textXA = textXB;
+        textXB = temp;
+        }
+
     squareTextureCoords[0] = textXA;
     squareTextureCoords[1] = textYA;
 
@@ -230,11 +236,12 @@ void SpriteGL::draw( int inFrame,
                      Vector3D *inPosition, 
                      double inScale,
                      char inLinearMagFilter,
-                     double inRotation ) {
+                     double inRotation,
+                     char inFlipH ) {
     
     
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
-                 inRotation );
+                 inRotation, inFlipH );
 
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
     glEnableClientState( GL_VERTEX_ARRAY );
@@ -260,10 +267,11 @@ void SpriteGL::draw( int inFrame,
                      FloatColor inCornerColors[4],
                      double inScale,
                      char inLinearMagFilter,
-                     double inRotation ) {
+                     double inRotation,
+                     char inFlipH ) {
 
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
-                 inRotation );
+                 inRotation, inFlipH );
 
 
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
@@ -322,7 +330,8 @@ void SpriteGL::prepareDraw( int inFrame,
                             Vector3D *inPosition, 
                             double inScale,
                             char inLinearMagFilter,
-                            double inRotation ) {
+                            double inRotation,
+                            char inFlipH ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -447,6 +456,14 @@ void SpriteGL::prepareDraw( int inFrame,
 
     textYB = (1.0 / mNumFrames) * inFrame;
     textYA = textYB + (1.0 / mNumFrames );
+
+    
+    if( inFlipH ) {
+        double temp = textXA;
+        textXA = textXB;
+        textXB = temp;
+        }
+    
     }
 
 
@@ -456,10 +473,11 @@ void SpriteGL::draw( int inFrame,
                      Vector3D *inPosition, 
                      double inScale,
                      char inLinearMagFilter,
-                     double inRotation ) {
+                     double inRotation,
+                     char inFlipH ) {
     
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
-                 inRotation );
+                 inRotation, inFlipH );
     
     glBegin( GL_QUADS ); {
         
@@ -486,10 +504,11 @@ void SpriteGL::draw( int inFrame,
                      FloatColor inCornerColors[4],
                      double inScale,
                      char inLinearMagFilter,
-                     double inRotation ) {
+                     double inRotation,
+                     char inFlipH ) {
 
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
-                 inRotation );
+                 inRotation, inFlipH );
     
     glBegin( GL_QUADS ); {
         

@@ -48,7 +48,8 @@ class SpriteGL{
                    char inLinearMagFilter = false,
                    // rotation where 0.25 = 90 degrees clockwise, 
                    // and 1.0 is a full  rotation
-                   double inRotation = 0 );
+                   double inRotation = 0,
+                   char inFlipH = false );
         
         // draw sprite with separate colors set for each corner
         // corners in BL, BR, TR, TL order
@@ -57,7 +58,8 @@ class SpriteGL{
                    FloatColor inCornerColors[4],
                    double inScale = 1,
                    char inLinearMagFilter = false,
-                   double inRotation = 0 );
+                   double inRotation = 0,
+                   char inFlipH = false );
         
 
 
@@ -124,7 +126,8 @@ class SpriteGL{
                           Vector3D *inPosition, 
                           double inScale,
                           char inLinearMagFilter,
-                          double inRotation );
+                          double inRotation,
+                          char inFlipH );
         
     };
 
