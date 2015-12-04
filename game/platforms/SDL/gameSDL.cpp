@@ -2861,7 +2861,7 @@ int readFromSocket( int inHandle,
     if( sock != NULL ) {
         
         int numRead = 0;
-        
+        int bodySize = 0;
 
         if( sock->isConnected() ) {
             
@@ -2876,12 +2876,13 @@ int readFromSocket( int inHandle,
         int type = 2;
         if( numRead == -1 ) {
             type = 3;
-            numRead = 0;
+            bodySize = 0;
             }
         
         unsigned char *bodyBytes = NULL;
         if( numRead > 0 ) {
             bodyBytes = inDataBuffer;
+            bodySize = numRead;
             }
         
         screen->registerSocketEvent( inHandle, type, numRead, bodyBytes );
