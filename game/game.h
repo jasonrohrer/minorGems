@@ -428,5 +428,10 @@ char relaunchGame();
 
 
 
+// triggers clean exit behavior
+void quitGame();
+
+
+
 #endif
 

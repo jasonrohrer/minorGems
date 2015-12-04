@@ -3266,3 +3266,9 @@ char relaunchGame() {
     }
 #endif
 
+
+
+
+void quitGame() {
+    exit( 0 );
+    }
