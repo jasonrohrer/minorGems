@@ -91,6 +91,13 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         mSpriteWidth = width / 16;
         mSpriteHeight = height / 16;
         
+        if( mSpriteHeight == mSpriteWidth ) {
+            mAccentsPresent = false;
+            }
+        else {
+            mAccentsPresent = true;
+            }
+
         if( inFixedCharWidth == 0 ) {
             mCharBlockWidth = mSpriteWidth;
             }
@@ -360,8 +367,14 @@ double Font::drawString( const char *inString, doublePair inPosition,
     
     double x = inPosition.x;
     
+    
+    double y = inPosition.y;
+
     // compensate for extra headspace in accent-equipped font files
-    double y = inPosition.y + scale * mSpriteHeight / 4;
+    if( mAccentsPresent ) { 
+        y += scale * mSpriteHeight / 4;
+        }
+
     
     double stringWidth = 0;
     
@@ -494,7 +507,13 @@ double Font::measureString( const char *inString ) {
 
 
 double Font::getFontHeight() {
-    return scaleFactor * mScaleFactor * mSpriteHeight / 2;
+    double accentFactor = 1.0f;
+    
+    if( mAccentsPresent ) {
+        accentFactor = 0.5f;
+        }
+    
+    return scaleFactor * mScaleFactor * mSpriteHeight * accentFactor;
     }
 
 

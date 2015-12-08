@@ -87,6 +87,9 @@ class Font {
         int mSpriteWidth;
         int mSpriteHeight;
         
+        char mAccentsPresent;
+        
+
         int mCharBlockWidth;
         
 
