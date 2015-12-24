@@ -689,3 +689,20 @@ int StringTree::getMatches( const char *inSearch,
     }
 
         
+
+void StringTree::print() {
+    printf( "Printing StringTree:\n" );
+
+    printf( "#  command:  dot -Tpng test.graph >graph.png\n\n" );
+    
+
+    printf( "digraph G{\n\n" );
+
+    if( mTreeRoot != NULL ) {
+        mTreeRoot->print();
+        }
+    else {
+        //printf( "NULL" );
+        }
+    printf( "\n}\n\n" );
+    }

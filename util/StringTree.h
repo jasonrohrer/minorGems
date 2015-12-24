@@ -28,6 +28,9 @@ class StringTree {
         int getMatches( const char *inSearch, int inNumToSkip, int inNumToGet,
                         void **outValues );
         
+        // prints whole treen in Graphviz format
+        void print();
+        
     protected:
         
         StringTreeNode *mTreeRoot;
