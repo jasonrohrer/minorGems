@@ -1574,6 +1574,8 @@ void GameSceneHandler::drawScene() {
         drawString( loadingFailedMessage, true );
         }
     else if( !writeFailed && !loadingFailedFlag && !frameDrawerInited ) {
+        drawString( translate( "loading" ), true );
+
         initFrameDrawer( pixelZoomFactor * gameWidth, 
                          pixelZoomFactor * gameHeight, 
                          targetFrameRate,
