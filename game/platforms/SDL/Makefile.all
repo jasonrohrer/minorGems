@@ -115,10 +115,10 @@ include ${LAYER_DEPENDS}
 # $<   represents the name.png file
 #
 graphics/%.tga: %.png
-	convert $< -type TrueColor $@
+	convert $< -type truecolormatte $@
 graphics/%.tga: graphicsSource/%.png
-	convert $< -type TrueColor $@
+	convert $< -type truecolormatte $@
 music/%.tga: %.png
-	convert $< -type TrueColor $@
+	convert $< -type truecolormatte $@
 
 
