@@ -2877,7 +2877,6 @@ int readFromSocket( int inHandle,
         int type = 2;
         if( numRead == -1 ) {
             type = 3;
-            numRead = 0;
             }
         
         unsigned char *bodyBytes = NULL;
