@@ -213,6 +213,7 @@ void callbackIdle();
 */
 
 ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
+                    char inDoNotChangeNativeResolution,
                     unsigned int inMaxFrameRate,
                     char inRecordEvents,
                     const char *inCustomRecordedGameData,
@@ -224,6 +225,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 	: mWide( inWide ), mHigh( inHigh ),
       mForceAspectRatio( false ),
       mForceSpecifiedDimensions( false ),
+      mDoNotChangeNativeResolution( inDoNotChangeNativeResolution ),
       mImageWide( inWide ), mImageHigh( inHigh ),
       mFullScreen( inFullScreen ),
       mMaxFrameRate( inMaxFrameRate ),
@@ -668,10 +670,6 @@ void ScreenGL::setupSurface() {
     // check for available modes
     SDL_Rect** modes;
 
-    AppLog::getLog()->logPrintf( 
-        Log::INFO_LEVEL,
-        "Checking if requested video mode (%dx%d) is available",
-        mWide, mHigh );
     
     // Get available fullscreen/hardware modes
     modes = SDL_ListModes( NULL, flags);
@@ -687,6 +685,9 @@ void ScreenGL::setupSurface() {
         AppLog::info( "All resolutions available" );
         }
     else if( mForceSpecifiedDimensions && mFullScreen ) {
+        
+        AppLog::info( "Requested video mode is forced (playback?)" );
+
         // check if specified dimension available in fullscreen
         
         char match = false;
@@ -713,7 +714,20 @@ void ScreenGL::setupSurface() {
 #endif
             }
         }
+    else if( mFullScreen && mDoNotChangeNativeResolution ) {
+        AppLog::info( "Sticking with user's current screen resolution" );
+        
+        mWide = currentW;
+        mHigh = currentH;        
+        }
     else{
+
+        AppLog::getLog()->logPrintf( 
+            Log::INFO_LEVEL,
+            "Checking if requested video mode (%dx%d) is available",
+            mWide, mHigh );
+
+        
         // Print valid modes
 
         // only count a match of BOTH resolution and aspect ratio

@@ -978,7 +978,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     char *hashSalt = getHashSalt();
 
     screen =
-        new ScreenGL( screenWidth, screenHeight, fullscreen, targetFrameRate,
+        new ScreenGL( screenWidth, screenHeight, fullscreen, 
+                      shouldNativeScreenResolutionBeUsed(),
+                      targetFrameRate,
                       recordGame,
                       customData,
                       hashSalt,

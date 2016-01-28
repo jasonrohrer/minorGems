@@ -198,6 +198,8 @@ class ScreenGL {
 		 * @param inFullScreen set to true for full screen mode.
          *   NOTE that full screen mode requires inWide and inHigh to match
          *   an available screen resolution.
+         * @param inDoNotChangeNativeResolution if true, the screen resolution
+         *   is left alone.
 		 * @param inWindowName name to be displayed on title bar of window.
          * @param inMaxFrameRate in frames per second.
          * @param inRecordEvents true to record events to file.
@@ -218,7 +220,8 @@ class ScreenGL {
 		 *   NULL specifies no handler (defaults to NULL).
 		 *   Must be destroyed by caller.
 		 */
-		ScreenGL( int inWide, int inHigh, char inFullScreen, 
+		ScreenGL( int inWide, int inHigh, char inFullScreen,
+				  char inDoNotChangeNativeResolution,
 				  unsigned int inMaxFrameRate,
                   char inRecordEvents,
                   const char *inCustomRecordedGameData,
@@ -679,6 +682,10 @@ class ScreenGL {
 		
         // goes beyond just forcing the aspect ratio
         char mForceSpecifiedDimensions;
+        
+        // if true, when resolution not forced, we don't
+        // change the user's resolution at all
+        char mDoNotChangeNativeResolution;
         
 
         // for an viewport image that can be smaller than our screen

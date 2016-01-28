@@ -17,11 +17,22 @@ const char *getWindowTitle();
 
 // returns true or false
 // if false, game image size defaults to 320x240
+// this is only used if useLargestWindow is set and the game is running in
+// windowed mode, because the largest
+// whole-number multiple of GameImageSize that fits on the screen is used
+// (good for pixel art games with perfect, blown-up pixels)
+// Otherwise, GameImageSize, or its default of 320x240, has no effect
 char doesOverrideGameImageSize();
 
 
 // only called if doesOverrideGameImageSize returns true
 void getGameImageSize( int *outWidth, int *outHeight );
+
+
+// only affects games running in fullscreen
+// If true, we will leave the user's resolution alone, and scale the game 
+// up (or down) to whatever resolution they are running.
+char shouldNativeScreenResolutionBeUsed();
 
 
 
