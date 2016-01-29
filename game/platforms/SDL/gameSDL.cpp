@@ -1015,17 +1015,45 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         pixelZoomFactor = 1;
         }
     
-    // make sure game width fills the screen at this pixel zoom, even if game
-    // height does not (letterbox on top/bottom, but never on left/rigtht)
 
-    // closest number of whole pixels
-    // may be *slight* black bars on left/right
-    gameWidth = screenWidth / pixelZoomFactor;
+    if( ! isNonIntegerScalingAllowed() ) {
+        
+        // make sure game width fills the screen at this pixel zoom, 
+        // even if game
+        // height does not (letterbox on top/bottom, but never on left/rigtht)
+
+        // closest number of whole pixels
+        // may be *slight* black bars on left/right
+        gameWidth = screenWidth / pixelZoomFactor;
     
+        screen->setImageSize( pixelZoomFactor * gameWidth,
+                              pixelZoomFactor * gameHeight );
+        }
+    else {
+        
+        pixelZoomFactor = 1;
+        
+        double targetAspectRatio = (double)gameWidth / (double)gameHeight;
+        
+        double screenAspectRatio = (double)screenWidth / (double)screenHeight;
+        
+        int imageW = screenWidth;
+        int imageH = screenHeight;
+        
+        if( screenAspectRatio > targetAspectRatio ) {
+            // screen too wide
+            
+            imageW = (int)( targetAspectRatio * imageH );
+            }
+        else if( screenAspectRatio < targetAspectRatio ) {
+            // too tall
 
+            imageH = (int)( imageW / targetAspectRatio );
+            }
 
-    screen->setImageSize( pixelZoomFactor * gameWidth,
-                          pixelZoomFactor * gameHeight );
+        screen->setImageSize( imageH,
+                              imageW );
+        }
     
 
     screen->allowSlowdownKeysDuringPlayback( enableSpeedControlKeys );

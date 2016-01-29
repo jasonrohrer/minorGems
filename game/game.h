@@ -35,6 +35,12 @@ void getGameImageSize( int *outWidth, int *outHeight );
 char shouldNativeScreenResolutionBeUsed();
 
 
+// if false, screen image size is always an integer multiple of target
+// size (for perfect pixels)
+char isNonIntegerScalingAllowed();
+
+
+
 
 
 // The platform-independent app name
