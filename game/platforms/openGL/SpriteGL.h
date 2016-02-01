@@ -15,6 +15,13 @@
 class SpriteGL{
     public:
         
+        // toggles for subsequent constructor calls
+        static void toggleMipMapGeneration( char inGenerateMipMaps ) {
+            sGenerateMipMaps = inGenerateMipMaps;
+            }
+            
+        
+
         // transparent color for RGB images can be taken from lower-left
         // corner pixel
         // lower-left corner ignored for RGBA images
@@ -46,6 +53,7 @@ class SpriteGL{
                    Vector3D *inPosition,
                    double inScale = 1,
                    char inLinearMagFilter = false,
+                   char inMipMapFilter = false,
                    // rotation where 0.25 = 90 degrees clockwise, 
                    // and 1.0 is a full  rotation
                    double inRotation = 0,
@@ -58,6 +66,7 @@ class SpriteGL{
                    FloatColor inCornerColors[4],
                    double inScale = 1,
                    char inLinearMagFilter = false,
+                   char inMipMapFilter = false,
                    double inRotation = 0,
                    char inFlipH = false );
         
@@ -100,6 +109,9 @@ class SpriteGL{
         
 
     protected:
+
+        static char sGenerateMipMaps;
+        
         SingleTextureGL *mTexture;
         
         int mNumFrames;
@@ -126,6 +138,7 @@ class SpriteGL{
                           Vector3D *inPosition, 
                           double inScale,
                           char inLinearMagFilter,
+                          char inMipMapFilter,
                           double inRotation,
                           char inFlipH );
         

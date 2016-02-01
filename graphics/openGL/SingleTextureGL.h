@@ -71,12 +71,14 @@ class SingleTextureGL {
 		 *   Must be destroyed by caller.
          * @param inRepeat true to repeat (tile) texture.
          *   Defaults to true.
+         * @param inMipMap true to automatically generate mipmap.
 		 *
 		 * Note that width and height must each be powers of 2 and
 		 * not larger than 256 (for 3DFX compatability).  Additionally,
 		 * for 3DFX compatability, the aspect ratio should not exceed 8:1.
 		 */
-		SingleTextureGL( Image *inImage, char inRepeat = true );
+		SingleTextureGL( Image *inImage, char inRepeat = true,
+                         char inMipMap = false );
 
 
 		/**
@@ -84,7 +86,8 @@ class SingleTextureGL {
 		 */
 		SingleTextureGL( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight,
-                         char inRepeat = true );
+                         char inRepeat = true,
+                         char inMipMap = false );
 
         
         /**
@@ -95,7 +98,8 @@ class SingleTextureGL {
 		SingleTextureGL( char inAlphaOnly,
                          unsigned char *inA, 
                          unsigned int inWidth, unsigned int inHeight,
-                         char inRepeat = true );
+                         char inRepeat = true,
+                         char inMipMap = false );
 
 
 		
@@ -169,6 +173,7 @@ class SingleTextureGL {
 		
 	private:
         char mRepeat;
+        char mMipMap;
         
 		GLuint mTextureID;
         

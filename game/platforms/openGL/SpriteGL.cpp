@@ -7,6 +7,9 @@
 
 
 
+char SpriteGL::sGenerateMipMaps = false;
+
+
 
 SpriteGL::SpriteGL( Image *inImage,
                     char inTransparentLowerLeftCorner,
@@ -41,7 +44,8 @@ void SpriteGL::initTexture( Image *inImage,
 
     mTexture = new SingleTextureGL( spriteImage,
                                     // no wrap
-                                    false );
+                                    false,
+                                    sGenerateMipMaps );
 
     mBaseScaleX = spriteImage->getWidth() / mNumPages;
     mBaseScaleY = spriteImage->getHeight() / mNumFrames;
@@ -67,7 +71,8 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
 
     mTexture = new SingleTextureGL( inRGBA, inWidth, inHeight,
                                     // no wrap
-                                    false );
+                                    false,
+                                    sGenerateMipMaps );
 
     mBaseScaleX = inWidth / mNumPages;
     mBaseScaleY = inHeight / mNumFrames;
@@ -92,7 +97,8 @@ SpriteGL::SpriteGL( char inAlphaOnly,
     mTexture = new SingleTextureGL( inAlphaOnly,
                                     inA, inWidth, inHeight,
                                     // no wrap
-                                    false );
+                                    false,
+                                    sGenerateMipMaps );
 
     mBaseScaleX = inWidth / mNumPages;
     mBaseScaleY = inHeight / mNumFrames;
@@ -129,6 +135,7 @@ void SpriteGL::prepareDraw( int inFrame,
                             Vector3D *inPosition, 
                             double inScale,
                             char inLinearMagFilter,
+                            char inMipMapFilter,
                             double inRotation, inFlipH ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
@@ -193,7 +200,21 @@ void SpriteGL::prepareDraw( int inFrame,
 
     mTexture->enable();
     
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    if( inMipMapFilter ) {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                         GL_LINEAR_MIPMAP_LINEAR );
+        }
+    else {
+        
+        if( inLinearMagFilter ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                             GL_LINEAR );
+            }
+        else {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                             GL_NEAREST );
+            }
+        }
     
     if( inLinearMagFilter ) {
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -236,11 +257,13 @@ void SpriteGL::draw( int inFrame,
                      Vector3D *inPosition, 
                      double inScale,
                      char inLinearMagFilter,
+                     char inMipMapFilter,
                      double inRotation,
                      char inFlipH ) {
     
     
-    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+    prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter, 
+                 inMipMapFilter
                  inRotation, inFlipH );
 
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
@@ -267,10 +290,12 @@ void SpriteGL::draw( int inFrame,
                      FloatColor inCornerColors[4],
                      double inScale,
                      char inLinearMagFilter,
+                     char inMipMapFilter,
                      double inRotation,
                      char inFlipH ) {
 
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inMipMapFilter,
                  inRotation, inFlipH );
 
 
@@ -330,6 +355,7 @@ void SpriteGL::prepareDraw( int inFrame,
                             Vector3D *inPosition, 
                             double inScale,
                             char inLinearMagFilter,
+                            char inMipMapFilter,
                             double inRotation,
                             char inFlipH ) {
     /*
@@ -441,16 +467,31 @@ void SpriteGL::prepareDraw( int inFrame,
     */          
     mTexture->enable();
     
-    //glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+
+    
+    if( inMipMapFilter ) {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                         GL_LINEAR_MIPMAP_LINEAR );
+        }
+    else {
+        
+        if( inLinearMagFilter ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                             GL_LINEAR );
+            }
+        else {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                             GL_NEAREST );
+            }
+        }
     
     if( inLinearMagFilter ) {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
         }
     else {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
         }
+
     
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
@@ -479,10 +520,12 @@ void SpriteGL::draw( int inFrame,
                      Vector3D *inPosition, 
                      double inScale,
                      char inLinearMagFilter,
+                     char inMipMapFilter,
                      double inRotation,
                      char inFlipH ) {
     
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inMipMapFilter,
                  inRotation, inFlipH );
     
     glBegin( GL_QUADS ); {
@@ -510,10 +553,12 @@ void SpriteGL::draw( int inFrame,
                      FloatColor inCornerColors[4],
                      double inScale,
                      char inLinearMagFilter,
+                     char inMipMapFilter,
                      double inRotation,
                      char inFlipH ) {
 
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
+                 inMipMapFilter,
                  inRotation, inFlipH );
     
     glBegin( GL_QUADS ); {

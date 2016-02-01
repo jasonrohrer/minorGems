@@ -47,6 +47,9 @@ void toggleAdditiveTextureColoring( char inAdditive );
 // defautls to nearest-neighbor texture magnification
 void toggleLinearMagFilter( char inLinearFilterOn );
 
+void toggleMipMapMinFilter( char inMipMapFilterOn );
+
+
 
 // draw using last set color
 // four vertices per quad
@@ -98,6 +101,10 @@ void disableStencil();
 
 
 typedef void * SpriteHandle;
+
+
+// toggles mipmap generation for subsequent sprite loading/filling calls
+void toggleMipMapGeneration( char inGenerateMipMaps );
 
 
 // loads sprite from graphics directory

@@ -83,6 +83,20 @@ void toggleLinearMagFilter( char inLinearFilterOn ) {
 
 
 
+void toggleMipMapGeneration( char inGenerateMipMaps ) {
+    SpriteGL::toggleMipMapGeneration( inGenerateMipMaps );
+    }
+
+
+
+static char mipMapTextureFilterOn = false;
+
+void toggleMipMapMinFilter( char inMipMapFilterOn ) {
+    mipMapTextureFilterOn = inMipMapFilterOn;
+    }
+
+
+
 #ifdef GLES
 // GL ES versions of these functions
 
@@ -506,7 +520,8 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     sprite->draw( 0,
                   &pos,
                   inZoom,
-                  linearTextureFilterOn, inRotation, inFlipH );
+                  linearTextureFilterOn,
+                  mipMapTextureFilterOn, inRotation, inFlipH );
     }
 
 
@@ -522,7 +537,8 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
                   &pos,
                   inCornerColors,
                   inZoom,
-                  linearTextureFilterOn, inRotation, inFlipH );
+                  linearTextureFilterOn, mipMapTextureFilterOn,
+                  inRotation, inFlipH );
     }
 
 

@@ -70,8 +70,10 @@ void SingleTextureGL::reloadFromBackup() {
 
 
 
-SingleTextureGL::SingleTextureGL( Image *inImage, char inRepeat )
+SingleTextureGL::SingleTextureGL( Image *inImage, char inRepeat, 
+                                  char inMipMap )
     : mRepeat( inRepeat ), 
+      mMipMap( inMipMap ),
       mAlphaOnly( false ),
       mBackupBytes( NULL ) {
 
@@ -94,8 +96,9 @@ SingleTextureGL::SingleTextureGL( Image *inImage, char inRepeat )
 SingleTextureGL::SingleTextureGL( unsigned char *inRGBA, 
                                   unsigned int inWidth, 
                                   unsigned int inHeight,
-                                  char inRepeat )
-    : mRepeat( inRepeat ), 
+                                  char inRepeat, char inMipMap )
+    : mRepeat( inRepeat ),
+      mMipMap( inMipMap ),
       mAlphaOnly( false ),
       mBackupBytes( NULL ) {
 
@@ -118,8 +121,9 @@ SingleTextureGL::SingleTextureGL( unsigned char *inRGBA,
 SingleTextureGL::SingleTextureGL( char inAlphaOnly,
                                   unsigned char *inA, 
                                   unsigned int inWidth, unsigned int inHeight,
-                                  char inRepeat )
-    : mRepeat( inRepeat ), 
+                                  char inRepeat, char inMipMap )
+    : mRepeat( inRepeat ),
+      mMipMap( inMipMap ),
       mAlphaOnly( true ),
       mBackupBytes( NULL ) {
 
@@ -265,11 +269,19 @@ void SingleTextureGL::setTextureData( unsigned char *inBytes,
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
-	glTexImage2D( GL_TEXTURE_2D, 0,
-				  internalTexFormat, inWidth,
-				  inHeight, 0,
-				  texDataFormat, GL_UNSIGNED_BYTE, inBytes );
-
+    if( mMipMap ) {
+        gluBuild2DMipmaps( GL_TEXTURE_2D,
+                           internalTexFormat, inWidth,
+                           inHeight,
+                           texDataFormat, GL_UNSIGNED_BYTE, inBytes );
+        }
+    else {
+        glTexImage2D( GL_TEXTURE_2D, 0,
+                      internalTexFormat, inWidth,
+                      inHeight, 0,
+                      texDataFormat, GL_UNSIGNED_BYTE, inBytes );
+        }
+    
 	error = glGetError();
 	if( error != GL_NO_ERROR ) {		// error
 		printf( "Error setting texture data for id %d, error = %d, \"%s\"\n",
