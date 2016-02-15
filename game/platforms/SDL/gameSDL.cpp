@@ -805,12 +805,15 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         screenWidth, screenHeight );
 
 
-    if( screenWidth < gameWidth ) {
+    if( ! isNonIntegerScalingAllowed() && 
+        screenWidth < gameWidth ) {
+        
         AppLog::info( 
             "Screen width smaller than target game width, fixing" );
         screenWidth = gameWidth;
         }
-    if( screenHeight < gameHeight ) {
+    if( ! isNonIntegerScalingAllowed() && 
+        screenHeight < gameHeight ) {
         AppLog::info( 
             "Screen height smaller than target game height, fixing" );
         screenHeight = gameHeight;
