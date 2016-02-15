@@ -820,6 +820,26 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
     
 
+    if( isNonIntegerScalingAllowed() ) {
+        
+        double screenRatio = (double)screenWidth / (double)screenHeight;
+        double gameRatio = (double)gameWidth / (double)gameHeight;
+        
+        if( screenRatio > gameRatio ) {
+            // screen too wide
+
+            // tell game about this by making game image wider than requested}
+
+            AppLog::info( 
+                "Screen has wider aspect ratio than desired game image, " 
+                "fixing by makign game image wider" );
+            
+            gameWidth = (int)( screenRatio * gameHeight );
+
+            // if screen too narrow, this is already handled elsewhere
+            }
+        }
+    
 
     char fullscreenFound = false;
     int readFullscreen = SettingsManager::getIntSetting( "fullscreen", 
