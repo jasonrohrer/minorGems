@@ -108,6 +108,21 @@ class SpriteGL{
             }
         
 
+
+        // these ignore pages and frames, returning
+        // total image size
+        int getWidth() {
+            return mWidth;
+            }
+
+        
+        int getHeight() {
+            return mHeight;
+            }
+        
+        
+
+
     protected:
 
         static char sGenerateMipMaps;
@@ -116,6 +131,8 @@ class SpriteGL{
         
         int mNumFrames;
         int mNumPages;
+        
+        int mWidth, mHeight;
         
         double mBaseScaleX;
         double mBaseScaleY;

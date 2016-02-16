@@ -147,6 +147,11 @@ void writeTGAFile( const char *inTGAFileName, Image *inImage );
 void freeSprite( SpriteHandle inSprite );
 
 
+int getSpriteWidth( SpriteHandle inSprite );
+
+int getSpriteHeight( SpriteHandle inSprite );
+
+
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
 // Rotation is in fractions of a full clockwise rotation (0.25 is 90 deg cw)

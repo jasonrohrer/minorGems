@@ -509,6 +509,21 @@ void freeSprite( SpriteHandle inSprite ) {
 
 
 
+int getSpriteWidth( SpriteHandle inSprite ) {
+    SpriteGL *sprite = (SpriteGL *)inSprite;
+    return sprite->getWidth();
+    }
+
+
+
+int getSpriteHeight( SpriteHandle inSprite ) {
+    SpriteGL *sprite = (SpriteGL *)inSprite;
+    return sprite->getHeight();
+    }
+
+
+
+
 
 // draw with current draw color
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 

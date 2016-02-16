@@ -47,8 +47,12 @@ void SpriteGL::initTexture( Image *inImage,
                                     false,
                                     sGenerateMipMaps );
 
-    mBaseScaleX = spriteImage->getWidth() / mNumPages;
-    mBaseScaleY = spriteImage->getHeight() / mNumFrames;
+
+    mWidth = spriteImage->getWidth();
+    mHeight = spriteImage->getHeight();
+    
+    mBaseScaleX =  mWidth / mNumPages;
+    mBaseScaleY = mHeight / mNumFrames;
     
     if( imageToDelete != NULL ) {
         delete imageToDelete;
@@ -73,7 +77,10 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
                                     // no wrap
                                     false,
                                     sGenerateMipMaps );
-
+    
+    mWidth = inWidth;
+    mHeight = inHeight;
+    
     mBaseScaleX = inWidth / mNumPages;
     mBaseScaleY = inHeight / mNumFrames;
     
@@ -99,6 +106,9 @@ SpriteGL::SpriteGL( char inAlphaOnly,
                                     // no wrap
                                     false,
                                     sGenerateMipMaps );
+
+    mWidth = inWidth;
+    mHeight = inHeight;
 
     mBaseScaleX = inWidth / mNumPages;
     mBaseScaleY = inHeight / mNumFrames;
