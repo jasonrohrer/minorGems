@@ -198,6 +198,17 @@ void getSoundSamples( Uint8 *inBuffer, int inLengthToFillInBytes );
 void loadingFailed( const char *inFailureMessage );
 
 
+// tells game engine that loading is done
+// note that games can have interactive loading that extends beyond 
+// initFrameDrawer and into subsequent drawFrame calls (so that the game
+// can display progress bars and other screen updates during loading)
+// Frame rates during loading may be lower than target (because we want to
+// barely update the screen to make loading as fast as possible)
+// Thus, we don't want to measure our true frame rate and use it until
+// after loading is over.  This call tells the game engine that frame
+// rate measurement can start.
+void loadingComplete();
+
 
 unsigned int getRandSeed();
 

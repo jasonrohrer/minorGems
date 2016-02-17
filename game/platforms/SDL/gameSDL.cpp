@@ -141,6 +141,9 @@ char loadingFailedFlag = false;
 char *loadingFailedMessage = NULL;
 
 
+char loadingDone = false;
+
+
 char loadingMessageShown = false;
 char frameDrawerInited = false;
 
@@ -276,6 +279,8 @@ class GameSceneHandler :
         
 
         char mPaused;
+        char mPausedDuringFrameBatch;
+        char mLoadingDuringFrameBatch;
 
         // reduce sleep time when user hits keys to restore responsiveness
         unsigned int mPausedSleepTime;
@@ -1322,6 +1327,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
     : mScreen( inScreen ),
       mPaused( false ),
+      mPausedDuringFrameBatch( true ),
+      mLoadingDuringFrameBatch( true ),
       mPausedSleepTime( 0 ),
       mBlockQuitting( false ),
       mLastFrameRate( targetFrameRate ),
@@ -1583,15 +1590,27 @@ void GameSceneHandler::drawScene() {
             double timeDelta = 
                 game_getCurrentTime() - mFrameBatchStartTimeSeconds;
             
-            mLastFrameRate =
+            double actualFrameRate =
                 (double)mFrameBatchSize / (double)timeDelta;
             
             //AppLog::getLog()->logPrintf( 
             //    Log::DETAIL_LEVEL,
             printf(
-                "Frame rate = %f frames/second\n", mLastFrameRate );
+                "Frame rate = %f frames/second\n", actualFrameRate );
             
             mFrameBatchStartTimeSeconds = game_getCurrentTime();
+
+            // don't update reported framerate if this batch involved a pause
+            // or if still loading
+            if( !mPausedDuringFrameBatch && !mLoadingDuringFrameBatch ) {
+                mLastFrameRate = actualFrameRate;
+                }
+            else {
+                // consider measuring next frame batch
+                // (unless a pause or loading occurs there too)
+                mPausedDuringFrameBatch = false;
+                mLoadingDuringFrameBatch = false;
+                }
             }
         }
 
@@ -1918,9 +1937,14 @@ void GameSceneHandler::mouseReleased( int inX, int inY ) {
 
 void GameSceneHandler::fireRedraw() {
 
+    if( !loadingDone ) {
+        mLoadingDuringFrameBatch = true;
+        }
     
     if( mPaused ) {
         // ignore redraw event
+        
+        mPausedDuringFrameBatch = true;
 
         if( mPausedSleepTime > (unsigned int)( 5 * targetFrameRate ) ) {
             // user has touched nothing for 5 seconds
@@ -2987,8 +3011,17 @@ double game_getCurrentTime() {
     }
 
 
+
 double getRecentFrameRate() {
-    return sceneHandler->mLastFrameRate;
+    if( screen->isPlayingBack() ) {
+
+        return screen->getRecordedFrameRate();
+        }
+    else {
+        screen->registerActualFrameRate( sceneHandler->mLastFrameRate );
+        
+        return sceneHandler->mLastFrameRate;
+        }
     }
 
 
@@ -3002,6 +3035,11 @@ void loadingFailed( const char *inFailureMessage ) {
     loadingFailedMessage = stringDuplicate( inFailureMessage );
     }
 
+
+
+void loadingComplete() {
+    loadingDone = true;
+    }
 
 
 

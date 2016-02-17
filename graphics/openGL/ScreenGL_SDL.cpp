@@ -271,6 +271,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mLastCurrentTimeValue = Time::getCurrentTime();
     mLastRecordedCurrentTimeValue = 0;
 
+    mLastActualFrameRate = inMaxFrameRate;
+
     mTimeValuePlayedBack = false;
     mFramesSinceLastTimeTick = 0;
 
@@ -1258,6 +1260,12 @@ void ScreenGL::playNextEventBatch() {
                 mTimeValuePlayedBack = true;
                 }
                 break;
+            case 'F': {
+                double fps;
+                fscanf( mEventFile, "%lf", &fps );
+                mLastActualFrameRate = fps;
+                }
+                break;
             case 'w': {
                 // special case:  incoming web event
                 // (simulating response from a web server during playback)
@@ -2043,6 +2051,24 @@ double ScreenGL::getCurrentTime() {
     
 
     return currentTime;
+    }
+
+
+
+void ScreenGL::registerActualFrameRate( double inFrameRate ) {
+    if( mRecordingEvents && 
+        mRecordingOrPlaybackStarted ) {
+        
+        char *eventString = autoSprintf( "F %lf", inFrameRate );
+            
+        mEventBatch.push_back( eventString );
+        }
+    }
+
+
+
+double ScreenGL::getRecordedFrameRate() {
+    return mLastActualFrameRate;
     }
 
 

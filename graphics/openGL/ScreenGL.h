@@ -308,6 +308,13 @@ class ScreenGL {
         // enables time() values to be recorded and played back
         time_t getTime( time_t *__timer );
         double getCurrentTime();
+
+        
+        // to save FPS in recording files
+        void registerActualFrameRate( double inFrameRate );
+
+        // these can be played back
+        double getRecordedFrameRate();
         
         
         // sets mapping so that when inFromKey is pressed, an
@@ -781,6 +788,9 @@ class ScreenGL {
         
         time_t mLastTimeValue;
         double mLastCurrentTimeValue;
+
+        double mLastActualFrameRate;
+        
 
         time_t mLastRecordedTimeValue;
         double mLastRecordedCurrentTimeValue;
