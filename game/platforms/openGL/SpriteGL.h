@@ -24,7 +24,8 @@ class SpriteGL{
 
         // transparent color for RGB images can be taken from lower-left
         // corner pixel
-        // lower-left corner ignored for RGBA images
+        // lower-left corner ignored for RGBA images unless A channel 
+        // is solid 1.0
         // image split vertically into inNumFrames of equal size
         SpriteGL( Image *inImage,
                 char inTransparentLowerLeftCorner = false,

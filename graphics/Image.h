@@ -286,6 +286,9 @@ class Image : public Serializable {
          * by using the color of the lower left corner pixel as a transparent
          * background color.
          *
+         * Note that if a 4-channel image is passed in, the existing alpha
+         * channel will be replaced in the returned image.
+         *
          * @return a new 4-channel image.  Must be destoryed by caller.
          */
         Image *generateAlphaChannel();

@@ -34,11 +34,42 @@ void SpriteGL::initTexture( Image *inImage,
     
     Image *imageToDelete = NULL;
     
-    if( spriteImage->getNumChannels() == 3 && inTransparentLowerLeftCorner ) {
-        // use lower-left corner color as transparent color for alpha
-        spriteImage = spriteImage->generateAlphaChannel();
-        imageToDelete = spriteImage;
+    if( inTransparentLowerLeftCorner ) {
+        
+        char generateAlpha = false;
+        
+        if( spriteImage->getNumChannels() < 4 ) {
+            generateAlpha = true;
+            }
+        else {
+            // check if existing alpha is all 1.0
+            // if so, override it
+            // (but if it contains some information, keep it and ignore
+            //  transparency color from corner)
+            
+            generateAlpha = true;
+            
+            int numPixels = 
+                spriteImage->getWidth() * spriteImage->getHeight();
+            
+            double *alpha = spriteImage->getChannel( 3 );
+            
+            for( int i=0; i<numPixels; i++ ) {
+                if( alpha[i] != 1.0 ) {
+                    generateAlpha = false;
+                    break;
+                    }
+                }
+            }
+        
+
+        if( generateAlpha ) {        
+            // use lower-left corner color as transparent color for alpha
+            spriteImage = spriteImage->generateAlphaChannel();
+            imageToDelete = spriteImage;
+            }
         }
+    
     
                 
 
