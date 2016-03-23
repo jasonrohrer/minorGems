@@ -294,6 +294,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mEventFileNumBatches = 0;
     mNumBatchesPlayed = 0;
     
+    mObscureRecordedNumericTyping = false;
+
     // playback overrides recording, check for it first
     // do this before setting up surface
     
