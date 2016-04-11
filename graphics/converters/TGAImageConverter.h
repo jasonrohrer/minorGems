@@ -25,6 +25,8 @@
 
 #include "LittleEndianImageConverter.h"
 
+#include "minorGems/graphics/RawRGBAImage.h"
+
 
 /**
  * TGA (Targa) implementation of the image conversion interface.
@@ -47,6 +49,7 @@ class TGAImageConverter : public LittleEndianImageConverter {
 			
 		virtual Image *deformatImage( InputStream *inStream );		
 
+		virtual RawRGBAImage *deformatImageRaw( InputStream *inStream );
 
 	};
 
@@ -192,9 +195,11 @@ inline void TGAImageConverter::formatImage( Image *inImage,
 
 
 
-inline Image *TGAImageConverter::deformatImage( InputStream *inStream ) {
-	
-	// a buffer for reading single bytes
+
+inline RawRGBAImage *TGAImageConverter::deformatImageRaw( 
+    InputStream *inStream ) {
+    
+    // a buffer for reading single bytes
 	unsigned char *byteBuffer = new unsigned char[1];
 
 	// read the identification field size
@@ -289,8 +294,48 @@ inline Image *TGAImageConverter::deformatImage( InputStream *inStream ) {
 	
 	
 	// now we read the pixels, in BGR(A) order
-	unsigned char *raster = new unsigned char[ numPixels * numChannels  ];
+	unsigned char *raster = new unsigned char[ numPixels * numChannels ];
 	inStream->read( raster, numPixels * numChannels );
+
+    if( !originAtTop ) {
+
+        // flip it
+        unsigned char *flippedRaster = 
+            new unsigned char[ numPixels * numChannels ];
+        
+
+        int lineBytes = width * numChannels;
+
+        for( int y=0; y<height; y++ ) {
+            memcpy( &( flippedRaster[lineBytes * y] ),
+                    &( raster[ lineBytes * ( height - y - 1 ) ] ),
+                    lineBytes );
+            }
+        
+        delete [] raster;
+        raster = flippedRaster;
+        }
+    
+    delete [] byteBuffer;
+    return new RawRGBAImage( raster, width, height, numChannels );
+    }
+
+
+
+inline Image *TGAImageConverter::deformatImage( InputStream *inStream ) {
+	RawRGBAImage *rawImage = deformatImageRaw( inStream );
+	
+    if( rawImage == NULL ) {
+        return NULL;
+        }
+    
+    unsigned char *raster = rawImage->mRGBABytes;
+    int width = rawImage->mWidth;
+    int height = rawImage->mHeight;
+    
+    int numChannels = rawImage->mNumChannels;
+
+    int numPixels = width * height;
 
     // optimization:  don't init channels to black (found with profiler)
 	Image *image = new Image( width, height, numChannels, false );
@@ -303,76 +348,33 @@ inline Image *TGAImageConverter::deformatImage( InputStream *inStream ) {
 	double inv255 = 1.0 / 255.0;
 
 	if( numChannels == 3 ) {
-		if( originAtTop ) {
-			for( int i=0; i<numPixels; i++ ) {
-				blue[i] = inv255 * raster[ rasterIndex ];
-				green[i] = inv255 * raster[ rasterIndex + 1 ];
-				red[i] = inv255 * raster[ rasterIndex + 2 ];
+        for( int i=0; i<numPixels; i++ ) {
+            blue[i] = inv255 * raster[ rasterIndex ];
+            green[i] = inv255 * raster[ rasterIndex + 1 ];
+            red[i] = inv255 * raster[ rasterIndex + 2 ];
 			
-				rasterIndex += 3;
-				}
-			}
-		else {
-			// we need to flip the raster vertically as we
-			// copy it into our return image
-			for( int y=height-1; y>=0; y-- ) {
-				for( int x=0; x<width; x++ ) {
-					int imageIndex = y * width + x;
-
-					blue[ imageIndex ] = inv255 * raster[ rasterIndex ];
-					green[imageIndex] = inv255 * raster[ rasterIndex + 1 ];
-					red[imageIndex] = inv255 * raster[ rasterIndex + 2 ];
-				
-					rasterIndex += 3;
-					}
-				}
-			}
-		}
+            rasterIndex += 3;
+            }
+        }
 	else {  // numChannels == 4
 		double *alpha = image->getChannel( 3 );
-		
-		if( originAtTop ) {
-			for( int i=0; i<numPixels; i++ ) {
-                // optimization:  use postfix increment operators in
-                // array index
-                // (found with profiler)
-				blue[i] = inv255 * raster[ rasterIndex ++ ];
-				green[i] = inv255 * raster[ rasterIndex ++ ];
-				red[i] = inv255 * raster[ rasterIndex ++ ];
-				alpha[i] = inv255 * raster[ rasterIndex ++ ];
-				
-                // optimization
-				// rasterIndex += 4;
-				}
-			}
-		else {
-			// we need to flip the raster vertically as we
-			// copy it into our return image
-			for( int y=height-1; y>=0; y-- ) {
-				int yOffset = y * width;
-                
-                for( int x=0; x<width; x++ ) {
-					int imageIndex = yOffset + x;
-                    
-                    // optimization:  use postfix increment operators in
-                    // array index
-                    // (found with profiler)
-
-					blue[ imageIndex ] = inv255 * raster[ rasterIndex ++ ];
-					green[imageIndex] = inv255 * raster[ rasterIndex ++ ];
-					red[imageIndex] = inv255 * raster[ rasterIndex ++ ];
-					alpha[imageIndex] = inv255 * raster[ rasterIndex ++ ];
-					
-                    // optimization
-					// rasterIndex += 4;
-					}
-				}
-			}
+        for( int i=0; i<numPixels; i++ ) {
+            // optimization:  use postfix increment operators in
+            // array index
+            // (found with profiler)
+            blue[i] = inv255 * raster[ rasterIndex ++ ];
+            green[i] = inv255 * raster[ rasterIndex ++ ];
+            red[i] = inv255 * raster[ rasterIndex ++ ];
+            alpha[i] = inv255 * raster[ rasterIndex ++ ];
+            
+            // optimization
+            // rasterIndex += 4;
+            }
 		}
 
 	
-	delete [] raster;
-	delete [] byteBuffer;
+	delete rawImage;
+	
 
 	return image;
 	}
