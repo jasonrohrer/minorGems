@@ -2237,6 +2237,68 @@ Image *readTGAFileBase( const char *inTGAFileName ) {
 
 
 
+
+
+
+static RawRGBAImage *readTGAFileRaw( File *inFile ) {
+    
+    if( !inFile->exists() ) {
+        char *fileName = inFile->getFullFileName();
+        
+        char *logString = autoSprintf( 
+            "CRITICAL ERROR:  TGA file %s does not exist",
+            fileName );
+        delete [] fileName;
+        
+        AppLog::criticalError( logString );
+        delete [] logString;
+    
+        return NULL;
+        }    
+
+
+    FileInputStream tgaStream( inFile );
+    
+    TGAImageConverter converter;
+    
+    RawRGBAImage *result = converter.deformatImageRaw( &tgaStream );
+
+    if( result == NULL ) {        
+        char *fileName = inFile->getFullFileName();
+        
+        char *logString = autoSprintf( 
+            "CRITICAL ERROR:  could not read TGA file %s, wrong format?",
+            fileName );
+        delete [] fileName;
+        
+        AppLog::criticalError( logString );
+        delete [] logString;
+        }
+    
+    return result;
+    }
+
+
+
+RawRGBAImage *readTGAFileRaw( const char *inTGAFileName ) {
+
+    File tgaFile( new Path( "graphics" ), inTGAFileName );
+    
+    return readTGAFileRaw( &tgaFile );
+    }
+
+
+
+RawRGBAImage *readTGAFileRawBase( const char *inTGAFileName ) {
+
+    File tgaFile( NULL, inTGAFileName );
+    
+    return readTGAFileRaw( &tgaFile );
+    }
+
+
+
+
 void writeTGAFile( const char *inTGAFileName, Image *inImage ) {
     File tgaFile( NULL, inTGAFileName );
     FileOutputStream tgaStream( &tgaFile );

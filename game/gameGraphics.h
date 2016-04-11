@@ -8,6 +8,7 @@
 #include "doublePair.h"
 
 #include "minorGems/graphics/Image.h"
+#include "minorGems/graphics/RawRGBAImage.h"
 
 
 typedef struct FloatColor {
@@ -137,6 +138,12 @@ Image *readTGAFile( const char *inTGAFileName );
 
 // same, but reads from the main directory
 Image *readTGAFileBase( const char *inTGAFileName );
+
+
+RawRGBAImage *readTGAFileRaw( const char *inTGAFileName );
+
+// same, but reads from the main directory
+RawRGBAImage *readTGAFileRawBase( const char *inTGAFileName );
 
 
 // write a TGA file into main directory
