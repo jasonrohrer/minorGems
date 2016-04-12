@@ -316,6 +316,18 @@ inline RawRGBAImage *TGAImageConverter::deformatImageRaw(
         raster = flippedRaster;
         }
     
+    // convert to RGB(A) order
+    int numBytes = numPixels * numChannels;
+    int r = 2;
+    for( int b=0; b<numBytes; b+= numChannels ) {
+        unsigned char temp = raster[b];
+        
+        raster[b] = raster[r];
+        raster[r] = temp;
+        
+        r += numChannels;
+        }
+
     delete [] byteBuffer;
     return new RawRGBAImage( raster, width, height, numChannels );
     }
@@ -349,9 +361,9 @@ inline Image *TGAImageConverter::deformatImage( InputStream *inStream ) {
 
 	if( numChannels == 3 ) {
         for( int i=0; i<numPixels; i++ ) {
-            blue[i] = inv255 * raster[ rasterIndex ];
+            red[i] = inv255 * raster[ rasterIndex ];
             green[i] = inv255 * raster[ rasterIndex + 1 ];
-            red[i] = inv255 * raster[ rasterIndex + 2 ];
+            blue[i] = inv255 * raster[ rasterIndex + 2 ];
 			
             rasterIndex += 3;
             }
@@ -362,9 +374,9 @@ inline Image *TGAImageConverter::deformatImage( InputStream *inStream ) {
             // optimization:  use postfix increment operators in
             // array index
             // (found with profiler)
-            blue[i] = inv255 * raster[ rasterIndex ++ ];
-            green[i] = inv255 * raster[ rasterIndex ++ ];
             red[i] = inv255 * raster[ rasterIndex ++ ];
+            green[i] = inv255 * raster[ rasterIndex ++ ];
+            blue[i] = inv255 * raster[ rasterIndex ++ ];
             alpha[i] = inv255 * raster[ rasterIndex ++ ];
             
             // optimization
