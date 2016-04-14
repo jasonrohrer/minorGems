@@ -57,6 +57,9 @@
  *
  * 2015-July-21    Jason Rohrer
  * Added version of autoSprintf that takes va_list explicitly.
+ *
+ * 2016-April-14    Jason Rohrer
+ * Added fast int scanning function.
  */
 
 
@@ -359,6 +362,36 @@ char *autoSprintf( const char* inFormatString, ... );
 // same as above, but takes a va_list directly
 char *vautoSprintf( const char* inFormatString, va_list inArgList );
 
+
+
+/**
+ * Fast scanning of a series of integers from a string that are separated
+ * by single characters.
+ *
+ * Advances the passed-in pointer past the following non-int character.
+ *
+ * Example:
+ *
+ * char *s = "10 11 12 13";
+ * char *nextScanPointer = s;
+ *
+ * int x = scanNextIntAndSkipNextCharacter( &nextScanPointer );
+ * int y = scanNextIntAndSkipNextCharacter( &nextScanPointer );
+ * int z = scanNextIntAndSkipNextCharacter( &nextScanPointer );
+ *
+ * char success;
+ * int a = scanNextIntAndSkipNextCharacter( &nextScanPointer, &success );
+ *
+ *
+ * @param inStringPointer pointer to a pointer into a string.
+ *   The pointed-to pointer is advanced by this call.
+ * @param outSuccess optional pointer to where success flag should be
+ *   returned, or NULL to not report success.  Defaults to NULL.
+ *
+ * @return the scanned integer, or default of 0 if scanning fails.
+ */
+int scanIntAndSkip( char **inOutStringPointer,
+                    char *outSuccess = NULL  );
 
 
 #endif

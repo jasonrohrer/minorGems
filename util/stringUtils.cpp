@@ -38,11 +38,17 @@
  *
  * 2015-July-21    Jason Rohrer
  * Added version of autoSprintf that takes va_list explicitly.
+ *
+ * 2016-April-14    Jason Rohrer
+ * Added fast int scanning function.
  */
 
 
 
 #include "stringUtils.h"
+
+
+#include <stdlib.h>
 
 
 
@@ -520,5 +526,32 @@ char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
         va_end( argListCopyA );
         return returnString;
         }
+    }
+
+
+
+
+int scanIntAndSkip( char **inOutStringPointer,
+                    char *outSuccess ) {
+
+    char *oldPointer = *inOutStringPointer;
+    
+    int val = strtol( *inOutStringPointer, inOutStringPointer, 10 );
+    
+    char success = false;
+    if( *inOutStringPointer != oldPointer ) {
+        success = true;
+
+        // advance past next character following int
+        *inOutStringPointer = &( (*inOutStringPointer)[1] );
+        }
+    // else scan failure
+    // don't advance pointer, will return 0 by default below
+    
+    if( outSuccess != NULL ) {
+        *outSuccess = success;
+        }
+
+    return val;
     }
 

@@ -22,6 +22,8 @@
 
 
 #include <sys/stat.h>
+#include <stdlib.h>
+
 
 static void copyPermissions( char *inSourceFile, char *inDestFile ) {
     struct stat sourceST;
@@ -163,16 +165,16 @@ int stepUpdate() {
             int size;
             unsigned char *result = getWebResult( webHandle, &size );
 
-            int rawSize, compSize;
-            int bytesScanned;
-            int numRead =
-                sscanf( (char*)result, "%d %d %n", 
-                        &rawSize, &compSize, &bytesScanned );
+            char *nextRawScanPointer = (char*)result;
             
-            // not sure whether %n counts as a read argument or not
-            if( numRead == 2 || numRead == 3 ) {
+            // don't use sscanf here because it scans the entire buffer
+            // (and this buffer has binary data at end)
+            int rawSize = scanIntAndSkip( &nextRawScanPointer );
+            int compSize = scanIntAndSkip( &nextRawScanPointer );
+
+            if( rawSize > 0 && compSize > 0 ) {
                 
-                unsigned char *compData = & result[ bytesScanned ];
+                unsigned char *compData = (unsigned char*)nextRawScanPointer;
                 
                 char *hash = computeSHA1Digest( compData, compSize );
 
@@ -193,32 +195,27 @@ int stepUpdate() {
                     return -1;
                     }
 
-                int bytesUsed = 0;
+                                
+                char *nextScanPointer = (char*)rawData;
+                char success;
                 
-                int numDirs;
-                numRead =
-                    sscanf( (char*)&rawData[bytesUsed], "%d %n", 
-                            &numDirs, &bytesScanned );
+                int numDirs = scanIntAndSkip( &nextScanPointer, &success );
                     
-                if( numRead != 1 && numRead != 2 ) {
+                if( !success ) {
                     printf( "Failed to parse dir count from diff bundle\n" );
                     dumpRawDataToFile( rawData, rawSize );
                     delete [] rawData;
                     return -1;
                     }
-                bytesUsed += bytesScanned;
-                
+
                 printf( "Creating %d new directories\n", numDirs );
                 
                 for( int d=0; d<numDirs; d++ ) {
                     
-                    int fileNameLength;
+                    int fileNameLength = 
+                        scanIntAndSkip( &nextScanPointer, &success );
                     
-                    numRead =
-                        sscanf( (char*)&rawData[bytesUsed], "%d %n", 
-                                &fileNameLength, &bytesScanned );
-                    
-                    if( numRead != 1 && numRead != 2 ) {
+                    if( !success ) {
                         printf( "Failed to parse directory name length "
                                 "from diff bundle\n" );
                         dumpRawDataToFile( rawData, rawSize );
@@ -226,18 +223,18 @@ int stepUpdate() {
                         return -1;
                         }
                     
-                    bytesUsed += bytesScanned;
-                    
                     char *fileName = new char[ fileNameLength + 1 ];
                     
-                    memcpy( fileName, &rawData[bytesUsed], fileNameLength );
+                    memcpy( fileName, nextScanPointer, fileNameLength );
                     
                     fileName[ fileNameLength ] = '\0';
                     
                     printf( "   %s\n", fileName );
                     
-                    bytesUsed += fileNameLength + 1;
 
+                    nextScanPointer = 
+                        &( nextScanPointer[ fileNameLength + 1 ] );
+                    
                     File dirFile( NULL, fileName );
 
                     if( dirFile.exists() ) {
@@ -265,32 +262,24 @@ int stepUpdate() {
                 
 
 
-                int numFiles;
-                numRead =
-                    sscanf( (char*)&rawData[bytesUsed], "%d %n", 
-                            &numFiles, &bytesScanned );
-                    
-                if( numRead != 1 && numRead != 2 ) {
+                int numFiles = scanIntAndSkip( &nextScanPointer, &success );
+
+                if( !success ) {
                     printf( "Failed to parse file count from diff bundle\n" );
                     
                     dumpRawDataToFile( rawData, rawSize );
                     delete [] rawData;
                     return -1;
-                    }
-                bytesUsed += bytesScanned;
-                
+                    }                
 
                 printf( "Updating %d files\n", numFiles );
                 
                 for( int f=0; f<numFiles; f++ ) {
                     
-                    int fileNameLength;
+                    int fileNameLength =
+                        scanIntAndSkip( &nextScanPointer, &success );
                     
-                    numRead =
-                        sscanf( (char*)&rawData[bytesUsed], "%d %n", 
-                                &fileNameLength, &bytesScanned );
-                    
-                    if( numRead != 1 && numRead != 2 ) {
+                    if( !success ) {
                         printf( "Failed to parse file name length "
                                 "from diff bundle\n" );
                         
@@ -299,26 +288,23 @@ int stepUpdate() {
                         return -1;
                         }
                     
-                    bytesUsed += bytesScanned;
-                    
                     char *fileName = new char[ fileNameLength + 1 ];
                     
-                    memcpy( fileName, &rawData[bytesUsed], fileNameLength );
+                    memcpy( fileName, nextScanPointer, fileNameLength );
                     
                     fileName[ fileNameLength ] = '\0';
                     
                     printf( "   %s\n", fileName );
 
-                    bytesUsed += fileNameLength + 1;
+                    nextScanPointer = 
+                        &( nextScanPointer[ fileNameLength + 1 ] );
 
-                    int fileSize;
-                    
                     // single # separates the file size from the file data
-                    numRead =
-                        sscanf( (char*)&rawData[bytesUsed], "%d#%n", 
-                                &fileSize, &bytesScanned );
+                    // this skips it
+                    int fileSize = 
+                        scanIntAndSkip( &nextScanPointer, &success );
                     
-                    if( numRead != 1 && numRead != 2 ) {
+                    if( !success ) {
                         printf( "Failed to parse file size "
                                 "from diff bundle\n" );
                         delete [] fileName;
@@ -327,7 +313,6 @@ int stepUpdate() {
                         delete [] rawData;
                         return -1;
                         }
-                    bytesUsed += bytesScanned;
                     
 
                     File targetFile( NULL, fileName );
@@ -352,8 +337,9 @@ int stepUpdate() {
                                 fileName );
                         }
                     else {
-                        int numWritten = fwrite( &rawData[bytesUsed], 
-                                                 1, fileSize, file );
+                        int numWritten = 
+                            fwrite( (unsigned char *)nextScanPointer, 
+                                    1, fileSize, file );
                         if( numWritten != fileSize ) {
                             printf( "Failed to write %d bytes to file  %s\n",
                                     fileSize, fileName );
@@ -382,7 +368,7 @@ int stepUpdate() {
                     
                     delete [] fileName;
                     
-                    bytesUsed += fileSize;
+                    nextScanPointer = &( nextScanPointer[ fileSize ] );
                     }
                 
                 delete [] rawData;
