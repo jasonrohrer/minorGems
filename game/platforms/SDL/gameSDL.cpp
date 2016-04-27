@@ -3061,6 +3061,87 @@ void closeSocket( int inHandle ) {
 
 
 
+typedef struct AsyncFileRecord {
+        int handle;
+        char *filePath;
+        
+        int dataLength;
+        unsigned char *data;
+        
+        char doneReading;
+        
+    } AsyncFileRecord;
+
+
+
+#include "minorGems/system/StopSignalThread.h"
+static MutexLock asyncLock;
+
+static SimpleVector<AsyncFileRecord> asyncFiles;
+
+
+class AsyncFileThread : public StopSignalThread {
+    
+    public:
+        
+        virtual void run() {
+            while( ! isStopped() ) {
+                int handleToRead = -1;
+                
+                
+                asyncLock.lock();
+                
+                for( int i=0; i<asyncFiles.size(); i++ ) {
+                    if( ! asyncFiles.getElement( i )->doneReading ) {
+                        handleToRead = asyncFiles.getElement( i )->handle;
+                        }
+                    }
+
+                asyncLock.unlock();
+
+                if( handleToRead != -1 ) {
+                    // fixme:
+
+                    // read file data
+                    // re-lock vector, search for handle, and add it
+                    // cannot count on vector order or pointers to records
+                    // when we don't have it locked
+                    }
+                else {
+                    // wait on binary semaphore until something else added
+                    // for us to read
+                    }
+                }
+            };
+
+    protected:
+        
+    };
+
+
+
+
+
+int startAsyncFileRead( const char *inFilePath ) {
+    }
+
+
+
+char checkAsyncFileReadDone( int inHandle ) {
+    }
+
+
+
+// this clears the handle
+// return array destroyed by caller
+unsigned char *getAsyncFileData( int inHandle, int *outDataLength ) {
+    }
+
+
+
+
+
+
 
 time_t game_time( time_t *__timer ) {
     return screen->getTime( __timer );

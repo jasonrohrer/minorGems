@@ -450,6 +450,21 @@ void closeSocket( int inHandle );
 
 
 
+// returns int handle for this file read operation
+// inFilePath is platform-dependent path to file from current directory
+int startAsyncFileRead( const char *inFilePath );
+
+
+char checkAsyncFileReadDone( int inHandle );
+
+
+// this clears the handle
+// return array destroyed by caller
+unsigned char *getAsyncFileData( int inHandle, int *outDataLength );
+
+
+
+
 // relaunches the game from scratch as a new process
 // returns false if relaunch not supported on this platform
 char relaunchGame();
