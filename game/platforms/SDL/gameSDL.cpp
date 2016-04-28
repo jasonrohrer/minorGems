@@ -110,6 +110,131 @@ void freeWriteFailedPanel() {
 #endif
 
 
+static int nextAsyncFileHandle = 0;
+
+typedef struct AsyncFileRecord {
+        int handle;
+        char *filePath;
+        
+        int dataLength;
+        unsigned char *data;
+        
+        char doneReading;
+        
+    } AsyncFileRecord;
+
+
+
+#include "minorGems/system/StopSignalThread.h"
+#include "minorGems/system/MutexLock.h"
+#include "minorGems/system/BinarySemaphore.h"
+
+static MutexLock asyncLock;
+static BinarySemaphore newFileToReadSem;
+
+static BinarySemaphore newFileDoneReadingSem;
+
+static SimpleVector<AsyncFileRecord> asyncFiles;
+
+
+class AsyncFileThread : public StopSignalThread {
+    
+    public:
+        
+        AsyncFileThread() {
+            start();
+            }
+
+        ~AsyncFileThread() {
+            stop();
+            newFileToReadSem.signal();
+            join();
+
+            for( int i=0; i<asyncFiles.size(); i++ ) {
+        
+                AsyncFileRecord *r = asyncFiles.getElement( i );
+                
+                if( r->filePath != NULL ) {
+                    delete [] r->filePath;
+                    }
+                
+                if( r->data != NULL ) {
+                    delete [] r->data;
+                    }
+                }
+            asyncFiles.deleteAll();
+            }
+        
+
+        virtual void run() {
+            while( ! isStopped() ) {
+                
+                int handleToRead = -1;
+                char *pathToRead = NULL;
+                
+                asyncLock.lock();
+                
+                for( int i=0; i<asyncFiles.size(); i++ ) {
+                    AsyncFileRecord *r = asyncFiles.getElement( i );
+                    
+                    if( ! r->doneReading ) {
+                        // can't trust pointer to record in vector
+                        // outside of lock, because vector storage may
+                        // change
+                        handleToRead = r->handle;
+                        pathToRead = r->filePath;
+                        break;
+                        }
+                    }
+
+                asyncLock.unlock();
+
+                if( handleToRead != -1 ) {
+                    // read file data
+
+                    File f( NULL, pathToRead );
+                    
+                    int dataLength;
+                    unsigned char *data = f.readFileContents( &dataLength );
+
+                    // re-lock vector, search for handle, and add it
+                    // cannot count on vector order or pointers to records
+                    // when we don't have it locked
+
+                    asyncLock.lock();
+                    
+                    for( int i=0; i<asyncFiles.size(); i++ ) {
+                        AsyncFileRecord *r = asyncFiles.getElement( i );
+                    
+                        if( r->handle == handleToRead ) {
+                            r->dataLength = dataLength;
+                            r->data = data;
+                            r->doneReading = true;
+                            break;
+                            }
+                        }
+
+                    asyncLock.unlock();
+
+                    // let anyone waiting for a new file to finish
+                    // reading (only matters in the case of playback, where
+                    // the file-done must happen on a specific frame)
+                    newFileDoneReadingSem.signal();
+                    }
+                else {
+                    // wait on binary semaphore until something else added
+                    // for us to read
+                    newFileToReadSem.wait();
+                    }
+                }
+            };
+    };
+
+
+static AsyncFileThread fileReadThread;
+
+
+
 
 // some settings
 
@@ -3061,80 +3186,82 @@ void closeSocket( int inHandle ) {
 
 
 
-typedef struct AsyncFileRecord {
-        int handle;
-        char *filePath;
-        
-        int dataLength;
-        unsigned char *data;
-        
-        char doneReading;
-        
-    } AsyncFileRecord;
-
-
-
-#include "minorGems/system/StopSignalThread.h"
-static MutexLock asyncLock;
-
-static SimpleVector<AsyncFileRecord> asyncFiles;
-
-
-class AsyncFileThread : public StopSignalThread {
-    
-    public:
-        
-        virtual void run() {
-            while( ! isStopped() ) {
-                int handleToRead = -1;
-                
-                
-                asyncLock.lock();
-                
-                for( int i=0; i<asyncFiles.size(); i++ ) {
-                    if( ! asyncFiles.getElement( i )->doneReading ) {
-                        handleToRead = asyncFiles.getElement( i )->handle;
-                        }
-                    }
-
-                asyncLock.unlock();
-
-                if( handleToRead != -1 ) {
-                    // fixme:
-
-                    // read file data
-                    // re-lock vector, search for handle, and add it
-                    // cannot count on vector order or pointers to records
-                    // when we don't have it locked
-                    }
-                else {
-                    // wait on binary semaphore until something else added
-                    // for us to read
-                    }
-                }
-            };
-
-    protected:
-        
-    };
 
 
 
 
 
 int startAsyncFileRead( const char *inFilePath ) {
+    
+    int handle = nextAsyncFileHandle;
+    nextAsyncFileHandle ++;
+    
+    AsyncFileRecord r = {
+        handle,
+        stringDuplicate( inFilePath ),
+        -1,
+        NULL,
+        false };
+
+    asyncLock.lock();
+    asyncFiles.push_back( r );
+    asyncLock.unlock();
+    
+    newFileToReadSem.signal();
+    
+    return handle;
     }
 
 
 
 char checkAsyncFileReadDone( int inHandle ) {
+
+    char ready = false;
+
+    asyncLock.lock();
+
+    for( int i=0; i<asyncFiles.size(); i++ ) {
+        AsyncFileRecord *r = asyncFiles.getElement( i );
+                    
+        if( r->handle == inHandle &&
+            r->doneReading ) {
+            
+            ready = true;
+            break;
+            }
+        }
+    asyncLock.unlock();
+
+    return ready;
     }
 
 
 
-// this clears the handle
-// return array destroyed by caller
 unsigned char *getAsyncFileData( int inHandle, int *outDataLength ) {
+
+    unsigned char *data = NULL;
+    
+    asyncLock.lock();
+
+    for( int i=0; i<asyncFiles.size(); i++ ) {
+        AsyncFileRecord *r = asyncFiles.getElement( i );
+                    
+        if( r->handle == inHandle ) {
+            
+            data = r->data;
+            *outDataLength = r->dataLength;
+            
+            if( r->filePath != NULL ) {
+                delete [] r->filePath;
+                }
+
+            asyncFiles.deleteElement( i );
+            break;
+            }
+        }
+    asyncLock.unlock();
+
+    return data;
     }
 
 
