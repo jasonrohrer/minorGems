@@ -248,6 +248,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mCurrentWebEventHandle = 0;
     mNextUnusedWebEventHandle = 0;
     
+    mLastAsyncFileHandleDone = -1;
+
 
     mAllowSlowdownKeysDuringPlayback = false;
 
@@ -1125,6 +1127,31 @@ unsigned char *ScreenGL::getSocketEventBodyBytes( int inHandle ) {
 
 
 
+
+void ScreenGL::registerAsyncFileDone( int inHandle ) {
+
+    if( ! currentScreenGL->mRecordingEvents || 
+        ! currentScreenGL->mRecordingOrPlaybackStarted ) {
+    
+        // not recording!
+        return;
+        }
+    
+        
+    char *eventString = autoSprintf( "af %d", inHandle );
+    
+    mEventBatch.push_back( eventString );
+    }
+
+
+
+char ScreenGL::getAsyncFileDone( int inHandle ) {
+    return ( mLastAsyncFileHandleDone >= inHandle );
+    }
+
+
+
+
 void ScreenGL::writeEventBatchToFile() {
     
     int numInBatch = mEventBatch.size();
@@ -1393,6 +1420,10 @@ void ScreenGL::playNextEventBatch() {
                 mPendingSocketEvents.push_back( e );
                 break;
                 }
+            case 'a': {
+                fscanf( mEventFile, "%d", &mLastAsyncFileHandleDone );
+                }
+                break;
             default:
                 AppLog::getLog()->logPrintf( 
                     Log::ERROR_LEVEL, 

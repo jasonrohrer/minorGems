@@ -3232,6 +3232,49 @@ char checkAsyncFileReadDone( int inHandle ) {
         }
     asyncLock.unlock();
 
+
+    if( screen->isPlayingBack() ) {
+        char playbackSaysReady = screen->getAsyncFileDone( inHandle );
+
+        if( ready && playbackSaysReady ) {
+            return true;
+            }
+        else if( ready && !playbackSaysReady ) {
+            return false;
+            }
+        else if( ! ready && playbackSaysReady ) {
+            // need to return ready before end of this frame
+            // so behavior matches recording behavior
+            
+            // wait for read to finish, synchronously
+            while( !ready ) {                
+                newFileDoneReadingSem.wait();
+
+                asyncLock.lock();
+                
+                for( int i=0; i<asyncFiles.size(); i++ ) {
+                    AsyncFileRecord *r = asyncFiles.getElement( i );
+                    
+                    if( r->handle == inHandle &&
+                        r->doneReading ) {
+                        
+                        ready = true;
+                        break;
+                        }
+                    }
+                asyncLock.unlock();
+                }
+            
+            return true;
+            }
+        }
+    else {
+        if( ready ) {    
+            screen->registerAsyncFileDone( inHandle );
+            }
+        }
+    
+
     return ready;
     }
 

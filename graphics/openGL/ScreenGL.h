@@ -402,7 +402,10 @@ class ScreenGL {
         unsigned char *getSocketEventBodyBytes( int inHandle );
 
         
-
+        void registerAsyncFileDone( int inHandle );
+        
+        char getAsyncFileDone( int inHandle );
+        
 
 
         /**
@@ -782,6 +785,11 @@ class ScreenGL {
         
         SimpleVector<WebEvent> mPendingWebEvents;
         SimpleVector<SocketEvent> mPendingSocketEvents;
+
+
+        // since async file reads happen to handles in order
+        // only need to track largest handle done so far
+        int mLastAsyncFileHandleDone;
 
 
         unsigned int mRandSeed;
