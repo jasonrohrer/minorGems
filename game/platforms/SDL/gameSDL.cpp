@@ -68,6 +68,7 @@ int main( int inArgCount, char **inArgs ) {
 #include "minorGems/graphics/converters/TGAImageConverter.h"
 
 #include "minorGems/io/file/FileInputStream.h"
+#include "minorGems/util/ByteBufferInputStream.h"
 
 
 #include "minorGems/sound/formats/aiff.h"
@@ -2363,6 +2364,16 @@ Image *readTGAFileBase( const char *inTGAFileName ) {
 
 
 
+static RawRGBAImage *readTGAFileRaw( InputStream *inStream ) {
+    TGAImageConverter converter;
+    
+    RawRGBAImage *result = converter.deformatImageRaw( inStream );
+
+    
+    return result;
+    }
+
+
 
 
 static RawRGBAImage *readTGAFileRaw( File *inFile ) {
@@ -2384,9 +2395,8 @@ static RawRGBAImage *readTGAFileRaw( File *inFile ) {
 
     FileInputStream tgaStream( inFile );
     
-    TGAImageConverter converter;
-    
-    RawRGBAImage *result = converter.deformatImageRaw( &tgaStream );
+
+    RawRGBAImage *result = readTGAFileRaw( &tgaStream );
 
     if( result == NULL ) {        
         char *fileName = inFile->getFullFileName();
@@ -2420,6 +2430,18 @@ RawRGBAImage *readTGAFileRawBase( const char *inTGAFileName ) {
     
     return readTGAFileRaw( &tgaFile );
     }
+
+
+
+
+RawRGBAImage *readTGAFileRawFromBuffer( unsigned char *inBuffer, 
+                                        int inLength ) {
+    
+    ByteBufferInputStream tgaStream( inBuffer, inLength );
+    
+    return readTGAFileRaw( &tgaStream );
+    }
+
 
 
 

@@ -157,6 +157,7 @@ s/^URLUtils.*\.o/$${URL_UTILS_O}/; \
 s/^MimeTyper.*\.o/$${MIME_TYPER_O}/; \
 s/^WebRequest.*\.o/$${WEB_REQUEST_O}/; \
 s/^StringBufferOutputStream.*\.o/$${STRING_BUFFER_OUTPUT_STREAM_O}/; \
+s/^ByteBufferInputStream.*\.o/$${BYTE_BUFFER_INPUT_STREAM_O}/; \
 s/^XMLUtils.*\.o/$${XML_UTILS_O}/; \
 s/^HTMLUtils.*\.o/$${HTML_UTILS_O}/; \
 s/^SettingsManager.*\.o/$${SETTINGS_MANAGER_O}/; \

@@ -146,6 +146,13 @@ RawRGBAImage *readTGAFileRaw( const char *inTGAFileName );
 RawRGBAImage *readTGAFileRawBase( const char *inTGAFileName );
 
 
+// reads from a memory buffer containing the full contents of a TGA file
+// buffer destroyed by caller
+RawRGBAImage *readTGAFileRawFromBuffer( unsigned char *inBuffer, 
+                                        int inLength );
+
+
+
 // write a TGA file into main directory
 // Image destroyed by caller
 void writeTGAFile( const char *inTGAFileName, Image *inImage );

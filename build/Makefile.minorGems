@@ -262,6 +262,12 @@ STRING_BUFFER_OUTPUT_STREAM_CPP = ${ROOT_PATH}/minorGems/util/StringBufferOutput
 STRING_BUFFER_OUTPUT_STREAM_O = ${ROOT_PATH}/minorGems/util/StringBufferOutputStream.o
 
 
+
+BYTE_BUFFER_INPUT_STREAM_H = ${ROOT_PATH}/minorGems/util/ByteBufferInputStream.h
+BYTE_BUFFER_INPUT_STREAM_CPP = ${ROOT_PATH}/minorGems/util/ByteBufferInputStream.cpp
+BYTE_BUFFER_INPUT_STREAM_O = ${ROOT_PATH}/minorGems/util/ByteBufferInputStream.o
+
+
 XML_UTILS_H = ${ROOT_PATH}/minorGems/formats/xml/XMLUtils.h
 XML_UTILS_CPP = ${ROOT_PATH}/minorGems/formats/xml/XMLUtils.cpp
 XML_UTILS_O = ${ROOT_PATH}/minorGems/formats/xml/XMLUtils.o
