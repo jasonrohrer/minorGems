@@ -43,6 +43,7 @@
 *		Jason Rohrer	8-5-2014	Added getElementDirect (gets non-pointer).
 *		Jason Rohrer	7-15-2015	Fixed getElementDirect type warning.
 *		Jason Rohrer	8-25-2015	Fixed getElementDirect to handle structs.
+*		Jason Rohrer	5-20-2016	Added functions for getting last element.
 */
 
 #include "minorGems/common.h"
@@ -97,6 +98,15 @@ class SimpleVector {
         // This is useful when the vector is storing pointers anyway.
 		Type getElementDirect(int index);
 
+
+        Type *getLastElement() {
+            return getElement( size() - 1 );
+            }
+        
+        
+        Type getLastElementDirect() {
+            return getElementDirect( size() - 1 );
+            }
 		
 		
 		int size();		// return the number of allocated elements in the vector
