@@ -2457,10 +2457,47 @@ void writeTGAFile( const char *inTGAFileName, Image *inImage ) {
 
 
 
+SpriteHandle fillSprite( RawRGBAImage *inRawImage ) {
+    if( inRawImage->mNumChannels != 4 ) {
+        printf( "Sprite not a 4-channel image, "
+                "failed to load.\n" );
+    
+        return NULL;
+        }
+            
+    return fillSprite( inRawImage->mRGBABytes, 
+                       inRawImage->mWidth,
+                       inRawImage->mHeight );
+    }
+
+
+
 SpriteHandle loadSprite( const char *inTGAFileName,
                          char inTransparentLowerLeftCorner ) {
-    Image *result = readTGAFile( inTGAFileName );
     
+    if( !inTransparentLowerLeftCorner ) {
+        // faster to load raw, avoid double conversion
+        RawRGBAImage *spriteImage = readTGAFileRaw( inTGAFileName );
+        
+        if( spriteImage != NULL ) {
+            
+            SpriteHandle result = fillSprite( spriteImage );
+            
+            delete spriteImage;
+            
+            return result;
+            }
+        else {
+            printf( "Failed to load sprite from graphics/%s\n",
+                    inTGAFileName );
+            return NULL;
+            }
+        }
+
+    // or if trans corner, load converted to doubles for processing
+
+    Image *result = readTGAFile( inTGAFileName );
+        
     if( result == NULL ) {
         return NULL;
         }
@@ -2478,8 +2515,29 @@ SpriteHandle loadSprite( const char *inTGAFileName,
 
 SpriteHandle loadSpriteBase( const char *inTGAFileName,
                              char inTransparentLowerLeftCorner ) {
-    Image *result = readTGAFileBase( inTGAFileName );
+    if( !inTransparentLowerLeftCorner ) {
+        // faster to load raw, avoid double conversion
+        RawRGBAImage *spriteImage = readTGAFileRawBase( inTGAFileName );
+        
+        if( spriteImage != NULL ) {
+            
+            SpriteHandle result = fillSprite( spriteImage );
+            
+            delete spriteImage;
+            
+            return result;
+            }
+        else {
+            printf( "Failed to load sprite from %s\n",
+                    inTGAFileName );
+            return NULL;
+            }
+        }
     
+    // or if trans corner, load converted to doubles for processing
+
+    Image *result = readTGAFileBase( inTGAFileName );
+        
     if( result == NULL ) {
         return NULL;
         }

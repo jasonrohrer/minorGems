@@ -123,6 +123,11 @@ SpriteHandle fillSprite( Image *inImage,
 SpriteHandle fillSprite( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight );
 
+// fails and returns NULL if inRawImage doesn't have 4 channels
+SpriteHandle fillSprite( RawRGBAImage *inRawImage );
+
+
+
 // fill a one-channel (alpha-only) sprite
 // other channels will be set to black.
 // (more efficient than full RGBA for things like shadows)
