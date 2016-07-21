@@ -154,6 +154,9 @@ else if( $action == "download" ) {
 else if( $action == "get_ticket_id" ) {
     ts_getTicketID();
     }
+else if( $action == "check_ticket_hash" ) {
+    ts_checkTicketHash();
+    }
 else if( $action == "show_data" ) {
     ts_showData();
     }
@@ -585,6 +588,8 @@ function ts_getTicketID() {
 
     $numRows = mysql_numrows( $result );
 
+    $ticket_id = "";
+    
     // could be more than one with this email
     // return first only
     if( $numRows > 0 ) {
@@ -646,6 +651,55 @@ function ts_getTicketID() {
         ts_readableBase32EncodeFromBitString( $ticket_id_bits );
 
     echo "$encrypted_ticket_id";
+    }
+
+
+
+function ts_checkTicketHash() {
+    global $tableNamePrefix;
+
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+
+    $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
+        "WHERE email = '$email' AND blocked = '0';";
+    $result = ts_queryDatabase( $query );
+
+    $numRows = mysql_numrows( $result );
+
+    $ticket_id = "";
+    
+    // could be more than one with this email
+    // return first only
+    if( $numRows > 0 ) {
+        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+        }
+    else {
+        echo "INVALID";
+        return;
+        }
+
+    // remove hyphens
+    $ticket_id = implode( preg_split( "/-/", $ticket_id ) );
+    
+
+    $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+
+    $hash_value = strtoupper( $hash_value );
+    
+    $string_to_hash =
+        ts_requestFilter( "string_to_hash", "/[A-Z0-9]+/i", "0" );
+
+
+    $computedHashValue =
+        strtoupper( ts_hmac_sha1( $ticket_id, $string_to_hash ) );
+    
+
+    if( $computedHashValue == $hash_value ) {
+        echo "VALID";
+        }
+    else {
+        echo "INVALID";
+        }
     }
 
 

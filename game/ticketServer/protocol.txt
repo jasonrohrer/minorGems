@@ -116,3 +116,38 @@ The resulting bit string is re-encoded in readable base-32, without hyphens
 
 
 Returns DENIED if email not found or user blocked.
+
+
+
+
+
+
+// verifies a hash using a user's secret ticket_id as the key
+// this allows remote checking of download codes without sending them accross
+
+server.php
+?action=check_ticket_hash
+&email=[email address]
+&hash_value=[hash value]
+&string_to_hash=[string]
+
+
+Return:
+VALID
+-or-
+INVALID
+
+
+string_to_hash must contain only the charcters 0-9, A-Z, and a-z
+
+hash_value is computed on both ends with:
+
+HMAC_SHA1( $ticket_id, $string_to_hash )
+
+
+Where $ticket_id has hyphens removed and is all uppercase.
+
+
+Note that string_to_hash should not be re-used for subsequent checks to avoid
+replay attacks.  HOWEVER, the ticketServer does NOT track this or prevent
+replays.  It is up to the other server to handle this.
