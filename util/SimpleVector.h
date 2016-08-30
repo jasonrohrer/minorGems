@@ -44,6 +44,7 @@
 *		Jason Rohrer	7-15-2015	Fixed getElementDirect type warning.
 *		Jason Rohrer	8-25-2015	Fixed getElementDirect to handle structs.
 *		Jason Rohrer	5-20-2016	Added functions for getting last element.
+*		Jason Rohrer	8-30-2016	Added shrink function.
 */
 
 #include "minorGems/common.h"
@@ -123,6 +124,10 @@ class SimpleVector {
 		 */
 		bool deleteElementEqualTo( Type inElement );
 
+
+        // shrinks vector, discaring elements beyond inNewSize
+        void shrink( int inNewSize );
+        
 
 
 		/**
@@ -420,6 +425,13 @@ inline bool SimpleVector<Type>::deleteElementEqualTo( Type inElement ) {
 		return false;
 		}
 	}
+
+
+
+template <class Type>
+inline void SimpleVector<Type>::shrink( int inNewSize ) {
+    numFilledElements = inNewSize;
+    }
 
 
 
