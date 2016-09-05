@@ -400,7 +400,9 @@ void SpriteGL::prepareDraw( int inFrame,
     double xOffset = mHorizontalOffset * inScale;
     
 
-    if( mFlipHorizontal ) {
+    if( !(mFlipHorizontal) != !(inFlipH) ) {
+        // make sure flips don't override each other, xor
+        
         xLeftRadius = -xLeftRadius;
         xRightRadius = -xRightRadius;
         }
@@ -486,11 +488,6 @@ void SpriteGL::prepareDraw( int inFrame,
     textYB -= (float)( 0.5 - mColoredRadiusBottomY );
 
 
-    if( inFlipH ) {
-        double temp = textXA;
-        textXA = textXB;
-        textXB = temp;
-        }
 
     squareTextureCoords[0] = textXA;
     squareTextureCoords[1] = textYA;
@@ -634,7 +631,9 @@ void SpriteGL::prepareDraw( int inFrame,
     double xOffset = mHorizontalOffset * inScale;
     
 
-    if( mFlipHorizontal ) {
+    if( !(mFlipHorizontal) != !(inFlipH) ) {
+        // make sure flips don't override eachother, xor
+
         xLeftRadius = -xLeftRadius;
         xRightRadius = -xRightRadius;
         }
@@ -768,15 +767,6 @@ void SpriteGL::prepareDraw( int inFrame,
 
     textYB += 0.5 - mColoredRadiusTopY;
     textYA -= 0.5 - mColoredRadiusBottomY;
-
-
-    
-    if( inFlipH ) {
-        double temp = textXA;
-        textXA = textXB;
-        textXB = temp;
-        }
-    
     }
 
 
@@ -810,6 +800,23 @@ void SpriteGL::draw( int inFrame,
         }
     glEnd();
     mTexture->disable();
+
+    /*
+      // for debugging
+      // show red square around each sprite
+    setDrawColor( 1, 0, 0, 0.75 );
+    glBegin( GL_LINE_LOOP ); {
+        glVertex2d( corners[0].mX, corners[0].mY );
+        
+        glVertex2d( corners[1].mX, corners[1].mY );
+        
+        glVertex2d( corners[2].mX, corners[2].mY );
+        
+        glVertex2d( corners[3].mX, corners[3].mY );
+        }
+    glEnd();
+    setDrawColor( 1, 1, 1, 1 );
+    */  
     }
 
 
