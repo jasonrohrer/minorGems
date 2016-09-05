@@ -57,13 +57,22 @@ void SpriteGL::findColoredRadii( Image *inImage ) {
     if( maxY < h - 1 ) {
         maxY += 1;
         }
-    
-    mColoredRadiusLeftX = 0.5 - minX / (double)w;
-    mColoredRadiusRightX = maxX / (double)w - 0.5;
 
-    mColoredRadiusTopY = 0.5 - minY / (double)h;
-    mColoredRadiusBottomY = maxY / (double)h - 0.5;
+    if( minX > 0 ) {
+        mColoredRadiusLeftX = 0.5 - minX / (double)w;
+        }
+    if( maxX < w - 1 ) {
+        mColoredRadiusRightX = maxX / (double)w - 0.5;
+        }
+    
+    if( minY > 0 ) {
+        mColoredRadiusTopY = 0.5 - minY / (double)h;
+        }
+    if( maxY < h - 1 ) {
+        mColoredRadiusBottomY = maxY / (double)h - 0.5;
+        }
     }
+
 
 
 
@@ -115,11 +124,19 @@ void SpriteGL::findColoredRadii( unsigned char *inRGBA,
         maxY += 1;
         }
 
-    mColoredRadiusLeftX = 0.5 - minX / (double)w;
-    mColoredRadiusRightX = maxX / (double)w - 0.5;
-
-    mColoredRadiusTopY = 0.5 - minY / (double)h;
-    mColoredRadiusBottomY = maxY / (double)h - 0.5;
+    if( minX > 0 ) {
+        mColoredRadiusLeftX = 0.5 - minX / (double)w;
+        }
+    if( maxX < w - 1 ) {
+        mColoredRadiusRightX = maxX / (double)w - 0.5;
+        }
+    
+    if( minY > 0 ) {
+        mColoredRadiusTopY = 0.5 - minY / (double)h;
+        }
+    if( maxY < h - 1 ) {
+        mColoredRadiusBottomY = maxY / (double)h - 0.5;
+        }
     }
 
 
@@ -171,11 +188,19 @@ void SpriteGL::findColoredRadiiAlpha( unsigned char *inA,
         maxY += 1;
         }
 
-    mColoredRadiusLeftX = 0.5 - minX / (double)w;
-    mColoredRadiusRightX = maxX / (double)w - 0.5;
-
-    mColoredRadiusTopY = 0.5 - minY / (double)h;
-    mColoredRadiusBottomY = maxY / (double)h - 0.5;
+    if( minX > 0 ) {
+        mColoredRadiusLeftX = 0.5 - minX / (double)w;
+        }
+    if( maxX < w - 1 ) {
+        mColoredRadiusRightX = maxX / (double)w - 0.5;
+        }
+    
+    if( minY > 0 ) {
+        mColoredRadiusTopY = 0.5 - minY / (double)h;
+        }
+    if( maxY < h - 1 ) {
+        mColoredRadiusBottomY = maxY / (double)h - 0.5;
+        }
     }
 
 
