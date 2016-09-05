@@ -96,6 +96,12 @@ void toggleMipMapMinFilter( char inMipMapFilterOn ) {
     }
 
 
+static char transparentCroppingOn = false;
+
+void toggleTransparentCropping( char inCrop ) {
+    transparentCroppingOn = inCrop;
+    }
+
 
 #ifdef GLES
 // GL ES versions of these functions
@@ -480,14 +486,16 @@ void disableStencil() {
 
 SpriteHandle fillSprite( Image *inImage, 
                          char inTransparentLowerLeftCorner ) {
-    return new SpriteGL( inImage, inTransparentLowerLeftCorner );
+    return new SpriteGL( inImage, inTransparentLowerLeftCorner, 1, 1,
+                         transparentCroppingOn );
     }
 
 
 
 SpriteHandle fillSprite( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight ) {
-    return new SpriteGL( inRGBA, inWidth, inHeight );
+    return new SpriteGL( inRGBA, inWidth, inHeight, 1, 1,
+                         transparentCroppingOn );
     }
 
 
@@ -496,7 +504,8 @@ SpriteHandle fillSpriteAlphaOnly( unsigned char *inA,
                                   unsigned int inWidth, 
                                   unsigned int inHeight ) {
     
-    return new SpriteGL( true, inA, inWidth, inHeight );
+    return new SpriteGL( true, inA, inWidth, inHeight, 1, 1,
+                         transparentCroppingOn );
     }
 
 

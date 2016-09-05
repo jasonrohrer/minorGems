@@ -11,13 +11,183 @@ char SpriteGL::sGenerateMipMaps = false;
 
 
 
+void SpriteGL::findColoredRadii( Image *inImage ) {
+    double *alpha = inImage->getChannel( 3 );
+
+    int w = inImage->getWidth();
+    int h = inImage->getHeight();
+    
+    int minX = w;
+    int maxX = 0;
+    int minY = h;
+    int maxY = 0;
+    
+    for( int y=0; y<h; y++ ) {
+        for( int x=0; x<w; x++ ) {
+            int index = y * w + x;
+            
+            if( alpha[index] > 0 ) {
+                
+                if( x < minX ) {
+                    minX = x;
+                    }
+                if( x > maxX ) {
+                    maxX = x;
+                    }
+                if( y < minY ) {
+                    minY = y;
+                    }
+                if( y > maxY ) {
+                    maxY = y;
+                    }
+                }    
+            }
+        }
+    
+    if( minX > 0 ) {
+        minX -= 1;
+        }
+    if( maxX < w - 1 ) {
+        maxX += 1;
+        }
+    
+    if( minY > 0 ) {
+        minY -= 1;
+        }
+    if( maxY < h - 1 ) {
+        maxY += 1;
+        }
+    
+    mColoredRadiusLeftX = 0.5 - minX / (double)w;
+    mColoredRadiusRightX = maxX / (double)w - 0.5;
+
+    mColoredRadiusTopY = 0.5 - minY / (double)h;
+    mColoredRadiusBottomY = maxY / (double)h - 0.5;
+    }
+
+
+
+
+void SpriteGL::findColoredRadii( unsigned char *inRGBA, 
+                                 int inWidth, int inHeight ) {
+    
+    int w = inWidth;
+    int h = inHeight;
+    
+    int minX = w;
+    int maxX = 0;
+    int minY = h;
+    int maxY = 0;
+    
+    for( int y=0; y<h; y++ ) {
+        for( int x=0; x<w; x++ ) {
+            int index = y * w + x;
+            
+            if( inRGBA[ index * 4 + 3 ] > 0 ) {
+                
+                if( x < minX ) {
+                    minX = x;
+                    }
+                if( x > maxX ) {
+                    maxX = x;
+                    }
+                if( y < minY ) {
+                    minY = y;
+                    }
+                if( y > maxY ) {
+                    maxY = y;
+                    }
+                }    
+            }
+        }
+
+    if( minX > 0 ) {
+        minX -= 1;
+        }
+    if( maxX < w - 1 ) {
+        maxX += 1;
+        }
+    
+    if( minY > 0 ) {
+        minY -= 1;
+        }
+    if( maxY < h - 1 ) {
+        maxY += 1;
+        }
+
+    mColoredRadiusLeftX = 0.5 - minX / (double)w;
+    mColoredRadiusRightX = maxX / (double)w - 0.5;
+
+    mColoredRadiusTopY = 0.5 - minY / (double)h;
+    mColoredRadiusBottomY = maxY / (double)h - 0.5;
+    }
+
+
+
+void SpriteGL::findColoredRadiiAlpha( unsigned char *inA, 
+                                      int inWidth, int inHeight ) {
+    
+    int w = inWidth;
+    int h = inHeight;
+    
+    int minX = w;
+    int maxX = 0;
+    int minY = h;
+    int maxY = 0;
+    
+    for( int y=0; y<h; y++ ) {
+        for( int x=0; x<w; x++ ) {
+            int index = y * w + x;
+            
+            if( inA[ index ] > 0 ) {
+                
+                if( x < minX ) {
+                    minX = x;
+                    }
+                if( x > maxX ) {
+                    maxX = x;
+                    }
+                if( y < minY ) {
+                    minY = y;
+                    }
+                if( y > maxY ) {
+                    maxY = y;
+                    }
+                }    
+            }
+        }
+
+    if( minX > 0 ) {
+        minX -= 1;
+        }
+    if( maxX < w - 1 ) {
+        maxX += 1;
+        }
+    
+    if( minY > 0 ) {
+        minY -= 1;
+        }
+    if( maxY < h - 1 ) {
+        maxY += 1;
+        }
+
+    mColoredRadiusLeftX = 0.5 - minX / (double)w;
+    mColoredRadiusRightX = maxX / (double)w - 0.5;
+
+    mColoredRadiusTopY = 0.5 - minY / (double)h;
+    mColoredRadiusBottomY = maxY / (double)h - 0.5;
+    }
+
+
+
+
 SpriteGL::SpriteGL( Image *inImage,
                     char inTransparentLowerLeftCorner,
                     int inNumFrames,
-                    int inNumPages ) {
+                    int inNumPages, char inSetColoredRadii ) {
     
     initTexture( inImage, inTransparentLowerLeftCorner, inNumFrames,
-                 inNumPages );
+                 inNumPages, inSetColoredRadii );
     }
  
 
@@ -25,8 +195,13 @@ SpriteGL::SpriteGL( Image *inImage,
 void SpriteGL::initTexture( Image *inImage,
                             char inTransparentLowerLeftCorner,
                             int inNumFrames,
-                            int inNumPages ) {
+                            int inNumPages, char inSetColoredRadii ) {
     
+    mColoredRadiusLeftX = 0.5;
+    mColoredRadiusRightX = 0.5;
+    mColoredRadiusTopY = 0.5;
+    mColoredRadiusBottomY = 0.5;
+
     mNumFrames = inNumFrames;
     mNumPages = inNumPages;
     
@@ -70,8 +245,10 @@ void SpriteGL::initTexture( Image *inImage,
             }
         }
     
+    if( inSetColoredRadii ) {
+        findColoredRadii( spriteImage );
+        }
     
-                
 
     mTexture = new SingleTextureGL( spriteImage,
                                     // no wrap
@@ -99,16 +276,26 @@ void SpriteGL::initTexture( Image *inImage,
 SpriteGL::SpriteGL( unsigned char *inRGBA, 
                     unsigned int inWidth, unsigned int inHeight,
                     int inNumFrames,
-                    int inNumPages ) {
+                    int inNumPages,
+                    char inSetColoredRadii ) {
+
+    mColoredRadiusLeftX = 0.5;
+    mColoredRadiusRightX = 0.5;
+    mColoredRadiusTopY = 0.5;
+    mColoredRadiusBottomY = 0.5;
     
     mNumFrames = inNumFrames;
     mNumPages = inNumPages;
 
+    if( inSetColoredRadii ) {
+        findColoredRadii( inRGBA, inWidth, inHeight );
+        }
+    
     mTexture = new SingleTextureGL( inRGBA, inWidth, inHeight,
                                     // no wrap
                                     false,
-                                    sGenerateMipMaps );
-    
+                                    sGenerateMipMaps );    
+
     mWidth = inWidth;
     mHeight = inHeight;
     
@@ -127,10 +314,20 @@ SpriteGL::SpriteGL( char inAlphaOnly,
                     unsigned char *inA, 
                     unsigned int inWidth, unsigned int inHeight, 
                     int inNumFrames,
-                    int inNumPages ) {
+                    int inNumPages,
+                    char inSetColoredRadii ) {
+
+    mColoredRadiusLeftX = 0.5;
+    mColoredRadiusRightX = 0.5;
+    mColoredRadiusTopY = 0.5;
+    mColoredRadiusBottomY = 0.5;
     
     mNumFrames = inNumFrames;
     mNumPages = inNumPages;
+
+    if( inSetColoredRadii ) {
+        findColoredRadiiAlpha( inA, inWidth, inHeight );
+        }
 
     mTexture = new SingleTextureGL( inAlphaOnly,
                                     inA, inWidth, inHeight,
@@ -190,14 +387,22 @@ void SpriteGL::prepareDraw( int inFrame,
     // inFrame = inFrame % mNumFrames;
     
 
-    float xRadius = (float)( inScale * mBaseScaleX / 2 );
-    float yRadius = (float)( inScale * mBaseScaleY / 2 );
+
+
+    float xLeftRadius = (float)( inScale * mBaseScaleX * mColoredRadiusLeftX );
+    float xRightRadius = 
+        (float)( inScale * mBaseScaleX * mColoredRadiusRightX );
+    
+    float yTopRadius = (float)( inScale * mBaseScaleY * mColoredRadiusTopY );
+    float yBottomRadius = 
+        (float)( inScale * mBaseScaleY * mColoredRadiusBottomY );
 
     double xOffset = mHorizontalOffset * inScale;
     
 
     if( mFlipHorizontal ) {
-        xRadius = -xRadius;
+        xLeftRadius = -xLeftRadius;
+        xRightRadius = -xRightRadius;
         }
     
 
@@ -208,17 +413,17 @@ void SpriteGL::prepareDraw( int inFrame,
     float posX = (float)( inPosition->mX + xOffset );
     float posY = (float)( inPosition->mY );
     
-    squareVertices[0] = posX - xRadius;
-    squareVertices[1] = posY - yRadius;
+    squareVertices[0] = posX - xLeftRadius;
+    squareVertices[1] = posY - yTopRadius;
     
-    squareVertices[2] = posX + xRadius; 
-    squareVertices[3] = posY - yRadius;
+    squareVertices[2] = posX + xRightRadius; 
+    squareVertices[3] = posY - yTopRadius;
     
-    squareVertices[4] = posX - xRadius; 
-    squareVertices[5] = posY + yRadius;
+    squareVertices[4] = posX - xLeftRadius; 
+    squareVertices[5] = posY + yBottomRadius;
     
-    squareVertices[6] = posX + xRadius; 
-    squareVertices[7] = posY + yRadius;
+    squareVertices[6] = posX + xRightRadius; 
+    squareVertices[7] = posY + yBottomRadius;
     
     
     if( inRotation != 0 ) {
@@ -268,10 +473,19 @@ void SpriteGL::prepareDraw( int inFrame,
     float textXA = (1.0f / mNumPages) * mCurrentPage;
     float textXB = textXA + (1.0f / mNumPages );
 
+    
+    textXA += (float)( 0.5 - mColoredRadiusLeftX );
+    textXB -= (float)( 0.5 - mColoredRadiusRightX );
+
 
     float textYB = (1.0f / mNumFrames) * inFrame;
     float textYA = textYB + (1.0f / mNumFrames );
     
+    
+    textYA += (float)( 0.5 - mColoredRadiusTopY );
+    textYB -= (float)( 0.5 - mColoredRadiusBottomY );
+
+
     if( inFlipH ) {
         double temp = textXA;
         textXA = textXB;
@@ -411,14 +625,18 @@ void SpriteGL::prepareDraw( int inFrame,
     // inFrame = inFrame % mNumFrames;
     
 
-    double xRadius = inScale * mBaseScaleX / 2;
-    double yRadius = inScale * mBaseScaleY / 2;
+    double xLeftRadius = inScale * mBaseScaleX * mColoredRadiusLeftX;
+    double xRightRadius = inScale * mBaseScaleX *mColoredRadiusRightX;
+
+    double yTopRadius = inScale * mBaseScaleY * mColoredRadiusTopY;
+    double yBottomRadius = inScale * mBaseScaleY * mColoredRadiusBottomY;
 
     double xOffset = mHorizontalOffset * inScale;
     
 
     if( mFlipHorizontal ) {
-        xRadius = -xRadius;
+        xLeftRadius = -xLeftRadius;
+        xRightRadius = -xRightRadius;
         }
     
 
@@ -431,37 +649,37 @@ void SpriteGL::prepareDraw( int inFrame,
 
     if( inRotation == 0 ) {
         
-        corners[0].mX = posX - xRadius;
-        corners[0].mY = posY - yRadius;
+        corners[0].mX = posX - xLeftRadius;
+        corners[0].mY = posY - yTopRadius;
         //corners[0].mZ = 0;
         
-        corners[1].mX = posX + xRadius;
-        corners[1].mY = posY - yRadius;
+        corners[1].mX = posX + xRightRadius;
+        corners[1].mY = posY - yTopRadius;
         //corners[1].mZ = 0;
         
-        corners[2].mX = posX + xRadius;
-        corners[2].mY = posY + yRadius;
+        corners[2].mX = posX + xRightRadius;
+        corners[2].mY = posY + yBottomRadius;
         //corners[2].mZ = 0;
         
-        corners[3].mX = posX - xRadius;
-        corners[3].mY = posY + yRadius;
+        corners[3].mX = posX - xLeftRadius;
+        corners[3].mY = posY + yBottomRadius;
         //corners[3].mZ = 0;
         }
     else {
-        corners[0].mX = - xRadius;
-        corners[0].mY = - yRadius;
+        corners[0].mX = - xLeftRadius;
+        corners[0].mY = - yTopRadius;
         //corners[0].mZ = 0;
         
-        corners[1].mX = xRadius;
-        corners[1].mY = - yRadius;
+        corners[1].mX = xRightRadius;
+        corners[1].mY = - yTopRadius;
         //corners[1].mZ = 0;
         
-        corners[2].mX = xRadius;
-        corners[2].mY = yRadius;
+        corners[2].mX = xRightRadius;
+        corners[2].mY = yBottomRadius;
         //corners[2].mZ = 0;
         
-        corners[3].mX = - xRadius;
-        corners[3].mY = yRadius;
+        corners[3].mX = - xLeftRadius;
+        corners[3].mY = yBottomRadius;
 
         double cosAngle = cos( - 2 * M_PI * inRotation );
         double sinAngle = sin( - 2 * M_PI * inRotation );
@@ -540,10 +758,17 @@ void SpriteGL::prepareDraw( int inFrame,
     
     textXA = (1.0 / mNumPages) * mCurrentPage;
     textXB = textXA + (1.0 / mNumPages );
-
+    
+    textXA += 0.5 - mColoredRadiusLeftX;
+    textXB -= 0.5 - mColoredRadiusRightX;
+    
 
     textYB = (1.0 / mNumFrames) * inFrame;
     textYA = textYB + (1.0 / mNumFrames );
+
+    textYB += 0.5 - mColoredRadiusTopY;
+    textYA -= 0.5 - mColoredRadiusBottomY;
+
 
     
     if( inFlipH ) {

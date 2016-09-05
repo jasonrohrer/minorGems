@@ -107,6 +107,13 @@ typedef void * SpriteHandle;
 // toggles mipmap generation for subsequent sprite loading/filling calls
 void toggleMipMapGeneration( char inGenerateMipMaps );
 
+// if off, entire sprite rectangle is drawn
+// if on, sprite is cropped to remove fully-transparent rows and columns
+// at the left, right, top, and bottom
+// MUST be turned on before loading or filling sprites
+// (sticks with the sprite for its lifetime after it is loaded)
+void toggleTransparentCropping( char inCrop );
+
 
 // loads sprite from graphics directory
 // can be NULL on load failure

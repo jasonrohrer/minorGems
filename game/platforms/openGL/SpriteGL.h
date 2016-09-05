@@ -27,16 +27,21 @@ class SpriteGL{
         // lower-left corner ignored for RGBA images unless A channel 
         // is solid 1.0
         // image split vertically into inNumFrames of equal size
+        //
+        // NOTE:  colored radius computation does NOT work for sprites
+        // with frames and pages, leave false if using frames and pages
         SpriteGL( Image *inImage,
-                char inTransparentLowerLeftCorner = false,
-                int inNumFrames = 1,
-                int inNumPages = 1 );
+                  char inTransparentLowerLeftCorner = false,
+                  int inNumFrames = 1,
+                  int inNumPages = 1,
+                  char inSetColoredRadii = false );
         
         
         SpriteGL( unsigned char *inRGBA, 
                   unsigned int inWidth, unsigned int inHeight,
                   int inNumFrames = 1,
-                  int inNumPages = 1 );
+                  int inNumPages = 1,
+                  char inSetColoredRadii = false );
 
         // one-channel, alpha-only, with other channels black
         // extra parameter just to differentiate function calls
@@ -44,7 +49,8 @@ class SpriteGL{
                   unsigned char *inA, 
                   unsigned int inWidth, unsigned int inHeight,
                   int inNumFrames = 1,
-                  int inNumPages = 1 );
+                  int inNumPages = 1,
+                  char inSetColoredRadii = false );
 
 
         ~SpriteGL();
@@ -134,10 +140,23 @@ class SpriteGL{
         int mNumPages;
         
         int mWidth, mHeight;
-        
+
         double mBaseScaleX;
         double mBaseScaleY;
 
+        // these are in range -0.5 to 0.5
+        // radius from center of furthest pixel column with some non-trans
+        // pixel in it
+        double mColoredRadiusLeftX;
+        double mColoredRadiusRightX;
+        // same for non-trans rows
+        double mColoredRadiusTopY;
+        double mColoredRadiusBottomY;
+        // for fully-opaque sprites, 
+        // left= 0.5, right=0.5, top=0.5, and bottom =0.5;
+
+
+        
         char mFlipHorizontal;
         double mHorizontalOffset;
         
@@ -147,7 +166,8 @@ class SpriteGL{
         void initTexture( Image *inImage,
                           char inTransparentLowerLeftCorner = false,
                           int inNumFrames = 1,
-                          int inNumPages = 1 );
+                          int inNumPages = 1,
+                          char inSetColoredRadii = false );
         
         
 
@@ -160,6 +180,17 @@ class SpriteGL{
                           double inRotation,
                           char inFlipH );
         
+
+
+
+        void findColoredRadii( Image *inImage );
+        
+        void findColoredRadii( unsigned char *inRGBA, 
+                               int inWidth, int inHeight );
+        
+        void findColoredRadiiAlpha( unsigned char *inA, 
+                                    int inWidth, int inHeight );
+
     };
 
 
