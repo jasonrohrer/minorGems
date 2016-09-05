@@ -626,7 +626,7 @@ void SpriteGL::prepareDraw( int inFrame,
     
 
     double xLeftRadius = inScale * mBaseScaleX * mColoredRadiusLeftX;
-    double xRightRadius = inScale * mBaseScaleX *mColoredRadiusRightX;
+    double xRightRadius = inScale * mBaseScaleX * mColoredRadiusRightX;
 
     double yTopRadius = inScale * mBaseScaleY * mColoredRadiusTopY;
     double yBottomRadius = inScale * mBaseScaleY * mColoredRadiusBottomY;
@@ -766,8 +766,8 @@ void SpriteGL::prepareDraw( int inFrame,
     textYB = (1.0 / mNumFrames) * inFrame;
     textYA = textYB + (1.0 / mNumFrames );
 
-    textYB += 0.5 - mColoredRadiusTopY;
-    textYA -= 0.5 - mColoredRadiusBottomY;
+    textYB += 0.5 - mColoredRadiusBottomY;
+    textYA -= 0.5 - mColoredRadiusTopY;
 
 
     
