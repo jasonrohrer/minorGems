@@ -414,16 +414,16 @@ void SpriteGL::prepareDraw( int inFrame,
     float posY = (float)( inPosition->mY );
     
     squareVertices[0] = posX - xLeftRadius;
-    squareVertices[1] = posY - yTopRadius;
+    squareVertices[1] = posY - yBottomRadius;
     
     squareVertices[2] = posX + xRightRadius; 
-    squareVertices[3] = posY - yTopRadius;
+    squareVertices[3] = posY - yBottomRadius;
     
     squareVertices[4] = posX - xLeftRadius; 
-    squareVertices[5] = posY + yBottomRadius;
+    squareVertices[5] = posY + yTopRadius;
     
     squareVertices[6] = posX + xRightRadius; 
-    squareVertices[7] = posY + yBottomRadius;
+    squareVertices[7] = posY + yTopRadius;
     
     
     if( inRotation != 0 ) {
@@ -650,36 +650,36 @@ void SpriteGL::prepareDraw( int inFrame,
     if( inRotation == 0 ) {
         
         corners[0].mX = posX - xLeftRadius;
-        corners[0].mY = posY - yTopRadius;
+        corners[0].mY = posY - yBottomRadius;
         //corners[0].mZ = 0;
         
         corners[1].mX = posX + xRightRadius;
-        corners[1].mY = posY - yTopRadius;
+        corners[1].mY = posY - yBottomRadius;
         //corners[1].mZ = 0;
         
         corners[2].mX = posX + xRightRadius;
-        corners[2].mY = posY + yBottomRadius;
+        corners[2].mY = posY + yTopRadius;
         //corners[2].mZ = 0;
         
         corners[3].mX = posX - xLeftRadius;
-        corners[3].mY = posY + yBottomRadius;
+        corners[3].mY = posY + yTopRadius;
         //corners[3].mZ = 0;
         }
     else {
         corners[0].mX = - xLeftRadius;
-        corners[0].mY = - yTopRadius;
+        corners[0].mY = - yBottomRadius;
         //corners[0].mZ = 0;
         
         corners[1].mX = xRightRadius;
-        corners[1].mY = - yTopRadius;
+        corners[1].mY = - yBottomRadius;
         //corners[1].mZ = 0;
         
         corners[2].mX = xRightRadius;
-        corners[2].mY = yBottomRadius;
+        corners[2].mY = yTopRadius;
         //corners[2].mZ = 0;
         
         corners[3].mX = - xLeftRadius;
-        corners[3].mY = yBottomRadius;
+        corners[3].mY = yTopRadius;
 
         double cosAngle = cos( - 2 * M_PI * inRotation );
         double sinAngle = sin( - 2 * M_PI * inRotation );
@@ -766,8 +766,8 @@ void SpriteGL::prepareDraw( int inFrame,
     textYB = (1.0 / mNumFrames) * inFrame;
     textYA = textYB + (1.0 / mNumFrames );
 
-    textYB += 0.5 - mColoredRadiusBottomY;
-    textYA -= 0.5 - mColoredRadiusTopY;
+    textYB += 0.5 - mColoredRadiusTopY;
+    textYA -= 0.5 - mColoredRadiusBottomY;
 
 
     
