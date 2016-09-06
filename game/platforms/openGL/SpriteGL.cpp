@@ -292,7 +292,6 @@ void SpriteGL::initTexture( Image *inImage,
         }
 
     mFlipHorizontal = false;
-    mHorizontalOffset = 0;
     mCurrentPage = 0;
     }
 
@@ -329,7 +328,6 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
     
     
     mFlipHorizontal = false;
-    mHorizontalOffset = 0;
     mCurrentPage = 0;
     }
 
@@ -368,7 +366,6 @@ SpriteGL::SpriteGL( char inAlphaOnly,
     
     
     mFlipHorizontal = false;
-    mHorizontalOffset = 0;
     mCurrentPage = 0;
     }
 
@@ -422,8 +419,6 @@ void SpriteGL::prepareDraw( int inFrame,
     float yBottomRadius = 
         (float)( inScale * mBaseScaleY * mColoredRadiusBottomY );
 
-    double xOffset = mHorizontalOffset * inScale;
-    
 
     if( !(mFlipHorizontal) != !(inFlipH) ) {
         // make sure flips don't override each other, xor
@@ -437,7 +432,7 @@ void SpriteGL::prepareDraw( int inFrame,
     // first, set up corners relative to 0,0
     // loop is unrolled here, with all offsets added in
     // also, mZ ignored now, since rotation no longer done
-    float posX = (float)( inPosition->mX + xOffset );
+    float posX = (float)( inPosition->mX );
     float posY = (float)( inPosition->mY );
     
     squareVertices[0] = posX - xLeftRadius;
@@ -652,8 +647,6 @@ void SpriteGL::prepareDraw( int inFrame,
 
     double yTopRadius = inScale * mBaseScaleY * mColoredRadiusTopY;
     double yBottomRadius = inScale * mBaseScaleY * mColoredRadiusBottomY;
-
-    double xOffset = mHorizontalOffset * inScale;
     
 
     if( !(mFlipHorizontal) != !(inFlipH) ) {
@@ -668,7 +661,7 @@ void SpriteGL::prepareDraw( int inFrame,
     // first, set up corners relative to 0,0
     // loop is unrolled here, with all offsets added in
     // also, mZ ignored now, since rotation no longer done
-    double posX = inPosition->mX + xOffset;
+    double posX = inPosition->mX;
     double posY = inPosition->mY;
 
     if( inRotation == 0 ) {
@@ -732,9 +725,7 @@ void SpriteGL::prepareDraw( int inFrame,
     // found with profiler:
     // unroll this loop
     /*
-    for( i=0; i<4; i++ ) {
-        corners[i].mX += xOffset;
-        
+    for( i=0; i<4; i++ ) {        
         // corners[i].rotate( &rot );
         corners[i].add( inPosition );
         }

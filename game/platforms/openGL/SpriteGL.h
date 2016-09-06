@@ -89,10 +89,6 @@ class SpriteGL{
             mFlipHorizontal = inFlip;
             }
         
-        // used to adjust horizontal center point, in pixels
-        void setHorizontalOffset( double inOffset ) {
-            mHorizontalOffset = inOffset;
-            }
         
 
         void setPage( int inPage ) {
@@ -158,7 +154,6 @@ class SpriteGL{
 
         
         char mFlipHorizontal;
-        double mHorizontalOffset;
         
         int mCurrentPage;
         
