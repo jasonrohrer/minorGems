@@ -124,7 +124,13 @@ class SpriteGL{
             }
         
         
-
+        // sets the sprite's center offset, in pixels, 
+        // relative to it's center point
+        // defaults to 0,0
+        void setCenterOffset( doublePair inOffset ) {
+            mCenterOffset = inOffset;
+            }
+        
 
     protected:
 
@@ -152,6 +158,7 @@ class SpriteGL{
         // left= 0.5, right=0.5, top=0.5, and bottom =0.5;
 
 
+        doublePair mCenterOffset;
         
         char mFlipHorizontal;
         

@@ -532,6 +532,13 @@ int getSpriteHeight( SpriteHandle inSprite ) {
 
 
 
+void setSpriteCenterOffset( SpriteHandle inSprite, doublePair inOffset ) {
+    SpriteGL *sprite = (SpriteGL *)inSprite;
+    sprite->setCenterOffset( inOffset );
+    }
+
+
+
 
 
 // draw with current draw color

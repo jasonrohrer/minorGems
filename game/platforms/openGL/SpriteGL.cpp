@@ -293,6 +293,9 @@ void SpriteGL::initTexture( Image *inImage,
 
     mFlipHorizontal = false;
     mCurrentPage = 0;
+    
+    mCenterOffset.x = 0;
+    mCenterOffset.y = 0;
     }
 
 
@@ -329,6 +332,9 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
     
     mFlipHorizontal = false;
     mCurrentPage = 0;
+
+    mCenterOffset.x = 0;
+    mCenterOffset.y = 0;
     }
 
 
@@ -367,6 +373,9 @@ SpriteGL::SpriteGL( char inAlphaOnly,
     
     mFlipHorizontal = false;
     mCurrentPage = 0;
+
+    mCenterOffset.x = 0;
+    mCenterOffset.y = 0;
     }
 
 
@@ -379,6 +388,9 @@ SpriteGL::~SpriteGL() {
 
 
 
+// NOTE
+// the GLES version of this is experimental and broken in terms of 
+// rotations and center offsets
 #ifdef GLES
 
 
@@ -419,12 +431,15 @@ void SpriteGL::prepareDraw( int inFrame,
     float yBottomRadius = 
         (float)( inScale * mBaseScaleY * mColoredRadiusBottomY );
 
+    doublePair centerOffset = mult( mCenterOffset, inScale );
+
 
     if( !(mFlipHorizontal) != !(inFlipH) ) {
         // make sure flips don't override each other, xor
         
         xLeftRadius = -xLeftRadius;
         xRightRadius = -xRightRadius;
+        centerOffset.x = - centerOffset.x;
         }
     
 
@@ -432,8 +447,8 @@ void SpriteGL::prepareDraw( int inFrame,
     // first, set up corners relative to 0,0
     // loop is unrolled here, with all offsets added in
     // also, mZ ignored now, since rotation no longer done
-    float posX = (float)( inPosition->mX );
-    float posY = (float)( inPosition->mY );
+    float posX = (float)( inPosition->mX - centerOffset.x );
+    float posY = (float)( inPosition->mY + centerOffset.y );
     
     squareVertices[0] = posX - xLeftRadius;
     squareVertices[1] = posY - yBottomRadius;
@@ -647,13 +662,16 @@ void SpriteGL::prepareDraw( int inFrame,
 
     double yTopRadius = inScale * mBaseScaleY * mColoredRadiusTopY;
     double yBottomRadius = inScale * mBaseScaleY * mColoredRadiusBottomY;
-    
+
+    doublePair centerOffset = mult( mCenterOffset, inScale );
+
 
     if( !(mFlipHorizontal) != !(inFlipH) ) {
         // make sure flips don't override eachother, xor
 
         xLeftRadius = -xLeftRadius;
         xRightRadius = -xRightRadius;
+        centerOffset.x = - centerOffset.x;
         }
     
 
@@ -661,10 +679,10 @@ void SpriteGL::prepareDraw( int inFrame,
     // first, set up corners relative to 0,0
     // loop is unrolled here, with all offsets added in
     // also, mZ ignored now, since rotation no longer done
-    double posX = inPosition->mX;
-    double posY = inPosition->mY;
 
     if( inRotation == 0 ) {
+        double posX = inPosition->mX - centerOffset.x;
+        double posY = inPosition->mY + centerOffset.y;
         
         corners[0].mX = posX - xLeftRadius;
         corners[0].mY = posY - yBottomRadius;
@@ -683,20 +701,23 @@ void SpriteGL::prepareDraw( int inFrame,
         //corners[3].mZ = 0;
         }
     else {
-        corners[0].mX = - xLeftRadius;
-        corners[0].mY = - yBottomRadius;
+        double posX = inPosition->mX;
+        double posY = inPosition->mY;
+
+        corners[0].mX = - xLeftRadius - centerOffset.x;
+        corners[0].mY = - yBottomRadius + centerOffset.y;
         //corners[0].mZ = 0;
         
-        corners[1].mX = xRightRadius;
-        corners[1].mY = - yBottomRadius;
+        corners[1].mX = xRightRadius - centerOffset.x;
+        corners[1].mY = - yBottomRadius + centerOffset.y;
         //corners[1].mZ = 0;
         
-        corners[2].mX = xRightRadius;
-        corners[2].mY = yTopRadius;
+        corners[2].mX = xRightRadius - centerOffset.x;
+        corners[2].mY = yTopRadius + centerOffset.y;
         //corners[2].mZ = 0;
         
-        corners[3].mX = - xLeftRadius;
-        corners[3].mY = yTopRadius;
+        corners[3].mX = - xLeftRadius - centerOffset.x;
+        corners[3].mY = yTopRadius + centerOffset.y;
 
         double cosAngle = cos( - 2 * M_PI * inRotation );
         double sinAngle = sin( - 2 * M_PI * inRotation );

@@ -178,6 +178,12 @@ int getSpriteWidth( SpriteHandle inSprite );
 int getSpriteHeight( SpriteHandle inSprite );
 
 
+// sets the sprite's center offset, in pixels, relative to it's center point
+// defaults to 0,0
+void setSpriteCenterOffset( SpriteHandle inSprite, doublePair inOffset );
+
+
+
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
 // Rotation is in fractions of a full clockwise rotation (0.25 is 90 deg cw)
