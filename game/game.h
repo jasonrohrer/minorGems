@@ -241,6 +241,10 @@ void toggleKeyMapping( char inMappingOn );
 // used for implementing platform-independent keyboard shortcuts (ctrl-z, etc)
 char isCommandKeyDown();
 
+// returns true if either right or left shift key is down
+char isShiftKeyDown();
+
+
 
 // toggle typing obscuring mode for event recording
 // (useful for hiding sensitive data like credit card numbers)

@@ -2188,6 +2188,9 @@ static char lAltDown = false;
 static char rMetaDown = false;
 static char lMetaDown = false;
 
+static char lShiftDown = false;
+static char rShiftDown = false;
+
 
 
 void GameSceneHandler::specialKeyPressed(
@@ -2215,6 +2218,12 @@ void GameSceneHandler::specialKeyPressed(
             break;
         case MG_KEY_LMETA:
             lMetaDown = true;
+            break;
+        case MG_KEY_RSHIFT:
+            rShiftDown = true;
+            break;
+        case MG_KEY_LSHIFT:
+            lShiftDown = true;
             break;
         }
     
@@ -2247,6 +2256,12 @@ void GameSceneHandler::specialKeyReleased(
         case MG_KEY_LMETA:
             lMetaDown = false;
             break;
+        case MG_KEY_RSHIFT:
+            rShiftDown = false;
+            break;
+        case MG_KEY_LSHIFT:
+            lShiftDown = false;
+            break;
         }
 
 
@@ -2277,8 +2292,30 @@ char isCommandKeyDown() {
             rMetaDown || lMetaDown ) {
             return true;
             }
+        }    
+    
+    return false;
+    }
+
+
+
+char isShiftKeyDown() {
+    SDLMod modState = SDL_GetModState();
+    
+
+    if( ( modState & KMOD_SHIFT ) ) {
+        
+        return true;
         }
     
+    if( screen->isPlayingBack() ) {
+        // ignore these, saved internally, unless we're playing back
+        // they can fall out of sync with keyboard reality as the user
+        // alt-tabs between windows and release events are lost.
+        if( rShiftDown || lShiftDown ) {
+            return true;
+            }
+        }
     
     return false;
     }
