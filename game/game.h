@@ -332,6 +332,13 @@ doublePair getViewCenterPosition();
 void setViewSize( float inSize );
 
 
+// sub region in center of view size that should be visible
+// everything outside this region is trimmed away
+// set to -1 to disable letterboxing (default)
+void setLetterbox( float inVisibleWidth, float inVisibleHeight );
+
+
+
 // default visible
 void setCursorVisible( char inIsVisible );
 

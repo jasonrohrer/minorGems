@@ -1519,16 +1519,51 @@ static float viewCenterY = 0;
 // default -1 to +1
 static float viewSize = 2;
 
+static float visibleWidth = -1;
+static float visibleHeight = -1;
+
 
 static void redoDrawMatrix() {
     // viewport square centered on screen (even if screen is rectangle)
     float hRadius = viewSize / 2;
     
+    float wRadius = hRadius;
+    
+    if( visibleHeight > 0 ) {
+        wRadius = visibleWidth / 2;
+        hRadius = visibleHeight / 2;
+        }
+    
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho( viewCenterX - hRadius, viewCenterX + hRadius, 
+    glOrtho( viewCenterX - wRadius, viewCenterX + wRadius, 
              viewCenterY - hRadius, viewCenterY + hRadius, -1.0f, 1.0f);
     
+    if( visibleHeight > 0 ) {
+        
+        float portWide = screenWidth;
+        float portHigh = ( visibleHeight / visibleWidth ) * portWide;
+        
+        float screenHeightFraction = (float) screenHeight / (float) screenWidth;
+        
+        if( screenHeightFraction < 9.0 / 16.0 ) {
+            // wider than 16:9
+
+            // fill vertically instead
+            portHigh = screenHeight;
+            
+            portWide = ( visibleWidth / visibleHeight ) * portHigh;
+            }
+        
+        float excessW = screenWidth - portWide;
+        float excessH = screenHeight - portHigh;
+    
+        glViewport( excessW / 2,
+                    excessH / 2, 
+                    portWide,
+                    portHigh );    
+        }
     
     glMatrixMode(GL_MODELVIEW);
     }
@@ -1612,6 +1647,12 @@ doublePair getViewCenterPosition() {
 void setViewSize( float inSize ) {
     viewSize = inSize;
     redoDrawMatrix();
+    }
+
+
+void setLetterbox( float inVisibleWidth, float inVisibleHeight ) {
+    visibleWidth = inVisibleWidth;
+    visibleHeight = inVisibleHeight;
     }
 
 
