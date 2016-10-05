@@ -1152,17 +1152,15 @@ char ScreenGL::getAsyncFileDone( int inHandle ) {
 
 
 
-void ScreenGL::writeEventBatchToFile() {
-    
-    int numInBatch = mEventBatch.size();
-            
+void ScreenGL::writeEventBatchToFile( SimpleVector<char*> *inBatch ) {
+    int numInBatch = inBatch->size();
+        
     if( mEventFile != NULL ) {
         if( numInBatch > 0 ) {
             
-            char **allEvents = mEventBatch.getElementArray();
+            char **allEvents = inBatch->getElementArray();
             char *eventString = join( allEvents, numInBatch, " " );
             
-            fprintf( mEventFile, "%d ", numInBatch );
         
             int eventStringLength = strlen( eventString );
             
@@ -1174,22 +1172,35 @@ void ScreenGL::writeEventBatchToFile() {
                         "to recording file\n", numInBatch, eventStringLength );
                 }
 
-            fprintf( mEventFile, "\n" );
-            
             delete [] allEvents;
             delete [] eventString;
             }
-        else {
-            fprintf( mEventFile, "0\n" );
-            }
         
-        fflush( mEventFile );
         }
             
     for( int i=0; i<numInBatch; i++ ) {
-        delete [] *( mEventBatch.getElement( i ) );
+        delete [] *( inBatch->getElement( i ) );
         }
-    mEventBatch.deleteAll();
+    inBatch->deleteAll();
+    }
+
+
+
+
+void ScreenGL::writeEventBatchToFile() {
+    int num = mEventBatch.size() + mUserEventBatch.size();
+    
+    fprintf( mEventFile, "%d ", num );
+
+    writeEventBatchToFile( &mEventBatch );
+    
+    fprintf( mEventFile, " " );
+
+    writeEventBatchToFile( &mUserEventBatch );
+    
+    fprintf( mEventFile, "\n" );
+
+    fflush( mEventFile );
     }
 
 
@@ -1572,7 +1583,7 @@ void ScreenGL::start() {
                     char *eventString = autoSprintf( "kd %d %d %d", 
                                                      9, mouseX, mouseY );
         
-                    mEventBatch.push_back( eventString );
+                    mUserEventBatch.push_back( eventString );
                     }
                 }
             // handle alt-tab to minimize out of full-screen mode
@@ -1614,7 +1625,7 @@ void ScreenGL::start() {
                     char *eventString = autoSprintf( "kd %d %d %d", 
                                                      9, mouseX, mouseY );
         
-                    mEventBatch.push_back( eventString );
+                    mUserEventBatch.push_back( eventString );
                     }
                 }
             // active event after minimizing from windowed mode
@@ -2268,7 +2279,7 @@ void callbackKeyboard( unsigned char inKey, int inX, int inY ) {
         char *eventString = autoSprintf( "kd %d %d %d", 
                                          keyToRecord, inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
 
 
@@ -2340,7 +2351,7 @@ void callbackKeyboardUp( unsigned char inKey, int inX, int inY ) {
         char *eventString = autoSprintf( "ku %d %d %d", 
                                          keyToRecord, inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
 
 	char someFocused = currentScreenGL->isKeyboardHandlerFocused();
@@ -2396,7 +2407,7 @@ void callbackSpecialKeyboard( int inKey, int inX, int inY ) {
 
         char *eventString = autoSprintf( "sd %d %d %d", inKey, inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
 
 
@@ -2452,7 +2463,7 @@ void callbackSpecialKeyboardUp( int inKey, int inX, int inY ) {
 
         char *eventString = autoSprintf( "su %d %d %d", inKey, inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
 
 
@@ -2508,7 +2519,7 @@ void callbackMotion( int inX, int inY ) {
 
         char *eventString = autoSprintf( "md %d %d", inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
 
 	// fire to all handlers
@@ -2549,7 +2560,7 @@ void callbackPassiveMotion( int inX, int inY ) {
 
         char *eventString = autoSprintf( "mm %d %d", inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
 
 	// fire to all handlers
@@ -2611,7 +2622,7 @@ void callbackMouse( int inButton, int inState, int inX, int inY ) {
         char *eventString = autoSprintf( "mb %d %d %d %d",
                                          inButton, stateEncoding, inX, inY );
         
-        currentScreenGL->mEventBatch.push_back( eventString );
+        currentScreenGL->mUserEventBatch.push_back( eventString );
         }
     
 

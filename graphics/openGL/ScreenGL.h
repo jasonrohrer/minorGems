@@ -749,6 +749,9 @@ class ScreenGL {
         
 
         // for event recording
+        SimpleVector<char*> mUserEventBatch;
+        // these are written to file before user events
+        // so that they can be played back first
         SimpleVector<char*> mEventBatch;
         char mRecordingEvents;
         char mPlaybackEvents;
@@ -773,6 +776,8 @@ class ScreenGL {
         
 
         void writeEventBatchToFile();
+        void writeEventBatchToFile( SimpleVector<char*> *inBatch );
+
         void playNextEventBatch();
         
 
