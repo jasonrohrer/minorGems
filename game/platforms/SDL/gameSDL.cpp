@@ -1690,6 +1690,7 @@ static int lastMouseDownX = 0;
 static int lastMouseDownY = 0;
 
 static char mouseDown = false;
+static char mouseRightDown = false;
 // start with last click expired
 static int mouseDownSteps = 1000;
 
@@ -1869,7 +1870,14 @@ void GameSceneHandler::drawScene() {
             // draw mouse position info
             
             if( mouseDown ) {
-                setDrawColor( 1, 0, 0, 0.5 );
+                if( isLastMouseButtonRight() ) {
+                    mouseRightDown = true;
+                    setDrawColor( 1, 0, 1, 0.5 );
+                    }
+                else {
+                    mouseRightDown = false;
+                    setDrawColor( 1, 0, 0, 0.5 );
+                    }
                 }
             else {
                 setDrawColor( 1, 1, 1, 0.5 );
@@ -1919,6 +1927,11 @@ void GameSceneHandler::drawScene() {
                      -excessY + bigDimension, -excessY, 
                      -1.0f, 1.0f );
             
+            glViewport( -excessX,
+                        -excessY, 
+                        bigDimension,
+                        bigDimension );
+
             glMatrixMode(GL_MODELVIEW);
 
 
@@ -1946,10 +1959,20 @@ void GameSceneHandler::drawScene() {
                      lastMouseDownY - clickSizeFactor};
 
                 if( mouseDown ) {
-                    setDrawColor( 1, 0, 0, clickFade );
+                    if( isLastMouseButtonRight() ) {
+                        setDrawColor( 1, 0, 1, clickFade );
+                        }
+                    else {
+                        setDrawColor( 1, 0, 0, clickFade );
+                        }
                     }
                 else {
-                    setDrawColor( 0, 1, 0, clickFade );
+                    if( mouseRightDown ) {
+                        setDrawColor( 1, 1, 0, clickFade );
+                        }
+                    else {
+                        setDrawColor( 0, 1, 0, clickFade );
+                        }
                     }
 
                 drawQuads( 1, clickVerts );
