@@ -273,6 +273,14 @@ class Image : public Serializable {
         Image *getSubImage( int inStartX, int inStartY, 
                             int inWidth, int inHeight );
         
+        
+        // copies region from source into this image, placing
+        // upper left corner of source at inStartX, inStartY in this image
+        // and copying inWidth by inHeight pixels
+        void setSubImage( int inStartX, int inStartY, 
+                          int inWidth, int inHeight,
+                          Image *inSourceImage );
+        
 
 
         // centers this image in a new, larger image with a black border
@@ -562,7 +570,7 @@ inline void Image::pasteChannel( double *inChannelData, double *inMask,
 
 
 inline Image *Image::getSubImage( int inStartX, int inStartY, 
-                           int inWidth, int inHeight ) {
+                                  int inWidth, int inHeight ) {
     
     int endY = inStartY + inHeight;
     
@@ -585,6 +593,49 @@ inline Image *Image::getSubImage( int inStartX, int inStartY,
         }
     
     return destImage;
+    }
+
+
+
+inline void Image::setSubImage( int inStartX, int inStartY, 
+                         int inWidth, int inHeight,
+                         Image *inSourceImage ) {
+
+    int sourceWidth = inSourceImage->getWidth();
+    
+    if( inWidth > inSourceImage->getWidth() ) {
+        inWidth = inSourceImage->getWidth();
+        }
+    if( inHeight > inSourceImage->getHeight() ) {
+        inHeight = inSourceImage->getHeight();
+        }
+
+    if( inWidth + inStartX > mWide ) {
+        inWidth = mWide - inStartX;
+        }
+    if( inHeight + inStartY > mHigh ) {
+        inHeight = mHigh - inStartY;
+        }
+    
+    
+    int endY = inStartY + inHeight;
+   
+    for( int c=0; c<mNumChannels; c++ ) {
+        double *destChannel = mChannels[c];
+        double *sourceChannel = inSourceImage->getChannel(c);
+        
+        int sourceY=0;
+        for( int y=inStartY; y<endY; y++ ) {
+            
+            // copy row
+            memcpy( &( destChannel[ y * mWide + inStartX ] ),
+                    &( sourceChannel[ sourceY * sourceWidth ] ),
+                    sizeof( double ) * inWidth );
+            
+            sourceY ++;
+            }
+        }
+
     }
 
 

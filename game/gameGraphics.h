@@ -216,6 +216,12 @@ void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter,
 Image *getScreenRegion( double inX, double inY, 
                         double inWidth, double inHeight );
 
+// this version uses coordinates in raw screen space, where 0,0 is 
+// the upper left corner of the screen and the width and height are in 
+// screen pixels
+Image *getScreenRegionRaw( int inStartX, int inStartY, 
+                           int inWidth, int inHeight );
+
 
 
 #endif

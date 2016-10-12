@@ -119,6 +119,14 @@ void initFrameDrawer( int inWidth, int inHeight, int inTargetFrameRate,
 void freeFrameDrawer();
 
 
+
+// get actual screen or window dimensions in pixels
+// this is different than what's passed into initFrameDrawer
+// (which is game image size)
+void getScreenDimensions( int *outWidth, int *outHeight );
+
+
+
 // draw scene into frame using GL function calls
 // inUpdate is true if game logic should be updated
 void drawFrame( char inUpdate );

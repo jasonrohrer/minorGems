@@ -465,6 +465,12 @@ SimpleVector<SocketConnectionRecord> socketConnectionRecords;
 
 
 
+void getScreenDimensions( int *outWidth, int *outHeight ) {
+    *outWidth = screenWidth;
+    *outHeight = screenHeight;
+    }
+
+
 
 // function that destroys object when exit is called.
 // exit is the only way to stop the loop in  ScreenGL
@@ -2680,7 +2686,8 @@ void saveScreenShot( const char *inPrefix ) {
 //
 // Region in screen pixels
 static Image *getScreenRegionInternal( 
-    int inStartX, int inStartY, int inWidth, int inHeight ) {    
+    int inStartX, int inStartY, int inWidth, int inHeight,
+    char inForceManual = false ) {    
         
     int numBytes = inWidth * inHeight * 3;
     
@@ -2699,7 +2706,8 @@ static Image *getScreenRegionInternal(
     glPixelStorei( GL_PACK_ALIGNMENT, oldAlignment );
 
 
-    if( ! manualScreenShot && 
+    if( ! inForceManual &&
+        ! manualScreenShot && 
         blendOutputFramePairs && 
         frameNumber % 2 != 0 && 
         lastFrame_rgbaBytes != NULL ) {
@@ -2718,7 +2726,8 @@ static Image *getScreenRegionInternal(
             }
         
         }
-    else if( !manualScreenShot &&
+    else if( ! inForceManual &&
+             ! manualScreenShot &&
              blendOutputFramePairs &&
              frameNumber % 2 == 0 ) {
         
@@ -2768,6 +2777,15 @@ static Image *getScreenRegionInternal(
 
     return screenImage;
     }
+
+
+Image *getScreenRegionRaw( 
+    int inStartX, int inStartY, int inWidth, int inHeight ) {
+
+    return getScreenRegionInternal( inStartX, inStartY, inWidth, inHeight,
+                                    true );
+    }
+
 
 
 
