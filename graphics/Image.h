@@ -283,8 +283,10 @@ class Image : public Serializable {
         
 
 
-        // centers this image in a new, larger image with a black border
-        Image *expandImage( int inExpandedWidth, int inExpandedHeight );
+        // centers this image in a new, larger image with a black or white
+        // border
+        Image *expandImage( int inExpandedWidth, int inExpandedHeight,
+                            char inWhiteBorder = false );
 
         
 
@@ -640,9 +642,21 @@ inline void Image::setSubImage( int inStartX, int inStartY,
 
 
 
-inline Image *Image::expandImage( int inExpandedWidth, int inExpandedHeight ) {
+inline Image *Image::expandImage( int inExpandedWidth, int inExpandedHeight,
+                                  char inWhiteBorder ) {
     Image *destImage = new Image( inExpandedWidth, inExpandedHeight,
-                                  mNumChannels, true );
+                                  mNumChannels, ! inWhiteBorder );
+
+    if( inWhiteBorder ) {
+        int numPixels = inExpandedWidth * inExpandedHeight;
+        for( int c=0; c<mNumChannels; c++ ) {
+            double *chan = destImage->getChannel( c );
+            for( int i=0; i<numPixels; i++ ) {
+                chan[i] = 1.0;
+                }
+            }
+        }
+    
 
     int xOffset = ( inExpandedWidth - mWide ) / 2;
     int yOffset = ( inExpandedHeight - mHigh ) / 2;
