@@ -36,6 +36,12 @@ class Font {
         
         ~Font();
         
+
+        // copies character spacing and kerning from another font
+        // (useful for erased fonts that can't be scanned properly for
+        //  spacing but must line up with non-erased version perfectly)
+        void copySpacing( Font *inOtherFont );
+        
         
         // draws a string on the current screen using set draw color
         // returns x coordinate of string end

@@ -345,6 +345,49 @@ Font::~Font() {
         }
     }
 
+
+
+void Font::copySpacing( Font *inOtherFont ) {
+    memcpy( mCharLeftEdgeOffset, inOtherFont->mCharLeftEdgeOffset,
+            256 * sizeof( int ) );
+
+    memcpy( mCharWidth, inOtherFont->mCharWidth,
+            256 * sizeof( int ) );
+    
+
+    for( int i=0; i<256; i++ ) {
+        if( mKerningTable[i] != NULL ) {
+            delete mKerningTable[i];
+            mKerningTable[i] = NULL;
+            }
+
+        if( inOtherFont->mKerningTable[i] != NULL ) {
+            mKerningTable[i] = new KerningTable;
+            memcpy( mKerningTable[i]->offset,
+                    inOtherFont->mKerningTable[i]->offset,
+                    256 * sizeof( short ) );
+            }
+        }
+
+    mScaleFactor = inOtherFont->mScaleFactor;
+        
+    
+    mCharSpacing = inOtherFont->mCharSpacing;
+    mSpaceWidth = inOtherFont->mSpaceWidth;
+        
+    mFixedWidth = inOtherFont->mFixedWidth;
+        
+    mSpriteWidth = inOtherFont->mSpriteWidth;
+    mSpriteHeight = inOtherFont->mSpriteHeight;
+    
+    mAccentsPresent = inOtherFont->mAccentsPresent;
+        
+
+    mCharBlockWidth = inOtherFont->mCharBlockWidth;
+    }
+
+
+
 // double pixel size
 static double scaleFactor = 1.0 / 16;
 //static double scaleFactor = 1.0 / 8;
