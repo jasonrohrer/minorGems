@@ -445,7 +445,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
     if( mMinimumPositionPrecision > 0 ) {
         x /= mMinimumPositionPrecision;
         
-        x = (int) x;
+        x = lrint( floor( x ) );
         
         x *= mMinimumPositionPrecision;
         }
