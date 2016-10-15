@@ -402,8 +402,10 @@ double Font::getCharSpacing() {
 
 
 
-double Font::drawString( const char *inString, doublePair inPosition,
+double Font::getCharPos( SimpleVector<doublePair> *outPositions,
+                         const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
+
     double scale = scaleFactor * mScaleFactor;
     
     unsigned int numChars = strlen( inString );
@@ -454,8 +456,12 @@ double Font::drawString( const char *inString, doublePair inPosition,
     for( unsigned int i=0; i<numChars; i++ ) {
         doublePair charPos = { x, y };
         
-        double charWidth = drawCharacter( (unsigned char)( inString[i] ), 
-                                          charPos );
+        doublePair drawPos;
+        
+        double charWidth = positionCharacter( (unsigned char)( inString[i] ), 
+                                              charPos, &drawPos );
+        outPositions->push_back( drawPos );
+        
         x += charWidth + mCharSpacing * scale;
         
         if( !mFixedWidth && mEnableKerning 
@@ -477,8 +483,33 @@ double Font::drawString( const char *inString, doublePair inPosition,
 
 
 
+double Font::drawString( const char *inString, doublePair inPosition,
+                         TextAlignment inAlign ) {
+    SimpleVector<doublePair> pos( strlen( inString ) );
 
-double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
+    double returnVal = getCharPos( &pos, inString, inPosition, inAlign );
+
+    double scale = scaleFactor * mScaleFactor;
+    
+    for( int i=0; i<pos.size(); i++ ) {
+        SpriteHandle spriteID = mSpriteMap[ (unsigned char)( inString[i] ) ];
+    
+        if( spriteID != NULL ) {
+            drawSprite( spriteID, pos.getElementDirect(i), scale );
+            }
+    
+        }
+    
+    return returnVal;
+    }
+
+
+
+
+double Font::positionCharacter( unsigned char inC, doublePair inTargetPos,
+                                doublePair *outActualPos ) {
+    *outActualPos = inTargetPos;
+    
     double scale = scaleFactor * mScaleFactor;
 
     if( inC == ' ' ) {
@@ -486,13 +517,7 @@ double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
         }
 
     if( !mFixedWidth ) {
-        inPosition.x -= mCharLeftEdgeOffset[ inC ] * scale;
-        }
-    
-    SpriteHandle spriteID = mSpriteMap[ inC ];
-    
-    if( spriteID != NULL ) {
-        drawSprite( mSpriteMap[ inC ], inPosition, scale );
+        outActualPos->x -= mCharLeftEdgeOffset[ inC ] * scale;
         }
     
     if( mFixedWidth ) {
@@ -500,6 +525,39 @@ double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
         }
     else {
         return mCharWidth[ inC ] * scale;
+        }
+    }
+
+    
+
+
+double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
+    
+    doublePair drawPos;
+    double returnVal = positionCharacter( inC, inPosition, &drawPos );
+
+    if( inC == ' ' ) {
+        return returnVal;
+        }
+
+    SpriteHandle spriteID = mSpriteMap[ inC ];
+    
+    if( spriteID != NULL ) {
+        double scale = scaleFactor * mScaleFactor;
+        drawSprite( spriteID, drawPos, scale );
+        }
+    
+    return returnVal;
+    }
+
+
+
+void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
+    SpriteHandle spriteID = mSpriteMap[ inC ];
+    
+    if( spriteID != NULL ) {
+        double scale = scaleFactor * mScaleFactor;
+        drawSprite( spriteID, inPosition, scale );
         }
     }
 

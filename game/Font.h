@@ -3,6 +3,7 @@
 
 
 #include "minorGems/game/gameGraphics.h"
+#include "minorGems/util/SimpleVector.h"
 
 
 enum TextAlignment {
@@ -51,6 +52,12 @@ class Font {
 
         double measureString( const char *inString );
         
+        // gets per-character position of string without drawing it
+        double getCharPos( SimpleVector<doublePair> *outPositions,
+            const char *inString, doublePair inPosition,
+            TextAlignment inAlign = alignCenter );
+        
+
         // height of basic, non-accented characters
         double getFontHeight();
         
@@ -75,12 +82,18 @@ class Font {
 
         double getCharSpacing();
         
-
-    private:
-        
         // returns x coordinate to right of drawn character
         double drawCharacter( unsigned char inC, doublePair inPosition );
+
+        // draws sprite centered on inPosition with no spacing adjustments
+        void drawCharacterSprite( unsigned char inC, doublePair inPosition );
+
+    private:        
         
+        // returns x coordinate to right of drawn character
+        double positionCharacter( unsigned char inC, doublePair inTargetPos,
+                                  doublePair *outActualPos );
+
         
         double mScaleFactor;
         
