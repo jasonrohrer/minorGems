@@ -818,8 +818,8 @@ void SpriteGL::draw( int inFrame,
                      char inMipMapFilter,
                      double inRotation,
                      char inFlipH ) {
-    //numPixelsDrawn += 
-    //    ( mColoredRadiusRightX + mColoredRadiusLeftX ) * mWidth +
+    // numPixelsDrawn += 
+    //    ( mColoredRadiusRightX + mColoredRadiusLeftX ) * mWidth *
     //    ( mColoredRadiusTopY + mColoredRadiusBottomY ) * mHeight;
 
         

@@ -2025,8 +2025,8 @@ void GameSceneHandler::drawScene() {
         }
 
     frameNumber ++;
-    if( false )printf( "%d pixels drawn (%.2F MB textures resident)\n", 
-            numPixelsDrawn, totalLoadedTextureBytes / ( 1024.0 * 1024.0 ) );
+    //printf( "%d pixels drawn (%.2F MB textures resident)\n", 
+    //        numPixelsDrawn, totalLoadedTextureBytes / ( 1024.0 * 1024.0 ) );
     }
 
 
