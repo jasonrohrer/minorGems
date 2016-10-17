@@ -22,6 +22,7 @@ void setDrawColor( float inR, float inG, float inB, float inA );
 
 void setDrawColor( FloatColor inColor );
 
+FloatColor getDrawColor();
 
 void setDrawFade( float inA );
 

@@ -808,6 +808,8 @@ void SpriteGL::prepareDraw( int inFrame,
 
 
         
+extern int numPixelsDrawn;
+
 
 void SpriteGL::draw( int inFrame, 
                      Vector3D *inPosition, 
@@ -816,7 +818,11 @@ void SpriteGL::draw( int inFrame,
                      char inMipMapFilter,
                      double inRotation,
                      char inFlipH ) {
-    
+    //numPixelsDrawn += 
+    //    ( mColoredRadiusRightX + mColoredRadiusLeftX ) * mWidth +
+    //    ( mColoredRadiusTopY + mColoredRadiusBottomY ) * mHeight;
+
+        
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
                  inMipMapFilter,
                  inRotation, inFlipH );
@@ -841,6 +847,8 @@ void SpriteGL::draw( int inFrame,
     /*
       // for debugging
       // show red square around each sprite
+    
+    FloatColor oldColor = getDrawColor();
     setDrawColor( 1, 0, 0, 0.75 );
     glBegin( GL_LINE_LOOP ); {
         glVertex2d( corners[0].mX, corners[0].mY );
@@ -852,8 +860,8 @@ void SpriteGL::draw( int inFrame,
         glVertex2d( corners[3].mX, corners[3].mY );
         }
     glEnd();
-    setDrawColor( 1, 1, 1, 1 );
-    */  
+    setDrawColor( oldColor );
+    */
     }
 
 

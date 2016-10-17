@@ -5,14 +5,15 @@
 #include "minorGems/graphics/openGL/glInclude.h"
 
 
-static float lastR, lastG, lastB;
+static float lastR, lastG, lastB, lastA;
 
 
 void setDrawColor( float inR, float inG, float inB, float inA ) {
     lastR = inR;
     lastG = inG;
     lastB = inB;
-
+    lastA = inA;
+    
     glColor4f( inR, inG, inB, inA );
     }
 
@@ -22,10 +23,22 @@ void setDrawColor( FloatColor inColor ) {
     lastR = inColor.r;
     lastG = inColor.g;
     lastB = inColor.b;
+    lastA = inColor.a;
 
     glColor4f( inColor.r, inColor.g, inColor.b, inColor.a );
     }
 
+
+
+FloatColor getDrawColor() {
+    FloatColor c;
+    c.r = lastR;
+    c.g = lastG;
+    c.b = lastB;
+    c.a = lastA;
+
+    return c;
+    }
 
 
 void setDrawFade( float inA ) {    
@@ -483,9 +496,11 @@ void disableStencil() {
     }
 
 
+int totalLoadedTextureBytes = 0;
 
 SpriteHandle fillSprite( Image *inImage, 
                          char inTransparentLowerLeftCorner ) {
+    totalLoadedTextureBytes += inImage->getWidth() * inImage->getHeight() * 4;
     return new SpriteGL( inImage, inTransparentLowerLeftCorner, 1, 1,
                          transparentCroppingOn );
     }
@@ -494,6 +509,7 @@ SpriteHandle fillSprite( Image *inImage,
 
 SpriteHandle fillSprite( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight ) {
+    totalLoadedTextureBytes += inWidth * inHeight * 4;
     return new SpriteGL( inRGBA, inWidth, inHeight, 1, 1,
                          transparentCroppingOn );
     }
@@ -513,7 +529,9 @@ SpriteHandle fillSpriteAlphaOnly( unsigned char *inA,
 
 
 void freeSprite( SpriteHandle inSprite ) {
-    delete ( (SpriteGL *)inSprite );
+    SpriteGL *s = (SpriteGL *)inSprite;
+    totalLoadedTextureBytes -= s->mWidth * s->mHeight * 4;
+    delete ( s );
     }
 
 

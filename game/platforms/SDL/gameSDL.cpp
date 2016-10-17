@@ -1735,9 +1735,11 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
 
 
 
-
+int numPixelsDrawn = 0;
+extern int totalLoadedTextureBytes;
 
 void GameSceneHandler::drawScene() {
+    numPixelsDrawn = 0;
     /*
     glClearColor( mBackgroundColor->r,
                   mBackgroundColor->g,
@@ -2023,6 +2025,8 @@ void GameSceneHandler::drawScene() {
         }
 
     frameNumber ++;
+    if( false )printf( "%d pixels drawn (%.2F MB textures resident)\n", 
+            numPixelsDrawn, totalLoadedTextureBytes / ( 1024.0 * 1024.0 ) );
     }
 
 

@@ -132,6 +132,9 @@ class SpriteGL{
             }
         
 
+        
+        int mWidth, mHeight;
+
     protected:
 
         static char sGenerateMipMaps;
@@ -141,7 +144,6 @@ class SpriteGL{
         int mNumFrames;
         int mNumPages;
         
-        int mWidth, mHeight;
 
         double mBaseScaleX;
         double mBaseScaleY;
