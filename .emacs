@@ -188,6 +188,8 @@
 ( add-hook 'perl-mode-hook 'my-perl-mode-hook )
 
 
+
+
 (require 'php-mode)
 
 
@@ -255,3 +257,9 @@
 
 ;; so that gcc smart quotes are displayed properly
 (prefer-coding-system 'utf-8)
+
+
+
+;; don't show help screen at startup
+(setq inhibit-startup-message t)
+(setq inhibit-splash-screen t)
