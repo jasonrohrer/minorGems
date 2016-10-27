@@ -77,6 +77,7 @@ int main( int inArgCount, char **inArgs ) {
 
 #include "minorGems/game/game.h"
 #include "minorGems/game/gameGraphics.h"
+#include "minorGems/game/drawUtils.h"
 
 #include "minorGems/game/diffBundle/client/diffBundleClient.h"
 
@@ -2013,6 +2014,86 @@ void GameSceneHandler::drawScene() {
             }
         
         }
+    
+      
+    // draw letterbox
+    
+    // On most platforms, glViewport will clip image for us.
+    // glScissor is also supposed to do this, but it is buggy on some platforms
+    // thus, to be safe, we keep glScissor off and manually draw letterboxes
+    // just in case glViewport doesn't clip the image.
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+            
+            
+    // viewport is square of largest dimension, centered on screen
+    
+    int bigDimension = screenWidth;
+            
+    if( screenHeight > bigDimension ) {
+        bigDimension = screenHeight;
+        }
+    
+    float excessX = ( bigDimension - screenWidth ) / 2;
+    float excessY = ( bigDimension - screenHeight ) / 2;
+
+    glOrtho( -excessX, -excessX + bigDimension, 
+             -excessY + bigDimension, -excessY, 
+             -1.0f, 1.0f );
+    
+    glViewport( -excessX,
+                -excessY, 
+                bigDimension,
+                bigDimension );
+    
+    glMatrixMode(GL_MODELVIEW);
+
+    setDrawColor( 0, 0, 0, 1.00 );
+
+    int extraWidth = 
+        lrint( 
+            screenWidth -
+            ( (double)visibleWidth / (double)visibleHeight ) * screenHeight );
+
+    if( extraWidth > 0 ) {
+        
+
+        // left/right bars
+        drawRect( 0,
+                  0,
+                  extraWidth / 2, 
+                  screenHeight );
+        
+        drawRect( screenWidth - extraWidth / 2, 
+                  0,
+                  screenWidth, 
+                  screenHeight );    
+        }
+    else {
+        
+        int extraHeight = 
+            lrint( 
+                screenHeight -
+                ( (double)visibleHeight / (double)visibleWidth ) * 
+                screenWidth );
+
+        if( extraHeight > 0 ) {
+            
+            // top/bottom bars
+            
+            drawRect( 0, 
+                      0,
+                      screenWidth, 
+                      extraHeight / 2 );
+        
+            drawRect( 0, 
+                      screenHeight - extraHeight / 2,
+                      screenWidth, 
+                      screenHeight );
+            }
+        }
+    
 
     if( shouldTakeScreenshot ) {
         takeScreenShot();
