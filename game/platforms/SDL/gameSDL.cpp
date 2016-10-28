@@ -2015,82 +2015,86 @@ void GameSceneHandler::drawScene() {
         
         }
     
-      
-    // draw letterbox
+
+    if( visibleWidth != -1 && visibleHeight != -1 ) {        
+        // draw letterbox
     
-    // On most platforms, glViewport will clip image for us.
-    // glScissor is also supposed to do this, but it is buggy on some platforms
-    // thus, to be safe, we keep glScissor off and manually draw letterboxes
-    // just in case glViewport doesn't clip the image.
+        // On most platforms, glViewport will clip image for us.
+        // glScissor is also supposed to do this, but it is buggy on some 
+        // platforms
+        // thus, to be safe, we keep glScissor off and manually draw letterboxes
+        // just in case glViewport doesn't clip the image.
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
             
             
-    // viewport is square of largest dimension, centered on screen
+        // viewport is square of largest dimension, centered on screen
     
-    int bigDimension = screenWidth;
+        int bigDimension = screenWidth;
             
-    if( screenHeight > bigDimension ) {
-        bigDimension = screenHeight;
-        }
+        if( screenHeight > bigDimension ) {
+            bigDimension = screenHeight;
+            }
     
-    float excessX = ( bigDimension - screenWidth ) / 2;
-    float excessY = ( bigDimension - screenHeight ) / 2;
+        float excessX = ( bigDimension - screenWidth ) / 2;
+        float excessY = ( bigDimension - screenHeight ) / 2;
 
-    glOrtho( -excessX, -excessX + bigDimension, 
-             -excessY + bigDimension, -excessY, 
-             -1.0f, 1.0f );
+        glOrtho( -excessX, -excessX + bigDimension, 
+                 -excessY + bigDimension, -excessY, 
+                 -1.0f, 1.0f );
     
-    glViewport( -excessX,
-                -excessY, 
-                bigDimension,
-                bigDimension );
+        glViewport( -excessX,
+                    -excessY, 
+                    bigDimension,
+                    bigDimension );
     
-    glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);
 
-    setDrawColor( 0, 0, 0, 1.00 );
+        setDrawColor( 0, 0, 0, 1.00 );
 
-    int extraWidth = 
-        lrint( 
-            screenWidth -
-            ( (double)visibleWidth / (double)visibleHeight ) * screenHeight );
-
-    if( extraWidth > 0 ) {
-        
-
-        // left/right bars
-        drawRect( 0,
-                  0,
-                  extraWidth / 2, 
-                  screenHeight );
-        
-        drawRect( screenWidth - extraWidth / 2, 
-                  0,
-                  screenWidth, 
-                  screenHeight );    
-        }
-    else {
-        
-        int extraHeight = 
+        int extraWidth = 
             lrint( 
-                screenHeight -
-                ( (double)visibleHeight / (double)visibleWidth ) * 
-                screenWidth );
+                screenWidth -
+                ( (double)visibleWidth / (double)visibleHeight ) * 
+                screenHeight );
 
-        if( extraHeight > 0 ) {
-            
-            // top/bottom bars
-            
-            drawRect( 0, 
+        if( extraWidth > 0 ) {
+        
+
+            // left/right bars
+            drawRect( 0,
+                      0,
+                      extraWidth / 2, 
+                      screenHeight );
+        
+            drawRect( screenWidth - extraWidth / 2, 
                       0,
                       screenWidth, 
-                      extraHeight / 2 );
+                      screenHeight );    
+            }
+        else {
         
-            drawRect( 0, 
-                      screenHeight - extraHeight / 2,
-                      screenWidth, 
-                      screenHeight );
+            int extraHeight = 
+                lrint( 
+                    screenHeight -
+                    ( (double)visibleHeight / (double)visibleWidth ) * 
+                    screenWidth );
+
+            if( extraHeight > 0 ) {
+            
+                // top/bottom bars
+            
+                drawRect( 0, 
+                          0,
+                          screenWidth, 
+                          extraHeight / 2 );
+        
+                drawRect( 0, 
+                          screenHeight - extraHeight / 2,
+                          screenWidth, 
+                          screenHeight );
+                }
             }
         }
     
