@@ -2115,7 +2115,7 @@ void GameSceneHandler::drawScene() {
     }
 
 
-static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
+void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
     if( mouseWorldCoordinates ) {
         
@@ -2135,6 +2135,12 @@ static void screenToWorld( int inX, int inY, float *outX, float *outY ) {
     
     }
 
+
+
+void getLastMouseScreenPos( int *outX, int *outY ) {
+    *outX = lastMouseX;
+    *outY = lastMouseY;
+    }
 
 
 

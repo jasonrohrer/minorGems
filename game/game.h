@@ -372,6 +372,16 @@ void setMouseReportingMode( char inWorldCoordinates );
 void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY );
 
 
+// converts screen coordinates to current world coordinates
+// (will be screen coordinates if mouse reporting mode is not World)
+void screenToWorld( int inX, int inY, float *outX, float *outY );
+
+// gets the last raw screen position of the mouse (press, release, drag, move)
+void getLastMouseScreenPos( int *outX, int *outY );
+
+
+
+
 
 // returns translation of key using current language
 const char *translate( const char *inTranslationKey );
