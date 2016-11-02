@@ -237,6 +237,12 @@ void AppLog::printOutNextMessage() {
 
 
 
+void AppLog::printAllMessages( char inPrintAlso ) {
+    mLogPointerWrapper.mLog->printAllMessages( inPrintAlso );
+    }
+
+
+
 void AppLog::setLog( Log *inLog ) {
     int currentLoggingLevel = getLoggingLevel();
     

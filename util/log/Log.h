@@ -98,7 +98,14 @@ class Log {
          * Next message will be printed out as well as written to the log.
          */
         void printOutNextMessage();
+
         
+        /**
+         * Toggle whether all messages are printed as well as written
+         * to the log.
+         */
+        void printAllMessages( char inPrintAlso );
+
 
 
         /**
@@ -149,7 +156,7 @@ class Log {
     protected:
         
         char mPrintOutNextMessage;
-        
+        char mPrintAllMessages;
     };
 
 

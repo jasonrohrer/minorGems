@@ -31,7 +31,8 @@ const int Log::TRACE_LEVEL = 6;
 
 
 Log::Log()
-        : mPrintOutNextMessage( false ) {
+        : mPrintOutNextMessage( false ),
+          mPrintAllMessages( false ) {
 
     }
 
@@ -45,6 +46,12 @@ Log::~Log() {
 
 void Log::printOutNextMessage() {
     mPrintOutNextMessage = true;
+    }
+
+
+
+void Log::printAllMessages( char inPrintAlso ) {
+    mPrintAllMessages = inPrintAlso;
     }
 
 

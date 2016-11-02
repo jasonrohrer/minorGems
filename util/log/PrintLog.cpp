@@ -163,10 +163,8 @@ void PrintLog::logStringV( const char *inLoggerName,
 
 
 
-char *PrintLog::generateLogMessage( const char *inLoggerName, 
-                                    int inLevel, 
-                                    const char *inFormatString,
-                                    va_list inArgList ) {
+char *PrintLog::generatePlainMessage( const char *inFormatString,
+                                      va_list inArgList ) {
     
     unsigned int bufferSize = 200;
 
@@ -187,6 +185,19 @@ char *PrintLog::generateLogMessage( const char *inLoggerName,
         stringLength = 
             vsnprintf( buffer, bufferSize, inFormatString, inArgList );
         }
+
+    return buffer;
+    }
+
+
+
+char *PrintLog::generateLogMessage( const char *inLoggerName, 
+                                    int inLevel, 
+                                    const char *inFormatString,
+                                    va_list inArgList ) {
+    
+    char *buffer = generatePlainMessage( inFormatString, inArgList );
+    
 
 
     unsigned long seconds, milliseconds;

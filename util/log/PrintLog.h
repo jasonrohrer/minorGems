@@ -84,6 +84,11 @@ class PrintLog : public Log {
 
         MutexLock *mLock;
 
+
+        // format just the message itself with no meta information
+        char *generatePlainMessage( const char *inFormatString,
+                                    va_list inArgList );
+
         
         
         /**

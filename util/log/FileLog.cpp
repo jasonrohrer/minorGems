@@ -102,6 +102,14 @@ void FileLog::logStringV( const char *inLoggerName,
                 printf( "%s\n", message );
                 mPrintOutNextMessage = false;
                 }
+            else if( mPrintAllMessages ) {
+                char *plainMessage = 
+                    PrintLog::generatePlainMessage( inFormatString,
+                                                    inArgList );
+                printf( "%s\n", plainMessage );
+                delete [] plainMessage;
+                }
+            
             
             if( time( NULL ) - mTimeOfLastBackup > mSecondsBetweenBackups ) {
                 makeBackup();

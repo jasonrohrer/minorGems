@@ -88,6 +88,12 @@ class AppLog {
          * Next message will be printed out as well as written to the log.
          */
         static void printOutNextMessage();
+
+        /**
+         * Toggle whether all messages are printed as well as written
+         * to the log.
+         */
+        static void printAllMessages( char inPrintAlso );
         
 
 
