@@ -48,7 +48,7 @@ class FileLog : public PrintLog {
          *   before making a backup of the current log file (deleting any
          *   old backups), clearing the current log file, and starting
          *   a fresh log in the current log file.  Defaults to 3600
-         *   seconds (one hour).  Backup logs are saved to inFileName.bakup   
+         *   seconds (one hour).  Backup logs are saved to inFileName.backup   
          */
         FileLog( const char *inFileName,
                  unsigned long inSecondsBetweenBackups = 3600 );
