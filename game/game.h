@@ -1,6 +1,8 @@
 #ifndef GAME_H_INCLUDED
 #define GAME_H_INCLUDED
 
+#include <stdint.h>
+
 
 // interface between a platform-independent game engine 
 // and the underlying platform
@@ -320,6 +322,11 @@ void setSoundLoudness( float inLoudness );
 // returns handle to sound sprite, or -1 on load failure
 int loadSoundSprite( const char *inAIFFFileName );
 
+// inSamples destroyed by caller
+// returns handle
+int setSoundSprite( int16_t *inSamples, int inNumSample );
+
+
 // plays sound sprite now
 void playSoundSprite( int inHandle );
 
@@ -503,6 +510,26 @@ char relaunchGame();
 // triggers clean exit behavior
 void quitGame();
 
+
+
+// true if platform supports sound recording, false otherwise
+char isSoundRecordingSupported();
+
+
+// starts recording asynchronously
+// keeps recording until stop called
+// returns true if recording started
+char startRecording16BitMonoSound( int inSampleRate );
+
+// returns array of samples destroyed by caller
+int16_t *stopRecording16BitMonoSound( int *outNumSamples );
+
+
+// even if sound recording is not supported, we can read
+// in a .wav file from a standard location
+// inputSoundTemp.wav
+
+int16_t *load16BitMonoSound( int *outNumSamples, int *outSampleRate );
 
 
 #endif

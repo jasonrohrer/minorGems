@@ -671,6 +671,26 @@ int loadSoundSprite( const char *inAIFFFileName ) {
 
 
 
+int setSoundSprite( int16_t *inSamples, int inNumSample ) {
+    SoundSprite s;
+    
+    s.handle = nextSoundSpriteHandle ++;
+    s.numSamples = inNumSample;
+    
+    s.samplesPlayed = 0;
+
+    s.samples = new Sint16[ s.numSamples ];
+    
+    memcpy( s.samples, inSamples, inNumSample * sizeof( int16_t ) );
+
+    soundSprites.push_back( s );
+    
+    return s.handle;
+    }
+
+
+
+
 // plays sound sprite now
 void playSoundSprite( int inHandle ) {
     for( int i=0; i<soundSprites.size(); i++ ) {
@@ -2888,6 +2908,8 @@ Image *getScreenRegionRaw(
 static int nextShotNumber = -1;
 static char shotDirExists = false;
 
+static int outputFrameCount = 0;
+
 
 void takeScreenShot() {
      
@@ -2951,6 +2973,11 @@ void takeScreenShot() {
     delete [] fileName;
 
     
+    if( outputAllFrames ) {    
+        printf( "Output Frame %d (%.2f sec)\n", outputFrameCount, 
+                outputFrameCount / (double) targetFrameRate );
+        outputFrameCount ++;
+        }
     
 
     Image *screenImage = 
@@ -3970,3 +3997,299 @@ char relaunchGame() {
 void quitGame() {
     exit( 0 );
     }
+
+
+
+
+// true if platform supports sound recording, false otherwise
+char isSoundRecordingSupported() {
+#ifdef LINUX
+    // check for arecord existence
+    // The redirect to /dev/null ensures that your program does not produce 
+    // the output of these commands.
+    // found here:
+    // http://stackoverflow.com/questions/7222674/
+    //             how-to-check-if-command-is-available-or-existant
+    //
+    int ret = system( "arecord --version > /dev/null 2>&1" ); 
+    if( ret == 0 ) {
+        return true;
+        }
+    else {
+        return false;
+        }
+#elif defined(__mac__)
+    return false;
+#elif defined(WIN_32)
+    return false;
+#else
+    return false;
+#endif
+    }
+
+
+
+#ifdef LINUX
+
+static FILE *arecordPipe = NULL;
+const char *arecordFileName = "inputSoundTemp.wav";
+static int arecordSampleRate = 0;
+
+// starts recording asynchronously
+// keeps recording until stop called
+char startRecording16BitMonoSound( int inSampleRate ) {
+    if( arecordPipe != NULL ) {
+        pclose( arecordPipe );
+        arecordPipe = NULL;
+        }
+    
+    arecordSampleRate = inSampleRate;
+    
+    char *arecordLine =
+        autoSprintf( "arecord -f S16_LE -c1 -r%d %s",
+                     inSampleRate, arecordFileName );
+
+    arecordPipe = popen( arecordLine, "w" );
+
+    delete [] arecordLine;
+    
+    if( arecordPipe == NULL ) {
+        return false;
+        }
+    else {
+        return true;
+        }
+    }
+
+
+
+// returns array of samples destroyed by caller
+int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
+    if( arecordPipe == NULL ) {
+        return NULL;
+        }
+    
+    // kill arecord to end the recording gracefully
+    // this is reasonable to do because I can't imagine situations
+    // where more than one arecord is running
+    system( "pkill arecord" );
+    
+    pclose( arecordPipe );
+    arecordPipe = NULL;
+    
+    int rate = -1;
+    
+    int16_t *data = load16BitMonoSound( outNumSamples, &rate );
+
+    if( rate != arecordSampleRate ) {
+        *outNumSamples = 0;
+        
+        if( data != NULL ) {
+            delete [] data;
+            }
+        return NULL;
+        }
+    else {
+        return data;
+        }
+    }
+
+    
+
+
+#elif defined(__mac__)
+
+// mac implementation does nothing for now
+char startRecording16BitMonoSound( int inSampleRate ) {
+    return false;
+    }
+
+int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
+    *outNumSamples = 0;
+    return NULL;
+    }
+
+#elif defined(WIN_32)
+
+// windows implementation does nothing for now
+char startRecording16BitMonoSound( int inSampleRate ) {
+    return false;
+    }
+
+int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
+    return NULL;
+    }
+
+#else
+
+// default implementation does nothing
+char startRecording16BitMonoSound( int inSampleRate ) {
+    return false;
+    }
+
+int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
+    return NULL;
+    }
+
+#endif
+
+
+
+// same for all platforms
+// load a .wav file
+int16_t *load16BitMonoSound( int *outNumSamples, int *outSampleRate ) {
+
+    File wavFile( NULL, arecordFileName );
+
+    if( ! wavFile.exists() ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "File does not exist in game folder: %s\n", 
+                        arecordFileName );
+        return NULL;
+        }
+    
+    char *fileName = wavFile.getFullFileName();
+
+    FILE *file = fopen( fileName, "rb" );
+    
+    delete [] fileName;
+
+    if( file == NULL ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "Failed to open sound file for reading: %s\n", 
+                        arecordFileName );
+        return NULL;
+        }
+
+    fseek( file, 0L, SEEK_END );
+    int fileSize  = ftell( file );
+    rewind( file );
+    
+    if( fileSize <= 44 ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "Sound file too small to contain a WAV header: %s\n", 
+                        arecordFileName );
+        fclose( file );
+        return NULL;
+        }
+    
+
+    // skip 20 bytes of header to get to format flag
+    fseek( file, 20, SEEK_SET );
+    
+    unsigned char readBuffer[4];
+    
+    fread( readBuffer, 1, 2, file );
+    
+    if( readBuffer[0] != 1 || readBuffer[1] != 0 ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "Sound file not in PCM format: %s\n", 
+                        arecordFileName );
+        fclose( file );
+        return NULL;
+        }
+
+
+    fread( readBuffer, 1, 2, file );
+    
+    if( readBuffer[0] != 1 || readBuffer[1] != 0 ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "Sound file not  in mono: %s\n", 
+                        arecordFileName );
+        fclose( file );
+        return NULL;
+        }
+    
+    fread( readBuffer, 1, 4, file );
+
+    // little endian
+    *outSampleRate = 
+        (int)( readBuffer[3] << 24 |
+               readBuffer[2] << 16 |
+               readBuffer[1] << 8 |
+               readBuffer[0] );
+    
+
+    fseek( file, 34, SEEK_SET );
+
+
+    fread( readBuffer, 1, 2, file );
+    
+    if( readBuffer[0] != 16 && readBuffer[1] != 0 ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "Sound file not 16-bit: %s\n", 
+                        arecordFileName );
+        fclose( file );
+        return NULL;
+        }
+
+    
+
+    /*
+      // this is not reliable as arecord leaves this blank when
+      // recording a stream
+
+    fseek( file, 40, SEEK_SET );
+
+
+    fread( readBuffer, 1, 4, file );
+
+    // little endian
+    int numSampleBytes = 
+        (int)( readBuffer[3] << 24 |
+               readBuffer[2] << 16 |
+               readBuffer[1] << 8 |
+               readBuffer[0] );
+    
+    */
+
+    fseek( file, 44, SEEK_SET );
+
+    
+    int currentPos = ftell( file );
+    
+    int numSampleBytes = fileSize - currentPos;
+    
+    *outNumSamples = numSampleBytes / 2;
+    
+    int numSamples = *outNumSamples;
+    
+    
+    unsigned char *rawSamples = new unsigned char[ 2 * numSamples ];
+
+    int numRead = fread( rawSamples, 1, numSamples * 2, file );
+    
+
+    if( numRead != numSamples * 2 ) {
+        AppLog::printOutNextMessage();
+        AppLog::errorF( "Failed to read %d samples from file: %s\n", 
+                        numSamples, arecordFileName );
+        
+        delete [] rawSamples;
+        fclose( file );
+        return NULL;
+        }
+    
+
+    int16_t *returnSamples = new int16_t[ numSamples ];
+
+    int r = 0;
+    for( int i=0; i<numSamples; i++ ) {
+        // little endian
+        returnSamples[i] = 
+            ( rawSamples[r+1] << 8 ) |
+            rawSamples[r];
+        
+        r += 2;
+        }
+    delete [] rawSamples;
+    
+    
+
+    fclose( file );
+
+    return returnSamples;
+    }
+
+
+
