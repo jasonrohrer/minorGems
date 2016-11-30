@@ -319,19 +319,32 @@ void setSoundLoudness( float inLoudness );
 
 // opens file from "sounds" folder
 
+typedef void* SoundSpriteHandle;
+
+
 // returns handle to sound sprite, or -1 on load failure
-int loadSoundSprite( const char *inAIFFFileName );
+SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName );
 
 // inSamples destroyed by caller
 // returns handle
-int setSoundSprite( int16_t *inSamples, int inNumSample );
+SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSample );
 
 
 // plays sound sprite now
-void playSoundSprite( int inHandle );
+void playSoundSprite( SoundSpriteHandle inHandle );
 
-void freeSoundSprite( int inHandle );
+void freeSoundSprite( SoundSpriteHandle inHandle );
 
+
+// set the playback rate wiggle range of sound sprites
+// If enabled, each play of a sound sprite will pick a random 
+// rate from in this range
+// defaults to [1.0, 1.0] (no variation)
+void setSoundSpriteRateRange( double inMin, double inMax );
+
+
+// defaults to [1.0, 1.0] (no variation)
+void setSoundSpriteVolumeRange( double inMin, double inMax );
 
 
 
