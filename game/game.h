@@ -331,7 +331,20 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSample );
 
 
 // plays sound sprite now
-void playSoundSprite( SoundSpriteHandle inHandle );
+// volume tweak multiplies sound volume, should be between 0 and 1
+// stereo position in [0,1] for [left,right], with 0.5 centered
+// uses constant power law (sine)
+void playSoundSprite( SoundSpriteHandle inHandle, double inVolumeTweak = 1.0,
+                      double inStereoPosition  = 0.5 );
+
+
+// plays multiple sound sprites
+// guarantees that they will start at the time.
+// (separate calls to playSoundSprite don't guarantee this because of 
+//  audio threading)
+void playSoundSprite( int inNumSprites, SoundSpriteHandle *inHandles, 
+                      double *inVolumeTweaks,
+                      double *inStereoPositions );
 
 void freeSoundSprite( SoundSpriteHandle inHandle );
 

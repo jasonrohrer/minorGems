@@ -498,7 +498,8 @@ static SimpleVector<SoundSprite> playingSoundSprites;
 
 // variable rate per sprite
 static SimpleVector<double> playingSoundSpriteRates;
-static SimpleVector<double> playingSoundSpriteVolumes;
+static SimpleVector<double> playingSoundSpriteVolumesR;
+static SimpleVector<double> playingSoundSpriteVolumesL;
 
 
 // function that destroys object when exit is called.
@@ -526,7 +527,8 @@ void cleanUpAtExit() {
     soundSprites.deleteAll();
     playingSoundSprites.deleteAll();
     playingSoundSpriteRates.deleteAll();
-    playingSoundSpriteVolumes.deleteAll();
+    playingSoundSpriteVolumesL.deleteAll();
+    playingSoundSpriteVolumesR.deleteAll();
 
 
     if( frameDrawerInited ) {
@@ -745,15 +747,16 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSample ) {
 
 
 
+// no locking
+static void playSoundSpriteInternal( 
+    SoundSpriteHandle inHandle, double inVolumeTweak,
+    double inStereoPosition ) {    
 
-// plays sound sprite now
-void playSoundSprite( SoundSpriteHandle inHandle ) {    
     SoundSprite *s = (SoundSprite*)inHandle;
 
     s->samplesPlayed = 0;
     s->samplesPlayedF = 0;
     
-    lockAudio();
     playingSoundSprites.push_back( *s );
     
     if( soundSpriteRateMax != 1.0 ||
@@ -767,19 +770,49 @@ void playSoundSprite( SoundSpriteHandle inHandle ) {
         playingSoundSpriteRates.push_back( 1.0 );
         }
     
+    double volume = inVolumeTweak;
+
     if( soundSpriteVolumeMax != 1.0 ||
         soundSpriteVolumeMin != 1.0 ) {
         
-        playingSoundSpriteVolumes.push_back( 
+        volume *= 
             randSource.getRandomBoundedDouble( soundSpriteVolumeMin, 
-                                               soundSpriteVolumeMax ) );
-        }
-    else {
-        playingSoundSpriteVolumes.push_back( 1.0 );
+                                               soundSpriteVolumeMax );
         }
     
+    // constant power rule
+    double p = M_PI * inStereoPosition * 0.5;
+    
+    playingSoundSpriteVolumesR.push_back( volume * sin( p ) );
+    playingSoundSpriteVolumesL.push_back( volume * cos( p ) );
+    }
+
+
+// locking
+void playSoundSprite( SoundSpriteHandle inHandle, double inVolumeTweak,
+                      double inStereoPosition ) {
+    
+    lockAudio();
+    playSoundSpriteInternal( inHandle, inVolumeTweak, inStereoPosition );
     unlockAudio();
     }
+
+
+
+// multiple with single lock
+void playSoundSprite( int inNumSprites, SoundSpriteHandle *inHandles, 
+                      double *inVolumeTweaks,
+                      double *inStereoPositions ) {
+    lockAudio();
+
+    for( int i=0; i<inNumSprites; i++ ) {
+        playSoundSprite( inHandles[i], inVolumeTweaks[i], 
+                         inStereoPositions[i] );
+        }
+    unlockAudio();
+    }
+
+
 
 
 
@@ -796,7 +829,8 @@ void freeSoundSprite( SoundSpriteHandle inHandle ) {
             // stop it abruptly
             playingSoundSprites.deleteElement( i );
             playingSoundSpriteRates.deleteElement( i );
-            playingSoundSpriteVolumes.deleteElement( i );
+            playingSoundSpriteVolumesL.deleteElement( i );
+            playingSoundSpriteVolumesR.deleteElement( i );
             }
         }
     
@@ -828,8 +862,8 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             SoundSprite *s = playingSoundSprites.getElement( i );
 
             double rate = playingSoundSpriteRates.getElementDirect( i );
-            double volume = playingSoundSpriteVolumes.getElementDirect( i );
-            printf( "Volume = %f\n", volume );
+            double volumeL = playingSoundSpriteVolumesL.getElementDirect( i );
+            double volumeR = playingSoundSpriteVolumesR.getElementDirect( i );
             
             int filled = 0;
             
@@ -843,8 +877,7 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 while( filled < numSamples &&
                        samplesPlayed < spriteNumSamples  ) {
                     
-                    Sint16 sample = 
-                        lrint( volume * s->samples[ samplesPlayed ] );
+                    Sint16 sample = s->samples[ samplesPlayed ];
                         
                     Sint16 lSample = 
                         (Sint16)( (inStream[filledBytes+1] << 8) | 
@@ -853,8 +886,8 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                         (Sint16)( (inStream[filledBytes+3] << 8) | 
                                   inStream[filledBytes+2] );
                     
-                    lSample += sample;
-                    rSample += sample;
+                    lSample += lrint( volumeL * sample );
+                    rSample += lrint( volumeR * sample );
                     
                     inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
                     inStream[filledBytes++] = 
@@ -884,11 +917,7 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                     double bWeight = samplesPlayedF - aIndex;
                     double aWeight = 1 - bWeight;
 
-                    Sint16 sample = 
-                        (Sint16)( 
-                            lrint( volume * (
-                                       sampleA * aWeight + 
-                                       sampleB * bWeight ) ) );
+                    double sampleBlend = sampleA * aWeight + sampleB * bWeight;
 
                     Sint16 lSample = 
                         (Sint16)( (inStream[filledBytes+1] << 8) | 
@@ -897,8 +926,8 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                         (Sint16)( (inStream[filledBytes+3] << 8) | 
                                   inStream[filledBytes+2] );
                     
-                    lSample += sample;
-                    rSample += sample;
+                    lSample += lrint( volumeL * sampleBlend );
+                    rSample += lrint( volumeR * sampleBlend );
                     
                     inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
                     inStream[filledBytes++] = 
@@ -921,7 +950,8 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 s->samplesPlayedF >= s->numSamples - 1 ) {
                 playingSoundSprites.deleteElement( i );
                 playingSoundSpriteRates.deleteElement( i );
-                playingSoundSpriteVolumes.deleteElement( i );
+                playingSoundSpriteVolumesL.deleteElement( i );
+                playingSoundSpriteVolumesR.deleteElement( i );
                 }
             }
         }
