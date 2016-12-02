@@ -727,18 +727,18 @@ SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName ) {
 
 
 
-SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSample ) {
+SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
     SoundSprite *s = new SoundSprite;
     
     s->handle = nextSoundSpriteHandle ++;
-    s->numSamples = inNumSample;
+    s->numSamples = inNumSamples;
     
     s->samplesPlayed = 0;
     s->samplesPlayedF = 0;
     
     s->samples = new Sint16[ s->numSamples ];
     
-    memcpy( s->samples, inSamples, inNumSample * sizeof( int16_t ) );
+    memcpy( s->samples, inSamples, inNumSamples * sizeof( int16_t ) );
 
     soundSprites.push_back( s );
     

@@ -327,7 +327,7 @@ SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName );
 
 // inSamples destroyed by caller
 // returns handle
-SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSample );
+SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples );
 
 
 // plays sound sprite now
