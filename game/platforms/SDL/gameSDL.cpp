@@ -747,15 +747,65 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
 
 
 
+static double maxTotalSoundSpriteVolume = 1.0;
+
+void setMaxTotalSoundSpriteVolume( double inMaxTotal ) {
+    maxTotalSoundSpriteVolume = inMaxTotal;
+    }
+
+
+
+
 // no locking
 static void playSoundSpriteInternal( 
     SoundSpriteHandle inHandle, double inVolumeTweak,
     double inStereoPosition ) {    
 
+
+    double volume = inVolumeTweak;
+    
+    if( soundSpriteVolumeMax != 1.0 ||
+        soundSpriteVolumeMin != 1.0 ) {
+        
+        volume *= 
+            randSource.getRandomBoundedDouble( soundSpriteVolumeMin, 
+                                               soundSpriteVolumeMax );
+        }
+    
+    // constant power rule
+    double p = M_PI * inStereoPosition * 0.5;
+    
+    double rightVolume = volume * sin( p );
+    double leftVolume = volume * cos( p );
+    
+
+    double currentRightSum = 0;
+    double currentLeftSum = 0;
+    
+    for( int i=0; i<playingSoundSpriteVolumesR.size(); i++ ) {
+        currentRightSum += playingSoundSpriteVolumesR.getElementDirect( i );
+        currentLeftSum += playingSoundSpriteVolumesL.getElementDirect( i );
+        }
+
+    if( rightVolume + currentRightSum > maxTotalSoundSpriteVolume ||
+        leftVolume + currentLeftSum > maxTotalSoundSpriteVolume ) {
+        
+        // cap exceeded
+        // don't play this sound sprite at all
+        return;
+        }
+    
+        
+    
+
+
     SoundSprite *s = (SoundSprite*)inHandle;
 
     s->samplesPlayed = 0;
     s->samplesPlayedF = 0;
+
+
+
     
     playingSoundSprites.push_back( *s );
     
@@ -770,21 +820,9 @@ static void playSoundSpriteInternal(
         playingSoundSpriteRates.push_back( 1.0 );
         }
     
-    double volume = inVolumeTweak;
-
-    if( soundSpriteVolumeMax != 1.0 ||
-        soundSpriteVolumeMin != 1.0 ) {
-        
-        volume *= 
-            randSource.getRandomBoundedDouble( soundSpriteVolumeMin, 
-                                               soundSpriteVolumeMax );
-        }
     
-    // constant power rule
-    double p = M_PI * inStereoPosition * 0.5;
-    
-    playingSoundSpriteVolumesR.push_back( volume * sin( p ) );
-    playingSoundSpriteVolumesL.push_back( volume * cos( p ) );
+    playingSoundSpriteVolumesR.push_back( rightVolume );
+    playingSoundSpriteVolumesL.push_back( leftVolume );
     }
 
 

@@ -330,6 +330,14 @@ SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName );
 SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples );
 
 
+// defaults to 1.0
+// The total volume cap for all currently playing sound sprites.
+// To respect the cap, new sound sprites added to the mix over the cap
+// are ignored.
+// This cap is per channel (left and right)
+void setMaxTotalSoundSpriteVolume( double inMaxTotal );
+
+
 // plays sound sprite now
 // volume tweak multiplies sound volume, should be between 0 and 1
 // stereo position in [0,1] for [left,right], with 0.5 centered
