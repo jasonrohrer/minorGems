@@ -634,95 +634,31 @@ SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName ) {
         return NULL;
         }
     
-    char *fileName = aiffFile.getFullFileName();
+    int numBytes;
+    unsigned char *data = aiffFile.readFileContents( &numBytes );
+    
 
-    FILE *file = fopen( fileName, "rb" );
-    
-    delete [] fileName;
-
-    if( file == NULL ) {
-        printf( "Failed to open sound file for reading: %s\n", 
-                inAIFFFileName );
-        return NULL;
-        }
-    
-    // skip 20 bytes of header to get to num channels
-    fseek( file, 20, SEEK_SET );
-    
-    unsigned char readBuffer[4];
-    
-    fread( readBuffer, 1, 2, file );
-    
-    if( readBuffer[0] != 0 || readBuffer[1] != 1 ) {
-        printf( "Sound file not mono: %s\n", inAIFFFileName );
-        fclose( file );
+    if( data == NULL ) {
+        printf( "Failed to read sound file: %s\n", inAIFFFileName );
         return NULL;
         }
 
-    // num sample frames
-    fread( readBuffer, 1, 4, file );
 
-    SoundSprite *s = new SoundSprite;
+    int numSamples;
+    int16_t *samples = readMono16AIFFData( data, numBytes, &numSamples );
     
-    s->handle = nextSoundSpriteHandle ++;
-    s->numSamples = 
-        readBuffer[0] << 24 |
-        readBuffer[1] << 16 |
-        readBuffer[2] << 8 |
-        readBuffer[3];
-
-    s->samplesPlayed = 0;
-    s->samplesPlayedF = 0;
+    delete [] data;
     
-
-    // bits per sample
-    fread( readBuffer, 1, 2, file );
-    
-    if( readBuffer[0] != 0 || readBuffer[1] != 16 ) {
-        printf( "Sound file not 16-bit: %s\n", inAIFFFileName );
-        fclose( file );
-        delete s;
+    if( samples == NULL ) {
+        printf( "Failed to parse AIFF sound file: %s\n", inAIFFFileName );
         return NULL;
         }
 
-    // 26 more bytes of header before samples
-    fseek( file, 26, SEEK_CUR );
-
-    unsigned char *rawSamples = new unsigned char[ 2 * s->numSamples ];
-
-    int numRead = fread( rawSamples, 1, s->numSamples * 2, file );
+    SoundSpriteHandle s = setSoundSprite( samples, numSamples );
     
-
-    if( numRead != s->numSamples * 2 ) {
-        printf( "Failed to read %d samples from file: %s\n", 
-                s->numSamples, inAIFFFileName );
-        
-        delete [] rawSamples;
-        fclose( file );
-        delete s;
-        return NULL;
-        }
+    delete [] samples;
     
-
-    s->samples = new Sint16[ s->numSamples ];
-
-    int r = 0;
-    for( int i=0; i<s->numSamples; i++ ) {
-        s->samples[i] = 
-            ( rawSamples[r] << 8 ) |
-            rawSamples[r+1];
-        
-        r += 2;
-        }
-    delete [] rawSamples;
-    
-    
-
-    fclose( file );
-    
-    soundSprites.push_back( s );
-    
-    return (SoundSpriteHandle)s;
+    return s;
     }
 
 

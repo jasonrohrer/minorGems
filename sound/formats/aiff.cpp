@@ -92,3 +92,58 @@ unsigned char *getAIFFHeader( int inNumChannels, int inSampleSizeInBits,
 
     return returnBuffer;
     }
+
+
+
+int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
+                             int *outNumSamples ) {
+    
+    if( inNumBytes < 34 ) {
+        printf( "AIFF not long enough for header\n" );
+        return NULL;
+        }
+    
+    // byte 20 and 21 are num channels
+
+    if( inData[20] != 0 || inData[21] != 1 ) {
+        printf( "AIFF not mono\n" );
+        return NULL;
+        }
+    
+    if( inData[26] != 0 || inData[27] != 16 ) {
+        printf( "AIFF not 16-bit\n" );
+        return NULL;
+        }
+    
+
+    int numSamples =
+        inData[22] << 24 |
+        inData[23] << 16 |
+        inData[24] << 8 |
+        inData[25];
+
+    int sampleStartByte = 54;
+                        
+    
+    int numBytes = numSamples * 2;
+                        
+    if( inNumBytes < sampleStartByte + numBytes ) {
+        printf( "AIFF not long enough for inData\n" );
+        return NULL;
+        }
+    
+    int16_t *samples = new int16_t[numSamples];
+                            
+
+    int b = sampleStartByte;
+    for( int i=0; i<numSamples; i++ ) {
+        samples[i] = 
+            ( inData[b] << 8 ) |
+            inData[b+1];
+        b += 2;
+        }
+    
+    *outNumSamples = numSamples;
+                            
+    return samples;
+    }

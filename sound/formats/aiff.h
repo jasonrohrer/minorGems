@@ -11,6 +11,9 @@
 #define AIFF_INCLUDED
 
 
+#include <stdint.h>
+
+
 
 /**
  * Constructs an AIFF header.
@@ -29,6 +32,11 @@ unsigned char *getAIFFHeader( int inNumChannels, int inSampleSizeInBits,
                               int inSampleRateInHertz,
                               int inNumSampleFrames, int *outHeaderLength );
 
+
+
+// returns newly allocated array of samples destroyed by caller
+int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
+                             int *outNumSamples );
 
 
 #endif
