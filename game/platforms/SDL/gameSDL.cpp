@@ -691,22 +691,52 @@ void setMaxTotalSoundSpriteVolume( double inMaxTotal ) {
 
 
 
+static double pickRandomRate() {
+    if( soundSpriteRateMax != 1.0 ||
+        soundSpriteRateMin != 1.0 ) { 
+        
+        return randSource.getRandomBoundedDouble( soundSpriteRateMin, 
+                                                  soundSpriteRateMax );
+        }
+    else {
+        return 1.0;
+        }
+    }
+
+
+
+static double pickRandomVolume() {
+    if( soundSpriteVolumeMax != 1.0 ||
+        soundSpriteVolumeMin != 1.0 ) { 
+        
+        return randSource.getRandomBoundedDouble( soundSpriteVolumeMin, 
+                                                  soundSpriteVolumeMax );
+        }
+    else {
+        return 1.0;
+        }
+    }
+
+
+
 
 // no locking
 static void playSoundSpriteInternal( 
     SoundSpriteHandle inHandle, double inVolumeTweak,
-    double inStereoPosition ) {    
+    double inStereoPosition, 
+    double inForceVolume = -1,
+    double inForceRate = -1 ) {    
 
 
     double volume = inVolumeTweak;
     
-    if( soundSpriteVolumeMax != 1.0 ||
-        soundSpriteVolumeMin != 1.0 ) {
-        
-        volume *= 
-            randSource.getRandomBoundedDouble( soundSpriteVolumeMin, 
-                                               soundSpriteVolumeMax );
+    if( inForceVolume == -1 ) {
+        volume *= pickRandomVolume();
         }
+    else {
+        volume *= inForceVolume;
+        }
+    
     
     // constant power rule
     double p = M_PI * inStereoPosition * 0.5;
@@ -745,15 +775,11 @@ static void playSoundSpriteInternal(
     
     playingSoundSprites.push_back( *s );
     
-    if( soundSpriteRateMax != 1.0 ||
-        soundSpriteRateMin != 1.0 ) {
-        
-        playingSoundSpriteRates.push_back( 
-            randSource.getRandomBoundedDouble( soundSpriteRateMin, 
-                                               soundSpriteRateMax ) );
+    if( inForceRate != -1 ) {
+        playingSoundSpriteRates.push_back( inForceRate );
         }
-    else {
-        playingSoundSpriteRates.push_back( 1.0 );
+    else { 
+        playingSoundSpriteRates.push_back(  pickRandomRate() );
         }
     
     
@@ -779,9 +805,13 @@ void playSoundSprite( int inNumSprites, SoundSpriteHandle *inHandles,
                       double *inStereoPositions ) {
     lockAudio();
 
+    // one random volume and rate for whole batch
+    double volume = pickRandomVolume();
+    double rate = pickRandomRate();
+
     for( int i=0; i<inNumSprites; i++ ) {
-        playSoundSprite( inHandles[i], inVolumeTweaks[i], 
-                         inStereoPositions[i] );
+        playSoundSpriteInternal( inHandles[i], inVolumeTweaks[i], 
+                                 inStereoPositions[i], volume, rate );
         }
     unlockAudio();
     }
