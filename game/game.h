@@ -360,6 +360,16 @@ void playSoundSprite( int inNumSprites, SoundSpriteHandle *inHandles,
 void freeSoundSprite( SoundSpriteHandle inHandle );
 
 
+// fades all sound sprites down to zero loudness over the next inFadeSeconds
+// after fade is complete, playSoundSprite calls have no effect until
+// resumeSoundSprites is called
+void fadeSoundSprites( double inFadeSeconds );
+
+void resumePlayingSoundSprites();
+
+
+
+
 // set the playback rate wiggle range of sound sprites
 // If enabled, each play of a sound sprite will pick a random 
 // rate from in this range

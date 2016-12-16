@@ -496,6 +496,10 @@ static SimpleVector<SoundSprite*> soundSprites;
 
 static SimpleVector<SoundSprite> playingSoundSprites;
 
+static double *soundSpriteMixingBufferL = NULL;
+static double *soundSpriteMixingBufferR = NULL;
+
+
 // variable rate per sprite
 static SimpleVector<double> playingSoundSpriteRates;
 static SimpleVector<double> playingSoundSpriteVolumesR;
@@ -586,6 +590,15 @@ void cleanUpAtExit() {
         delete [] webProxy;
         webProxy = NULL;
         }
+
+    if( soundSpriteMixingBufferL != NULL ) {
+        delete [] soundSpriteMixingBufferL;
+        }
+    
+    if( soundSpriteMixingBufferR != NULL ) {
+        delete [] soundSpriteMixingBufferR;
+        }
+    
     
     AppLog::info( "exiting: Done.\n" );
     }
@@ -622,12 +635,41 @@ static float currentSoundLoudness = 0.0f;
 
 static float soundLoudnessIncrementPerSample = 0.0f;
 
+static float soundSpriteGlobalLoudness = 1.0f;
+
+
+static char soundSpritesFading = false;
+static float soundSprieFadeIncrementPerSample = 0.0f;
 
 
 void setSoundLoudness( float inLoudness ) {
+    lockAudio();
     soundLoudness = inLoudness;
     currentSoundLoudness = inLoudness;
+    unlockAudio();
     }
+
+
+void fadeSoundSprites( double inFadeSeconds ) {
+    lockAudio();
+    soundSpritesFading = true;
+    
+    soundSprieFadeIncrementPerSample = 
+        1.0f / ( inFadeSeconds * soundSampleRate );
+    
+    unlockAudio();
+    }
+
+
+
+void resumePlayingSoundSprites() {
+    lockAudio();
+    soundSpritesFading = false;
+    unlockAudio();
+    }
+
+    
+
 
 
 
@@ -865,9 +907,14 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
     
     int numSamples = inLengthToFill / 4;
 
-
+    
     if( playingSoundSprites.size() > 0 ) {
         
+        for( int i=0; i<numSamples; i++ ) {
+            soundSpriteMixingBufferL[ i ] = 0.0;
+            soundSpriteMixingBufferR[ i ] = 0.0;
+            }
+
         for( int i=0; i<playingSoundSprites.size(); i++ ) {
             SoundSprite *s = playingSoundSprites.getElement( i );
 
@@ -877,7 +924,7 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             
             int filled = 0;
             
-            int filledBytes = 0;
+            //int filledBytes = 0;
 
             if( rate == 1 ) {
                 
@@ -888,24 +935,13 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                        samplesPlayed < spriteNumSamples  ) {
                     
                     Sint16 sample = s->samples[ samplesPlayed ];
-                        
-                    Sint16 lSample = 
-                        (Sint16)( (inStream[filledBytes+1] << 8) | 
-                                  inStream[filledBytes] );
-                    Sint16 rSample = 
-                        (Sint16)( (inStream[filledBytes+3] << 8) | 
-                                  inStream[filledBytes+2] );
                     
-                    lSample += lrint( volumeL * sample );
-                    rSample += lrint( volumeR * sample );
+                    soundSpriteMixingBufferL[ filled ] 
+                        += volumeL * sample;
                     
-                    inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
-                    inStream[filledBytes++] = 
-                        (Uint8)( ( lSample >> 8 ) & 0xFF );
-                    inStream[filledBytes++] = (Uint8)( rSample & 0xFF );
-                    inStream[filledBytes++] = 
-                        (Uint8)( ( rSample >> 8 ) & 0xFF );
-                    
+                    soundSpriteMixingBufferR[ filled ]
+                        += volumeR * sample;
+
                     filled ++;
                     samplesPlayed ++;
                     }
@@ -929,28 +965,41 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
 
                     double sampleBlend = sampleA * aWeight + sampleB * bWeight;
 
-                    Sint16 lSample = 
-                        (Sint16)( (inStream[filledBytes+1] << 8) | 
-                                  inStream[filledBytes] );
-                    Sint16 rSample = 
-                        (Sint16)( (inStream[filledBytes+3] << 8) | 
-                                  inStream[filledBytes+2] );
+                    soundSpriteMixingBufferL[ filled ] 
+                        += volumeL * sampleBlend;
                     
-                    lSample += lrint( volumeL * sampleBlend );
-                    rSample += lrint( volumeR * sampleBlend );
-                    
-                    inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
-                    inStream[filledBytes++] = 
-                        (Uint8)( ( lSample >> 8 ) & 0xFF );
-                    inStream[filledBytes++] = (Uint8)( rSample & 0xFF );
-                    inStream[filledBytes++] = 
-                        (Uint8)( ( rSample >> 8 ) & 0xFF );
-                    
+                    soundSpriteMixingBufferR[ filled ]
+                        += volumeR * sampleBlend;
+
                     filled ++;
                     samplesPlayedF += rate;
                     }
                 s->samplesPlayedF = samplesPlayedF;
                 }
+            }
+        
+        // now mix them in
+        int filledBytes = 0;
+        
+        for( int i=0; i<numSamples; i++ ) {
+            Sint16 lSample = 
+                (Sint16)( (inStream[filledBytes+1] << 8) | 
+                          inStream[filledBytes] );
+            Sint16 rSample = 
+                (Sint16)( (inStream[filledBytes+3] << 8) | 
+                          inStream[filledBytes+2] );
+            
+                    
+                    
+            lSample += lrint( soundSpriteMixingBufferL[i] );
+            rSample += lrint( soundSpriteMixingBufferR[i] );
+                    
+            inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
+            inStream[filledBytes++] = 
+                (Uint8)( ( lSample >> 8 ) & 0xFF );
+            inStream[filledBytes++] = (Uint8)( rSample & 0xFF );
+            inStream[filledBytes++] = 
+                (Uint8)( ( rSample >> 8 ) & 0xFF );
             }
 
         // walk backward, removing any that are done
@@ -1590,8 +1639,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                     "Successfully opened audio: %dHz (requested %dHz), "
                     "sample buffer size=%d (requested %d)\n", 
                     actualFormat.freq, desiredRate, actualFormat.samples,
-                    bufferSize);
+                    bufferSize );
                 
+                soundSpriteMixingBufferL = new double[ actualFormat.samples ];
+                soundSpriteMixingBufferR = new double[ actualFormat.samples ];
+
                 soundSampleRate = actualFormat.freq;
                 soundRunning = true;
 
