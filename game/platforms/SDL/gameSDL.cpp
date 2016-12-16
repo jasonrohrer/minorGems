@@ -639,7 +639,7 @@ static float soundSpriteGlobalLoudness = 1.0f;
 
 
 static char soundSpritesFading = false;
-static float soundSprieFadeIncrementPerSample = 0.0f;
+static float soundSpriteFadeIncrementPerSample = 0.0f;
 
 
 void setSoundLoudness( float inLoudness ) {
@@ -654,7 +654,7 @@ void fadeSoundSprites( double inFadeSeconds ) {
     lockAudio();
     soundSpritesFading = true;
     
-    soundSprieFadeIncrementPerSample = 
+    soundSpriteFadeIncrementPerSample = 
         1.0f / ( inFadeSeconds * soundSampleRate );
     
     unlockAudio();
@@ -665,6 +665,7 @@ void fadeSoundSprites( double inFadeSeconds ) {
 void resumePlayingSoundSprites() {
     lockAudio();
     soundSpritesFading = false;
+    soundSpriteGlobalLoudness = 1.0f;
     unlockAudio();
     }
 
@@ -775,6 +776,11 @@ static void playSoundSpriteInternal(
     double inForceVolume = -1,
     double inForceRate = -1 ) {    
 
+
+    if( soundSpritesFading && soundSpriteGlobalLoudness == 0.0f ) {
+        // don't play any new sound sprites
+        return;
+        }
 
     double volume = inVolumeTweak;
     
@@ -981,6 +987,7 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
         // now mix them in
         int filledBytes = 0;
         
+        
         for( int i=0; i<numSamples; i++ ) {
             Sint16 lSample = 
                 (Sint16)( (inStream[filledBytes+1] << 8) | 
@@ -988,12 +995,22 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             Sint16 rSample = 
                 (Sint16)( (inStream[filledBytes+3] << 8) | 
                           inStream[filledBytes+2] );
+                    
+            lSample += lrint( soundSpriteGlobalLoudness * 
+                              soundSpriteMixingBufferL[i] );
             
-                    
-                    
-            lSample += lrint( soundSpriteMixingBufferL[i] );
-            rSample += lrint( soundSpriteMixingBufferR[i] );
-                    
+            rSample += lrint( soundSpriteGlobalLoudness *
+                              soundSpriteMixingBufferR[i] );
+            
+            if( soundSpritesFading ) {
+                soundSpriteGlobalLoudness -= soundSpriteFadeIncrementPerSample;
+                
+                if( soundSpriteGlobalLoudness < 0.0f ) {
+                    soundSpriteGlobalLoudness = 0.0f;
+                    }
+                }
+                
+        
             inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
             inStream[filledBytes++] = 
                 (Uint8)( ( lSample >> 8 ) & 0xFF );
