@@ -618,9 +618,15 @@ void setSoundSpriteVolumeRange( double inMin, double inMax ) {
 
 static float soundLoudness = 1.0f;
 
+static float currentSoundLoudness = 0.0f;
+
+static float soundLoudnessIncrementPerSample = 0.0f;
+
+
 
 void setSoundLoudness( float inLoudness ) {
     soundLoudness = inLoudness;
+    currentSoundLoudness = inLoudness;
     }
 
 
@@ -960,7 +966,13 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             }
         }
 
-    if( soundLoudness != 1.0f ) {
+    if( ( currentSoundLoudness != soundLoudness && ! sceneHandler->mPaused ) 
+        ||
+        ( currentSoundLoudness != 0.0f && sceneHandler->mPaused ) 
+        ||
+        currentSoundLoudness != 1.0f ) {
+        
+        
         int nextByte = 0;
         for( int i=0; i<numSamples; i++ ) {
             Sint16 lSample = 
@@ -971,14 +983,33 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 inStream[nextByte + 2] | 
                 ( inStream[nextByte + 3] << 8 );
             
-            lSample = (Sint16)( lSample * soundLoudness );
-            rSample = (Sint16)( rSample * soundLoudness );
+            lSample = (Sint16)( lSample * currentSoundLoudness );
+            rSample = (Sint16)( rSample * currentSoundLoudness );
             
 
             inStream[nextByte++] = (Uint8)( lSample & 0xFF );
             inStream[nextByte++] = (Uint8)( ( lSample >> 8 ) & 0xFF );
             inStream[nextByte++] = (Uint8)( rSample & 0xFF );
             inStream[nextByte++] = (Uint8)( ( rSample >> 8 ) & 0xFF );
+            
+            if( currentSoundLoudness != soundLoudness && 
+                ! sceneHandler->mPaused ) {
+                currentSoundLoudness += soundLoudnessIncrementPerSample;
+                
+                if( currentSoundLoudness > soundLoudness ) {
+                    currentSoundLoudness = soundLoudness;
+                    }
+                }
+            else if( currentSoundLoudness != 0 && 
+                     sceneHandler->mPaused ) {
+                
+                currentSoundLoudness -= soundLoudnessIncrementPerSample;
+                
+                if( currentSoundLoudness < 0 ) {
+                    currentSoundLoudness = 0;
+                    }
+                }
+            
             }
         }
     
@@ -1500,7 +1531,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         int requestedBufferSize = 
             SettingsManager::getIntSetting( "soundBufferSize", 512 );
         
-        
+        // 1 second fade in/out
+        soundLoudnessIncrementPerSample = 1.0f / soundSampleRate;
+
         // force user-specified value to closest (round up) power of 2
         int bufferSize = 2;
         while( bufferSize < requestedBufferSize ) {

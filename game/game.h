@@ -307,7 +307,10 @@ char isSoundRunning();
 
 
 // loudness in [0..1] for sound
+// instantaneous
 void setSoundLoudness( float inLoudness );
+
+
 
 // NOTE:  to use sound sprites, getUsesSound must return true
 // and at least a no-op getSoundSamples must be implemented.
