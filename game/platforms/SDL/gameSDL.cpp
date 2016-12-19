@@ -492,18 +492,27 @@ typedef struct SoundSprite {
 
 
 
+// don't worry about dynamic mallocs here
+// because we don't need to lock audio thread before adding values
+// (playing sound sprites is handled directly through SoundSprite* handles
+//  without accessing this vector).
 static SimpleVector<SoundSprite*> soundSprites;
 
-static SimpleVector<SoundSprite> playingSoundSprites;
+// audio thread is locked every time we touch this vector
+// So, we want to avoid mallocs here
+// Can we imagine more than 100 sound sprites ever playing at the same time?
+static SimpleVector<SoundSprite> playingSoundSprites( 100 );
 
 static double *soundSpriteMixingBufferL = NULL;
 static double *soundSpriteMixingBufferR = NULL;
 
 
 // variable rate per sprite
-static SimpleVector<double> playingSoundSpriteRates;
-static SimpleVector<double> playingSoundSpriteVolumesR;
-static SimpleVector<double> playingSoundSpriteVolumesL;
+// these are also touched with audio thread locked, so avoid mallocs
+// we won't see more than 100 of these simultaneously either
+static SimpleVector<double> playingSoundSpriteRates( 100 );
+static SimpleVector<double> playingSoundSpriteVolumesR( 100 );
+static SimpleVector<double> playingSoundSpriteVolumesL( 100 );
 
 
 // function that destroys object when exit is called.
@@ -1657,6 +1666,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                     "sample buffer size=%d (requested %d)\n", 
                     actualFormat.freq, desiredRate, actualFormat.samples,
                     bufferSize );
+
+
+                // tell game what their buffer size will be
+                // so they can allocate it outside the callback
+                hintBufferSize( actualFormat.samples * 4 );
                 
                 soundSpriteMixingBufferL = new double[ actualFormat.samples ];
                 soundSpriteMixingBufferR = new double[ actualFormat.samples ];

@@ -184,6 +184,12 @@ typedef uint8_t Uint8;
 char getUsesSound();
 
 
+
+// called before the first call to getSoundSamples
+// allows static allocation of buffers used in callback
+void hintBufferSize( int inLengthToFillInBytes );
+
+
 // gets the next buffer-full of sound samples from the game engine
 // inBuffer should be filled with stereo Sint16 samples, little endian,
 //    left-right left-right ....
