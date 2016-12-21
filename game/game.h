@@ -341,10 +341,18 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples );
 
 // defaults to 1.0
 // The total volume cap for all currently playing sound sprites.
-// To respect the cap, new sound sprites added to the mix over the cap
-// are ignored.
+// To respect the cap, sound sprites are mixed together at their play
+// volumes and the mix is gain adjusted by an auto-leveller which
+// guarantees that the mix never exceeds this cap.
 // This cap is per channel (left and right)
 void setMaxTotalSoundSpriteVolume( double inMaxTotal );
+
+
+// defaults to -1, no limit
+// To respect this limit, newly played sprites that would exceed the limit
+// are ignored
+void setMaxSimultaneousSoundSprites( int inMaxCount );
+
 
 
 // plays sound sprite now

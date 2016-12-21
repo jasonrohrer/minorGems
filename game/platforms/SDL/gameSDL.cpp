@@ -72,6 +72,7 @@ int main( int inArgCount, char **inArgs ) {
 
 
 #include "minorGems/sound/formats/aiff.h"
+#include "minorGems/sound/audioNoClip.h"
 
 
 
@@ -744,8 +745,25 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
 static double maxTotalSoundSpriteVolume = 1.0;
 
 void setMaxTotalSoundSpriteVolume( double inMaxTotal ) {
+    lockAudio();
+
     maxTotalSoundSpriteVolume = inMaxTotal;
+
+    resetAudioNoClip( maxTotalSoundSpriteVolume * 32767, 
+                      // half second hold and release
+                      soundSampleRate / 2, soundSampleRate / 2 );
+    
+    unlockAudio();
     }
+
+
+static int maxSimultaneousSoundSprites = -1;
+
+
+void setMaxSimultaneousSoundSprites( int inMaxCount ) {
+    maxSimultaneousSoundSprites = inMaxCount;
+    }
+
 
 
 
@@ -791,6 +809,14 @@ static void playSoundSpriteInternal(
         return;
         }
 
+    if( maxSimultaneousSoundSprites != -1 &&
+        playingSoundSpriteVolumesR.size() >= maxSimultaneousSoundSprites ) {
+        // cap would be exceeded
+        // don't play this sound sprite at all
+        return;
+        }
+
+
     double volume = inVolumeTweak;
     
     if( inForceVolume == -1 ) {
@@ -806,27 +832,6 @@ static void playSoundSpriteInternal(
     
     double rightVolume = volume * sin( p );
     double leftVolume = volume * cos( p );
-    
-
-    double currentRightSum = 0;
-    double currentLeftSum = 0;
-    
-    for( int i=0; i<playingSoundSpriteVolumesR.size(); i++ ) {
-        currentRightSum += playingSoundSpriteVolumesR.getElementDirect( i );
-        currentLeftSum += playingSoundSpriteVolumesL.getElementDirect( i );
-        }
-
-    if( rightVolume + currentRightSum > maxTotalSoundSpriteVolume ||
-        leftVolume + currentLeftSum > maxTotalSoundSpriteVolume ) {
-        
-        // cap exceeded
-        // don't play this sound sprite at all
-        return;
-        }
-    
-        
-    
-
 
     SoundSprite *s = (SoundSprite*)inHandle;
 
@@ -992,10 +997,16 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 s->samplesPlayedF = samplesPlayedF;
                 }
             }
-        
+
+
+        // respect their collective volume cap
+        audioNoClip( soundSpriteMixingBufferL, soundSpriteMixingBufferR,
+                     numSamples );
+
         // now mix them in
         int filledBytes = 0;
         
+
         
         for( int i=0; i<numSamples; i++ ) {
             Sint16 lSample = 
@@ -1004,7 +1015,8 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             Sint16 rSample = 
                 (Sint16)( (inStream[filledBytes+3] << 8) | 
                           inStream[filledBytes+2] );
-                    
+            
+
             lSample += lrint( soundSpriteGlobalLoudness * 
                               soundSpriteMixingBufferL[i] );
             
@@ -1630,7 +1642,6 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         SDL_AudioSpec actualFormat;
 
 
-
         SDL_LockAudio();
 
 
@@ -1672,6 +1683,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 // so they can allocate it outside the callback
                 hintBufferSize( actualFormat.samples * 4 );
                 
+                resetAudioNoClip( maxTotalSoundSpriteVolume * 32767, 
+                                  // half second hold and release
+                                  soundSampleRate / 2, soundSampleRate / 2 );
+
+
                 soundSpriteMixingBufferL = new double[ actualFormat.samples ];
                 soundSpriteMixingBufferR = new double[ actualFormat.samples ];
 
