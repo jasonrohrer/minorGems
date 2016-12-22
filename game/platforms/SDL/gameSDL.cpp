@@ -1047,9 +1047,6 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             
             filledBytes += 4;
             
-            if( lSample != 0 ) {
-                happened = true;
-                }
             // apply global loudness to sound sprites as part of this mx
             soundSpriteMixingBufferL[i] *= soundSpriteGlobalLoudness;
             soundSpriteMixingBufferR[i] *= soundSpriteGlobalLoudness;
@@ -1065,13 +1062,6 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
 
             soundSpriteMixingBufferL[i] += lSample;
             soundSpriteMixingBufferR[i] += rSample;
-            
-            if( soundSpriteMixingBufferL[i] > maxValue ) {
-                maxValue = soundSpriteMixingBufferL[i];
-                }
-            if( soundSpriteMixingBufferR[i] > maxValue ) {
-                maxValue = soundSpriteMixingBufferR[i];
-                }
             }
 
 
