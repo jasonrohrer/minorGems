@@ -744,12 +744,23 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
 
 static double maxTotalSoundSpriteVolume = 1.0;
 
-void setMaxTotalSoundSpriteVolume( double inMaxTotal ) {
+static double soundSpriteCompressionFraction = 0.0;
+
+static double totalSoundSpriteNormalizeFactor = 1.0;
+
+
+void setMaxTotalSoundSpriteVolume( double inMaxTotal, 
+                                   double inCompressionFraction ) {
     lockAudio();
 
     maxTotalSoundSpriteVolume = inMaxTotal;
-
-    resetAudioNoClip( maxTotalSoundSpriteVolume * 32767, 
+    soundSpriteCompressionFraction = inCompressionFraction;
+;
+    totalSoundSpriteNormalizeFactor = 
+        1.0 / ( 1.0 - soundSpriteCompressionFraction );
+    
+    resetAudioNoClip( ( 1.0 - soundSpriteCompressionFraction ) *
+                      maxTotalSoundSpriteVolume * 32767, 
                       // half second hold and release
                       soundSampleRate / 2, soundSampleRate / 2 );
     
@@ -1002,6 +1013,14 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
         // respect their collective volume cap
         audioNoClip( soundSpriteMixingBufferL, soundSpriteMixingBufferR,
                      numSamples );
+
+        if( totalSoundSpriteNormalizeFactor != 1.0 ) {
+            for( int i=0; i<numSamples; i++ ) {
+                soundSpriteMixingBufferL[i] *= totalSoundSpriteNormalizeFactor;
+                soundSpriteMixingBufferR[i] *= totalSoundSpriteNormalizeFactor;
+                }
+            }
+        
 
         // now mix them in
         int filledBytes = 0;
@@ -1683,7 +1702,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 // so they can allocate it outside the callback
                 hintBufferSize( actualFormat.samples * 4 );
                 
-                resetAudioNoClip( maxTotalSoundSpriteVolume * 32767, 
+                resetAudioNoClip( ( 1.0 - soundSpriteCompressionFraction ) *
+                                  maxTotalSoundSpriteVolume * 32767, 
                                   // half second hold and release
                                   soundSampleRate / 2, soundSampleRate / 2 );
 

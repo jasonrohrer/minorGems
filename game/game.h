@@ -339,13 +339,21 @@ SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName );
 SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples );
 
 
-// defaults to 1.0
+// max volume defaults to 1.0
 // The total volume cap for all currently playing sound sprites.
 // To respect the cap, sound sprites are mixed together at their play
 // volumes and the mix is gain adjusted by an auto-leveller which
 // guarantees that the mix never exceeds this cap.
 // This cap is per channel (left and right)
-void setMaxTotalSoundSpriteVolume( double inMaxTotal );
+//
+// compression fraction defaults to 0
+// fraction of total volume cap that is compressed up to full volume
+// cap level.
+// Example:  if 0.75, than all sounds in top 75% of volume range are
+// compressed up to full volume, while sounds in the 0..25% range
+// are expanded to cover the full volume dynamic range
+void setMaxTotalSoundSpriteVolume( double inMaxTotal, 
+                                   double inCompressionFraction );
 
 
 // defaults to -1, no limit
