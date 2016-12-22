@@ -748,6 +748,10 @@ static double soundSpriteCompressionFraction = 0.0;
 
 static double totalSoundSpriteNormalizeFactor = 1.0;
 
+static NoClip soundSpriteNoClip;
+
+static NoClip totalAudioMixNoClip;
+                                                   
 
 void setMaxTotalSoundSpriteVolume( double inMaxTotal, 
                                    double inCompressionFraction ) {
@@ -755,14 +759,15 @@ void setMaxTotalSoundSpriteVolume( double inMaxTotal,
 
     maxTotalSoundSpriteVolume = inMaxTotal;
     soundSpriteCompressionFraction = inCompressionFraction;
-;
+
     totalSoundSpriteNormalizeFactor = 
         1.0 / ( 1.0 - soundSpriteCompressionFraction );
     
-    resetAudioNoClip( ( 1.0 - soundSpriteCompressionFraction ) *
-                      maxTotalSoundSpriteVolume * 32767, 
-                      // half second hold and release
-                      soundSampleRate / 2, soundSampleRate / 2 );
+    soundSpriteNoClip =
+        resetAudioNoClip( ( 1.0 - soundSpriteCompressionFraction ) *
+                          maxTotalSoundSpriteVolume * 32767, 
+                          // half second hold and release
+                          soundSampleRate / 2, soundSampleRate / 2 );
     
     unlockAudio();
     }
@@ -1011,9 +1016,11 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
 
 
         // respect their collective volume cap
-        audioNoClip( soundSpriteMixingBufferL, soundSpriteMixingBufferR,
+        audioNoClip( &soundSpriteNoClip,
+                     soundSpriteMixingBufferL, soundSpriteMixingBufferR,
                      numSamples );
 
+        // and normalize to compensate for any compression below that cap
         if( totalSoundSpriteNormalizeFactor != 1.0 ) {
             for( int i=0; i<numSamples; i++ ) {
                 soundSpriteMixingBufferL[i] *= totalSoundSpriteNormalizeFactor;
@@ -1026,6 +1033,9 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
         int filledBytes = 0;
         
 
+        // next, do final mix, then
+        //  apply global no-clip, for mix of sound sprites and
+        // music or other sounds created by getSoundSamples
         
         for( int i=0; i<numSamples; i++ ) {
             Sint16 lSample = 
@@ -1035,12 +1045,14 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 (Sint16)( (inStream[filledBytes+3] << 8) | 
                           inStream[filledBytes+2] );
             
-
-            lSample += lrint( soundSpriteGlobalLoudness * 
-                              soundSpriteMixingBufferL[i] );
+            filledBytes += 4;
             
-            rSample += lrint( soundSpriteGlobalLoudness *
-                              soundSpriteMixingBufferR[i] );
+            if( lSample != 0 ) {
+                happened = true;
+                }
+            // apply global loudness to sound sprites as part of this mx
+            soundSpriteMixingBufferL[i] *= soundSpriteGlobalLoudness;
+            soundSpriteMixingBufferR[i] *= soundSpriteGlobalLoudness;
             
             if( soundSpritesFading ) {
                 soundSpriteGlobalLoudness -= soundSpriteFadeIncrementPerSample;
@@ -1049,8 +1061,34 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                     soundSpriteGlobalLoudness = 0.0f;
                     }
                 }
-                
+
+
+            soundSpriteMixingBufferL[i] += lSample;
+            soundSpriteMixingBufferR[i] += rSample;
+            
+            if( soundSpriteMixingBufferL[i] > maxValue ) {
+                maxValue = soundSpriteMixingBufferL[i];
+                }
+            if( soundSpriteMixingBufferR[i] > maxValue ) {
+                maxValue = soundSpriteMixingBufferR[i];
+                }
+            }
+
+
         
+        // we have our final mix, make sure it never clips
+        audioNoClip( &totalAudioMixNoClip,
+                     soundSpriteMixingBufferL, soundSpriteMixingBufferR,
+                     numSamples );
+
+        
+        // now convert back to integers
+        filledBytes = 0;
+        for( int i=0; i<numSamples; i++ ) {
+            Sint16 lSample = lrint( soundSpriteMixingBufferL[i] );
+            Sint16 rSample = lrint( soundSpriteMixingBufferR[i] );
+
+
             inStream[filledBytes++] = (Uint8)( lSample & 0xFF );
             inStream[filledBytes++] = 
                 (Uint8)( ( lSample >> 8 ) & 0xFF );
@@ -1071,7 +1109,8 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 }
             }
         }
-
+    
+    // now apply global loudness fade for pause
     if( ( currentSoundLoudness != soundLoudness && ! sceneHandler->mPaused ) 
         ||
         ( currentSoundLoudness != 0.0f && sceneHandler->mPaused ) 
@@ -1702,10 +1741,24 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 // so they can allocate it outside the callback
                 hintBufferSize( actualFormat.samples * 4 );
                 
-                resetAudioNoClip( ( 1.0 - soundSpriteCompressionFraction ) *
-                                  maxTotalSoundSpriteVolume * 32767, 
-                                  // half second hold and release
-                                  soundSampleRate / 2, soundSampleRate / 2 );
+                soundSpriteNoClip =
+                    resetAudioNoClip( 
+                        ( 1.0 - soundSpriteCompressionFraction ) *
+                        maxTotalSoundSpriteVolume * 32767, 
+                        // half second hold and release
+                        soundSampleRate / 2, soundSampleRate / 2 );
+
+                totalAudioMixNoClip = 
+                    resetAudioNoClip( 32767.0,
+                                      // 10x faster hold and release
+                                      // for master mix
+                                      // pull music and sound effects down
+                                      // to prevent clipping, but bring
+                                      // it right back up again quickly
+                                      // after the transient passes to
+                                      // avoid audible pumping in music
+                                      soundSampleRate / 20, 
+                                      soundSampleRate / 20 );
 
 
                 soundSpriteMixingBufferL = new double[ actualFormat.samples ];

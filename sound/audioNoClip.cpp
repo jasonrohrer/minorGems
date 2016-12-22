@@ -5,36 +5,31 @@
 
 
 
-static int holdTime;
-static int decayTime;
-
-static int currentHoldTime;
-
-
-static double gain;
-
-static double maxVolume;
-
-static double gainDecayPerSample;
 
 
 
-void resetAudioNoClip( double inMaxVolume, int inHoldTimeInSamples, 
-                       int inDecayTimeInSamples ) {
-    maxVolume = inMaxVolume;
-
-    gain = 1.0;
-
-    decayTime = inDecayTimeInSamples;
-
-    holdTime = inHoldTimeInSamples;
+NoClip resetAudioNoClip( double inMaxVolume, int inHoldTimeInSamples, 
+                         int inDecayTimeInSamples ) {
     
-    currentHoldTime = 0;
+    NoClip a;
+    
+    a.maxVolume = inMaxVolume;
+
+    a.gain = 1.0;
+
+    a.decayTime = inDecayTimeInSamples;
+
+    a.holdTime = inHoldTimeInSamples;
+    
+    a.currentHoldTime = 0;
+
+    return a;
     }
 
 
 
-void audioNoClip( double *inSamplesL, double *inSamplesR, int inNumSamples ) {
+void audioNoClip( NoClip *inC,
+                  double *inSamplesL, double *inSamplesR, int inNumSamples ) {
     
     for( int i=0; i<inNumSamples; i++ ) {
         
@@ -49,31 +44,33 @@ void audioNoClip( double *inSamplesL, double *inSamplesR, int inNumSamples ) {
             }
         
         // do nothing if signal is not clipping and gain is full
-        if( gain != 1.0 || maxVal > maxVolume ) {
+        if( inC->gain != 1.0 || maxVal > inC->maxVolume ) {
             
-            if( gain != 1.0 && 
-                ( gain + gainDecayPerSample ) * maxVal <= maxVolume ) {
+            if( inC->gain != 1.0 
+                && 
+                ( inC->gain + inC->gainDecayPerSample ) * maxVal <= 
+                inC->maxVolume ) {
                 
-                currentHoldTime++;
+                inC->currentHoldTime++;
                 
-                if( currentHoldTime > holdTime ) {
+                if( inC->currentHoldTime > inC->holdTime ) {
                     
                     // printf( "Gain decay step at sample %d, "
                     //        "current hold time %d\n", i, currentHoldTime );
                     
-                    gain += gainDecayPerSample;
+                    inC->gain += inC->gainDecayPerSample;
                 
-                    if( gain > 1.0 ) {
-                        gain = 1.0;
+                    if( inC->gain > 1.0 ) {
+                        inC->gain = 1.0;
                         }
                     }
                 }
-            else if( maxVal * gain > maxVolume ) {
+            else if( maxVal * inC->gain > inC->maxVolume ) {
                 
                 // new peak
 
                 // restart hold
-                currentHoldTime = 0;
+                inC->currentHoldTime = 0;
                 
                 // printf( "Current hold time resetA at sample %d\n", i );
                 
@@ -81,22 +78,22 @@ void audioNoClip( double *inSamplesL, double *inSamplesR, int inNumSamples ) {
                 
                 // printf( "Max val = %f, old gain = %f\n", maxVal, gain );
 
-                gain = maxVolume / maxVal;
+                inC->gain = inC->maxVolume / maxVal;
                 // printf( "   new gain = %f\n", gain );
                 
-                gainDecayPerSample = ( 1.0 - gain ) / decayTime;
+                inC->gainDecayPerSample = ( 1.0 - inC->gain ) / inC->decayTime;
                 }
             else {
                 // not a new peak, not way under peak value
                 // hit old peak again, continue holding
-                currentHoldTime = 0;
+                inC->currentHoldTime = 0;
                 //printf( "Current hold time resetB at sample %d\n", i );
 
                 }
             
 
-            inSamplesL[i] *= gain;
-            inSamplesR[i] *= gain;
+            inSamplesL[i] *= inC->gain;
+            inSamplesR[i] *= inC->gain;
             }
         }
 

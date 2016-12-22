@@ -1,12 +1,31 @@
 
 
+typedef struct NoClip {
+        int holdTime;
+        int decayTime;
+
+        int currentHoldTime;
+
+
+        double gain;
+
+        double maxVolume;
+
+        double gainDecayPerSample;
+        
+    } NoClip;
+
+    
+
+
 
 // must be called once to init
-void resetAudioNoClip( double inMaxVolume, int inHoldTimeInSamples,
-                       int inDecayTimeInSamples );
+NoClip resetAudioNoClip( double inMaxVolume, int inHoldTimeInSamples,
+                              int inDecayTimeInSamples );
 
 
-void audioNoClip( double *inSamplesL, double *inSamplesR, int inNumSamples );
+void audioNoClip( NoClip *inC,
+                  double *inSamplesL, double *inSamplesR, int inNumSamples );
 
 
 
