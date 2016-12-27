@@ -7,6 +7,7 @@
 #include "minorGems/crypto/hashes/sha1.h"
 
 #include "minorGems/util/log/AppLog.h"
+#include "minorGems/util/SimpleVector.h"
 
 
 #if defined(__mac__)
@@ -47,7 +48,7 @@ char isUpdatePlatformSupported() {
 
 
 
-static int webHandle;
+static int webHandle = -1;
 static int updateSize = -1;
 
 static int updateProgressCompleteSteps;
@@ -56,8 +57,27 @@ static char *updateServerURL = NULL;
 static int oldVersionNumber;
 
 
+static char batchMirrorUpdate = false;
+
+static char batchStepsDone = 0;
+
+
+typedef struct MirrorList {
+        int version;
+        int currentMirror;
+        SimpleVector<char*> mirrorURLS;
+    } MirrorList;
+    
+
+static SimpleVector<MirrorList> mirrors;
+
+
+
 // returns handle
 char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
+
+    batchMirrorUpdate = false;
+    
     File binaryFlagFile( NULL, "binary.txt" );
     
     if( ! binaryFlagFile.exists() ) {
@@ -102,51 +122,413 @@ static void dumpRawDataToFile( unsigned char *inRawBundleData,
     }
 
 
+
+// returns 1 on success, -1 on failure
+static int applyUpdateFromWebResult() {
+    // process it, unzip, apply file changes, etc.
+            
+    int size;
+    unsigned char *result = getWebResult( webHandle, &size );
+
+    char *nextRawScanPointer = (char*)result;
+            
+    // don't use sscanf here because it scans the entire buffer
+    // (and this buffer has binary data at end)
+    int rawSize = scanIntAndSkip( &nextRawScanPointer );
+    int compSize = scanIntAndSkip( &nextRawScanPointer );
+
+    if( rawSize > 0 && compSize > 0 ) {
+                
+        unsigned char *compData = (unsigned char*)nextRawScanPointer;
+                
+        char *hash = computeSHA1Digest( compData, compSize );
+
+        AppLog::infoF( "Received compressed data with SHA1 = %s\n",
+                       hash );
+        delete [] hash;
+
+        unsigned char *rawData = 
+            zipDecompress( compData,
+                           compSize,
+                           rawSize );
+
+        delete [] result;
+                
+
+        if( rawData == NULL ) {
+            printf( "Failed to decompress diff bundle\n" );
+            return -1;
+            }
+
+                                
+        char *nextScanPointer = (char*)rawData;
+        char success;
+                
+        int numDirs = scanIntAndSkip( &nextScanPointer, &success );
+                    
+        if( !success ) {
+            printf( "Failed to parse dir count from diff bundle\n" );
+            dumpRawDataToFile( rawData, rawSize );
+            delete [] rawData;
+            return -1;
+            }
+
+        printf( "Creating %d new directories\n", numDirs );
+                
+        for( int d=0; d<numDirs; d++ ) {
+                    
+            int fileNameLength = 
+                scanIntAndSkip( &nextScanPointer, &success );
+                    
+            if( !success ) {
+                printf( "Failed to parse directory name length "
+                        "from diff bundle\n" );
+                dumpRawDataToFile( rawData, rawSize );
+                delete [] rawData;
+                return -1;
+                }
+                    
+            char *fileName = new char[ fileNameLength + 1 ];
+                    
+            memcpy( fileName, nextScanPointer, fileNameLength );
+                    
+            fileName[ fileNameLength ] = '\0';
+                    
+            printf( "   %s\n", fileName );
+                    
+
+            nextScanPointer = 
+                &( nextScanPointer[ fileNameLength + 1 ] );
+                    
+            File dirFile( NULL, fileName );
+
+            if( dirFile.exists() ) {
+                printf( "Directory exists %s\n",
+                        fileName );
+                }
+            else {
+                char made = Directory::makeDirectory( &dirFile );
+                    
+                if( !made ) {
+                    printf( "Failed to make directory %s\n",
+                            fileName );
+                            
+                    delete [] fileName;
+                            
+                    dumpRawDataToFile( rawData, rawSize );
+                    delete [] rawData;
+                    return -1;
+                    }
+                }
+                    
+                    
+            delete [] fileName;
+            }
+                
+
+
+        int numFiles = scanIntAndSkip( &nextScanPointer, &success );
+
+        if( !success ) {
+            printf( "Failed to parse file count from diff bundle\n" );
+                    
+            dumpRawDataToFile( rawData, rawSize );
+            delete [] rawData;
+            return -1;
+            }                
+
+        printf( "Updating %d files\n", numFiles );
+                
+        for( int f=0; f<numFiles; f++ ) {
+                    
+            int fileNameLength =
+                scanIntAndSkip( &nextScanPointer, &success );
+                    
+            if( !success ) {
+                printf( "Failed to parse file name length "
+                        "from diff bundle\n" );
+                        
+                dumpRawDataToFile( rawData, rawSize );
+                delete [] rawData;
+                return -1;
+                }
+                    
+            char *fileName = new char[ fileNameLength + 1 ];
+                    
+            memcpy( fileName, nextScanPointer, fileNameLength );
+                    
+            fileName[ fileNameLength ] = '\0';
+                    
+            printf( "   %s\n", fileName );
+
+            nextScanPointer = 
+                &( nextScanPointer[ fileNameLength + 1 ] );
+
+            // single # separates the file size from the file data
+            // this skips it
+            int fileSize = 
+                scanIntAndSkip( &nextScanPointer, &success );
+                    
+            if( !success ) {
+                printf( "Failed to parse file size "
+                        "from diff bundle\n" );
+                delete [] fileName;
+                        
+                dumpRawDataToFile( rawData, rawSize );
+                delete [] rawData;
+                return -1;
+                }
+                    
+
+            File targetFile( NULL, fileName );
+
+            char *backupName = NULL;
+                    
+            if( targetFile.exists() ) {
+                backupName = autoSprintf( "%s.bak", fileName );
+                        
+                rename( fileName, backupName );
+                        
+                printf( "File %s exists, moving temporariliy to %s\n",
+                        fileName, backupName );
+                }
+                    
+
+            FILE *file = fopen( fileName, "wb" );
+                    
+                    
+            if( file == NULL ) {
+                printf( "Failed to open file %s for writing\n",
+                        fileName );
+                }
+            else {
+                int numWritten = 
+                    fwrite( (unsigned char *)nextScanPointer, 
+                            1, fileSize, file );
+                if( numWritten != fileSize ) {
+                    printf( "Failed to write %d bytes to file  %s\n",
+                            fileSize, fileName );
+                    }
+                        
+                fclose( file );
+                }
+                    
+                    
+            if( backupName != NULL ) {
+                copyPermissions( backupName, fileName );
+                        
+                if( remove( backupName ) != 0 ) {
+                    FILE *postRemoveListFile =
+                        fopen( "postRemoveList.txt", "a" );
+                    if( postRemoveListFile != NULL ) {    
+                        fprintf( postRemoveListFile, 
+                                 "%s\n", backupName );
+                        fclose( postRemoveListFile );
+                        }
+                    }
+                        
+                        
+                delete [] backupName;
+                }
+                    
+            delete [] fileName;
+                    
+            nextScanPointer = &( nextScanPointer[ fileSize ] );
+            }
+                
+        delete [] rawData;
+        printf( "Update complete\n" );
+        return 1;
+        }
+    else {
+        printf( "Failed to parse diff bundle\n" );
+        delete [] result;
+        return -1;
+        }
+
+    }
+
+    
+
+
+static int batchMirrorStep() {
+
+    if( batchStepsDone < mirrors.size() ) {
+        
+        if( webHandle != -1 ) {
+            
+            int result = stepWebRequest( webHandle );
+
+            if( result == 1 ) {
+                result = applyUpdateFromWebResult();
+                
+                clearWebRequest( webHandle );
+                webHandle = -1;
+            
+                if( result == 1 ) {
+                    // start next step on next step() call
+                    batchStepsDone ++;
+                    return 0;
+                    }
+                }
+            
+            if( result == -1 ) {
+                
+                MirrorList *list = mirrors.getElement( batchStepsDone );
+            
+                if( list->currentMirror < list->mirrorURLS.size() - 1 ) {
+                    
+                    list->currentMirror ++;
+                    
+                    clearWebRequest( webHandle );
+                    webHandle = -1;
+                    // start request next step
+                    return 0;
+                    }
+                else {
+                    // exhausted mirror list
+                    return result;
+                    }
+                }                
+            return result;
+            }
+        else {
+            MirrorList *list = mirrors.getElement( batchStepsDone );
+            
+            if( list->currentMirror < list->mirrorURLS.size() ) {
+
+                // start a request
+                webHandle = 
+                    startWebRequest( 
+                        "GET", 
+                        list->mirrorURLS.getElementDirect( 
+                        list->currentMirror ), 
+                        NULL );
+                return 0;
+                }
+            else {
+                // ran out of mirrors
+                return -1;
+                }
+            }
+        }
+    else {
+        // done
+        return 1;
+        }
+
+    }
+
+
+
 // take another non-blocking step
 // return 1 if request complete
 // return -1 if request hit an error
 // return 0 if request still in-progress
 int stepUpdate() {
+    
+    if( batchMirrorUpdate ) {
+        return batchMirrorStep();
+        }
+
     int result = stepWebRequest( webHandle );
 
     if( result == 1 ) {
         if( updateSize == -1 ) {
             char *result = getWebResult( webHandle );
             
-            int numRead = sscanf( result, "%d", &updateSize );
+
+            if( strstr( result, "URLS" ) == result ) {
+                // starts with URLS
+                // batch update from remote mirrors
+                printf( "Receiving URL list: \n%s\n\n", result );
             
-            delete [] result;
-            if( numRead != 1 ) {
-                updateSize = 0;
-                return -1;
+                int numParts;
+                char **parts = split( result, "#", &numParts );
+                
+                if( numParts > 0 ) {
+                    // "URLS\n"
+                    delete [] parts[0];
+                    }
+
+                for( int i=1; i<numParts; i++ ) {
+
+                    char *trimmedPart = trimWhitespace( parts[i] );
+
+                    int numLines;
+                    char **lines = split( trimmedPart, "\n", &numLines );
+                    
+                    delete [] trimmedPart;
+
+                    if( numLines > 0 ) {
+                        // "UPDATE A->B"
+
+                        int a, b;
+                        sscanf( lines[0], "UPDATE %d->%d", &a, &b );
+
+                        delete [] lines[0];
+                        
+                        MirrorList list;
+                        
+                        list.version = b;
+                        list.currentMirror = 0;
+                        
+                        for( int j=1; j<numLines; j++ ) {
+                            list.mirrorURLS.push_back( lines[j] );
+                            }
+                        mirrors.push_back( list );
+                        }
+                    
+                    delete [] lines;
+                    
+                    delete [] parts[i];
+                    }
+                delete [] parts;
+
+                batchMirrorUpdate = true;
+                batchStepsDone = 0;
+                
+                clearWebRequest( webHandle );
+                webHandle = -1;
+                return 0;
                 }
+            else {
+                // direct update from this server
+                int numRead = sscanf( result, "%d", &updateSize );
             
-            if( updateSize <= 0 ) {
-                // no update available for this platform
-                return -1;
+                delete [] result;
+                if( numRead != 1 ) {
+                    updateSize = 0;
+                    return -1;
+                    }
+                
+                if( updateSize <= 0 ) {
+                    // no update available for this platform
+                    return -1;
+                    }
+                
+                // have an update size
+                
+                printf( "Found an update with %d bytes\n",
+                        updateSize );
+
+                // start next request for update itself
+                clearWebRequest( webHandle );
+                
+                char *fullURL = autoSprintf( "%s?action=get_update"
+                                             "&platform=%s&old_version=%d",
+                                             updateServerURL, PLATFORM_CODE,
+                                             oldVersionNumber );
+                
+                
+                printf( "Downloading update from %s\n", fullURL );
+                
+                webHandle = startWebRequest( "GET", fullURL, NULL );
+                
+                delete [] fullURL;
+            
+                return 0;
                 }
-            
-            // have an update size
-            
-            printf( "Found an update with %d bytes\n",
-                    updateSize );
-
-            // start next request for update itself
-            clearWebRequest( webHandle );
-
-            char *fullURL = autoSprintf( "%s?action=get_update"
-                                         "&platform=%s&old_version=%d",
-                                         updateServerURL, PLATFORM_CODE,
-                                         oldVersionNumber );
-    
-            
-            printf( "Downloading update from %s\n", fullURL );
-
-            webHandle = startWebRequest( "GET", fullURL, NULL );
-    
-            delete [] fullURL;
-            
-            return 0;
             }
         else if( updateProgressCompleteSteps < 1 ) {
             // don't process data this step, wait until next step
@@ -159,228 +541,8 @@ int stepUpdate() {
 
             
             printf( "Update download complete\n" );
-
-            // process it, unzip, apply file changes, etc.
             
-            int size;
-            unsigned char *result = getWebResult( webHandle, &size );
-
-            char *nextRawScanPointer = (char*)result;
-            
-            // don't use sscanf here because it scans the entire buffer
-            // (and this buffer has binary data at end)
-            int rawSize = scanIntAndSkip( &nextRawScanPointer );
-            int compSize = scanIntAndSkip( &nextRawScanPointer );
-
-            if( rawSize > 0 && compSize > 0 ) {
-                
-                unsigned char *compData = (unsigned char*)nextRawScanPointer;
-                
-                char *hash = computeSHA1Digest( compData, compSize );
-
-                AppLog::infoF( "Received compressed data with SHA1 = %s\n",
-                               hash );
-                delete [] hash;
-
-                unsigned char *rawData = 
-                    zipDecompress( compData,
-                                   compSize,
-                                   rawSize );
-
-                delete [] result;
-                
-
-                if( rawData == NULL ) {
-                    printf( "Failed to decompress diff bundle\n" );
-                    return -1;
-                    }
-
-                                
-                char *nextScanPointer = (char*)rawData;
-                char success;
-                
-                int numDirs = scanIntAndSkip( &nextScanPointer, &success );
-                    
-                if( !success ) {
-                    printf( "Failed to parse dir count from diff bundle\n" );
-                    dumpRawDataToFile( rawData, rawSize );
-                    delete [] rawData;
-                    return -1;
-                    }
-
-                printf( "Creating %d new directories\n", numDirs );
-                
-                for( int d=0; d<numDirs; d++ ) {
-                    
-                    int fileNameLength = 
-                        scanIntAndSkip( &nextScanPointer, &success );
-                    
-                    if( !success ) {
-                        printf( "Failed to parse directory name length "
-                                "from diff bundle\n" );
-                        dumpRawDataToFile( rawData, rawSize );
-                        delete [] rawData;
-                        return -1;
-                        }
-                    
-                    char *fileName = new char[ fileNameLength + 1 ];
-                    
-                    memcpy( fileName, nextScanPointer, fileNameLength );
-                    
-                    fileName[ fileNameLength ] = '\0';
-                    
-                    printf( "   %s\n", fileName );
-                    
-
-                    nextScanPointer = 
-                        &( nextScanPointer[ fileNameLength + 1 ] );
-                    
-                    File dirFile( NULL, fileName );
-
-                    if( dirFile.exists() ) {
-                        printf( "Directory exists %s\n",
-                                fileName );
-                        }
-                    else {
-                        char made = Directory::makeDirectory( &dirFile );
-                    
-                        if( !made ) {
-                            printf( "Failed to make directory %s\n",
-                                    fileName );
-                            
-                            delete [] fileName;
-                            
-                            dumpRawDataToFile( rawData, rawSize );
-                            delete [] rawData;
-                            return -1;
-                            }
-                        }
-                    
-                    
-                    delete [] fileName;
-                    }
-                
-
-
-                int numFiles = scanIntAndSkip( &nextScanPointer, &success );
-
-                if( !success ) {
-                    printf( "Failed to parse file count from diff bundle\n" );
-                    
-                    dumpRawDataToFile( rawData, rawSize );
-                    delete [] rawData;
-                    return -1;
-                    }                
-
-                printf( "Updating %d files\n", numFiles );
-                
-                for( int f=0; f<numFiles; f++ ) {
-                    
-                    int fileNameLength =
-                        scanIntAndSkip( &nextScanPointer, &success );
-                    
-                    if( !success ) {
-                        printf( "Failed to parse file name length "
-                                "from diff bundle\n" );
-                        
-                        dumpRawDataToFile( rawData, rawSize );
-                        delete [] rawData;
-                        return -1;
-                        }
-                    
-                    char *fileName = new char[ fileNameLength + 1 ];
-                    
-                    memcpy( fileName, nextScanPointer, fileNameLength );
-                    
-                    fileName[ fileNameLength ] = '\0';
-                    
-                    printf( "   %s\n", fileName );
-
-                    nextScanPointer = 
-                        &( nextScanPointer[ fileNameLength + 1 ] );
-
-                    // single # separates the file size from the file data
-                    // this skips it
-                    int fileSize = 
-                        scanIntAndSkip( &nextScanPointer, &success );
-                    
-                    if( !success ) {
-                        printf( "Failed to parse file size "
-                                "from diff bundle\n" );
-                        delete [] fileName;
-                        
-                        dumpRawDataToFile( rawData, rawSize );
-                        delete [] rawData;
-                        return -1;
-                        }
-                    
-
-                    File targetFile( NULL, fileName );
-
-                    char *backupName = NULL;
-                    
-                    if( targetFile.exists() ) {
-                        backupName = autoSprintf( "%s.bak", fileName );
-                        
-                        rename( fileName, backupName );
-                        
-                        printf( "File %s exists, moving temporariliy to %s\n",
-                                fileName, backupName );
-                        }
-                    
-
-                    FILE *file = fopen( fileName, "wb" );
-                    
-                    
-                    if( file == NULL ) {
-                        printf( "Failed to open file %s for writing\n",
-                                fileName );
-                        }
-                    else {
-                        int numWritten = 
-                            fwrite( (unsigned char *)nextScanPointer, 
-                                    1, fileSize, file );
-                        if( numWritten != fileSize ) {
-                            printf( "Failed to write %d bytes to file  %s\n",
-                                    fileSize, fileName );
-                            }
-                        
-                        fclose( file );
-                        }
-                    
-                    
-                    if( backupName != NULL ) {
-                        copyPermissions( backupName, fileName );
-                        
-                        if( remove( backupName ) != 0 ) {
-                            FILE *postRemoveListFile =
-                                fopen( "postRemoveList.txt", "a" );
-                            if( postRemoveListFile != NULL ) {    
-                                fprintf( postRemoveListFile, 
-                                         "%s\n", backupName );
-                                fclose( postRemoveListFile );
-                                }
-                            }
-                        
-                        
-                        delete [] backupName;
-                        }
-                    
-                    delete [] fileName;
-                    
-                    nextScanPointer = &( nextScanPointer[ fileSize ] );
-                    }
-                
-                delete [] rawData;
-                
-                printf( "Update complete\n" );
-                }
-            else {
-                printf( "Failed to parse diff bundle\n" );
-                delete [] result;
-                return -1;
-                }
-            
+            return applyUpdateFromWebResult();
             }
         }
     
@@ -390,18 +552,41 @@ int stepUpdate() {
 
 
 float getUpdateProgress() {
-    if( updateSize > 0 ) {
-        float progress = getWebProgressSize( webHandle ) / (float)updateSize;
+    if( batchMirrorUpdate ) {
         
-        if( progress > 1 ) {
-            // getWebProgressSize includes headers
-            progress = 1;
+        float globalProgress = batchStepsDone / (float)mirrors.size();
+        
+
+        if( updateSize > 0 ) {
+            float progress = 
+                getWebProgressSize( webHandle ) / (float)updateSize;
+        
+            if( progress > 1 ) {
+                // getWebProgressSize includes headers
+                progress = 1;
+                }
+            
+            globalProgress += progress * 1.0f / mirrors.size();
             }
         
-        return progress;
+        return globalProgress;
         }
     else {
-        return 0;
+        
+        if( updateSize > 0 ) {
+            float progress = 
+                getWebProgressSize( webHandle ) / (float)updateSize;
+        
+            if( progress > 1 ) {
+                // getWebProgressSize includes headers
+                progress = 1;
+                }
+            
+            return progress;
+            }
+        else {
+            return 0;
+            }
         }
     }
 
@@ -416,6 +601,17 @@ void clearUpdate() {
         }
     
     updateServerURL = NULL;
+
+
+    for( int i=0; i<mirrors.size(); i++ ) {
+        MirrorList *l = mirrors.getElement( i );
+        
+        
+        for( int j=0; j<l->mirrorURLS.size(); j++ ) {
+            delete [] l->mirrorURLS.getElementDirect( j );
+            }        
+        }
+    mirrors.deleteAll();
     }
 
 
