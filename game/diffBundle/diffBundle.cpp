@@ -196,9 +196,11 @@ static void bundleFiles( File **inDirs, int inNumDirs,
 // sub directories
 int main( int inNumArgs, char **inArgs ) {
     
-    if( inNumArgs != 5 ) {
-		printf( "Usage:  diffBundle  dirOld dirNew "
-                "outIncremental.dbz outFull.dbz\n" );
+    if( inNumArgs != 5 && inNumArgs != 4 ) {        
+		printf( "\nUsage:  diffBundle  dirOld dirNew "
+                "outIncremental.dbz [outFull.dbz]\n\n" );
+        printf( "If outFull.dbz not supplied, only the incremental bundle is "
+                "generated.\n\n" );
 		return 1;
 		}
     
@@ -229,38 +231,43 @@ int main( int inNumArgs, char **inArgs ) {
     File **newChild = dirNew.getChildFilesRecursive( 100, &numNewChild );
     
     // bundle is additive, ignore files in old that are no longer in new
-    
 
-    // first, generate the full DBZ
-    printf( "Making full bundle...\n" );
-    
-    // exclude all dirs
     SimpleVector<File*> newDirs;
-    SimpleVector<File*> newNonDirs;
-    for( int i=0; i<numNewChild; i++ ) {
-        if( newChild[i]->isDirectory() ) {
-            newDirs.push_back( newChild[i] );
+
+    
+    if( inNumArgs == 5 ) {
+        
+
+        // first, generate the full DBZ
+        printf( "Making full bundle...\n" );
+    
+        // exclude all dirs
+        SimpleVector<File*> newNonDirs;
+        for( int i=0; i<numNewChild; i++ ) {
+            if( newChild[i]->isDirectory() ) {
+                newDirs.push_back( newChild[i] );
+                }
+            else {
+                newNonDirs.push_back( newChild[i] );
+                }
             }
-        else {
-            newNonDirs.push_back( newChild[i] );
-            }
+        int numNewNonDirs = newNonDirs.size();
+        File **newNonDirsArray = newNonDirs.getElementArray();
+        
+        int numNewDirs = newDirs.size();
+        File **newDirsArray = newDirs.getElementArray();
+
+    
+        printf( "%d new directories, %d files to bundle\n", 
+                numNewDirs, numNewNonDirs );
+        
+        bundleFiles( newDirsArray, numNewDirs,
+                     newNonDirsArray, numNewNonDirs, inArgs[4] );
+        
+        delete [] newDirsArray;
+        delete [] newNonDirsArray;
         }
-    int numNewNonDirs = newNonDirs.size();
-    File **newNonDirsArray = newNonDirs.getElementArray();
-
-    int numNewDirs = newDirs.size();
-    File **newDirsArray = newDirs.getElementArray();
-
     
-    printf( "%d new directories, %d files to bundle\n", 
-            numNewDirs, numNewNonDirs );
-
-    bundleFiles( newDirsArray, numNewDirs,
-                 newNonDirsArray, numNewNonDirs, inArgs[4] );
-    
-    delete [] newDirsArray;
-    delete [] newNonDirsArray;
-
 
     printf( "\n\nMaking incremental bundle...\n" );
     
@@ -388,8 +395,8 @@ int main( int inNumArgs, char **inArgs ) {
     int numChanged = changedFiles.size();
     File **changedFilesArray = changedFiles.getElementArray();
     
-    numNewDirs = newDirs.size();
-    newDirsArray = newDirs.getElementArray();
+    int numNewDirs = newDirs.size();
+    File **newDirsArray = newDirs.getElementArray();
 
     bundleFiles( newDirsArray, numNewDirs,
                  changedFilesArray, numChanged, inArgs[3] );
