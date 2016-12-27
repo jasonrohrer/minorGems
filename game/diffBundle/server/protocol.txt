@@ -14,6 +14,41 @@ or
 
 0
 
+or
+
+URLS
+#
+UPDATE A->B
+URL1
+URL2
+...
+URLM
+#
+UPDATE B->C
+URL1
+URL2
+...
+URLN
+#
+UPDATE C->D 
+URL1
+URL2
+...
+URLP
+#
+...
+
+This is for when server is set up to serve URLS to mirrors instead of .dbz
+files directly.  This also allows multi-step incremental updates (instead
+of serving _full files to clients that have missed an update).
+
+The URLS tag indicates that the response contains URL batches.
+The batches are delimited by #
+Each batch has an UPDATE A->B header, indicating that this update is incremental
+from version A to version B, followed by one URL mirror of that update per line.
+
+
+
 
 Valid platform codes are currently "mac", "win", and "linux"
 

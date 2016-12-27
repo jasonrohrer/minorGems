@@ -1,7 +1,7 @@
 <?php
 
 global $dbs_version;
-$dbs_version = "2";
+$dbs_version = "3";
 
 
 // edit settings.php to change server' settings
@@ -68,33 +68,109 @@ function dbs_getLatestVersion( $inPlatform ) {
                 $latestVersion = $matches[1];
                 }
             }
+        else if( preg_match( "/(\d+)_inc_$inPlatform.dbz/",
+                             $file, $matches ) ) {
+            if( $matches[1] > $latestVersion ) {
+                $latestVersion = $matches[1];
+                }
+            }
+        else if( preg_match( "/(\d+)_full_$inPlatform"."_urls.txt/",
+                        $file, $matches ) ) {
+
+            if( $matches[1] > $latestVersion ) {
+                $latestVersion = $matches[1];
+                }
+            }
+        else if( preg_match( "/(\d+)_inc_$inPlatform"."_urls.txt/",
+                             $file, $matches ) ) {
+            if( $matches[1] > $latestVersion ) {
+                $latestVersion = $matches[1];
+                }
+            }
         }
     return $latestVersion;
     }
 
 
+function dbs_getLatestVersionAll( $inPlatform ) {
+    $latest = dbs_getLatestVersion( $inPlatform );
+    $latestAll = dbs_getLatestVersion( "all" );
+
+    if( $latestAll > $latest ) {
+        $latest = $latestAll;
+        }
+    return $latest;
+    }
+
+
+
 
 // returns 1 or 0 based on user-supplied vars
 function dbs_isUpdateAvailable() {
+    global $downloadFilePath;
+
     $platform = dbs_getPlatform();
     $oldVersion = dbs_getOldVersion();    
 
-    $latest = dbs_getLatestVersion( $platform );
-    
+    $latest = dbs_getLatestVersionAll( $platform );
+
     if( $latest > $oldVersion ) {
 
-        $updateName;
-        
-        if( $latest == $oldVersion + 1 ) {
-            $updateName = "$latest"."_inc_$platform".".dbz";
+        if( file_exists( $downloadFilePath .
+                         "$latest"."_inc_$platform"."_urls.txt" )
+            ||
+            file_exists( $downloadFilePath .
+                         "$latest"."_inc_all"."_urls.txt" ) ) {
+            $result = "URLS\n#";
+            
+            for( $i=$oldVersion+1; $i <= $latest; $i++ ) {
+                $a = $i - 1;
+                $b = $i;
+
+                $fileContents = file_get_contents(
+                    $downloadFilePath . "$i"."_inc_$platform"."_urls.txt" );
+                
+
+                if( $fileContents === FALSE ) {
+                    // failed to read
+                    $fileContents = file_get_contents(
+                        $downloadFilePath . "$i"."_inc_all"."_urls.txt" );
+                    }
+
+                
+                if( $fileContents === FALSE ) {
+                    // failed to read either
+                    }
+                else {
+                    $result = $result . "\nUPDATE $a->$b\n";
+                    $result = $result . trim( $fileContents );
+                    if( $i != $latest ) {
+                        $result = $result . "\n#";
+                        }
+                    }
+                }
+            return $result;
             }
         else {
-            $updateName = "$latest"."_full_$platform".".dbz";
+            $updateName;
+            
+            if( $latest == $oldVersion + 1 ) {
+                $updateName = "$latest"."_inc_$platform".".dbz";
+
+                if( filesize( $downloadFilePath . $updateName ) === FALSE ) {
+                    $updateName = "$latest"."_inc_all".".dbz";
+                    }
+                }
+            else {
+                $updateName = "$latest"."_full_$platform".".dbz";
+
+                if( filesize( $downloadFilePath . $updateName ) === FALSE ) {
+                    $updateName = "$latest"."_full_all".".dbz";
+                    }
+                }
+            
+            return filesize( $downloadFilePath . $updateName );
             }
-
-        global $downloadFilePath;
-
-        return filesize( $downloadFilePath . $updateName );
         }
     else {
         return 0;
@@ -117,9 +193,17 @@ function dbs_getUpdate() {
     
     if( $latest == $oldVersion + 1 ) {
         $updateName = "$latest"."_inc_$platform".".dbz";
+
+        if( filesize( $downloadFilePath . $updateName ) === FALSE ) {
+            $updateName = "$latest"."_inc_all".".dbz";
+            }
         }
     else {
         $updateName = "$latest"."_full_$platform".".dbz";
+
+        if( filesize( $downloadFilePath . $updateName ) === FALSE ) {
+            $updateName = "$latest"."_full_all".".dbz";
+            }
         }
     
     global $downloadFilePath;
