@@ -10,14 +10,20 @@
 #include "minorGems/util/SimpleVector.h"
 
 
+
+
 #if defined(__mac__)
     #define PLATFORM_CODE "mac"
+    #define WINDOWS_LINE_ENDS 0
 #elif defined(WIN_32)
     #define PLATFORM_CODE "win"
+    #define WINDOWS_LINE_ENDS 1
 #elif defined(LINUX)
     #define PLATFORM_CODE "linux"
+    #define WINDOWS_LINE_ENDS 0
 #else
     #define PLATFORM_CODE ""
+    #define WINDOWS_LINE_ENDS 0
 #endif
 
 
@@ -61,6 +67,10 @@ static char batchMirrorUpdate = false;
 
 static char batchStepsDone = 0;
 
+// true if this update is via a mirror url with "all" for the platform name
+// on windows, this means we need to do line end conversion on text files
+static char currentUpdateUniversal = false;
+
 
 typedef struct MirrorList {
         int version;
@@ -77,7 +87,8 @@ static SimpleVector<MirrorList> mirrors;
 char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
 
     batchMirrorUpdate = false;
-    
+    currentUpdateUniversal = false;
+
     File binaryFlagFile( NULL, "binary.txt" );
     
     if( ! binaryFlagFile.exists() ) {
@@ -441,8 +452,39 @@ static int applyUpdateFromWebResult() {
                 delete [] backupName;
                 }
                     
-            delete [] fileName;
+
+
+            if( currentUpdateUniversal &&
+                WINDOWS_LINE_ENDS &&
+                strstr( fileName, ".txt" ) != NULL ) {
+                char *contents = targetFile.readFileContents();
+                
+                if( contents != NULL ) {
                     
+                    if( strstr( contents, "\n" ) != NULL &&
+                        strstr( contents, "\r\n" ) == NULL ) {
+                        // contains at least one unix-style line ending
+                        // and no \r, which is part of windows \r\n
+                        // and other platforms, or ill-formed, line endings
+
+                        char found;
+                        char *convertedContents =
+                            replaceAll( contents, "\n", "\r\n", &found );
+                        
+                        if( convertedContents != NULL ) {
+                            
+                            targetFile.writeToFile( convertedContents );
+
+                            delete [] convertedContents;
+                            }
+                        }
+                    delete [] contents;
+                    }
+                }
+
+            delete [] fileName;
+
+                
             nextScanPointer = &( nextScanPointer[ fileSize ] );
             }
                 
@@ -506,6 +548,17 @@ static int batchMirrorStep() {
             MirrorList *list = mirrors.getElement( batchStepsDone );
             
             if( list->currentMirror < list->mirrorURLS.size() ) {
+
+                if( strstr( list->mirrorURLS.getElementDirect( 
+                                list->currentMirror ),
+                            "_all.dbz" ) != NULL ) {
+                    
+                    currentUpdateUniversal = true;
+                    }
+                else {
+                    currentUpdateUniversal = false;
+                    }
+                         
 
                 // start a request
                 webHandle = 
