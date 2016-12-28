@@ -163,6 +163,116 @@ static int applyUpdateFromWebResult() {
                                 
         char *nextScanPointer = (char*)rawData;
         char success;
+
+
+
+
+        
+        int numRemovedFiles = scanIntAndSkip( &nextScanPointer, &success );
+                    
+        if( !success ) {
+            printf( "Failed to parse removed file count from diff bundle\n" );
+            dumpRawDataToFile( rawData, rawSize );
+            delete [] rawData;
+            return -1;
+            }
+
+        printf( "Removing %d files\n", numRemovedFiles );
+                
+        for( int d=0; d<numRemovedFiles; d++ ) {
+                    
+            int fileNameLength = 
+                scanIntAndSkip( &nextScanPointer, &success );
+                    
+            if( !success ) {
+                printf( "Failed to parse removed file name length "
+                        "from diff bundle\n" );
+                dumpRawDataToFile( rawData, rawSize );
+                delete [] rawData;
+                return -1;
+                }
+                    
+            char *fileName = new char[ fileNameLength + 1 ];
+                    
+            memcpy( fileName, nextScanPointer, fileNameLength );
+                    
+            fileName[ fileNameLength ] = '\0';
+                    
+            printf( "   %s\n", fileName );
+                    
+
+            nextScanPointer = 
+                &( nextScanPointer[ fileNameLength + 1 ] );
+                    
+            File fileToRemove( NULL, fileName );
+
+            if( fileToRemove.exists() && ! fileToRemove.isDirectory() ) {
+                
+                fileToRemove.remove();
+                }
+                    
+                    
+            delete [] fileName;
+            }
+
+
+
+        int numRemovedDirs = scanIntAndSkip( &nextScanPointer, &success );
+                    
+        if( !success ) {
+            printf( "Failed to parse removed file count from diff bundle\n" );
+            dumpRawDataToFile( rawData, rawSize );
+            delete [] rawData;
+            return -1;
+            }
+
+        printf( "Removing %d dirs\n", numRemovedDirs );
+                
+        for( int d=0; d<numRemovedDirs; d++ ) {
+                    
+            int fileNameLength = 
+                scanIntAndSkip( &nextScanPointer, &success );
+                    
+            if( !success ) {
+                printf( "Failed to parse removed dir name length "
+                        "from diff bundle\n" );
+                dumpRawDataToFile( rawData, rawSize );
+                delete [] rawData;
+                return -1;
+                }
+                    
+            char *fileName = new char[ fileNameLength + 1 ];
+                    
+            memcpy( fileName, nextScanPointer, fileNameLength );
+                    
+            fileName[ fileNameLength ] = '\0';
+                    
+            printf( "   %s\n", fileName );
+                    
+
+            nextScanPointer = 
+                &( nextScanPointer[ fileNameLength + 1 ] );
+                    
+            File dirToRemove( NULL, fileName );
+
+            if( dirToRemove.exists() && dirToRemove.isDirectory() ) {
+                
+                dirToRemove.remove();
+                }
+                    
+                    
+            delete [] fileName;
+            }
+
+
+
+
+
+
+
+
+
+
                 
         int numDirs = scanIntAndSkip( &nextScanPointer, &success );
                     
