@@ -166,14 +166,22 @@ void PrintLog::logStringV( const char *inLoggerName,
 char *PrintLog::generatePlainMessage( const char *inFormatString,
                                       va_list inArgList ) {
     
+    // use copy to preserve inArgList
+    // this allows multiple calls of generatePlainMessage with the same list
+    va_list listCopy;
+    va_copy( listCopy, inArgList );
+    
+
     unsigned int bufferSize = 200;
 
     
     char *buffer = new char[ bufferSize ];
     
     int stringLength =
-        vsnprintf( buffer, bufferSize, inFormatString, inArgList );
+        vsnprintf( buffer, bufferSize, inFormatString, listCopy );
     
+    va_end( listCopy );
+
     while( stringLength == -1 || stringLength >= (int)bufferSize ) {
         // too long!
         delete [] buffer;
@@ -182,8 +190,13 @@ char *PrintLog::generatePlainMessage( const char *inFormatString,
         bufferSize *= 2;
         buffer = new char[ bufferSize ];
     
+        // make another working copy
+        va_copy( listCopy, inArgList );
+
         stringLength = 
             vsnprintf( buffer, bufferSize, inFormatString, inArgList );
+        
+        va_end( listCopy );
         }
 
     return buffer;
