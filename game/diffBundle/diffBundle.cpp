@@ -38,36 +38,54 @@ static char *getSubdirPath( char *inFullFilePath ) {
 
 
 
+static void bundleFileList( File **inFiles, int inNumFiles,
+                            SimpleVector<unsigned char> *inFileDataBuffer ) {
 
-static void bundleFiles( File **inDirs, int inNumDirs,
-                         File **inFiles, int inNumFiles,
-                         char *inDBZTargetFile ) {
-
-    SimpleVector<unsigned char> fileDataBuffer;
+    char *fileCount = autoSprintf( "%d ", inNumFiles );
+    inFileDataBuffer->appendArray( (unsigned char*)fileCount, 
+                                strlen( fileCount ) );
+    
+    delete [] fileCount;
     
 
-    printf( "Bundling dirs...\n" );
-    
-    char *dirCount = autoSprintf( "%d ", inNumDirs );
-    fileDataBuffer.appendArray( (unsigned char*)dirCount, strlen( dirCount ) );
-    
-    delete [] dirCount;
-    
-
-    for( int i=0; i<inNumDirs; i++ ) {
-        char *fileName = inDirs[i]->getFullFileName();
+    for( int i=0; i<inNumFiles; i++ ) {
+        char *fileName = inFiles[i]->getFullFileName();
 
         char *fileSubdirName = getSubdirPath( fileName );
         
         char *header = autoSprintf( "%d %s ",
                                     strlen( fileSubdirName ),
                                     fileSubdirName );
-        fileDataBuffer.appendArray( (unsigned char*)header, strlen( header ) );
+        inFileDataBuffer->appendArray( (unsigned char*)header, 
+                                       strlen( header ) );
         delete [] header;
 
         delete [] fileName;
         delete [] fileSubdirName;
         }
+    
+    }
+
+
+
+
+static void bundleFiles( File **inFilesToRemove, int inNumFilesToRemove,
+                         File **inDirsToRemove, int inNumDirsToRemove,
+                         File **inDirs, int inNumDirs,
+                         File **inFiles, int inNumFiles,
+                         char *inDBZTargetFile ) {
+
+    SimpleVector<unsigned char> fileDataBuffer;
+    
+
+    printf( "Bundling file removals...\n" );
+    bundleFileList( inFilesToRemove, inNumFilesToRemove, &fileDataBuffer );
+
+    printf( "Bundling dir removals...\n" );
+    bundleFileList( inDirsToRemove, inNumDirsToRemove, &fileDataBuffer );
+
+    printf( "Bundling dirs...\n" );
+    bundleFileList( inDirs, inNumDirs, &fileDataBuffer );
     
 
 
@@ -142,6 +160,8 @@ static void bundleFiles( File **inDirs, int inNumDirs,
     fclose( outFile );
     */
 
+    
+
     printf( "Compressing bundle...\n" );
 
     int compSize;
@@ -187,6 +207,30 @@ static void bundleFiles( File **inDirs, int inNumDirs,
     }
 
 
+
+
+static void printFileList( const char *inDescription,
+                           SimpleVector<File *> *inList ) {
+
+    if( inList->size() == 0 ) {
+        printf( "\nNo %s.\n\n", inDescription );
+        return;
+        }
+
+    printf( "%d %s:\n", inList->size(), inDescription );
+
+    for( int i=0; i<inList->size(); i++ ) {
+        char *fileName = 
+            (* inList->getElement( i ) )->getFullFileName();
+        
+        char *fileSubdirName = getSubdirPath( fileName );
+
+        printf( "  %s\n", fileSubdirName );
+
+        delete [] fileName;
+        delete [] fileSubdirName;
+        }
+    }
 
 
 
@@ -261,7 +305,9 @@ int main( int inNumArgs, char **inArgs ) {
         printf( "%d new directories, %d files to bundle\n", 
                 numNewDirs, numNewNonDirs );
         
-        bundleFiles( newDirsArray, numNewDirs,
+        bundleFiles( NULL, 0,
+                     NULL, 0, 
+                     newDirsArray, numNewDirs,
                      newNonDirsArray, numNewNonDirs, inArgs[4] );
         
         delete [] newDirsArray;
@@ -272,6 +318,53 @@ int main( int inNumArgs, char **inArgs ) {
     printf( "\n\nMaking incremental bundle...\n" );
     
     printf( "Scanning files...\n" );
+
+    SimpleVector<File *> removedFiles;
+    SimpleVector<File *> removedDirs;
+
+
+    // don't worry about directory vs non-directory collisions here
+    // we exit in that case when scanning for differences below
+    // we can assume that that kind of change will never happen
+    for( int i=0; i<numOldChild; i++ ) {
+
+        char *oldFileName = oldChild[i]->getFullFileName();
+        char *oldFileSubdirName = getSubdirPath( oldFileName );
+
+        char foundNewFile = false;
+        
+        for( int j=0; j<numNewChild && ! foundNewFile; j++ ) {
+            char *newFileName = newChild[j]->getFullFileName();
+            
+            char *newFileSubdirName = getSubdirPath( newFileName );
+
+            if( strcmp( oldFileSubdirName, newFileSubdirName ) == 0 ) {
+                foundNewFile = true;
+                }
+            delete [] newFileName;
+            delete [] newFileSubdirName;
+            }
+        
+
+        if( !foundNewFile ) {
+            
+            if( oldChild[i]->isDirectory() ) {
+                removedDirs.push_back( oldChild[i] );
+                }
+            else {
+                removedFiles.push_back( oldChild[i] );
+                }
+            }
+        
+        delete [] oldFileName;
+        delete [] oldFileSubdirName;
+        }
+    
+
+    printFileList( "removed files", &removedFiles );
+
+    printFileList( "removed directories", &removedDirs );
+
     
     
     // directories in new that don't exist in old
@@ -360,36 +453,20 @@ int main( int inNumArgs, char **inArgs ) {
         delete [] newFileContents;
         }
 
-
-    printf( "%d new directories:\n", newDirs.size() );
-
-    for( int i=0; i<newDirs.size(); i++ ) {
-        char *fileName = 
-            (* newDirs.getElement( i ) )->getFullFileName();
-        
-        char *fileSubdirName = getSubdirPath( fileName );
-
-        printf( "  %s\n", fileSubdirName );
-
-        delete [] fileName;
-        delete [] fileSubdirName;
-        }
-
-
     
-    printf( "%d changed files:\n", changedFiles.size() );
+    printFileList( "new directories", &newDirs );
+    
 
-    for( int i=0; i<changedFiles.size(); i++ ) {
-        char *fileName = 
-            (* changedFiles.getElement( i ) )->getFullFileName();
-        
-        char *fileSubdirName = getSubdirPath( fileName );
 
-        printf( "  %s\n", fileSubdirName );
 
-        delete [] fileName;
-        delete [] fileSubdirName;
-        }
+    printFileList( "changed files", &changedFiles );
+    
+    
+
+    int numRemovedFiles = removedFiles.size();
+    File **removedFilesArray = removedFiles.getElementArray();
+    int numRemovedDirs = removedDirs.size();
+    File **removedDirsArray = removedDirs.getElementArray();
     
     
     int numChanged = changedFiles.size();
@@ -398,9 +475,13 @@ int main( int inNumArgs, char **inArgs ) {
     int numNewDirs = newDirs.size();
     File **newDirsArray = newDirs.getElementArray();
 
-    bundleFiles( newDirsArray, numNewDirs,
+    bundleFiles( removedFilesArray, numRemovedFiles,
+                 removedDirsArray, numRemovedDirs, 
+                 newDirsArray, numNewDirs,
                  changedFilesArray, numChanged, inArgs[3] );
 
+    delete [] removedFilesArray;
+    delete [] removedDirsArray;
     delete [] changedFilesArray;
     delete [] newDirsArray;
     
