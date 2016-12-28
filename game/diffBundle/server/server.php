@@ -127,9 +127,14 @@ function dbs_isUpdateAvailable() {
                 $a = $i - 1;
                 $b = $i;
 
-                $fileContents = file_get_contents(
-                    $downloadFilePath . "$i"."_inc_$platform"."_urls.txt" );
-                
+                $fileContents = FALSE;
+
+                if( file_exists( $downloadFilePath .
+                                 "$i"."_inc_$platform"."_urls.txt" ) ) {
+
+                    $fileContents = file_get_contents(
+                        $downloadFilePath . "$i"."_inc_$platform"."_urls.txt" );
+                    }
 
                 if( $fileContents === FALSE ) {
                     // failed to read
