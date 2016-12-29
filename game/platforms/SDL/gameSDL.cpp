@@ -4464,6 +4464,8 @@ int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
 
 #elif defined(__mac__)
 
+const char *arecordFileName = "inputSound.wav";
+
 // mac implementation does nothing for now
 char startRecording16BitMonoSound( int inSampleRate ) {
     return false;
@@ -4476,6 +4478,8 @@ int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
 
 #elif defined(WIN_32)
 
+const char *arecordFileName = "inputSound.wav";
+
 // windows implementation does nothing for now
 char startRecording16BitMonoSound( int inSampleRate ) {
     return false;
@@ -4486,6 +4490,8 @@ int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
     }
 
 #else
+
+const char *arecordFileName = "inputSound.wav";
 
 // default implementation does nothing
 char startRecording16BitMonoSound( int inSampleRate ) {
