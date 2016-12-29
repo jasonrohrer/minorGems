@@ -1393,6 +1393,50 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             "Screen dimensions for largest-window mode:  %dx%d\n",
             screenWidth, screenHeight );
         }
+    else if( !fullscreen && !useLargestWindow ) {
+        // make sure window isn't too big for screen
+
+        const SDL_VideoInfo* currentScreenInfo = SDL_GetVideoInfo();
+        
+        int currentW = currentScreenInfo->current_w;
+        int currentH = currentScreenInfo->current_h;
+        
+        if( isNonIntegerScalingAllowed() && 
+            ( screenWidth > currentW || screenHeight > currentH ) ) {
+            double aspectRatio = screenHeight / (double) screenWidth;
+            
+            // make window as wide as screen, preserving game aspect ratio
+            screenWidth = currentW;
+            
+            int testScreenHeight = lrint( aspectRatio * screenWidth );
+            
+            if( testScreenHeight <= currentH ) {    
+                screenHeight = testScreenHeight;
+                }
+            else {
+                screenHeight = currentH;
+                
+                screenWidth = lrint( screenHeight / aspectRatio );
+                }
+            }
+        else {
+            
+
+            int blowDownFactor = 1;
+
+            while( screenWidth / blowDownFactor > currentW
+                   ||
+                   screenHeight / blowDownFactor > currentH ) {
+                blowDownFactor += 1;
+                }
+            
+            if( blowDownFactor > 1 ) {
+                screenWidth /= blowDownFactor;
+                screenHeight /= blowDownFactor;
+                }
+            }
+        }
+    
     
 
 
