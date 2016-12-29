@@ -218,11 +218,13 @@ char *concatonate( const char *inStringA, const char *inStringB ) {
 
 char *replaceOnce( const char *inHaystack, const char *inTarget,
                    const char *inSubstitute,
-                   char *outFound ) {
+                   char *outFound, int inSkipChars,
+                   int *outAfterReplacementIndex ) {
     
     char *haystackCopy = stringDuplicate( inHaystack );
     
-	char *fieldTargetPointer = strstr( haystackCopy, inTarget );
+	char *fieldTargetPointer = strstr( &( haystackCopy[inSkipChars] ), 
+                                       inTarget );
 
 
     if( fieldTargetPointer == NULL ) {
@@ -251,6 +253,11 @@ char *replaceOnce( const char *inHaystack, const char *inTarget,
 				 haystackCopy,
 				 inSubstitute,
 				 fieldPostTargetPointer );
+        
+        if( outAfterReplacementIndex != NULL ) {
+            *outAfterReplacementIndex = 
+                strlen( haystackCopy ) + strlen( inSubstitute );
+            }
 
 		delete [] haystackCopy;
 
@@ -272,10 +279,17 @@ char *replaceAll( const char *inHaystack, const char *inTarget,
     char atLeastOneFound = false;
     char *returnString = stringDuplicate( inHaystack );
 
+    int skip = 0;
+    
     while( lastFound ) {
-
+        
+        int nextSkip;
+        
         char *nextReturnString =
-            replaceOnce( returnString, inTarget, inSubstitute, &lastFound );
+            replaceOnce( returnString, inTarget, inSubstitute, &lastFound,
+                         skip, &nextSkip );
+
+        skip = nextSkip;
 
         delete [] returnString;
         

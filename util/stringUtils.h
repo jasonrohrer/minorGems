@@ -257,7 +257,11 @@ char *concatonate( const char *inStringA, const char *inStringB );
  */
 char *replaceOnce( const char *inHaystack, const char *inTarget,
                    const char *inSubstitute,
-                   char *outFound );
+                   char *outFound,
+                   // start looking some number of characters into inHaystack
+                   int inSkipChars = 0,
+                   // if non-NULL, index after replacement is returned here
+                   int *outAfterReplacementIndex = NULL );
 
 
 
