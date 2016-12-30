@@ -31,7 +31,7 @@ doublePair forceLength( doublePair inP, double inLength );
 double distance( doublePair inA, doublePair inB );
 
 
-// angle relative to (0,0)
+// angle relative to (1,0)
 double angle( doublePair inA );
 
 
