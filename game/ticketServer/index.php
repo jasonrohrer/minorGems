@@ -16,7 +16,7 @@ if( $enableYubikey ) {
 ?>
     <br>
     Yubikey:<br>
-    <INPUT TYPE="text" MAXLENGTH=48 SIZE=48 NAME="yubikey">
+    <INPUT TYPE="password" MAXLENGTH=48 SIZE=48 NAME="yubikey">
 
 <?php
     }
