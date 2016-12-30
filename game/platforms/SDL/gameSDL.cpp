@@ -1365,28 +1365,69 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         int currentW = currentScreenInfo->current_w;
         int currentH = currentScreenInfo->current_h;
         
-        int blowUpFactor = 1;
-        
-        while( gameWidth * blowUpFactor < currentW &&
-               gameHeight * blowUpFactor < currentH ) {
-            
-            blowUpFactor++;
-            }
+        if( isNonIntegerScalingAllowed() ) {            
+            double aspectRatio = screenHeight / (double) screenWidth;
 
-        while( blowUpFactor > 1 &&
-               ( gameWidth * blowUpFactor >= currentW * 0.85 ||
-                 gameHeight * blowUpFactor >= currentH * 0.85 ) ) {
+            int tryW = currentW;
+            int tryH = lrint( aspectRatio * currentW );
             
-            // scale back, because we don't want to totally
-            // fill the screen (annoying to manage such a big window)
+            // never fill more than 85% of screen vertically, because
+            // this large of a window is a pain to manage
+            if( tryH >= 0.85 * currentH ) {
+                tryH = lrint( 0.84 * currentH );
+                tryW = lrint( tryH / aspectRatio );
+                }
+            if( tryW < screenWidth ) {
+                // largest window is smaller than requested screen size, 
+                // that's okay.
+                screenWidth = tryW;
+                screenHeight = tryH;
+                }
+            else if( tryW > screenWidth ) {
+                // we're attempting a blow-up
+                // but this is not worth it if the blow-up is too small
+                // we loose pixel accuracy without giving the user a much
+                // larger image.
+                // make sure it's at least 25% wider to be worth it,
+                // otherwise, keep the requested window size
+                if( tryW >= 1.25 * screenWidth ) {
+                    screenWidth = tryW;
+                    screenHeight = tryH;
+                    }
+                else {
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Largest-window mode would offer a <25% width "
+                        "increase, using requested window size instead." );
+                    }
+                }
+            }
+        else {
             
-            // stop at a window that fills < 85% of screen in either direction
-            blowUpFactor --;
+            int blowUpFactor = 1;
+        
+            while( gameWidth * blowUpFactor < currentW &&
+                   gameHeight * blowUpFactor < currentH ) {
+                
+                blowUpFactor++;
+                }
+            
+            while( blowUpFactor > 1 &&
+                   ( gameWidth * blowUpFactor >= currentW * 0.85 ||
+                     gameHeight * blowUpFactor >= currentH * 0.85 ) ) {
+                
+                // scale back, because we don't want to totally
+                // fill the screen (annoying to manage such a big window)
+                
+                // stop at a window that fills < 85% of screen in 
+                // either direction
+                blowUpFactor --;
+                }
+            
+            screenWidth = blowUpFactor * gameWidth;
+            screenHeight = blowUpFactor * gameHeight;
             }
         
-        screenWidth = blowUpFactor * gameWidth;
-        screenHeight = blowUpFactor * gameHeight;
-            
 
         AppLog::getLog()->logPrintf( 
             Log::INFO_LEVEL,
