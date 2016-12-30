@@ -82,23 +82,47 @@ typedef struct MirrorList {
 static SimpleVector<MirrorList> mirrors;
 
 
+static const char *platformCode = "";
 
-// returns handle
+
+
 char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
 
     batchMirrorUpdate = false;
     currentUpdateUniversal = false;
 
+
+    // make sure we're not being built from inside a working mercurial
+    // checkout.  Don't want to download updates in this context
+    File hgFileA( NULL, ".hg" );
+    File hgFileB( NULL, "../.hg" );
+    File hgFileC( NULL, "../../.hg" );
+    File hgFileD( NULL, "../../../.hg" );
+
+
+    if( hgFileA.exists() ||
+        hgFileB.exists() ||
+        hgFileC.exists() ||
+        hgFileD.exists() ) {
+    
+        return false;
+        }
+    
+
     File binaryFlagFile( NULL, "binary.txt" );
     
+    platformCode = PLATFORM_CODE;
+
     if( ! binaryFlagFile.exists() ) {
-        return false;
+        // distribution compiled from source?
+        // still try fetching platform-independent updates
+        platformCode = "all";
         }
     
 
     char *fullURL = autoSprintf( "%s?action=is_update_available"
                                  "&platform=%s&old_version=%d",
-                                 inUpdateServerURL, PLATFORM_CODE,
+                                 inUpdateServerURL, platformCode,
                                  inOldVersionNumber );
     
     printf( "Checking for latest update at %s\n", fullURL );
@@ -680,7 +704,7 @@ int stepUpdate() {
                 
                 char *fullURL = autoSprintf( "%s?action=get_update"
                                              "&platform=%s&old_version=%d",
-                                             updateServerURL, PLATFORM_CODE,
+                                             updateServerURL, platformCode,
                                              oldVersionNumber );
                 
                 
