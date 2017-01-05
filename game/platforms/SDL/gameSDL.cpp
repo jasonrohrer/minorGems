@@ -1369,23 +1369,26 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
         if( ! isSettingsFolderFound() ) {
             
+            showMessage( getAppName(), "First Start Up",
+                         "Attempting to find the game data folder.", false );
+
             showMessage( getAppName(), "First Start Up Error",
                          "Cannot find game data.\n\n"
                          "Newer versions of MacOS have strict sandboxing, "
                          "so we have to work around this issue by asking "
-                         "you some questions.\n\n"
-                         "There will also be some info presented along the "
-                         "way for debugging purposes.\n\n"
+                         "you a question.\n\n"
+                         //"There will also be some info presented along the "
+                         //"way for debugging purposes.\n\n"
                          "Hopefully, you will only have to do this once.", 
                          true );
             
+            
+            //showMessage( getAppName(), "Debug Info, Executable path =",
+            //             inArgs[0], false );
 
-            showMessage( getAppName(), "Debug Info, Executable path =",
-                         inArgs[0], false );
 
-
-            showMessage( getAppName(), "Debug Info, Home dir =", 
-                         getenv( "HOME" ), false );
+            //showMessage( getAppName(), "Debug Info, Home dir =", 
+            //             getenv( "HOME" ), false );
             
 
             showMessage( getAppName(), "First Start Up",
@@ -1402,8 +1405,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             delete [] prompt;
             
             if( path != NULL ) {
-                showMessage( getAppName(), "Debug Info, Chosen path =",
-                             path, false );
+                //showMessage( getAppName(), "Debug Info, Chosen path =",
+                //             path, false );
 
 
                 char *prefFilePath = getPrefFilePath();
