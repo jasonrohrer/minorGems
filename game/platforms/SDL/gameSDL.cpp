@@ -1211,6 +1211,101 @@ char isSoundRunning() {
 
 
 
+#ifdef __mac__
+
+#include <unistd.h>
+#include <stdarg.h>
+
+
+// returns path to folder
+static char *pickFolder( const char *inPrompt ) {
+    
+    const char *commandFormat = 
+        "osascript -e 'tell application \"System Events\" to activate' "
+        "-e 'tell app \"System Events\" to return POSIX path of "
+        "(choose folder with prompt \"%s\")'";
+
+    char *command = autoSprintf( commandFormat, inPrompt );
+    
+    FILE *osascriptPipe = popen( command, "r" );
+    
+    delete [] command;
+    
+    if( osascriptPipe == NULL ) {
+        AppLog::error( 
+            "Failed to open pipe to osascript for picking a folder." );
+        }
+    else {
+        char buffer[200];
+        
+        int numRead = fscanf( osascriptPipe, "%199s", buffer );
+        
+        if( numRead == 1 ) {
+            return stringDuplicate( buffer );
+            }
+        
+        pclose( osascriptPipe );
+        }
+    return NULL;
+    }
+
+
+
+static void showMessage( const char *inAppName,
+                         const char *inTitle, const char *inMessage,
+                         char inError = false ) {
+    const char *iconName = "note";
+    if( inError ) {
+        iconName = "stop";
+        }
+
+    const char *commandFormat =
+        "osascript -e 'tell app \"System Events\" to activate' "
+        "-e 'tell app \"System Events\" to display dialog \"%s\" "
+        "with title \"%s:  %s\" buttons \"Ok\" "
+        "with icon %s default button \"Ok\"' "
+        "-e 'tell app \"System Events\" to quit' ";
+    
+    char *command = autoSprintf( commandFormat, inMessage, inAppName, inTitle, 
+                                 iconName );
+    
+    FILE *osascriptPipe = popen( command, "r" );
+    
+    delete [] command;
+    
+    if( osascriptPipe == NULL ) {
+        AppLog::error( 
+            "Failed to open pipe to osascript for displaying GUI messages." );
+        }
+    else {
+        pclose( osascriptPipe );
+        }
+    }
+
+
+static char *getPrefFilePath() {
+    return autoSprintf( "%s/Library/Preferences/%s_prefs.txt",
+                        getenv( "HOME" ),
+                        getAppName() );
+    }
+
+#endif
+
+
+
+static char isSettingsFolderFound() {
+
+    File settingsFolder( NULL, "settings" );
+     
+    if( settingsFolder.exists() && settingsFolder.isDirectory() ) {
+        return true;
+        }
+
+    return false;
+    }
+
+
+
 int mainFunction( int inNumArgs, char **inArgs ) {
 
 
@@ -1248,7 +1343,115 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             
             chdir( appDirectoryPath );
             }
+                
         
+        if( ! isSettingsFolderFound() ) {
+            // first, try setting dir based on preferences file
+            char *prefFilePath = getPrefFilePath();
+        
+            FILE *prefFile = fopen( prefFilePath, "r" );
+            
+            if( prefFile != NULL ) {
+
+                char path[200];
+                
+                int numRead = fscanf( prefFile, "%199s", path );
+                
+                if( numRead == 1 ) {
+                    chdir( path );
+                    }
+                fclose( prefFile );
+                }
+            
+            delete [] prefFilePath;
+            }
+        
+
+        if( ! isSettingsFolderFound() ) {
+            
+            showMessage( getAppName(), "First Start Up Error",
+                         "Cannot find game data.\n\n"
+                         "Newer versions of MacOS have strict sandboxing, "
+                         "so we have to work around this issue by asking "
+                         "you some questions.\n\n"
+                         "There will also be some info presented along the "
+                         "way for debugging purposes.\n\n"
+                         "Hopefully, you will only have to do this once.", 
+                         true );
+            
+
+            showMessage( getAppName(), "Debug Info, Executable path =",
+                         inArgs[0], false );
+
+
+            showMessage( getAppName(), "Debug Info, Home dir =", 
+                         getenv( "HOME" ), false );
+            
+
+            showMessage( getAppName(), "First Start Up",
+                         "Please locate the game folder "
+                         "in the next dialog box.",
+                         false );
+            
+            char *prompt = autoSprintf( 
+                "Find the game folder (where the %s App is located):",
+                getAppName() );
+            
+            char *path = pickFolder( prompt );
+
+            delete [] prompt;
+            
+            if( path != NULL ) {
+                showMessage( getAppName(), "Debug Info, Chosen path =",
+                             path, false );
+
+
+                char *prefFilePath = getPrefFilePath();
+                
+                FILE *prefFile = fopen( prefFilePath, "w" );
+                
+                if( prefFilePath == NULL ) {
+                    char *message = 
+                        autoSprintf( "Failed to open this preferences file "
+                                     "for writing:\n\n%s\n\n"
+                                     "You will have to find the game folder "
+                                     "again at next startup.",
+                                     prefFilePath );
+                    
+                    showMessage( getAppName(), "First Start Up Error",
+                                 message,
+                                 true );
+                    delete [] message;
+                    }
+                else {
+                    fprintf( prefFile, path );
+                    fclose( prefFile );
+                    }
+                
+                delete [] prefFilePath;
+                
+
+                chdir( path );
+
+                delete [] path;
+
+                if( !isSettingsFolderFound() ) {
+                    showMessage( getAppName(), "First Start Up Error",
+                                 "Still cannot find game data, exiting.",
+                                 true );
+                    return 1;
+                    }
+                }
+            else {
+                showMessage( getAppName(), "First Start Up Error",
+                             "Picking a folder failed, exiting.",
+                             true );
+                return 1;
+                }
+            
+            }
+        
+
         delete [] bundleName;
         delete [] appDirectoryPath;
     #endif
