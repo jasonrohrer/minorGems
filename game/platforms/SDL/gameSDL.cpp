@@ -1370,12 +1370,12 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         if( ! isSettingsFolderFound() ) {
             
             showMessage( getAppName(), "First Start Up Error",
-                         "Cannot find game data.\n\n"
+                         "Cannot find game data.  "
                          "Newer versions of MacOS have strict sandboxing, "
                          "so we have to work around this issue by asking "
-                         "you some questions.\n\n"
+                         "you some questions.  "
                          "There will also be some info presented along the "
-                         "way for debugging purposes.\n\n"
+                         "way for debugging purposes.  "
                          "Hopefully, you will only have to do this once.", 
                          true );
             
