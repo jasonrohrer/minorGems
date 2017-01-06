@@ -1226,6 +1226,8 @@ static char *pickFolder( const char *inPrompt ) {
         "(choose folder with prompt \"%s\")'";
 
     char *command = autoSprintf( commandFormat, inPrompt );
+
+    printf( "Running osascript command:\n\n%s\n\n", command );
     
     FILE *osascriptPipe = popen( command, "r" );
     
@@ -1268,6 +1270,8 @@ static void showMessage( const char *inAppName,
     
     char *command = autoSprintf( commandFormat, inMessage, inAppName, inTitle, 
                                  iconName );
+
+    printf( "Running osascript command:\n\n%s\n\n", command );
     
     FILE *osascriptPipe = popen( command, "r" );
     
