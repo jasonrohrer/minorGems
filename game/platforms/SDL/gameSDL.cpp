@@ -4595,6 +4595,11 @@ char relaunchGame() {
 #include <stdarg.h>
 
 char relaunchGame() {
+    // Gatekeeper on 10.12 prevents relaunch from working
+    // to be safe, just have user manually relaunch on Mac
+    return false;
+    
+    /*
     char *launchTarget = 
         autoSprintf( "%s%s", getAppName(), macLaunchExtension );
     
@@ -4619,6 +4624,7 @@ char relaunchGame() {
     printf( "Returning from relaunching game, exiting this process\n" );
     exit( 0 );
     return true;
+    */
     }
 
 
