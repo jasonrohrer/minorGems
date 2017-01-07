@@ -1258,7 +1258,9 @@ static void showMessage( const char *inAppName,
                          char inError = false ) {
     const char *iconName = "note";
     if( inError ) {
-        iconName = "stop";
+        // stop icon is broken in OS 10.12
+        // always use note
+        // iconName = "stop";
         }
 
     const char *commandFormat =
@@ -1373,9 +1375,6 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
         if( ! isSettingsFolderFound() ) {
             
-            showMessage( getAppName(), "First Start Up",
-                         "Attempting to find the game data folder.", false );
-
             showMessage( getAppName(), "First Start Up Error",
                          "Cannot find game data.\n\n"
                          "Newer versions of MacOS have strict sandboxing, "
