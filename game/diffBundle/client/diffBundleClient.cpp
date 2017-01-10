@@ -75,6 +75,7 @@ static char currentUpdateUniversal = false;
 typedef struct MirrorList {
         int version;
         int currentMirror;
+        int size;
         SimpleVector<char*> mirrorURLS;
     } MirrorList;
     
@@ -591,6 +592,8 @@ static int batchMirrorStep() {
                         list->mirrorURLS.getElementDirect( 
                         list->currentMirror ), 
                         NULL );
+                
+                updateSize = list->size;
                 return 0;
                 }
             else {
@@ -650,8 +653,8 @@ int stepUpdate() {
                     if( numLines > 0 ) {
                         // "UPDATE A->B"
 
-                        int a, b;
-                        sscanf( lines[0], "UPDATE %d->%d", &a, &b );
+                        int a, b, size;
+                        sscanf( lines[0], "UPDATE %d->%d %d", &a, &b, &size );
 
                         delete [] lines[0];
                         
@@ -659,6 +662,7 @@ int stepUpdate() {
                         
                         list.version = b;
                         list.currentMirror = 0;
+                        list.size = size;
                         
                         for( int j=1; j<numLines; j++ ) {
                             list.mirrorURLS.push_back( lines[j] );

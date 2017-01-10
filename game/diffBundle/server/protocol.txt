@@ -18,19 +18,19 @@ or
 
 URLS
 #
-UPDATE A->B
+UPDATE A->B size
 URL1
 URL2
 ...
 URLM
 #
-UPDATE B->C
+UPDATE B->C size
 URL1
 URL2
 ...
 URLN
 #
-UPDATE C->D 
+UPDATE C->D size
 URL1
 URL2
 ...
@@ -44,8 +44,9 @@ of serving _full files to clients that have missed an update).
 
 The URLS tag indicates that the response contains URL batches.
 The batches are delimited by #
-Each batch has an UPDATE A->B header, indicating that this update is incremental
-from version A to version B, followed by one URL mirror of that update per line.
+Each batch has an "UPDATE A->B size" header, indicating that this update is 
+incremental from version A to version B and has a given download size, followed
+by one URL mirror of that update per line.
 
 
 

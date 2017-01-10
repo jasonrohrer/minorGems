@@ -128,18 +128,23 @@ function dbs_isUpdateAvailable() {
                 $b = $i;
 
                 $fileContents = FALSE;
-
+                $filePath;
+                
                 if( file_exists( $downloadFilePath .
                                  "$i"."_inc_$platform"."_urls.txt" ) ) {
 
-                    $fileContents = file_get_contents(
-                        $downloadFilePath . "$i"."_inc_$platform"."_urls.txt" );
+                    $filePath =
+                        $downloadFilePath . "$i"."_inc_$platform"."_urls.txt";
+                    
+                    $fileContents = file_get_contents( $filePath );
                     }
 
                 if( $fileContents === FALSE ) {
                     // failed to read
-                    $fileContents = file_get_contents(
-                        $downloadFilePath . "$i"."_inc_all"."_urls.txt" );
+                    $filePath =
+                        $downloadFilePath . "$i"."_inc_all_urls.txt";
+                    
+                    $fileContents = file_get_contents( $filePath );
                     }
 
                 
@@ -147,7 +152,10 @@ function dbs_isUpdateAvailable() {
                     // failed to read either
                     }
                 else {
-                    $result = $result . "\nUPDATE $a->$b\n";
+                    $dbzPath = preg_replace('/_urls.txt/', '.dbz', $filePath );
+                    
+                    $size = filesize( $dbzPath );
+                    $result = $result . "\nUPDATE $a->$b $size\n";
                     $result = $result . trim( $fileContents );
                     if( $i != $latest ) {
                         $result = $result . "\n#";
