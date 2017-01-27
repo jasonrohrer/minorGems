@@ -4964,3 +4964,56 @@ int16_t *load16BitMonoSound( int *outNumSamples, int *outSampleRate ) {
 
 
 
+
+#ifdef LINUX
+
+char isPrintingSupported() {
+    int ret = system( "convert --version > /dev/null 2>&1" ); 
+    if( ret == 0 ) {
+        return true;
+        }
+    else {
+        return false;
+        }
+    }
+
+
+void printImage( Image *inImage, char inFullColor ) {
+    const char *fileName = "printImage_temp.tga";
+    
+    writeTGAFile( fileName, inImage );
+    
+    const char *colorspaceFlag = "-colorspace gray";
+    
+    if( inFullColor ) {
+        colorspaceFlag = "";
+        }
+    
+
+    char *command = 
+        autoSprintf( "convert -density 72x72 "
+                     " %s %s ps:- | lpr",
+                     colorspaceFlag, fileName );
+    
+
+    system( command );
+    
+    delete [] command;
+    
+    File file( NULL, fileName );
+    file.remove();
+    }
+
+
+#else
+
+char isPrintingSupported() {
+    return false;
+    }
+
+void printImage( Image *inImage, char inFullColor ) {
+    }
+
+#endif
+
+

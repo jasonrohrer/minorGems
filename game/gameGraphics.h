@@ -225,5 +225,10 @@ Image *getScreenRegionRaw( int inStartX, int inStartY,
 
 
 
+char isPrintingSupported();
+
+void printImage( Image *inImage, char inFullColor=false );
+
+
 #endif
                  
