@@ -1,24 +1,6 @@
 <script type="text/javascript" src="sha1.js"></script>
 
 <script type="text/javascript">
-  var m_w = 123456789;
-  var m_z = 987654321;
-  var mask = 0xffffffff;
-
-  // Takes any integer
-  function seedRand(i) {
-      m_w = i;
-      }
-
-  // Returns number between 0 (inclusive) and 1.0 (exclusive),
-  // just like Math.random().
-  function random() {
-      m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
-      m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
-      var result = ((m_z << 16) + m_w) & mask;
-      result /= 4294967296;
-      return result + 0.5;
-      }
 
 
   function calcHMAC() {
@@ -37,15 +19,6 @@
               hmacOutput.value = e.message
           }
       }
-
-  function calcSalt() {
-      var saltOutput = document.getElementById("saltOutputText");
-      var d = new Date();
-
-      var shaObj = new jsSHA("SHA-1", "TEXT");
-      shaObj.update( d.getTime().toString() );
-      saltOutput.value = shaObj.getHash("HEX");
-      }     
 </script>
 
 <body onload="calcHMAC()">
