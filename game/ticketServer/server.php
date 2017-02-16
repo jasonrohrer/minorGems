@@ -2618,12 +2618,14 @@ function ts_checkPassword( $inFunctionName ) {
 
     $passwordSent = false;
     
-    if( isset( $_REQUEST[ "password" ] ) ) {
+    if( isset( $_REQUEST[ "passwordHMAC" ] ) ) {
         $passwordSent = true;
         
-        $password = ts_hmac_sha1( $passwordHashingPepper,
-                                  $_REQUEST[ "password" ] );
-
+        //$password = ts_hmac_sha1( $passwordHashingPepper,
+        //                          $_REQUEST[ "password" ] );
+        $password = $_REQUEST[ "passwordHMAC" ];
+        
+        
         // generate a new hash cookie from this password
         $newSalt = time();
         $newHash = md5( $newSalt . $password );
