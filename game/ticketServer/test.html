@@ -1,0 +1,72 @@
+<script type="text/javascript" src="sha1.js"></script>
+
+<script type="text/javascript">
+  var m_w = 123456789;
+  var m_z = 987654321;
+  var mask = 0xffffffff;
+
+  // Takes any integer
+  function seedRand(i) {
+      m_w = i;
+      }
+
+  // Returns number between 0 (inclusive) and 1.0 (exclusive),
+  // just like Math.random().
+  function random() {
+      m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+      m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+      var result = ((m_z << 16) + m_w) & mask;
+      result /= 4294967296;
+      return result + 0.5;
+      }
+
+
+  function calcHMAC() {
+      try {
+  
+          var hmacInput = document.getElementById("hmacInputText");
+          var pepperInput = document.getElementById("pepperInputText");
+          var hmacOutput = document.getElementById("hmacOutputText");
+  
+          var shaObj = new jsSHA("SHA-1", "TEXT");
+          shaObj.setHMACKey( pepperInput.value );
+          shaObj.update( hmacInput.value );
+          hmacOutput.value = shaObj.getHMAC("HEX");
+
+          } catch(e) {
+              hmacOutput.value = e.message
+          }
+      }
+
+  function calcSalt() {
+      var saltOutput = document.getElementById("saltOutputText");
+      var d = new Date();
+
+      var shaObj = new jsSHA("SHA-1", "TEXT");
+      shaObj.update( d.getTime().toString() );
+      saltOutput.value = shaObj.getHash("HEX");
+      }     
+</script>
+
+<body onload="calcHMAC()">
+
+<FORM>
+    <INPUT TYPE="password" MAXLENGTH=20 SIZE=20 NAME="password" id="hmacInputText" onkeyup="calcHash()">
+</FORM>
+
+<FORM ACTION="server.php" METHOD="post">
+
+<br>
+Server-provided Pepper:
+<br>
+	<input type="text" size="75" name="pepper" value="262f43f043031282c645d0eb352df723a3ddc88f" id="pepperInputText">
+
+    <br>
+hmac_sha1 of password with pepper as key:<br>
+	<input type="text" size="75" name="passwordHMAC" id="hmacOutputText">
+<br>
+    Yubikey:<br>
+    <INPUT TYPE="password" MAXLENGTH=48 SIZE=48 NAME="yubikey">
+    <INPUT TYPE="hidden" NAME="action" VALUE="show_data">
+	        <INPUT TYPE="Submit" VALUE="login">
+    </FORM>
