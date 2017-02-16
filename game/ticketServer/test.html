@@ -29,7 +29,7 @@
           var hmacOutput = document.getElementById("hmacOutputText");
   
           var shaObj = new jsSHA("SHA-1", "TEXT");
-          shaObj.setHMACKey( pepperInput.value );
+          shaObj.setHMACKey( pepperInput.value, "TEXT" );
           shaObj.update( hmacInput.value );
           hmacOutput.value = shaObj.getHMAC("HEX");
 
@@ -51,22 +51,22 @@
 <body onload="calcHMAC()">
 
 <FORM>
-    <INPUT TYPE="password" MAXLENGTH=20 SIZE=20 NAME="password" id="hmacInputText" onkeyup="calcHash()">
+    <INPUT TYPE="password" MAXLENGTH=20 SIZE=20 NAME="passwordHMAC" id="hmacInputText" onkeyup="calcHMAC()">
 </FORM>
 
 <FORM ACTION="server.php" METHOD="post">
-
-<br>
-Server-provided Pepper:
-<br>
-	<input type="text" size="75" name="pepper" value="262f43f043031282c645d0eb352df723a3ddc88f" id="pepperInputText">
-
-    <br>
-hmac_sha1 of password with pepper as key:<br>
-	<input type="text" size="75" name="passwordHMAC" id="hmacOutputText">
-<br>
     Yubikey:<br>
     <INPUT TYPE="password" MAXLENGTH=48 SIZE=48 NAME="yubikey">
     <INPUT TYPE="hidden" NAME="action" VALUE="show_data">
 	        <INPUT TYPE="Submit" VALUE="login">
+<br>
+<br>
+Server-provided Pepper:
+<br>
+	<input type="text" size="75" name="pepper" readonly value="262f43f043031282c645d0eb352df723a3ddc88f" id="pepperInputText">
+
+    <br>
+hmac_sha1 of password with pepper as key:<br>
+	<input type="text" size="75" name="passwordHMAC" id="hmacOutputText">
+
     </FORM>
