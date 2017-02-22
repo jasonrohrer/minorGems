@@ -8,7 +8,11 @@ if( isset( $_REQUEST[ "password" ] ) ) {
     $hash = hash_hmac( "sha1", 
                        $_REQUEST[ "password" ],
                        $passwordHashingPepper );
-    
+
+    $hash = hash_hmac( "sha1",
+                       $hash,
+                       $passwordHashingPepper );
+
     echo "Password hash is:  $hash";
     }
 else {

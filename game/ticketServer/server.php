@@ -2620,10 +2620,12 @@ function ts_checkPassword( $inFunctionName ) {
     
     if( isset( $_REQUEST[ "passwordHMAC" ] ) ) {
         $passwordSent = true;
-        
-        //$password = ts_hmac_sha1( $passwordHashingPepper,
-        //                          $_REQUEST[ "password" ] );
-        $password = $_REQUEST[ "passwordHMAC" ];
+
+        // already hashed client-side on login form
+        // hash again, because hash client sends us is not stored in
+        // our settings file
+        $password = ts_hmac_sha1( $passwordHashingPepper,
+                                  $_REQUEST[ "passwordHMAC" ] );
         
         
         // generate a new hash cookie from this password
