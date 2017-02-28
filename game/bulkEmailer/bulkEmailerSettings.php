@@ -37,6 +37,10 @@ $be_enableLog = 1;
 $be_disableBatches = 0;
 
 
+// Should single, transactional emails be sent instantly instead of batched?
+$be_instantSendTrans = 1;
+
+
 
 // batch size for sending email
 // useful if your server has a "max emails per hour" limit
@@ -77,6 +81,21 @@ $be_smtpPort = "465";
 $be_smtpUsername = "jason@server.com";
 
 $be_smtpPassword = "secret";
+
+
+// an alternative SMTP for mission-critical, transactional emails
+// we may want to use a separate service for these
+
+// by default, use the same service
+
+$be_smtpHostTrans = $be_smtpHost;
+
+$be_smtpPortTrans = $be_smtpPort;
+
+$be_smtpUsernameTrans = $be_smtpUsername;
+
+$be_smtpPasswordTrans = $be_smtpPassword;
+
 
 
 ?>

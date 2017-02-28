@@ -179,7 +179,8 @@ function be_sendBatch() {
                     $customBody =
                         preg_replace('/%CUSTOM%/', $custom_data, $body );
                     
-                    $success = be_sendEmail( $subject, $customBody, $email );
+                    $success = be_sendEmail( $subject, $customBody, $email,
+                                             false );
 
                     if( $success ) {
                         $reportBody = $reportBody . "$email SUCCESS\n";
@@ -244,7 +245,7 @@ function be_sendBatch() {
 
     if( $numSent > 0 ) {
         be_sendEmail( "bulkEmailer Report:  Sent $numSent",
-                      $reportBody, $be_reportToEmailAddress );
+                      $reportBody, $be_reportToEmailAddress, true );
         }
     
 

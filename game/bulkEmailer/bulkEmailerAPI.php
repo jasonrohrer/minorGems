@@ -20,12 +20,15 @@ include( "bulkEmailerSettings.php" );
 function be_addMessage( $subject, $body, $recipientEmailArray,
                         $customDataArray ) {
 
-    global $be_disableBatches;
+    global $be_disableBatches, $be_instantSendTrans;
+
+    $num = count( $recipientEmailArray );
     
-    if( $be_disableBatches ) {
+    if( $be_disableBatches ||
+        ( $num == 1 && $be_instantSendTrans ) ) {
         // alternative, send all emails NOW
 
-        $num = count( $recipientEmailArray );
+        
         
         for( $i=0; $i<$num; $i++ ) {
             $email = $recipientEmailArray[$i];
@@ -33,8 +36,14 @@ function be_addMessage( $subject, $body, $recipientEmailArray,
 
             $customBody =
                 preg_replace('/%CUSTOM%/', $custom_data, $body );
-                    
-            $success = be_sendEmail( $subject, $customBody, $email );
+
+            $trans = false;
+            if( $num == 1 ) {
+                $trans = true;
+                }
+            
+            $success = be_sendEmail( $subject, $customBody, $email,
+                                     $trans );
             }
 
 

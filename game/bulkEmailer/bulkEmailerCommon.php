@@ -179,7 +179,8 @@ function be_operationError( $message ) {
 
 // sends a note email to a specific address
 // returns TRUE on success
-function be_sendEmail( $message_subject, $message_text, $inEmail ) {
+function be_sendEmail( $message_subject, $message_text, $inEmail,
+                       $inTrans = false ) {
         
     
     $mailSubject = $message_subject;
@@ -189,7 +190,8 @@ function be_sendEmail( $message_subject, $message_text, $inEmail ) {
     
     $result = be_mail( $inEmail,
                        $mailSubject,
-                       $mailBody );
+                       $mailBody,
+                       $inTrans );
     return $result;
     }
 
@@ -199,7 +201,8 @@ function be_sendEmail( $message_subject, $message_text, $inEmail ) {
 
 function be_mail( $inEmail,
                   $inSubject,
-                  $inBody ) {
+                  $inBody,
+                  $inTrans ) {
     
     global $be_useSMTP, $be_siteEmailAddress;
 
@@ -212,18 +215,34 @@ function be_mail( $inEmail,
                           'To' => $inEmail,
                           'Subject' => $inSubject );
         
-        $smtp = Mail::factory( 'smtp',
-                               array ( 'host' => $be_smtpHost,
-                                       'port' => $be_smtpPort,
-                                       'auth' => true,
-                                       'username' => $be_smtpUsername,
-                                       'password' => $be_smtpPassword ) );
+        $smtp;
 
+        if( $inTrans ) {
+            global $be_smtpHostTrans, $be_smtpPortTrans,
+                $be_smtpUsernameTrans, $be_smtpPasswordTrans;
+
+            $smtp = Mail::factory(
+                'smtp',
+                array ( 'host' => $be_smtpHostTrans,
+                        'port' => $be_smtpPortTrans,
+                        'auth' => true,
+                        'username' => $be_smtpUsernameTrans,
+                        'password' => $be_smtpPasswordTrans ) );
+            }
+        else {
+            $smtp = Mail::factory( 'smtp',
+                                   array ( 'host' => $be_smtpHost,
+                                           'port' => $be_smtpPort,
+                                           'auth' => true,
+                                           'username' => $be_smtpUsername,
+                                           'password' => $be_smtpPassword ) );
+            }
+        
 
         $mail = $smtp->send( $inEmail, $headers, $inBody );
 
 
-        if( PEAR::isError( $mail ) ) {
+        if( (new PEAR)->isError( $mail ) ) {
             be_log( "Email send failed:  " .
                     $mail->getMessage() );
             return false;
