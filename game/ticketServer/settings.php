@@ -198,4 +198,18 @@ $smtpUsername = "jason@server.com";
 $smtpPassword = "secret";
 
 
+
+// separate SMTP for mission-critical, transactional emails (like download code
+// emails)
+// Defaults to being same as the above SMTP, which is used for bulk messages
+//  (like a note sent to everyone).
+$smtpHostTrans = $smtpHost;
+
+$smtpPortTrans = $smtpPort;
+
+$smtpUsernameTrans = $smtpUsername;
+
+$smtpPasswordTrans = $smtpPasswordTrans;
+
+
 ?>

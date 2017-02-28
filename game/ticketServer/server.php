@@ -1897,7 +1897,9 @@ function ts_sendEmail_p( $inTickeID, $inName, $inEmail ) {
     
     $result = ts_mail( $inEmail,
                        $mailSubject,
-                       $mailBody );
+                       $mailBody,
+                       // download code emails are transactional
+                       true );
     return $result;
     }
 
@@ -2309,7 +2311,9 @@ function ts_sendNote_p( $message_subject, $message_text, $inName, $inEmail ) {
     
     $result = ts_mail( $inEmail,
                        $mailSubject,
-                       $mailBody );
+                       $mailBody,
+                       // note emails are bulk, not transactional
+                       false );
     return $result;
     }
 
@@ -2317,7 +2321,10 @@ function ts_sendNote_p( $message_subject, $message_text, $inName, $inEmail ) {
  
 function ts_mail( $inEmail,
                   $inSubject,
-                  $inBody ) {
+                  $inBody,
+                  // true for transactional emails that should use
+                  // a different SMTP
+                  $inTrans = false ) {
     
     global $useSMTP, $siteEmailAddress, $siteEmailDomain;
 
@@ -2333,14 +2340,28 @@ function ts_mail( $inEmail,
                           'Subject' => $inSubject,
                           'Date' => date( "r" ),
                           'Message-Id' => $messageID );
-        
-        $smtp = Mail::factory( 'smtp',
-                               array ( 'host' => $smtpHost,
-                                       'port' => $smtpPort,
-                                       'auth' => true,
-                                       'username' => $smtpUsername,
-                                       'password' => $smtpPassword ) );
+        $smtp;
 
+        if( $inTrans ) {
+            global $smtpHostTrans, $smtpPortTrans,
+                $smtpUsernameTrans, $smtpPasswordTrans;
+
+            $smtp = Mail::factory( 'smtp',
+                                   array ( 'host' => $smtpHostTrans,
+                                           'port' => $smtpPortTrans,
+                                           'auth' => true,
+                                           'username' => $smtpUsernameTrans,
+                                           'password' => $smtpPasswordTrans ) );
+            }
+        else {
+            $smtp = Mail::factory( 'smtp',
+                                   array ( 'host' => $smtpHost,
+                                           'port' => $smtpPort,
+                                           'auth' => true,
+                                           'username' => $smtpUsername,
+                                           'password' => $smtpPassword ) );
+            }
+        
 
         $mail = $smtp->send( $inEmail, $headers, $inBody );
 
