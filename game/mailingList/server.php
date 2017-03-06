@@ -314,6 +314,21 @@ function ml_clearLog() {
 
 function ml_subscribe() {
     global $tableNamePrefix, $remoteIP, $header, $footer;
+
+
+    $timeStamp = ml_requestFilter( "timeStamp", "/[0-9]+/", time() );
+
+    $currentTime = time();
+
+    if( $timeStamp > $currentTime - 5 ) {
+        eval( $header );
+            
+        echo "You did that way faster than a human would.";
+        
+        eval( $footer );
+        return;
+        }
+    
     
     // input filtering handled below
     $email = "";
