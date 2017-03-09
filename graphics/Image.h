@@ -842,6 +842,8 @@ static double min( double inA, double inB, double inC ) {
 // conversion algorithms found here:
 // http://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
 
+// Modified somewhat to match GIMP code
+
 
 
 static void rgbToHSL( double inR, double inG, double inB,
@@ -852,7 +854,7 @@ static void rgbToHSL( double inR, double inG, double inB,
 
     double h, s, l;
     
-    l = ( maxC + minC ) / 2;
+    l = ( maxC + minC ) / 2.0;
 
     if( maxC == minC ){
         h = s = 0; // achromatic
@@ -860,21 +862,23 @@ static void rgbToHSL( double inR, double inG, double inB,
     else{
         double d = maxC - minC;
         
-        if( l == 1 ) {
-            s = 0;
-            }
-        else {
-            s = l > 0.5 ? d / (2 - ( maxC + minC ) ) : d / ( maxC + minC );
-            }
+        // divide by zero impossible here unless maxC = minC = 1,
+        // and then we're in the above achromatic case
+        s = l > 0.5 ? d / (2 - ( maxC + minC ) ) : d / ( maxC + minC );
+        
         
         if( maxC == inR )
-            h = ( inG - inB ) / d + ( inG < inB ? 6 : 0 );
+            h = ( inG - inB ) / d;
         else if( maxC == inG ) 
-            h = ( inB - inR ) / d + 2; 
+            h = ( inB - inR ) / d + 2.0; 
         else if( maxC == inB ) 
-            h = ( inR - inG ) / d + 4;
+            h = ( inR - inG ) / d + 4.0;
         
-        h /= 6;
+        h /= 6.0;
+
+        if( h < 0 ) {
+            h += 1.0;
+            }
         }
     
     *outH = h;
@@ -885,11 +889,11 @@ static void rgbToHSL( double inR, double inG, double inB,
 
 
 static double hueToRGB( double p, double q, double t ) {
-    if( t < 0 ) t += 1;
-    if( t > 1 ) t -= 1;
-    if( t < 1/6.0 ) return p + ( q - p ) * 6 * t;
-    if(t < 1/2.0 ) return q;
-    if(t < 2/3.0 ) return p + ( q - p ) * ( 2/3.0 - t ) * 6;
+    if( t < 0 ) t += 6.0;
+    if( t > 6.0 ) t -= 6.0;
+    if( t < 1.0 ) return p + ( q - p ) * t;
+    if( t <  3.0 ) return q;
+    if( t < 4.0 ) return p + ( q - p ) * ( 4.0 - t );
     return p;
     }
 
@@ -903,11 +907,11 @@ static void hslToRGB( double inH, double inS, double inL,
         r = g = b = inL; // achromatic
         }
     else {
-        double q = inL < 0.5 ? inL * ( 1 + inS ) : inL + inS - inL * inS;
-        double p = 2 * inL - q;
-        r = hueToRGB( p, q, inH + 1/3.0 );
-        g = hueToRGB( p, q, inH );
-        b = hueToRGB( p, q, inH - 1/3.0 );
+        double q = inL < 0.5 ? inL * ( 1.0 + inS ) : inL + inS - inL * inS;
+        double p = 2.0 * inL - q;
+        r = hueToRGB( p, q, inH * 6.0 + 2.0 );
+        g = hueToRGB( p, q, inH * 6.0 );
+        b = hueToRGB( p, q, inH * 6.0 - 2.0 );
         }
 
     *outR = r;
