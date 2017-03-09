@@ -303,7 +303,11 @@ class Image : public Serializable {
          */
         Image *generateAlphaChannel();
         
-
+        
+        // inSaturation in range [-1,1], where 0 is no adjustment
+        // does nothing if image has fewer than 3 channels (needs RGB)
+        virtual void adjustSaturation( double inSaturation );
+     
 		
 		// implement the Serializable interface
 		virtual int serialize( OutputStream *inOutputStream );
@@ -805,6 +809,183 @@ inline int Image::deserialize( InputStream *inInputStream ) {
 	
 	return numBytes;
 	}
+
+
+
+
+
+static double max( double inA, double inB, double inC ) {
+    if( inA >= inB &&
+        inA >= inC ) {
+        return inA;
+        }
+    if( inB >= inA &&
+        inB >= inC ) {
+        return inB;
+        }
+    return inC;
+    }
+
+static double min( double inA, double inB, double inC ) {
+    if( inA <= inB &&
+        inA <= inC ) {
+        return inA;
+        }
+    if( inB <= inA &&
+        inB <= inC ) {
+        return inB;
+        }
+    return inC;
+    }
+
+
+// conversion algorithms found here:
+// http://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
+
+
+
+static void rgbToHSL( double inR, double inG, double inB,
+                      double *outH, double *outS, double *outL ) {
+
+    double maxC = max( inR, inG, inB );
+    double minC = min( inR, inG, inB );
+
+    double h, s, l;
+    
+    l = ( maxC + minC ) / 2;
+
+    if( maxC == minC ){
+        h = s = 0; // achromatic
+        }
+    else{
+        double d = maxC - minC;
+        
+        if( l == 1 ) {
+            s = 0;
+            }
+        else {
+            s = l > 0.5 ? d / (2 - ( maxC + minC ) ) : d / ( maxC + minC );
+            }
+        
+        if( maxC == inR )
+            h = ( inG - inB ) / d + ( inG < inB ? 6 : 0 );
+        else if( maxC == inG ) 
+            h = ( inB - inR ) / d + 2; 
+        else if( maxC == inB ) 
+            h = ( inR - inG ) / d + 4;
+        
+        h /= 6;
+        }
+    
+    *outH = h;
+    *outS = s;
+    *outL = l;
+    }
+
+
+
+static double hueToRGB( double p, double q, double t ) {
+    if( t < 0 ) t += 1;
+    if( t > 1 ) t -= 1;
+    if( t < 1/6.0 ) return p + ( q - p ) * 6 * t;
+    if(t < 1/2.0 ) return q;
+    if(t < 2/3.0 ) return p + ( q - p ) * ( 2/3.0 - t ) * 6;
+    return p;
+    }
+
+
+
+static void hslToRGB( double inH, double inS, double inL,
+                      double *outR, double *outG, double *outB ) {
+    double r, g, b;
+
+    if( inS == 0) {
+        r = g = b = inL; // achromatic
+        }
+    else {
+        double q = inL < 0.5 ? inL * ( 1 + inS ) : inL + inS - inL * inS;
+        double p = 2 * inL - q;
+        r = hueToRGB( p, q, inH + 1/3.0 );
+        g = hueToRGB( p, q, inH );
+        b = hueToRGB( p, q, inH - 1/3.0 );
+        }
+
+    *outR = r;
+    *outG = g;
+    *outB = b;
+    }
+
+
+    
+inline void Image::adjustSaturation( double inSaturation ) {    
+    if( mNumChannels < 3 ) {
+        return;
+        }
+    
+
+    double tH, tS, tL;
+    
+    double tR, tG, tB;
+    
+    rgbToHSL( 1.0, 1.0, 0.470588, &tH, &tS, &tL );
+    
+    hslToRGB( tH, tS, tL, &tR, &tG, &tB );
+    
+    printf( "HSL became %f, %f, %f\n", tH, tS, tL );
+    printf( "RGB became %f, %f, %f\n", tR, tG, tB );
+    
+
+    for( int p=0; p<mNumPixels; p++ ) {
+        double r = mChannels[0][p];
+        double g = mChannels[1][p];
+        double b = mChannels[2][p];
+        
+        double h,s,l;
+        
+        rgbToHSL( r, g, b, &h, &s, &l );
+        
+        /*
+        // algorithm found here:
+        // http://www.pocketmagic.net/
+        //       enhance-saturation-in-images-programatically/
+
+        if( inSaturation >= 0 ) {
+            // we don't want to saturate unsaturated colors -> 
+            // we get only defects 
+            // for unsaturared colors this tends to 0
+            double grayFactor = s; 
+            // how far can we go?
+            // if we increase saturation, we have "255-s" space left
+            double varInterval = 1.0 - s; 
+            // compute the new saturation
+            s = s + inSaturation * varInterval * grayFactor;
+			} 
+        else {
+            // how far can we go?
+            // for decrease we have "s" left
+            double varInterval = s; 
+            s = s + inSaturation * varInterval;
+			}
+        */
+        
+        // however, this does NOT match the output from the Gimp
+        
+        s *= inSaturation + 1.0;
+
+        if( s > 1 ) {
+            s = 1;
+            }
+        else if( s < 0 ) {
+            s = 0;
+            }
+
+        hslToRGB( h, s, l, &r, &g, &b );
+
+        mChannels[0][p] = r;
+        mChannels[1][p] = g;
+        mChannels[2][p] = b;
+        }
+    }
 
 
 	
