@@ -931,12 +931,14 @@ inline void Image::adjustSaturation( double inSaturation ) {
     
     double tR, tG, tB;
     
-    rgbToHSL( 1.0, 1.0, 0.470588, &tH, &tS, &tL );
+    rgbToHSL( 120 / 255.0, 153/255.0, 65/255.0, &tH, &tS, &tL );
     
+    tS *= 1.5;
+
     hslToRGB( tH, tS, tL, &tR, &tG, &tB );
     
     printf( "HSL became %f, %f, %f\n", tH, tS, tL );
-    printf( "RGB became %f, %f, %f\n", tR, tG, tB );
+    printf( "RGB became %f, %f, %f\n", tR * 255, tG * 255, tB * 255 );
     
 
     for( int p=0; p<mNumPixels; p++ ) {
