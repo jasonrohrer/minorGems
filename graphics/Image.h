@@ -864,8 +864,9 @@ static void rgbToHSL( double inR, double inG, double inB,
         
         // divide by zero impossible here unless maxC = minC = 1,
         // and then we're in the above achromatic case
-        s = l > 0.5 ? d / (2 - ( maxC + minC ) ) : d / ( maxC + minC );
-        
+        s = l > 0.5 ? 
+            d / (2 - ( maxC + minC ) ) : 
+            d / ( maxC + minC );
         
         if( maxC == inR )
             h = ( inG - inB ) / d;
@@ -907,11 +908,16 @@ static void hslToRGB( double inH, double inS, double inL,
         r = g = b = inL; // achromatic
         }
     else {
-        double q = inL < 0.5 ? inL * ( 1.0 + inS ) : inL + inS - inL * inS;
+        double q = inL < 0.5 ? 
+            inL * ( 1.0 + inS ) : 
+            inL + inS - inL * inS;
         double p = 2.0 * inL - q;
-        r = hueToRGB( p, q, inH * 6.0 + 2.0 );
-        g = hueToRGB( p, q, inH * 6.0 );
-        b = hueToRGB( p, q, inH * 6.0 - 2.0 );
+        
+        double sixHue = inH * 6.0;
+
+        r = hueToRGB( p, q, sixHue + 2.0 );
+        g = hueToRGB( p, q, sixHue );
+        b = hueToRGB( p, q, sixHue - 2.0 );
         }
 
     *outR = r;
@@ -924,22 +930,7 @@ static void hslToRGB( double inH, double inS, double inL,
 inline void Image::adjustSaturation( double inSaturation ) {    
     if( mNumChannels < 3 ) {
         return;
-        }
-    
-
-    double tH, tS, tL;
-    
-    double tR, tG, tB;
-    
-    rgbToHSL( 120 / 255.0, 153/255.0, 65/255.0, &tH, &tS, &tL );
-    
-    tS *= 1.5;
-
-    hslToRGB( tH, tS, tL, &tR, &tG, &tB );
-    
-    printf( "HSL became %f, %f, %f\n", tH, tS, tL );
-    printf( "RGB became %f, %f, %f\n", tR * 255, tG * 255, tB * 255 );
-    
+        }    
 
     for( int p=0; p<mNumPixels; p++ ) {
         double r = mChannels[0][p];
@@ -976,6 +967,12 @@ inline void Image::adjustSaturation( double inSaturation ) {
         
         // however, this does NOT match the output from the Gimp
         
+        // this is what the GIMP does, and it has many of the nice
+        // properties of the above code, even though it's simpler
+        
+        // Ignoring rounding errors (the GIMP does the whole conversion
+        // in 0-255 int space, and rounds HSL values to 0-255 integers)
+        // this matches the output of the GIMP.
         s *= inSaturation + 1.0;
 
         if( s > 1 ) {
