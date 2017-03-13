@@ -90,7 +90,8 @@
  * String parameters as const to fix warnings.
  *
  * 2017-March-13    Jason Rohrer
- * Function for reading/writing an int from/to a file.
+ * Functions for reading/writing an int from/to a file.
+ * Function for comparing files.
  */
 
 
@@ -283,7 +284,11 @@ class File {
 		 *   Defaults to blocks of 5000 bytes.
 		 */
 		void copy( File *inDestination, long inBlockSize = 5000 );
+        
 
+        // returns true if file contents match, false otherwise
+        char contentsMatches( File *inOtherFile );
+        
 		
 		
 		/**
@@ -851,6 +856,54 @@ inline void File::copy( File *inDestination, long inBlockSize ) {
 
 
 
+inline char File::contentsMatches( File *inOtherFile ) {
+    if( !exists() || ! inOtherFile->exists() ) {
+        return false;
+        }
+    
+    if( isDirectory() || inOtherFile->isDirectory() ) {
+        return false;
+        }
+    
+    if( getLength() != inOtherFile->getLength() ) {
+        return false;
+        }
+    
+    int lenA;
+    unsigned char *contA = readFileContents( &lenA );
+
+    int lenB;
+    unsigned char *contB = inOtherFile->readFileContents( &lenB );
+
+    
+    char match = false;
+    
+    if( contA != NULL && contB != NULL && lenA == lenB ) {
+        
+        match = true;
+        
+        for( int i=0; i<lenA; i++ ) {
+            if( contA[i] != contB[i] ) {
+                match = false;
+                break;
+                }
+            }
+        }
+
+    if( contA != NULL ) {
+        delete [] contA;
+        }
+    if( contB != NULL ) {
+        delete [] contB;
+        }
+    
+
+    return match;
+    }
+
+
+
+
 inline char *File::getFileName( int *outLength ) {
 	char *returnName = stringDuplicate( mName );
     
@@ -938,6 +991,8 @@ inline int File::readFileIntContents( int inDefaultValue ) {
     
     int numRead = sscanf( cont, "%d", &val );
     
+    delete [] cont;
+
     if( numRead != 1 ) {
         return inDefaultValue;
         }
