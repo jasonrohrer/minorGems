@@ -88,6 +88,9 @@
  *
  * 2010-May-14    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2017-March-13    Jason Rohrer
+ * Function for reading/writing an int from/to a file.
  */
 
 
@@ -323,7 +326,11 @@ class File {
          *   Must be destroyed by caller.
          */
         char *readFileContents();
-
+        
+        // read a single int from this file
+        // inDefaultValue returned if reading fails
+        int readFileIntContents( int inDefaultValue );
+        
 
 
         /**
@@ -367,6 +374,13 @@ class File {
          */
         char writeToFile( unsigned char *inData, int inLength );
 
+        
+
+        // write an int to a file
+        // @return true if the file was written to successfully, or
+        //   false otherwise.
+        char writeToFile( int inInt );
+        
         
 		
 	private:
@@ -913,6 +927,27 @@ inline char *File::readFileContents() {
 
 
 
+inline int File::readFileIntContents( int inDefaultValue ) {
+    char *cont = readFileContents();
+    
+    if( cont == NULL ) {
+        return inDefaultValue;
+        }
+    
+    int val;
+    
+    int numRead = sscanf( cont, "%d", &val );
+    
+    if( numRead != 1 ) {
+        return inDefaultValue;
+        }
+
+    return val;
+    }
+
+
+
+
 inline unsigned char *File::readFileContents( int *outLength, 
                                               char inTextMode ) {
 
@@ -954,6 +989,18 @@ inline unsigned char *File::readFileContents( int *outLength,
 
 inline char File::writeToFile( const char *inString ) {
     return writeToFile( (unsigned char *)inString, strlen( inString ) );    
+    }
+
+
+
+inline char File::writeToFile( int inInt ) {
+    char *stringVal = autoSprintf( "%d", inInt );
+    
+    char returnVal = writeToFile( stringVal );
+
+    delete [] stringVal;
+
+    return returnVal;
     }
 
 
