@@ -63,7 +63,9 @@ void SingleTextureGL::reloadFromBackup() {
         
         
         setTextureData( mBackupBytes, mAlphaOnly, 
-                        mWidthBackup, mHeightBackup );
+                        mWidthBackup, mHeightBackup, 
+                        // backup already has edges expanded
+                        false );
         }
     }
     
@@ -111,7 +113,7 @@ SingleTextureGL::SingleTextureGL( unsigned char *inRGBA,
         }
 
 
-	setTextureData( inRGBA, mAlphaOnly, inWidth, inHeight );
+	setTextureData( inRGBA, mAlphaOnly, inWidth, inHeight, true );
     
     sAllLoadedTextures.push_back( this );
 	}
@@ -136,7 +138,9 @@ SingleTextureGL::SingleTextureGL( char inAlphaOnly,
         }
 
 
-	setTextureData( inA, mAlphaOnly, inWidth, inHeight );
+	setTextureData( inA, mAlphaOnly, inWidth, inHeight, 
+                    // don't expand edge for alpha-only
+                    false );
     
     sAllLoadedTextures.push_back( this );
 	}
@@ -165,32 +169,14 @@ SingleTextureGL::~SingleTextureGL() {
 
 void SingleTextureGL::setTextureData( Image *inImage ) {
 	
-	// first, convert our image to an RGBAImage
-	RGBAImage *rgbaImage = new RGBAImage( inImage );
-
-    
-
-	if( inImage->getNumChannels() < 4 ) {
-		// we should fill in 1.0 for the alpha channel
-		// since the input image doesn't have an alpha channel
-		double *channel = rgbaImage->getChannel( 3 );
-        
-        int numPixels = inImage->getWidth() * inImage->getHeight();
-        
-		for( int i=0; i<numPixels; i++ ) {
-			channel[i] = 1.0;
-			}
-		}
-    
 	// extract the rgba data
-	unsigned char *textureData = rgbaImage->getRGBABytes();
+	unsigned char *textureData = RGBAImage::getRGBABytes( inImage );
 
     setTextureData( textureData, 
-                    false, rgbaImage->getWidth(), rgbaImage->getHeight() );
+                    false, inImage->getWidth(), inImage->getHeight(),
+                    true );
     
-    
-    delete rgbaImage;
-	delete [] textureData;    
+    delete [] textureData;    
     }
 
 
@@ -228,8 +214,150 @@ void SingleTextureGL::replaceBackupData( unsigned char *inBytes,
 void SingleTextureGL::setTextureData( unsigned char *inBytes,
                                       char inAlphaOnly,
                                       unsigned int inWidth, 
-                                      unsigned int inHeight ) {
+                                      unsigned int inHeight,
+                                      char inExpandEdge ) {
     
+    if( inExpandEdge && !inAlphaOnly ) {
+        
+        unsigned int maxY = 0;
+        unsigned int minY = inHeight - 1;
+        
+        unsigned int maxX = 0;
+        unsigned int minX = inWidth - 1;
+        
+        int aIndex = 3;
+        for( unsigned int y=0; y<inHeight; y++ ) {
+            for( unsigned int x=0; x<inWidth; x++ ) {
+                
+                if( inBytes[ aIndex ] > 0 ) {    
+                    if( x > maxX ) {
+                        maxX = x;
+                        }
+                    if( x < minX ) {
+                        minX = x;
+                        }
+                    if( y > maxY ) {
+                        maxY = y;
+                        }
+                    if( y < minY ) {
+                        minY = y;
+                        }
+                    }
+
+                aIndex += 4;
+                }
+            }
+
+        if( minY < maxY &&
+            minX < maxX &&
+            minY > 0 &&
+            maxY < inHeight - 1 &&  
+            minX > 0 &&
+            maxX < inWidth - 1 ) {
+
+            // found edges away from image edge
+
+            // duplicate them
+            
+            // row edges
+
+            int rowBytes = inWidth * 4;
+
+            int rowStart = minY * rowBytes;
+            int rowDestStart = rowStart - rowBytes;
+
+            // don't duplicate row unless it has some fully-opaque
+            // pixels in it (it's something of a hard edge)
+            // thus, we don't accidentally expand the soft edges
+            // of feathered sprites, fonts, etc
+            char solidPresent = false;
+            
+            for( int i=rowStart + 3; i<rowStart + rowBytes; i+=4 ) {
+                if( inBytes[i] == 255 ) {
+                    solidPresent = true;
+                    break;
+                    }
+                }
+
+            if( solidPresent ) {
+                memcpy( &( inBytes[ rowDestStart ] ), 
+                        &( inBytes[ rowStart ] ), 
+                        inWidth * 4 );
+                }
+            
+            rowStart = maxY * inWidth * 4;
+            rowDestStart = rowStart + inWidth * 4;
+
+            solidPresent = false;
+
+            for( int i=rowStart + 3; i<rowStart + rowBytes; i+=4 ) {
+                if( inBytes[i] == 255 ) {
+                    solidPresent = true;
+                    break;
+                    }
+                }
+
+            if( solidPresent ) {
+                memcpy( &( inBytes[ rowDestStart ] ), 
+                        &( inBytes[ rowStart ] ), 
+                        inWidth * 4 );
+                }
+            
+
+            // now column edges
+
+            char solidPresentLeft = false;
+            char solidPresentRight = false;
+            
+            for( unsigned int y=minY; y<=maxY; y++ ) {
+
+                int iL = (y * inWidth + minX) * 4;
+
+                if( inBytes[ iL + 3 ] == 255 ) {
+                    solidPresentLeft = true;
+                    break;
+                    }
+                }
+            
+            for( unsigned int y=minY; y<=maxY; y++ ) {
+
+                int iR = (y * inWidth + maxX) * 4;
+
+                if( inBytes[ iR + 3 ] == 255 ) {
+                    solidPresentRight = true;
+                    break;
+                    }
+                }
+            
+
+            if( solidPresentLeft ) {    
+                for( unsigned int y=minY; y<=maxY; y++ ) {
+                    int iL = (y * inWidth + minX) * 4;
+                    
+                    inBytes[iL - 4] = inBytes[ iL ];
+                    inBytes[iL - 3] = inBytes[ iL + 1 ];
+                    inBytes[iL - 2] = inBytes[ iL + 2 ];
+                    inBytes[iL - 1] = inBytes[ iL + 3 ];
+                    }
+                }
+            
+                
+
+            if( solidPresentRight ) {
+                for( unsigned int y=minY; y<=maxY; y++ ) {
+                    int iR = (y * inWidth + maxX) * 4;
+                    inBytes[iR + 4] = inBytes[ iR ];
+                    inBytes[iR + 5] = inBytes[ iR + 1 ];
+                    inBytes[iR + 6] = inBytes[ iR + 2 ];
+                    inBytes[iR + 7] = inBytes[ iR + 3 ];
+                    }
+                }
+            
+            }
+        
+        }
+    
+
     replaceBackupData( inBytes, inAlphaOnly, inWidth, inHeight );
     
     

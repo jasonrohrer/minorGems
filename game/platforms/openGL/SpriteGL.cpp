@@ -44,32 +44,19 @@ void SpriteGL::findColoredRadii( Image *inImage ) {
             }
         }
     
-    if( minX > 0 ) {
-        minX -= 1;
-        }
-    if( maxX < w - 1 ) {
-        maxX += 1;
-        }
-    
-    if( minY > 0 ) {
-        minY -= 1;
-        }
-    if( maxY < h - 1 ) {
-        maxY += 1;
-        }
 
     if( minX > 0 ) {
         mColoredRadiusLeftX = 0.5 - minX / (double)w;
         }
     if( maxX < w - 1 ) {
-        mColoredRadiusRightX = maxX / (double)w - 0.5;
+        mColoredRadiusRightX = ( maxX + 1 ) / (double)w - 0.5;
         }
     
     if( minY > 0 ) {
         mColoredRadiusTopY = 0.5 - minY / (double)h;
         }
     if( maxY < h - 1 ) {
-        mColoredRadiusBottomY = maxY / (double)h - 0.5;
+        mColoredRadiusBottomY = ( maxY + 1 ) / (double)h - 0.5;
         }
     }
 
@@ -110,32 +97,19 @@ void SpriteGL::findColoredRadii( unsigned char *inRGBA,
             }
         }
 
-    if( minX > 0 ) {
-        minX -= 1;
-        }
-    if( maxX < w - 1 ) {
-        maxX += 1;
-        }
-    
-    if( minY > 0 ) {
-        minY -= 1;
-        }
-    if( maxY < h - 1 ) {
-        maxY += 1;
-        }
 
     if( minX > 0 ) {
         mColoredRadiusLeftX = 0.5 - minX / (double)w;
         }
     if( maxX < w - 1 ) {
-        mColoredRadiusRightX = maxX / (double)w - 0.5;
+        mColoredRadiusRightX = ( maxX + 1 ) / (double)w - 0.5;
         }
     
     if( minY > 0 ) {
         mColoredRadiusTopY = 0.5 - minY / (double)h;
         }
     if( maxY < h - 1 ) {
-        mColoredRadiusBottomY = maxY / (double)h - 0.5;
+        mColoredRadiusBottomY = ( maxY + 1 ) / (double)h - 0.5;
         }
     }
 
@@ -174,32 +148,19 @@ void SpriteGL::findColoredRadiiAlpha( unsigned char *inA,
             }
         }
 
-    if( minX > 0 ) {
-        minX -= 1;
-        }
-    if( maxX < w - 1 ) {
-        maxX += 1;
-        }
-    
-    if( minY > 0 ) {
-        minY -= 1;
-        }
-    if( maxY < h - 1 ) {
-        maxY += 1;
-        }
 
     if( minX > 0 ) {
         mColoredRadiusLeftX = 0.5 - minX / (double)w;
         }
     if( maxX < w - 1 ) {
-        mColoredRadiusRightX = maxX / (double)w - 0.5;
+        mColoredRadiusRightX = ( maxX + 1 ) / (double)w - 0.5;
         }
     
     if( minY > 0 ) {
         mColoredRadiusTopY = 0.5 - minY / (double)h;
         }
     if( maxY < h - 1 ) {
-        mColoredRadiusBottomY = maxY / (double)h - 0.5;
+        mColoredRadiusBottomY = ( maxY + 1 ) / (double)h - 0.5;
         }
     }
 

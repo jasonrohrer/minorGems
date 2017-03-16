@@ -145,11 +145,20 @@ class SingleTextureGL {
 
 		/**
 		 * Sets texture data as rgba or alpha-only bytes.
+         *
+         * If inExpandEdge is true, then edge pixels (along furthest
+         * extent rows and columns with non-zero alpha) are repeated out
+         * one additional row/column, if edge of non-zero alpha rectangle
+         * is smaller than full texture size.
+         *
+         * This reduces transparent seams along polygon/texture boundaries, 
+         * because textures overlap at edge of polygon.
 		 */
         void setTextureData( unsigned char *inBytes,
                              char inAlphaOnly,
                              unsigned int inWidth, 
-                             unsigned int inHeight );        
+                             unsigned int inHeight,
+                             char inExpandEdge = false );        
 
 		
 		/**
