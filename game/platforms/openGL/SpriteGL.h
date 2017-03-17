@@ -130,6 +130,19 @@ class SpriteGL{
         void setCenterOffset( doublePair inOffset ) {
             mCenterOffset = inOffset;
             }
+
+
+
+        static void startCountingPixelsDrawn() {
+            sCountingPixels = true;
+            sPixelsDrawn = 0;
+            }
+        
+        
+        static unsigned int endCountingPixelsDrawn() {
+            sCountingPixels = false;
+            return sPixelsDrawn;
+            }
         
 
         
@@ -139,6 +152,10 @@ class SpriteGL{
 
         static char sGenerateMipMaps;
         
+        static char sCountingPixels;
+        static unsigned int sPixelsDrawn;
+        
+
         SingleTextureGL *mTexture;
         
         int mNumFrames;

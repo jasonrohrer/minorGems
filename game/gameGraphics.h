@@ -185,6 +185,13 @@ void setSpriteCenterOffset( SpriteHandle inSprite, doublePair inOffset );
 
 
 
+void startCountingSpritePixelsDrawn();
+
+
+// returns the number of pixels drawn since we started counting
+unsigned int endCountingSpritePixelsDrawn();
+
+
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
 // Rotation is in fractions of a full clockwise rotation (0.25 is 90 deg cw)

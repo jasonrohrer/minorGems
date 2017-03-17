@@ -559,6 +559,18 @@ void setSpriteCenterOffset( SpriteHandle inSprite, doublePair inOffset ) {
 
 
 
+void startCountingSpritePixelsDrawn() {
+    SpriteGL::startCountingPixelsDrawn();
+    }
+
+
+
+unsigned int endCountingSpritePixelsDrawn() {
+    return SpriteGL::endCountingPixelsDrawn();
+    }
+
+
+
 // draw with current draw color
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
                  double inZoom, double inRotation, char inFlipH ) {

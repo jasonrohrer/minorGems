@@ -9,6 +9,9 @@
 
 char SpriteGL::sGenerateMipMaps = false;
 
+char SpriteGL::sCountingPixels = false;
+unsigned int SpriteGL::sPixelsDrawn = 0;
+
 
 
 void SpriteGL::findColoredRadii( Image *inImage ) {
@@ -823,6 +826,13 @@ void SpriteGL::draw( int inFrame,
     glEnd();
     setDrawColor( oldColor );
     */
+    if( sCountingPixels ) {
+        double increment = 
+            ( corners[2].mX - corners[0].mX ) *
+            ( corners[2].mY - corners[0].mY );        
+        sPixelsDrawn += increment;
+        }   
+
     }
 
 
