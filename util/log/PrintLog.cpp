@@ -194,7 +194,7 @@ char *PrintLog::generatePlainMessage( const char *inFormatString,
         va_copy( listCopy, inArgList );
 
         stringLength = 
-            vsnprintf( buffer, bufferSize, inFormatString, inArgList );
+            vsnprintf( buffer, bufferSize, inFormatString, listCopy );
         
         va_end( listCopy );
         }
