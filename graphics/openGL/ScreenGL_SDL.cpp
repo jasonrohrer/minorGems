@@ -229,6 +229,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
       mImageWide( inWide ), mImageHigh( inHigh ),
       mFullScreen( inFullScreen ),
       mMaxFrameRate( inMaxFrameRate ),
+      mUseFrameSleep( true ),
       mFullFrameRate( inMaxFrameRate ),
       m2DMode( false ),
 	  mViewPosition( new Vector3D( 0, 0, 0 ) ),
@@ -1976,27 +1977,30 @@ void ScreenGL::start() {
             frameTime = 0;
             }
         
-    
-        // lock down to mMaxFrameRate frames per second
-        int minFrameTime = 1000 / mMaxFrameRate;
-        if( ( frameTime + oversleepMSec ) < minFrameTime ) {
-            int timeToSleep = 
-                minFrameTime - ( frameTime + oversleepMSec );
         
-            //SDL_Delay( timeToSleep );
-            unsigned long sleepStartSec, sleepStartMSec;
-            Time::getCurrentTime( &sleepStartSec, &sleepStartMSec );
-            
-            Thread::staticSleep( timeToSleep );
-
-            int actualSleepTime = 
-                Time::getMillisecondsSince( sleepStartSec, sleepStartMSec );
-            
-            oversleepMSec = actualSleepTime - timeToSleep;
+        if( mUseFrameSleep ) {    
+            // lock down to mMaxFrameRate frames per second
+            int minFrameTime = 1000 / mMaxFrameRate;
+            if( ( frameTime + oversleepMSec ) < minFrameTime ) {
+                int timeToSleep = 
+                    minFrameTime - ( frameTime + oversleepMSec );
+                
+                //SDL_Delay( timeToSleep );
+                unsigned long sleepStartSec, sleepStartMSec;
+                Time::getCurrentTime( &sleepStartSec, &sleepStartMSec );
+                
+                Thread::staticSleep( timeToSleep );
+                
+                int actualSleepTime = 
+                    Time::getMillisecondsSince( sleepStartSec, sleepStartMSec );
+                
+                oversleepMSec = actualSleepTime - timeToSleep;
+                }
+            else { 
+                oversleepMSec = 0;
+                }
             }
-        else { 
-            oversleepMSec = 0;
-            }
+        
         
         }
     
@@ -2012,6 +2016,11 @@ void ScreenGL::setMaxFrameRate( unsigned int inMaxFrameRate ) {
 
 unsigned int ScreenGL::getMaxFramerate() {
     return mMaxFrameRate;
+    }
+
+
+void ScreenGL::useFrameSleep( char inUse ) {
+    mUseFrameSleep = inUse;
     }
 
 

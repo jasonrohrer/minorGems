@@ -292,6 +292,13 @@ class ScreenGL {
         
         unsigned int getMaxFramerate();
         
+        // set to true to enable frame sleeping to enforce max frame rate
+        // (sleeping is default)
+        // Otherwise, if false, no max is enforced (though we may be able
+        // to depend on vsync to enforce it for us)
+        void useFrameSleep( char inUse );
+        
+
 
         // should ^ and % be allowed to slowdown and resume normal speed
         // during event playback?
@@ -717,6 +724,9 @@ class ScreenGL {
         // current target framerate, may involve slowdown mode (for testing)
         unsigned int mMaxFrameRate;
         
+        char mUseFrameSleep;
+        
+
         // full frame rate when not in slowdown mode
         unsigned int mFullFrameRate;
         

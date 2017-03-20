@@ -2418,6 +2418,17 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
 int numPixelsDrawn = 0;
 extern int totalLoadedTextureBytes;
 
+
+static char measureFrameRate = true;
+static char startMeasureTimeRecorded = false;
+
+static double startMeasureTime = 0;
+
+static int numFramesMeasured = 0;
+static int numFramesToMeasure = 20;
+
+
+
 void GameSceneHandler::drawScene() {
     numPixelsDrawn = 0;
     /*
@@ -2468,6 +2479,54 @@ void GameSceneHandler::drawScene() {
                 mLoadingDuringFrameBatch = false;
                 }
             }
+        }
+    
+
+    if( !screen->isPlayingBack() && measureFrameRate ) {
+        screen->useFrameSleep( false );
+
+        if( ! startMeasureTimeRecorded ) {
+            startMeasureTime = Time::getCurrentTime();
+            startMeasureTimeRecorded = true;
+            }
+        else {
+            
+            numFramesMeasured++;
+            
+            if( numFramesMeasured == numFramesToMeasure ) {
+                
+                double totalTime = Time::getCurrentTime() - startMeasureTime;
+
+                double timePerFrame = totalTime / ( numFramesMeasured );
+                
+                double frameRate = 1 / timePerFrame;
+                
+                AppLog::infoF( "Measured frame rate at %f\n", frameRate );
+
+                if( frameRate > 1.20 * targetFrameRate ) {
+                    AppLog::infoF( "Vsync to enforce our desired frame rate of "
+                                   "%d fps doesn't seem to be in effect.\n", 
+                                   targetFrameRate );
+                    
+                    AppLog::infoF( "Will sleep each frame to enforce desired "
+                                   "frame rate\n" );
+                    
+                    screen->useFrameSleep( true );
+                    }
+                else {
+                    AppLog::infoF( 
+                        "Vsync seems to be enforcing our desired frame "
+                        "rate of %d fps.\n", targetFrameRate );
+                    
+                    screen->useFrameSleep( true );
+                    }
+                
+                
+                measureFrameRate = false;
+                }
+            }
+
+        return;
         }
 
 	
