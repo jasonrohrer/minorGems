@@ -502,12 +502,15 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
                 }
 
             if( ! $confirmed ) {
+                global $firstMessageExtraA, $firstMessageExtraB;
                 
                 be_addMessage( "Subscription:  $listName",
+                               $firstMessageExtraA.
                                "To confirm your subscription, ".
                                "follow this link:\n\n".
                                "$fullServerURL?action=confirm".
-                               "&code=$confirmation_code\n\n",
+                               "&code=$confirmation_code\n\n".
+                               $firstMessageExtraB,
                                array( $email ),
                                array( ""  ) );
                 }
