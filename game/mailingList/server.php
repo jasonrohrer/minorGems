@@ -332,7 +332,30 @@ function ml_subscribe() {
         
         eval( $footer );
 
+        $email = "";
+        if( isset( $_REQUEST[ "email" ] ) ) {
+            $email = $_REQUEST[ "email" ];
+            }
+        
         ml_log( "Email '$email' signed up too fast ($seconds sec) ".
+                "after loading form." );
+        return;
+        }
+    else if( $timeStamp < $currentTime - 1800 ) {
+        $seconds = $currentTime - $timeStamp;
+        
+        eval( $header );
+            
+        echo "Your submission is stale.  Please go back and reload the page.";
+        
+        eval( $footer );
+
+        $email = "";
+        if( isset( $_REQUEST[ "email" ] ) ) {
+            $email = $_REQUEST[ "email" ];A
+            }
+        
+        ml_log( "Email '$email' signed up too slow ($seconds sec) ".
                 "after loading form." );
         return;
         }
