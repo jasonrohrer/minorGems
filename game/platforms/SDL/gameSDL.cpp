@@ -5059,8 +5059,8 @@ void printImage( Image *inImage, char inFullColor ) {
     
     delete [] command;
     
-    File file( NULL, fileName );
-    file.remove();
+    // File file( NULL, fileName );
+    // file.remove();
     }
 
 
