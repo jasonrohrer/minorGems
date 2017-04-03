@@ -113,8 +113,8 @@ else if( $action == "clear_log" ) {
 else if( $action == "subscribe" ) {
     ml_subscribe();
     }
-else if( $action == "subscribe_step_2" ) {
-    ml_subscribeStep2();
+else if( $action == "subscribe_step_b" ) {
+    ml_subscribeStepB();
     }
 else if( $action == "mass_subscribe" ) {
     ml_massSubscribe();
@@ -332,7 +332,7 @@ function ml_subscribe() {
         
         eval( $footer );
 
-        ml_log( "Email $email signed up too fast ($seconds sec) ".
+        ml_log( "Email '$email' signed up too fast ($seconds sec) ".
                 "after loading form." );
         return;
         }
@@ -344,13 +344,14 @@ function ml_subscribe() {
 
     eval( $header );
 
-    echo "Are you human?<br>";
+    echo "Are you human?<br><br>";
 
     ?>
     <form action="<?php echo $fullServerURL;?>" method="post">
-         <input type="hidden" name="action" value="subscribe_step_2">
+         <input type="hidden" name="action" value="subscribe_step_b">
          <input type="hidden" name="email" value="<?php echo $email;?>">
-         What rhymes with "free" and starts with a "t"?: <input type="text" name="human_test" value="">
+         What rhymes with "free" and starts with a "t"?<br><br>
+         Answer: <input type="text" name="human_test" value="" size=6>
          <input type="submit" value="Submit">
          </form>
     <?php
@@ -360,7 +361,7 @@ function ml_subscribe() {
     }
 
     
-function ml_subscribeStep2() {
+function ml_subscribeStepB() {
     
     // input filtering handled below
     $email = "";
@@ -378,7 +379,7 @@ function ml_subscribeStep2() {
         echo "You failed the human test.";
 
         ml_log( "Human test failed for ".
-                "email $email with answer '$human_test'" );
+                "email '$email' with answer '$human_test'" );
         return;
         }
     
