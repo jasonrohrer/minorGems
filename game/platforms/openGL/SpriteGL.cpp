@@ -15,6 +15,11 @@ unsigned int SpriteGL::sPixelsDrawn = 0;
 
 
 void SpriteGL::findColoredRadii( Image *inImage ) {
+    
+    if( inImage->getNumChannels() < 4 ) {
+        return;
+        }
+    
     double *alpha = inImage->getChannel( 3 );
 
     int w = inImage->getWidth();
