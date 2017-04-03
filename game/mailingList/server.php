@@ -113,6 +113,9 @@ else if( $action == "clear_log" ) {
 else if( $action == "subscribe" ) {
     ml_subscribe();
     }
+else if( $action == "subscribe_step_2" ) {
+    ml_subscribeStep2();
+    }
 else if( $action == "mass_subscribe" ) {
     ml_massSubscribe();
     }
@@ -313,7 +316,7 @@ function ml_clearLog() {
 
 
 function ml_subscribe() {
-    global $tableNamePrefix, $remoteIP, $header, $footer;
+    global $tableNamePrefix, $remoteIP, $header, $footer, $fullServerURL;
 
 
     $timeStamp = ml_requestFilter( "timeStamp", "/[0-9]+/", time() );
@@ -321,14 +324,43 @@ function ml_subscribe() {
     $currentTime = time();
 
     if( $timeStamp > $currentTime - 5 ) {
+        $seconds = $currentTime - $timeStamp;
+        
         eval( $header );
             
         echo "You did that way faster than a human would.";
         
         eval( $footer );
+
+        ml_log( "Email $email signed up too fast ($seconds sec) ".
+                "after loading form." );
         return;
         }
+
+    $email = "";
+    if( isset( $_REQUEST[ "email" ] ) ) {
+        $email = $_REQUEST[ "email" ];
+        }
+
+    eval( $header );
+
+    echo "Are you human?<br>";
+
+    ?>
+    <form action="<?php echo $fullServerURL;?>" method="post">
+         <input type="hidden" name="action" value="subscribe_step_2">
+         <input type="hidden" name="email" value="<?php echo $email;?>">
+         What rhymes with "free" and starts with a "t"?: <input type="text" name="human_test" value="">
+         <input type="submit" value="Submit">
+         </form>
+    <?php
+         
+    eval( $footer );
     
+    }
+
+    
+function ml_subscribeStep2() {
     
     // input filtering handled below
     $email = "";
@@ -336,6 +368,21 @@ function ml_subscribe() {
         $email = $_REQUEST[ "email" ];
         }
 
+    $human_test = "";
+    if( isset( $_REQUEST[ "human_test" ] ) ) {
+        $human_test = $_REQUEST[ "human_test" ];
+        $human_test = strtolower( $human_test );
+        }
+
+    if( $human_test != "tree" ) {
+        echo "You failed the human test.";
+
+        ml_log( "Human test failed for ".
+                "email $email with answer '$human_test'" );
+        return;
+        }
+    
+    
     ml_createSubscription( $email, 0, 0 );
     }
 
