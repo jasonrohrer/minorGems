@@ -352,7 +352,7 @@ function ml_subscribe() {
 
         $email = "";
         if( isset( $_REQUEST[ "email" ] ) ) {
-            $email = $_REQUEST[ "email" ];A
+            $email = $_REQUEST[ "email" ];
             }
         
         ml_log( "Email '$email' signed up too slow ($seconds sec) ".
