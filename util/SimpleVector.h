@@ -45,6 +45,7 @@
 *		Jason Rohrer	8-25-2015	Fixed getElementDirect to handle structs.
 *		Jason Rohrer	5-20-2016	Added functions for getting last element.
 *		Jason Rohrer	8-30-2016	Added shrink function.
+*		Jason Rohrer	4-12-2017	Added swap function.
 */
 
 #include "minorGems/common.h"
@@ -127,6 +128,10 @@ class SimpleVector {
 
         // shrinks vector, discaring elements beyond inNewSize
         void shrink( int inNewSize );
+        
+        
+        // swaps element at index A with element at index B
+        void swap( int inA, int inB );
         
 
 
@@ -432,6 +437,22 @@ template <class Type>
 inline void SimpleVector<Type>::shrink( int inNewSize ) {
     numFilledElements = inNewSize;
     }
+
+
+template <class Type>
+inline void SimpleVector<Type>::swap( int inA, int inB ) {
+    if( inA == inB ) {
+        return;
+        }
+    
+    if( inA < numFilledElements && inA >= 0 &&
+        inB < numFilledElements && inB >= 0 ) {
+        Type temp = elements[ inA ];
+        elements[ inA ] = elements[ inB ];
+        elements[ inB ] = temp;
+        }
+    }
+
 
 
 

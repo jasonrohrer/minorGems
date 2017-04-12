@@ -10,6 +10,9 @@
 #include "minorGems/util/SimpleVector.h"
 
 
+#include "minorGems/util/random/JenkinsRandomSource.h"
+
+
 
 
 #if defined(__mac__)
@@ -586,6 +589,10 @@ static int batchMirrorStep() {
                          
 
                 // start a request
+                printf( "Trying to fetch:  %s\n", 
+                        list->mirrorURLS.getElementDirect( 
+                            list->currentMirror ) );
+                
                 webHandle = 
                     startWebRequest( 
                         "GET", 
@@ -667,6 +674,26 @@ int stepUpdate() {
                         for( int j=1; j<numLines; j++ ) {
                             list.mirrorURLS.push_back( lines[j] );
                             }
+
+                        int numMirrors = list.mirrorURLS.size();
+                        
+                        // shuffle them
+                        // https://en.wikipedia.org/wiki/
+                        //     Fisher%E2%80%93Yates_shuffle
+                        JenkinsRandomSource randSource;
+                        
+                        for( int j=numMirrors - 1; j >= 1; j-- ) {
+                            int k = randSource.getRandomBoundedInt( 0, j );
+                            list.mirrorURLS.swap( k, j );
+                            }
+                        
+                        printf( "After shuffling, URL list=\n" );
+                        for( int j=0; j<numMirrors; j++ ) {
+                            printf( "%s\n",
+                                    list.mirrorURLS.getElementDirect( j ) );
+                            }
+                        printf( "\n" );
+
                         mirrors.push_back( list );
                         }
                     
