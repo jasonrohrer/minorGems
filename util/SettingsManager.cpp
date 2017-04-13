@@ -28,6 +28,9 @@
  *
  * 2011-January-3    Jason Rohrer
  * More convenient getFloatSetting call.
+ *
+ * 2017-April-13    Jason Rohrer
+ * Functions for saving time settings in a future-proof format.
  */
 
 
@@ -262,6 +265,32 @@ int SettingsManager::getIntSetting( const char *inSettingName,
 
 
 
+time_t SettingsManager::getTimeSetting( const char *inSettingName,
+                                        time_t inDefaultValue ) {
+
+    time_t value = inDefaultValue;
+
+
+    char *stringValue = getStringSetting( inSettingName );
+
+    if( stringValue != NULL ) {
+        struct tm timeStruct;
+        // ISO 8601 format
+        char *result = strptime( stringValue, "%F %T", &timeStruct );
+        
+        if( result != NULL ) {
+            value = mktime( &timeStruct );
+            }
+        
+
+        delete [] stringValue;
+        }
+
+    return value;
+    }
+
+
+
 
 void SettingsManager::setSetting( const char *inSettingName,
                                   SimpleVector<char *> *inSettingVector ) {
@@ -343,6 +372,27 @@ void SettingsManager::setSetting( const char *inSettingName,
     setSetting( inSettingName, valueString );
     
     delete [] valueString;
+    }
+
+
+
+void SettingsManager::setSetting( const char *inSettingName,
+                                  time_t inSettingValue ) {
+
+    // from here:
+    // http://stackoverflow.com/questions/4113976/
+    //     how-should-i-store-a-time-t-timestamp-to-a-file-using-c
+
+    struct tm timeStruct;
+    struct tm *gmTM = gmtime( &inSettingValue );
+    
+    // other calls overwrite it
+    memcpy( &timeStruct, gmTM, sizeof( timeStruct ) );
+
+    char buffer[ 128 ];
+    strftime( buffer, sizeof buffer, "%F %T", &timeStruct );
+
+    setSetting( inSettingName, buffer );
     }
 
 

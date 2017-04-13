@@ -28,6 +28,9 @@
  *
  * 2011-January-3    Jason Rohrer
  * More convenient getFloatSetting call.
+ *
+ * 2017-April-13    Jason Rohrer
+ * Functions for saving time settings in a future-proof format.
  */
 
 #include "minorGems/common.h"
@@ -43,6 +46,7 @@
 #include "minorGems/system/MutexLock.h"
 
 #include <stdio.h>
+#include <time.h>
 
 
 
@@ -188,8 +192,18 @@ class SettingsManager {
         static int getIntSetting( const char *inSettingName,
                                   int inDefaultValue );
         
-        
 
+        /**
+         * Returns time_t value of unix timestamp in seconds, UTC.
+         *
+         * Converted from future-proof string format stored in settings file
+         * (ISO 8601).
+         */
+        static time_t getTimeSetting( const char *inSettingName,
+                                      time_t inDefaultValue );
+        
+        
+        
         /**
          * Sets a setting.
          *
@@ -226,6 +240,21 @@ class SettingsManager {
          */
         static void setSetting( const char *inSettingName,
                                 int inSettingValue );
+
+
+
+        /**
+         * Sets a setting to a single unix timestamp value in seconds UTC.
+         *
+         * This is written to file internally in a future-proof string
+         * format (ISO 8601).
+         *
+         * @param inSettingName the name of the setting to set.
+         *   Must be destroyed by caller if non-const.
+         * @param inSettingValue the value to set.
+         */
+        static void setSetting( const char *inSettingName,
+                                time_t inSettingValue );
 
 
         
