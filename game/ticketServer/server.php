@@ -959,6 +959,35 @@ function ts_downloadAllowed() {
 
 
 function ts_printLink( $inFileName, $inTicketID ) {
+    global $useRemoteMirrors, $remoteMirrorURLFile;
+
+    if( $useRemoteMirrors ) {    
+
+        if( is_file( $remoteMirrorURLFile ) ) {
+
+            $urls = file( $remoteMirrorURLFile,
+                          FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+
+            $num = count( $urls );
+
+
+            if( $num > 0 ) {
+
+                // pick one at random
+                $url = $urls[ mt_rand( 0, $num - 1 ) ];
+
+                $url = $url . $inFileName;
+                
+                
+                echo "<a href=\"$url\">$inFileName</a>";
+                return;
+                }
+            }
+        }
+
+    
+    // default:  server directly through our script
+
     echo "<a href=\"server.php?action=download&ticket_id=$inTicketID&" .
         "file_name=$inFileName\">$inFileName</a>";
     }

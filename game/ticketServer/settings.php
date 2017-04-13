@@ -138,6 +138,25 @@ $fileDescriptions = array(
 $downloadFilePath = "/home/jcr13/sidDownloads/";
 
 
+// should remote mirrors be used instead?
+$useRemoteMirrors = 0;
+
+// one URL per line, each ending with "/"
+// appending file names from $fileList directly should produce valid
+// download URLs
+//
+// NOTE:  using the mirror system eliminates download security, as these
+// URLs do NOT use ticket IDs.
+// If one of these URLs leaks, anyone can download the file from the mirror
+//
+// On the other hand, it makes rolling out new mirrors trivial.
+// The trade-off may be acceptable in some cases (a server-based game
+// where the download is useless without an account---people will not be
+// motivated to waste our bandwidth by downloading it without paying).
+$remoteMirrorURLFile = "/home/jcr13/sidDownloads/remoteServerList.ini";
+
+
+
 
 // header and footers for various pages
 $header = "include( \"header.php\" );";
