@@ -104,6 +104,9 @@ if( $action == "version" ) {
     global $ml_version;
     echo "$ml_version";
     }
+else if( $action == "timestamp" ) {
+    echo time();
+    }
 else if( $action == "show_log" ) {
     ml_showLog();
     }

@@ -5,13 +5,27 @@ All returns are whitespace-delimited.
 Most calls can return 'DENIED' on failure
 
 
+=== Call:
+server.php?action=timestamp
+
+Returns:
+Current Unix timestamp in seconds as ascii text.  This can be used
+when generating the subscription form on other web servers so that clock
+drift between servers has no effect.
+
+
 
 
 === Call:
-server.php?action=subscribe&email=[email address]
+server.php?action=subscribe&email=[email address]&timestamp=[unix timestamp]
 
 Returns:
 Displays a web page about sending a confirmation message.
+
+
+timestamp is the time that the form was generated.  The mailing list server
+rejects subscriptions that are sent too quickly after the form is generated
+or forms that are too stale.  This stops generic spambots.
 
 
 
