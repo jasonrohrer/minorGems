@@ -276,10 +276,30 @@ time_t SettingsManager::getTimeSetting( const char *inSettingName,
     if( stringValue != NULL ) {
         struct tm timeStruct;
         // ISO 8601 format
-        char *result = strptime( stringValue, "%F %T", &timeStruct );
+        char *result = strptime( stringValue, "%Y-%m-%dT%H:%M:%SZ", 
+                                 &timeStruct );
         
         if( result != NULL ) {
-            value = mktime( &timeStruct );
+            // correct for local time assumption in mktime
+            
+            // push two days ahead of epoch
+            struct tm timeStructDayTwo;
+            strptime( "1970-01-03T00:00:00Z",
+                      "%Y-%m-%dT%H:%M:%SZ", 
+                      &timeStructDayTwo );
+
+            // mktime will interpret this as local time
+            time_t timeDayTwo = mktime( &timeStructDayTwo );
+            
+            // we expect two days beyond the epoch to have a time of this
+            // number of seconds in UTC
+            time_t expectedTime = 24 * 3600 * 2;
+            
+            // can be 0 if mktime thinks we're in UTC
+            time_t offset = timeDayTwo - expectedTime;
+
+            // convert mktime's output back to UTC
+            value = mktime( &timeStruct ) - offset;
             }
         
 
@@ -382,15 +402,14 @@ void SettingsManager::setSetting( const char *inSettingName,
     // from here:
     // http://stackoverflow.com/questions/4113976/
     //     how-should-i-store-a-time-t-timestamp-to-a-file-using-c
+    // and here
+    // http://stackoverflow.com/questions/9527960/
+    //     how-do-i-construct-an-iso-8601-datetime-in-c
 
-    struct tm timeStruct;
-    struct tm *gmTM = gmtime( &inSettingValue );
-    
-    // other calls overwrite it
-    memcpy( &timeStruct, gmTM, sizeof( timeStruct ) );
 
     char buffer[ 128 ];
-    strftime( buffer, sizeof buffer, "%F %T", &timeStruct );
+    strftime( buffer, sizeof buffer, "%Y-%m-%dT%H:%M:%SZ", 
+              gmtime( &inSettingValue ) );
 
     setSetting( inSettingName, buffer );
     }
