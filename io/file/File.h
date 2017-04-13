@@ -106,6 +106,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <dirent.h>
 
@@ -249,7 +250,7 @@ class File {
 		 * @return the modification time in seconds based on the
          *   system clock.  Returns 0 if the file does not exist.
 		 */
-		unsigned long getModificationTime();
+		time_t getModificationTime();
 
 
 		
@@ -764,7 +765,7 @@ inline char File::exists() {
 
 
 
-inline unsigned long File::getModificationTime() {
+inline time_t File::getModificationTime() {
     struct stat fileInfo;
 	
 	// get full file name
