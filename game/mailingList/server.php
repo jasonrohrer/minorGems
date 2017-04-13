@@ -376,7 +376,7 @@ function ml_subscribe() {
     <form action="<?php echo $fullServerURL;?>" method="post">
          <input type="hidden" name="action" value="subscribe_step_b">
          <input type="hidden" name="email" value="<?php echo $email;?>">
-         What rhymes with "free" and starts with a "t"?<br><br>
+         What has leaves, rhymes with "free," and starts with a "t"?<br><br>
          Answer: <input type="text" name="human_test" value="" size=6>
          <input type="submit" value="Submit">
          </form>
