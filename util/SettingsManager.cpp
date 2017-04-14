@@ -264,6 +264,34 @@ int SettingsManager::getIntSetting( const char *inSettingName,
     }
 
 
+// Scans ISO 8601 format UTC string and fills a tm struct
+// returns true on success
+static char stringToTimeStruct( const char *inString, struct tm *inStruct ) {
+    // strptime not available everywhere
+
+    int year, month, day, hours, minutes, seconds;
+
+    int numScanned = sscanf( inString, "%d-%d-%dT%d:%d:%dZ",
+                             &year, &month, &day, &hours, &minutes, &seconds );
+    
+    if( numScanned != 6 ) {
+        return false;
+        }
+    
+    inStruct->tm_year = year - 1900;
+    inStruct->tm_mon = month - 1;
+    inStruct->tm_mday = day;
+
+    inStruct->tm_hour = hours;
+    inStruct->tm_min = minutes;
+    inStruct->tm_sec = seconds;
+    inStruct->tm_isdst = -1;
+    
+
+    return true;
+    }
+
+
 
 time_t SettingsManager::getTimeSetting( const char *inSettingName,
                                         time_t inDefaultValue ) {
@@ -275,18 +303,16 @@ time_t SettingsManager::getTimeSetting( const char *inSettingName,
 
     if( stringValue != NULL ) {
         struct tm timeStruct;
-        // ISO 8601 format
-        char *result = strptime( stringValue, "%Y-%m-%dT%H:%M:%SZ", 
-                                 &timeStruct );
+
+        char result = stringToTimeStruct( stringValue, &timeStruct );
         
-        if( result != NULL ) {
+        if( result ) {
             // correct for local time assumption in mktime
             
             // push two days ahead of epoch
             struct tm timeStructDayTwo;
-            strptime( "1970-01-03T00:00:00Z",
-                      "%Y-%m-%dT%H:%M:%SZ", 
-                      &timeStructDayTwo );
+            stringToTimeStruct( "1970-01-03T00:00:00Z",
+                                &timeStructDayTwo );
 
             // mktime will interpret this as local time
             time_t timeDayTwo = mktime( &timeStructDayTwo );
