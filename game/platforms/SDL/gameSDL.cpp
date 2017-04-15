@@ -1295,9 +1295,6 @@ static char *getPrefFilePath() {
                         getAppName() );
     }
 
-#endif
-
-
 
 static char isSettingsFolderFound() {
 
@@ -1309,6 +1306,12 @@ static char isSettingsFolderFound() {
 
     return false;
     }
+
+
+#endif
+
+
+
 
 
 
