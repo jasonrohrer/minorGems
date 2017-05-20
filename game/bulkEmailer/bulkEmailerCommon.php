@@ -243,6 +243,7 @@ function be_mail( $inEmail,
 
 
         if( (new PEAR)->isError( $mail ) ) {
+            echo "<br>Sending email failed: " . $mail->getMessage();
             be_log( "Email send failed:  " .
                     $mail->getMessage() );
             return false;
