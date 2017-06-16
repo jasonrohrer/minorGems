@@ -254,7 +254,10 @@ int screenWidth = 640;
 int screenHeight = 480;
 
 
-int targetFrameRate = 60;
+int idealTargetFrameRate = 60;
+int targetFrameRate = idealTargetFrameRate;
+
+char countingOnVsync = false;
 
 
 int soundSampleRate = 22050;
@@ -2515,6 +2518,7 @@ void GameSceneHandler::drawScene() {
                                    "frame rate\n" );
                     
                     screen->useFrameSleep( true );
+                    countingOnVsync = false;
                     }
                 else {
                     AppLog::infoF( 
@@ -2522,7 +2526,18 @@ void GameSceneHandler::drawScene() {
                         "rate of %d fps.\n", targetFrameRate );
                     
                     screen->useFrameSleep( false );
+                    countingOnVsync = true;
                     }
+
+                if( targetFrameRate < idealTargetFrameRate ) {
+                    AppLog::infoF( 
+                        "User has halfFrameRate set, so we're going "
+                        "to manually sleep regardless to enforce a target "
+                        "frame rate of %d fps.\n", targetFrameRate );
+                    screen->useFrameSleep( true );
+                    countingOnVsync = false;
+                    }
+                
                 
                 
                 measureFrameRate = false;
@@ -3035,22 +3050,33 @@ void GameSceneHandler::keyPressed(
         if( inKey == '^' ) {
             // slow
             mScreen->setMaxFrameRate( 2 );
+            mScreen->useFrameSleep( true );
             }
         if( inKey == '&' ) {
             // normal
             mScreen->setMaxFrameRate( targetFrameRate );
+            
+            if( countingOnVsync ) {
+                mScreen->useFrameSleep( false );
+                }
+            else {
+                mScreen->useFrameSleep( true );
+                }
             }
         if( inKey == '*' ) {
             // fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 2 );
+            mScreen->useFrameSleep( true );
             }            
         if( inKey == '(' ) {
             // fast fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 4 );
+            mScreen->useFrameSleep( true );
             }            
         if( inKey == ')' ) {
             // fast fast fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 8 );
+            mScreen->useFrameSleep( true );
             }            
         }
     
