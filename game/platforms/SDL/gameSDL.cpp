@@ -257,6 +257,9 @@ int screenHeight = 480;
 int idealTargetFrameRate = 60;
 int targetFrameRate = idealTargetFrameRate;
 
+SimpleVector<int> possibleFrameRates;
+
+
 char countingOnVsync = false;
 
 
@@ -1711,7 +1714,39 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         targetFrameRate = 1;
         }
     
+    SimpleVector<char*> *possibleFrameRatesSetting = 
+        SettingsManager::getSetting( "possibleFrameRates" );
+    
+    for( int i=0; i<possibleFrameRatesSetting->size(); i++ ) {
+        char *f = possibleFrameRatesSetting->getElementDirect( i );
+    
+        int v;
+        
+        int numRead = sscanf( f, "%d", &v );
+        
+        if( numRead == 1 ) {
+            possibleFrameRates.push_back( v );
+            }
 
+        delete [] f;
+        }
+
+    delete possibleFrameRatesSetting;
+
+
+    if( possibleFrameRates.size() == 0 ) {
+        possibleFrameRates.push_back( 60 );
+        possibleFrameRates.push_back( 120 );
+        possibleFrameRates.push_back( 144 );
+        }
+    
+    AppLog::info( "The following frame rates are considered possible:" );
+    
+    for( int i=0; i<possibleFrameRates.size(); i++ ) {
+        AppLog::infoF( "%d fps", possibleFrameRates.getElementDirect( i ) );
+        }
+    
+        
     
     char recordFound = false;
     int readRecordFlag = SettingsManager::getIntSetting( "recordGame", 
@@ -2507,36 +2542,66 @@ void GameSceneHandler::drawScene() {
                 
                 double frameRate = 1 / timePerFrame;
                 
-                AppLog::infoF( "Measured frame rate at %f\n", frameRate );
+                int closestTargetFrameRate = 0;
+                double closestFPSDiff = 9999999;
+                
+                for( int i=0; i<possibleFrameRates.size(); i++ ) {
+                    
+                    int v = possibleFrameRates.getElementDirect( i );
+                    
+                    double diff = fabs( frameRate - v );
+                    
+                    if( diff < closestFPSDiff ) {
+                        closestTargetFrameRate = v;
+                        closestFPSDiff = diff;
+                        }
+                    }
+                
+                if( targetFrameRate == idealTargetFrameRate ) {
+                    // not invoking halfFrameRate
 
-                if( frameRate > 1.20 * targetFrameRate ) {
-                    AppLog::infoF( "Vsync to enforce our desired frame rate of "
-                                   "%d fps doesn't seem to be in effect.\n", 
-                                   targetFrameRate );
+                    AppLog::infoF( "Measured frame rate = %f fps\n", 
+                                   frameRate );
+                    AppLog::infoF( "Closest possible frame rate = %d fps\n", 
+                                   closestTargetFrameRate );                
+                
+                    if( frameRate > 1.20 * closestTargetFrameRate ) {
+                        AppLog::infoF( 
+                            "Vsync to enforce our target frame rate of "
+                            "%d fps doesn't seem to be in effect.\n", 
+                            closestTargetFrameRate );
                     
-                    AppLog::infoF( "Will sleep each frame to enforce desired "
-                                   "frame rate\n" );
+                        AppLog::infoF( 
+                            "Will sleep each frame to enforce desired "
+                            "frame rate of %d fps\n",
+                            targetFrameRate );
                     
-                    screen->useFrameSleep( true );
-                    countingOnVsync = false;
+                        screen->useFrameSleep( true );
+                        countingOnVsync = false;
+                        }
+                    else if( targetFrameRate == idealTargetFrameRate ) {
+                        // don't have half frame rate on
+                        AppLog::infoF( 
+                            "Vsync seems to be enforcing an allowed frame "
+                            "rate of %d fps.\n", closestTargetFrameRate );
+                        
+                        targetFrameRate = closestTargetFrameRate;
+
+                        screen->useFrameSleep( false );
+                        countingOnVsync = true;
+                        }
                     }
                 else {
-                    AppLog::infoF( 
-                        "Vsync seems to be enforcing our desired frame "
-                        "rate of %d fps.\n", targetFrameRate );
-                    
-                    screen->useFrameSleep( false );
-                    countingOnVsync = true;
-                    }
+                    // half frame rate must be set
 
-                if( targetFrameRate < idealTargetFrameRate ) {
                     AppLog::infoF( 
                         "User has halfFrameRate set, so we're going "
-                        "to manually sleep regardless to enforce a target "
+                        "to manually sleep to enforce a target "
                         "frame rate of %d fps.\n", targetFrameRate );
                     screen->useFrameSleep( true );
                     countingOnVsync = false;
                     }
+            
                 
                 
                 
