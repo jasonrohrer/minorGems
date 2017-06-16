@@ -2723,7 +2723,7 @@ void GameSceneHandler::drawScene() {
             char showClick = false;
             float clickFade = 1.0f;
             
-            int mouseClickDisplayDuration = 20 * 60 / targetFrameRate;
+            int mouseClickDisplayDuration = 20 * targetFrameRate / 60.0;
 
             if( mouseDownSteps < mouseClickDisplayDuration ) {
                 
