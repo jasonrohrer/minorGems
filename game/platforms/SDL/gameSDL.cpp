@@ -2521,7 +2521,7 @@ void GameSceneHandler::drawScene() {
                         "Vsync seems to be enforcing our desired frame "
                         "rate of %d fps.\n", targetFrameRate );
                     
-                    screen->useFrameSleep( true );
+                    screen->useFrameSleep( false );
                     }
                 
                 
