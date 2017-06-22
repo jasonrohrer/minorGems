@@ -2466,7 +2466,12 @@ static char startMeasureTimeRecorded = false;
 static double startMeasureTime = 0;
 
 static int numFramesMeasured = 0;
-static double secondsToMeasure = 1;
+
+// show measure screen longer if there's a vsync warning
+static double noWarningSecondsToMeasure = 1;
+static double warningSecondsToMeasure = 3;
+
+static double secondsToMeasure = noWarningSecondsToMeasure;
 
 static int numFramesSkippedBeforeMeasure = 0;
 static int numFramesToSkipBeforeMeasure = 30;
@@ -2575,11 +2580,47 @@ void GameSceneHandler::drawScene() {
             double timePerFrame = totalTime / ( numFramesMeasured );
             
             double frameRate = 1 / timePerFrame;
-                
 
-            char *message = autoSprintf( "%s\n%0.2f\nFPS",
+
+            int closestTargetFrameRate = 0;
+            double closestFPSDiff = 9999999;
+            
+            for( int i=0; i<possibleFrameRates.size(); i++ ) {
+                
+                int v = possibleFrameRates.getElementDirect( i );
+                
+                double diff = fabs( frameRate - v );
+                
+                if( diff < closestFPSDiff ) {
+                    closestTargetFrameRate = v;
+                    closestFPSDiff = diff;
+                    }
+                }
+                
+            double overAllowFactor = 1.05;
+            
+
+
+            const char *warningMessageA = "";
+            const char *warningMessageB = "";
+            
+            if( numFramesMeasured > 10 && 
+                frameRate > overAllowFactor * closestTargetFrameRate ) {
+
+                warningMessageA = translate( "vsyncWarning" );
+                warningMessageB = translate( "vsyncWarning2" );
+                
+                secondsToMeasure = warningSecondsToMeasure;
+                }
+            else {
+                secondsToMeasure = noWarningSecondsToMeasure;
+                }
+
+            char *message = autoSprintf( "%s\n%0.2f\nFPS\n\n%s\n%s",
                                          translate( "measuringFPS" ),
-                                         frameRate );
+                                         frameRate,
+                                         warningMessageA,
+                                         warningMessageB );
             
 
             drawString( message, true );
@@ -2587,22 +2628,6 @@ void GameSceneHandler::drawScene() {
             delete [] message;
 
             if( totalTime > secondsToMeasure ) {
-                
-                
-                int closestTargetFrameRate = 0;
-                double closestFPSDiff = 9999999;
-                
-                for( int i=0; i<possibleFrameRates.size(); i++ ) {
-                    
-                    int v = possibleFrameRates.getElementDirect( i );
-                    
-                    double diff = fabs( frameRate - v );
-                    
-                    if( diff < closestFPSDiff ) {
-                        closestTargetFrameRate = v;
-                        closestFPSDiff = diff;
-                        }
-                    }
                 
                 if( targetFrameRate == idealTargetFrameRate ) {
                     // not invoking halfFrameRate
@@ -2612,7 +2637,7 @@ void GameSceneHandler::drawScene() {
                     AppLog::infoF( "Closest possible frame rate = %d fps\n", 
                                    closestTargetFrameRate );                
                 
-                    if( frameRate > 1.05 * closestTargetFrameRate ) {
+                    if( frameRate > overAllowFactor * closestTargetFrameRate ) {
                         AppLog::infoF( 
                             "Vsync to enforce our target frame rate of "
                             "%d fps doesn't seem to be in effect.\n", 
