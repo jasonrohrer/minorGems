@@ -2466,7 +2466,10 @@ static char startMeasureTimeRecorded = false;
 static double startMeasureTime = 0;
 
 static int numFramesMeasured = 0;
-static int numFramesToMeasure = 20;
+static double secondsToMeasure = 1;
+
+static int numFramesSkippedBeforeMeasure = 0;
+static int numFramesToSkipBeforeMeasure = 30;
 
 
 
@@ -2523,24 +2526,68 @@ void GameSceneHandler::drawScene() {
         }
     
 
-    if( !screen->isPlayingBack() && measureFrameRate ) {
+
+	
+
+    redoDrawMatrix();
+
+
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_CULL_FACE );
+    glDisable( GL_DEPTH_TEST );
+
+
+    if( demoMode ) {
+        
+        if( ! isDemoCodePanelShowing() ) {
+            
+            // stop demo mode when panel done
+            demoMode = false;
+
+            mScreen->addMouseHandler( this );
+            mScreen->addKeyboardHandler( this );
+
+            screen->startRecordingOrPlayback();
+            }
+        }
+    else if( !screen->isPlayingBack() && measureFrameRate ) {
         screen->useFrameSleep( false );
 
-        if( ! startMeasureTimeRecorded ) {
+        
+
+        if( numFramesSkippedBeforeMeasure < numFramesToSkipBeforeMeasure ) {
+            numFramesSkippedBeforeMeasure++;
+            
+            drawString( translate( "measuringFPS" ), true );
+            }
+        else if( ! startMeasureTimeRecorded ) {
             startMeasureTime = Time::getCurrentTime();
             startMeasureTimeRecorded = true;
+
+            drawString( translate( "measuringFPS" ), true );
             }
         else {
-            
+
             numFramesMeasured++;
             
-            if( numFramesMeasured == numFramesToMeasure ) {
-                
-                double totalTime = Time::getCurrentTime() - startMeasureTime;
+            double totalTime = Time::getCurrentTime() - startMeasureTime;
 
-                double timePerFrame = totalTime / ( numFramesMeasured );
+            double timePerFrame = totalTime / ( numFramesMeasured );
+            
+            double frameRate = 1 / timePerFrame;
                 
-                double frameRate = 1 / timePerFrame;
+
+            char *message = autoSprintf( "%s\n%0.2f\nFPS",
+                                         translate( "measuringFPS" ),
+                                         frameRate );
+            
+
+            drawString( message, true );
+
+            delete [] message;
+
+            if( totalTime > secondsToMeasure ) {
+                
                 
                 int closestTargetFrameRate = 0;
                 double closestFPSDiff = 9999999;
@@ -2565,7 +2612,7 @@ void GameSceneHandler::drawScene() {
                     AppLog::infoF( "Closest possible frame rate = %d fps\n", 
                                    closestTargetFrameRate );                
                 
-                    if( frameRate > 1.20 * closestTargetFrameRate ) {
+                    if( frameRate > 1.05 * closestTargetFrameRate ) {
                         AppLog::infoF( 
                             "Vsync to enforce our target frame rate of "
                             "%d fps doesn't seem to be in effect.\n", 
@@ -2610,30 +2657,6 @@ void GameSceneHandler::drawScene() {
             }
 
         return;
-        }
-
-	
-
-    redoDrawMatrix();
-
-
-	glDisable( GL_TEXTURE_2D );
-	glDisable( GL_CULL_FACE );
-    glDisable( GL_DEPTH_TEST );
-
-
-    if( demoMode ) {
-        
-        if( ! isDemoCodePanelShowing() ) {
-            
-            // stop demo mode when panel done
-            demoMode = false;
-
-            mScreen->addMouseHandler( this );
-            mScreen->addKeyboardHandler( this );
-
-            screen->startRecordingOrPlayback();
-            }
         }
     else if( !loadingMessageShown ) {
         drawString( translate( "loading" ), true );
