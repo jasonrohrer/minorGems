@@ -489,6 +489,10 @@ typedef struct SoundSprite {
         int numSamples;
         int samplesPlayed;
 
+        // true for sound sprites that are marked to never use
+        // pitch and volume variance
+        char noVariance;
+
         // floating point position of next interpolated sameple to play
         // (for variable rate playback)
         double samplesPlayedF;
@@ -689,9 +693,15 @@ void resumePlayingSoundSprites() {
 
 
 
-
 SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName ) {
-    File aiffFile( new Path( "sounds" ), inAIFFFileName );
+    return loadSoundSprite( "sounds", inAIFFFileName );
+    }
+
+
+SoundSpriteHandle loadSoundSprite( const char *inFolderName,
+                                   const char *inAIFFFileName ) {
+    
+    File aiffFile( new Path( inFolderName ), inAIFFFileName );
 
     if( ! aiffFile.exists() ) {
         printf( "File does not exist in sounds folder: %s\n", 
@@ -734,6 +744,8 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
     s->handle = nextSoundSpriteHandle ++;
     s->numSamples = inNumSamples;
     
+    s->noVariance = false;
+
     s->samplesPlayed = 0;
     s->samplesPlayedF = 0;
     
@@ -745,6 +757,14 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
     
     return (SoundSpriteHandle)s;
     }
+
+
+
+void toggleVariance( SoundSpriteHandle inHandle, char inNoVariance ) {
+    SoundSprite *s = (SoundSprite*)inHandle;
+    s->noVariance = inNoVariance;
+    }
+
 
 
 
@@ -841,12 +861,21 @@ static void playSoundSpriteInternal(
 
     double volume = inVolumeTweak;
     
-    if( inForceVolume == -1 ) {
-        volume *= pickRandomVolume();
+    SoundSprite *s = (SoundSprite*)inHandle;
+    
+    if( ! s->noVariance ) {
+        
+        if( inForceVolume == -1 ) {
+            volume *= pickRandomVolume();
+            }
+        else {
+            volume *= inForceVolume;
+            }
         }
-    else {
-        volume *= inForceVolume;
-        }
+    
+
+    
+    
     
     
     // constant power rule
@@ -855,7 +884,6 @@ static void playSoundSpriteInternal(
     double rightVolume = volume * sin( p );
     double leftVolume = volume * cos( p );
 
-    SoundSprite *s = (SoundSprite*)inHandle;
 
     s->samplesPlayed = 0;
     s->samplesPlayedF = 0;
@@ -864,13 +892,20 @@ static void playSoundSpriteInternal(
 
     
     playingSoundSprites.push_back( *s );
+
+    if( s->noVariance ) {
+        playingSoundSpriteRates.push_back( 1.0 );
+        }
+    else {
+        
+        if( inForceRate != -1 ) {
+            playingSoundSpriteRates.push_back( inForceRate );
+            }
+        else { 
+            playingSoundSpriteRates.push_back(  pickRandomRate() );
+            }
+        }
     
-    if( inForceRate != -1 ) {
-        playingSoundSpriteRates.push_back( inForceRate );
-        }
-    else { 
-        playingSoundSpriteRates.push_back(  pickRandomRate() );
-        }
     
     
     playingSoundSpriteVolumesR.push_back( rightVolume );

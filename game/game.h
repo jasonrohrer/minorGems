@@ -331,8 +331,20 @@ void setSoundLoudness( float inLoudness );
 typedef void* SoundSpriteHandle;
 
 
-// returns handle to sound sprite, or -1 on load failure
+// loads from sounds folder
+// returns handle to sound sprite, or NULL on load failure
 SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName );
+
+// loads from another folder
+SoundSpriteHandle loadSoundSprite( const char *inFolderName, 
+                                   const char *inAIFFFileName );
+
+
+// if inNoVariance is true, sound ignores global rate and volume range
+// defaults to false
+void toggleVariance( SoundSpriteHandle inHandle, char inNoVariance );
+
+
 
 // inSamples destroyed by caller
 // returns handle
