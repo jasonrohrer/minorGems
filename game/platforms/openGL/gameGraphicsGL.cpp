@@ -4,8 +4,75 @@
 
 #include "minorGems/graphics/openGL/glInclude.h"
 
+#include "minorGems/util/SimpleVector.h"
+
 
 static float lastR, lastG, lastB, lastA;
+
+
+static char additiveTextureColorMode = false;
+
+
+
+typedef struct GlobalFade {
+        int handle;
+        float fade;
+    } GlobalFade;
+
+
+static int nextFadeHandle = 0;
+
+static SimpleVector<GlobalFade> globalFades;
+
+static float globalFadeTotal = 1.0f;
+
+
+static void recalcGlobalFade() {
+    globalFadeTotal = 1.0f;
+    
+    for( int i=0; i<globalFades.size(); i++ ) {
+        globalFadeTotal *=
+            globalFades.getElementDirect( i ).fade;
+        }
+    }
+
+
+
+int addGlobalFade( float inA ) {
+    int h = nextFadeHandle;
+    
+    GlobalFade f = { h, inA };
+    
+    globalFades.push_back( f );
+    
+    nextFadeHandle++;
+
+    recalcGlobalFade();    
+    
+    return h;
+    }
+
+    
+
+void removeGlobalFade( int inHandle ) {
+    for( int i=0; i<globalFades.size(); i++ ) {
+        if( globalFades.getElementDirect( i ).handle == inHandle ) {
+            globalFades.deleteElement( i );
+            break;
+            }
+        }
+    
+    recalcGlobalFade();
+    }
+
+
+
+float getTotalGlobalFade() {
+    return globalFadeTotal;
+    }
+
+
+
 
 
 void setDrawColor( float inR, float inG, float inB, float inA ) {
@@ -13,19 +80,34 @@ void setDrawColor( float inR, float inG, float inB, float inA ) {
     lastG = inG;
     lastB = inB;
     lastA = inA;
-    
+
+    if( additiveTextureColorMode && 
+        globalFadeTotal < 1.0f ) {
+
+        // multiplicative blend means we embed fade in color values
+        float rFade = 1.0f - inR;
+        float gFade = 1.0f - inG;
+        float bFade = 1.0f - inB;
+        
+        rFade *= globalFadeTotal;
+        gFade *= globalFadeTotal;
+        bFade *= globalFadeTotal;
+        
+        inR = 1.0f - rFade;
+        inG = 1.0f - gFade;
+        inB = 1.0f - bFade;
+        }        
+    else {
+        inA *= globalFadeTotal;
+        }
+        
     glColor4f( inR, inG, inB, inA );
     }
 
 
 
 void setDrawColor( FloatColor inColor ) {
-    lastR = inColor.r;
-    lastG = inColor.g;
-    lastB = inColor.b;
-    lastA = inColor.a;
-
-    glColor4f( inColor.r, inColor.g, inColor.b, inColor.a );
+    setDrawColor( inColor.r, inColor.g, inColor.b, inColor.a );
     }
 
 
@@ -42,7 +124,9 @@ FloatColor getDrawColor() {
 
 
 void setDrawFade( float inA ) {    
-    glColor4f( lastR, lastG, lastB, inA );
+    lastA = inA;
+    
+    glColor4f( lastR, lastG, lastB, inA * globalFadeTotal );
     }
 
 
@@ -83,6 +167,8 @@ void toggleAdditiveTextureColoring( char inAdditive ) {
     else {
         glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
         }
+    
+    additiveTextureColorMode = inAdditive;
     }
 
 

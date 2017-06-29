@@ -27,6 +27,18 @@ FloatColor getDrawColor();
 void setDrawFade( float inA );
 
 
+// adds a global fade that is multiplied into the draw fade
+// multiple fades can be stacked, and they will multiply together
+// Only affects fade of subsequent calls to setDrawColor or setDrawFade
+// returns a handle
+int addGlobalFade( float inA );
+
+void removeGlobalFade( int inHandle );
+
+float getTotalGlobalFade();
+
+
+
 // defaults to non-additive (normal) blending
 // turning on replaces current blending mode
 // turning off goes back to normal blending
