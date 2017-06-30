@@ -1357,12 +1357,32 @@ static char isSettingsFolderFound() {
 
 
 
+#ifdef WIN32
+
+#include <windows.h>
+#include <tchar.h>
+
+#endif
 
 
 
 int mainFunction( int inNumArgs, char **inArgs ) {
 
-
+#ifdef WIN32
+    // backwards compatible code
+    // on vista and higher, this will tell Windows that we are DPI aware
+    // and that we should not be artificially scaled.
+    //
+    // Found here:  http://www.rw-designer.com/DPI-aware
+    HMODULE hUser32 = LoadLibrary( _T( "user32.dll" ) );
+    typedef BOOL (*SetProcessDPIAwareFunc)();
+    SetProcessDPIAwareFunc setDPIAware = 
+        (SetProcessDPIAwareFunc)GetProcAddress( hUser32, "SetProcessDPIAware" );
+    if( setDPIAware ) {
+        setDPIAware();
+        }
+    FreeLibrary( hUser32 );
+#endif
 
 
     // check result below, after opening log, so we can log failure
