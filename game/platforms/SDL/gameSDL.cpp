@@ -1129,10 +1129,14 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             }
 
         // walk backward, removing any that are done
+        // OR remove all if sound sprites are completely faded out
         for( int i=playingSoundSprites.size()-1; i>=0; i-- ) {
             SoundSprite *s = playingSoundSprites.getElement( i );
-            if( s->samplesPlayed >= s->numSamples ||
+            
+            if( soundSpriteGlobalLoudness == 0 ||
+                s->samplesPlayed >= s->numSamples ||
                 s->samplesPlayedF >= s->numSamples - 1 ) {
+                
                 playingSoundSprites.deleteElement( i );
                 playingSoundSpriteRates.deleteElement( i );
                 playingSoundSpriteVolumesL.deleteElement( i );

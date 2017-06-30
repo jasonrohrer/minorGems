@@ -396,7 +396,7 @@ void freeSoundSprite( SoundSpriteHandle inHandle );
 
 // fades all sound sprites down to zero loudness over the next inFadeSeconds
 // after fade is complete, playSoundSprite calls have no effect until
-// resumeSoundSprites is called
+// resumePlayingSoundSprites is called
 void fadeSoundSprites( double inFadeSeconds );
 
 void resumePlayingSoundSprites();
