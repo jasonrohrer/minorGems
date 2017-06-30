@@ -97,7 +97,11 @@ void disableScissor();
 // switch into stencil-buffer drawing mode
 // inAdd determines whether drawn primitives add to or subtract from
 //   pass-through area of stencil
-void startAddingToStencil( char inDrawColorToo, char inAdd );
+// inMinAlpha sets alpha test cuttoff.  Only used if inDrawColorToo is false
+//   only pixels with alpha value greater than inMinAlpha will be added to 
+//   or subtracted from stencil.
+void startAddingToStencil( char inDrawColorToo, char inAdd,
+                           float inMinAlpha = 0.0f );
 
 // switch into mode where further drawing operations are passed through
 // stenciled area

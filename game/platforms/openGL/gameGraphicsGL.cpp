@@ -512,7 +512,8 @@ void disableScissor() {
 
 
 
-void startAddingToStencil( char inDrawColorToo, char inAdd ) {
+void startAddingToStencil( char inDrawColorToo, char inAdd,
+                           float inMinAlpha ) {
     if( !inDrawColorToo ) {
         
         // stop updating color
@@ -520,7 +521,7 @@ void startAddingToStencil( char inDrawColorToo, char inAdd ) {
 
         // skip fully-transparent areas
         glEnable( GL_ALPHA_TEST );
-        glAlphaFunc( GL_GREATER, 0 );
+        glAlphaFunc( GL_GREATER, inMinAlpha );
         }
     else {
         // Re-enable update of color (in case stencil drawing was already
