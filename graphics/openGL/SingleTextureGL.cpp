@@ -398,17 +398,13 @@ void SingleTextureGL::setTextureData( unsigned char *inBytes,
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
     if( mMipMap ) {
-        gluBuild2DMipmaps( GL_TEXTURE_2D,
-                           internalTexFormat, inWidth,
-                           inHeight,
-                           texDataFormat, GL_UNSIGNED_BYTE, inBytes );
+        glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
         }
-    else {
-        glTexImage2D( GL_TEXTURE_2D, 0,
-                      internalTexFormat, inWidth,
-                      inHeight, 0,
-                      texDataFormat, GL_UNSIGNED_BYTE, inBytes );
-        }
+    
+    glTexImage2D( GL_TEXTURE_2D, 0,
+                  internalTexFormat, inWidth,
+                  inHeight, 0,
+                  texDataFormat, GL_UNSIGNED_BYTE, inBytes );
     
 	error = glGetError();
 	if( error != GL_NO_ERROR ) {		// error
