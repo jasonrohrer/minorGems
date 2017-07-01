@@ -2072,6 +2072,7 @@ time_t ScreenGL::getTime( time_t *__timer ) {
 
 
 double ScreenGL::getCurrentTime() {
+    printf( "Get current time called\n" );
     
     if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
         mEventFile != NULL ) {
@@ -2094,7 +2095,7 @@ double ScreenGL::getCurrentTime() {
 
         if( currentTime != mLastRecordedCurrentTimeValue ) {
             
-            char *eventString = autoSprintf( "T %lf", currentTime );
+            char *eventString = autoSprintf( "T %f", currentTime );
             
             mEventBatch.push_back( eventString );
             
