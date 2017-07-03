@@ -3225,6 +3225,11 @@ void GameSceneHandler::keyPressed(
             mScreen->useFrameSleep( true );
             }
         if( inKey == '&' ) {
+            // half
+            mScreen->setMaxFrameRate( targetFrameRate / 2 );
+            mScreen->useFrameSleep( true );
+            }
+        if( inKey == '*' ) {
             // normal
             mScreen->setMaxFrameRate( targetFrameRate );
             
@@ -3234,18 +3239,18 @@ void GameSceneHandler::keyPressed(
             else {
                 mScreen->useFrameSleep( true );
                 }
-            }
-        if( inKey == '*' ) {
+            }            
+        if( inKey == '(' ) {
             // fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 2 );
             mScreen->useFrameSleep( true );
             }            
-        if( inKey == '(' ) {
+        if( inKey == ')' ) {
             // fast fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 4 );
             mScreen->useFrameSleep( true );
             }            
-        if( inKey == ')' ) {
+        if( inKey == '-' ) {
             // fast fast fast forward
             mScreen->setMaxFrameRate( targetFrameRate * 8 );
             mScreen->useFrameSleep( true );
