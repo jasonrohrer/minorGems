@@ -721,13 +721,15 @@ void ScreenGL::setupSurface() {
 #endif
             }
         }
-    else if( mFullScreen && mDoNotChangeNativeResolution ) {
-        AppLog::info( "Sticking with user's current screen resolution" );
-        
-        mWide = currentW;
-        mHigh = currentH;        
-        }
     else{
+        
+        if( mFullScreen && mDoNotChangeNativeResolution ) {
+            AppLog::info( "Sticking with user's current screen resolution" );
+        
+            mWide = currentW;
+            mHigh = currentH;        
+            }
+
 
         AppLog::getLog()->logPrintf( 
             Log::INFO_LEVEL,
