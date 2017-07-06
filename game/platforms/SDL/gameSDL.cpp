@@ -1382,19 +1382,19 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             PROCESS_PER_MONITOR_DPI_AWARE  = 2
             } PROCESS_DPI_AWARENESS;
         
-        typedef HRESULT (*SetProcessDPIAwarenessFunc)( PROCESS_DPI_AWARENESS );
+        typedef HRESULT (*SetProcessDpiAwarenessFunc)( PROCESS_DPI_AWARENESS );
         
-        SetProcessDPIAwarenessFunc setAwareness = 
-            (SetProcessDPIAwarenessFunc)GetProcAddress(
+        SetProcessDpiAwarenessFunc setAwareness = 
+            (SetProcessDpiAwarenessFunc)GetProcAddress(
                 hShcore, 
-                "SetProcessDPIAwareness" );
+                "SetProcessDpiAwareness" );
         
         if( setAwareness ) {
-            printf( "Found SetProcessDPIAwareness function in shcore.dll\n" );
+            printf( "Found SetProcessDpiAwareness function in shcore.dll\n" );
             setAwareness( PROCESS_PER_MONITOR_DPI_AWARE );
             }
         else {
-            printf( "Could NOT find SetProcessDPIAwareness function in "
+            printf( "Could NOT find SetProcessDpiAwareness function in "
                     "Shcore.dll\n" );
             }
         FreeLibrary( hShcore );
