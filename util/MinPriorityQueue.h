@@ -216,11 +216,16 @@ class MinPriorityQueue {
                 }
             
             if( smallestChild != -1 ) {
-                // swap down
-                swap( inIndex, smallestChild );
                 
-                // recurse down
-                bubbleDown( smallestChild );
+                if( smallestChildP < mPriority.getElementDirect( inIndex ) ) {
+                    // parent out of heap order with children
+                    
+                    // swap down
+                    swap( inIndex, smallestChild );
+                    
+                    // recurse down
+                    bubbleDown( smallestChild );
+                    }
                 }
             }
         
