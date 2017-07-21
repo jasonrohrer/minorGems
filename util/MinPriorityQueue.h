@@ -77,6 +77,44 @@ class MinPriorityQueue {
             }
         
         
+        void printHeap( int inNextParentIndex = 0, int depth = 0,
+                        char inSecondChild = false ) {
+            if( inNextParentIndex < mPriority.size() ) {
+                
+                if( inSecondChild ) {    
+                    for( int s=0; s<1; s++ ) {
+                        
+                        for( int i=0; i<depth-1; i++ ) {
+                            printf( "  |    " );
+                            }
+                        
+                        printf( "  |\n" );
+                        }
+                    }
+                
+                
+                for( int i=0; i<depth-1; i++ ) {
+                    printf( "  |    " );
+                    }
+                
+                if( inNextParentIndex != 0 ) {
+                    printf( "  +----" );
+                    }
+                printf( "(%2d)\n", 
+                        mPriority.getElementDirect( inNextParentIndex ) );
+                
+                int childA = 2 * inNextParentIndex + 1;
+                int childB = 2 * inNextParentIndex + 2;
+                
+                //printHeap( childA, depth + 1, inSideBarStartDepth );
+                //printHeap( childB, depth + 1, inSideBarStartDepth + 1 );
+                printHeap( childA, depth + 1 );
+                
+                printHeap( childB, depth + 1, true );
+                }
+            
+            }
+
         
 
     protected:
@@ -156,6 +194,9 @@ class MinPriorityQueue {
                 }
             }
         
+
+        
+
 
         SimpleVector<Type> mStorage;
         SimpleVector<unsigned int> mPriority;
