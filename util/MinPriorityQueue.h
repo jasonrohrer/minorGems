@@ -78,39 +78,69 @@ class MinPriorityQueue {
         
         
         void printHeap( int inNextParentIndex = 0, int depth = 0,
-                        char inSecondChild = false ) {
+                        char inSecondChild = false,
+                        char *inSkipVertLineMap = NULL ) {
+            
+            #define MAX_PRINT_HEAP_DEPTH 9999
+            
+            char skipVertLineMap[ MAX_PRINT_HEAP_DEPTH ];
+            
+            if( inSkipVertLineMap != NULL ) {
+                memcpy( skipVertLineMap, inSkipVertLineMap, 
+                        MAX_PRINT_HEAP_DEPTH );
+                }
+            else {
+                memset( skipVertLineMap, false, MAX_PRINT_HEAP_DEPTH );
+                }
+
+
             if( inNextParentIndex < mPriority.size() ) {
                 
                 if( inSecondChild ) {    
                     for( int s=0; s<1; s++ ) {
                         
                         for( int i=0; i<depth-1; i++ ) {
-                            printf( "  |    " );
+                            if( skipVertLineMap[i] ) {
+                                printf( "      " );
+                                }
+                            else {
+                                printf( " |    " );
+                                }
                             }
                         
-                        printf( "  |\n" );
+                        printf( " |\n" );
                         }
                     }
                 
                 
                 for( int i=0; i<depth-1; i++ ) {
-                    printf( "  |    " );
+                    if( skipVertLineMap[i] ) {
+                        printf( "      " );
+                        }
+                    else {
+                        printf( " |    " );
+                        }
                     }
                 
                 if( inNextParentIndex != 0 ) {
-                    printf( "  +----" );
+                    if( inSecondChild ) {
+                        printf( " \\----" );
+                        }
+                    else {
+                        printf( " |----" );
+                        }
                     }
-                printf( "(%2d)\n", 
+                
+                printf( "(%d)\n", 
                         mPriority.getElementDirect( inNextParentIndex ) );
                 
                 int childA = 2 * inNextParentIndex + 1;
                 int childB = 2 * inNextParentIndex + 2;
                 
-                //printHeap( childA, depth + 1, inSideBarStartDepth );
-                //printHeap( childB, depth + 1, inSideBarStartDepth + 1 );
-                printHeap( childA, depth + 1 );
+                printHeap( childA, depth + 1, false, skipVertLineMap );
                 
-                printHeap( childB, depth + 1, true );
+                skipVertLineMap[ depth ] = true;
+                printHeap( childB, depth + 1, true, skipVertLineMap );
                 }
             
             }
