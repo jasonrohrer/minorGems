@@ -250,7 +250,8 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     mNextUnusedWebEventHandle = 0;
     
     mLastAsyncFileHandleDone = -1;
-
+    
+    mLastMinimizedStatus = false;
 
     mAllowSlowdownKeysDuringPlayback = false;
 
@@ -1209,6 +1210,10 @@ void ScreenGL::writeEventBatchToFile() {
 
 
 void ScreenGL::playNextEventBatch() {
+    // we get a minimized event every frame that we're minimized
+    mLastMinimizedStatus = false;
+    
+
     // read and playback next batch
     int batchSize = 0;
     int numRead = fscanf( mEventFile, "%d", &batchSize );
@@ -1307,6 +1312,10 @@ void ScreenGL::playNextEventBatch() {
                 double fps;
                 fscanf( mEventFile, "%lf", &fps );
                 mLastActualFrameRate = fps;
+                }
+                break;
+            case 'v': {
+                mLastMinimizedStatus = true;
                 }
                 break;
             case 'w': {
@@ -1491,7 +1500,32 @@ char ScreenGL::isMinimized() {
 
     // Actually test for real here.
 
-    return ( SDL_GetAppState() & SDL_APPACTIVE ) == 0;
+
+
+    if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
+        mEventFile != NULL ) {
+        
+
+        return mLastMinimizedStatus;
+        }
+    
+
+    // non-playback behavior
+    char isMin = ( ( SDL_GetAppState() & SDL_APPACTIVE ) == 0 );
+
+    if( isMin && 
+        mRecordingEvents && 
+        mRecordingOrPlaybackStarted ) {
+        
+        // record it 
+        
+        char *eventString = stringDuplicate( "v" );
+        
+        mEventBatch.push_back( eventString );
+        }
+    
+
+    return isMin;
     }
 
 

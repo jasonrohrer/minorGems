@@ -831,7 +831,10 @@ class ScreenGL {
 
 
         char mLastMouseButtonRight;
-
+        
+        // for playing back minimized window state
+        char mLastMinimizedStatus;
+        
 	};
 
 
