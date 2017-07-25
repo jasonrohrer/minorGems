@@ -245,6 +245,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
     mCustomRecordedGameData = stringDuplicate( inCustomRecordedGameData );
     
+    mHashSalt = stringDuplicate( inHashSalt );
+    
+
     mLastReadWebEventHandle = -1;
     mCurrentWebEventHandle = 0;
     mNextUnusedWebEventHandle = 0;
@@ -407,7 +410,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 
                     char *stringToHash = autoSprintf( "%s%s",
                                                       readCustomGameData,
-                                                      inHashSalt );
+                                                      mHashSalt );
 
                     char *correctHash = computeSHA1Digest( stringToHash );
 
@@ -494,6 +497,67 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
     
 
 
+    
+
+    for( int i=0; i<256; i++ ) {
+        keyMap[i] = (unsigned char)i;
+        }
+    
+
+    }
+
+
+
+ScreenGL::~ScreenGL() {
+	delete mViewPosition;
+	delete mViewOrientation;
+	delete mRedrawListenerVector;
+	delete mMouseHandlerVector;
+	delete mKeyboardHandlerVector;
+	delete mSceneHandlerVector;
+
+    if( mRecordingEvents ) {    
+        writeEventBatchToFile();
+        }
+    
+    if( mEventFile != NULL ) {
+        fclose( mEventFile );
+        mEventFile = NULL;
+        }
+        
+
+    delete [] mCustomRecordedGameData;    
+    delete [] mHashSalt;
+    
+
+    for( int i=0; i<mPendingWebEvents.size(); i++ ) {
+        WebEvent *e = mPendingWebEvents.getElement( i );
+        
+        if( e->bodyText != NULL ) {
+            
+            delete [] e->bodyText;
+        
+            e->bodyText = NULL;
+            }
+        
+        }
+    for( int i=0; i<mPendingSocketEvents.size(); i++ ) {
+        SocketEvent *e = mPendingSocketEvents.getElement( i );
+        
+        if( e->bodyBytesHex != NULL ) {
+            
+            delete [] e->bodyBytesHex;
+        
+            e->bodyBytesHex = NULL;
+            }
+        
+        }
+
+	}
+
+
+
+void ScreenGL::startRecordingOrPlayback() {
     if( mRecordingEvents ) {
         File recordedGameDir( NULL, "recordedGames" );
     
@@ -537,7 +601,7 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 
                     char *stringToHash = autoSprintf( "%s%s",
                                                       mCustomRecordedGameData,
-                                                      inHashSalt );
+                                                      mHashSalt );
 
                     char *correctHash = computeSHA1Digest( stringToHash );
                     
@@ -559,66 +623,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
             delete file;
             }
         }
-    
-
-    for( int i=0; i<256; i++ ) {
-        keyMap[i] = (unsigned char)i;
-        }
-    
-
-    }
 
 
 
-ScreenGL::~ScreenGL() {
-	delete mViewPosition;
-	delete mViewOrientation;
-	delete mRedrawListenerVector;
-	delete mMouseHandlerVector;
-	delete mKeyboardHandlerVector;
-	delete mSceneHandlerVector;
-
-    if( mRecordingEvents ) {    
-        writeEventBatchToFile();
-        }
-    
-    if( mEventFile != NULL ) {
-        fclose( mEventFile );
-        mEventFile = NULL;
-        }
-        
-
-    delete [] mCustomRecordedGameData;    
-
-
-    for( int i=0; i<mPendingWebEvents.size(); i++ ) {
-        WebEvent *e = mPendingWebEvents.getElement( i );
-        
-        if( e->bodyText != NULL ) {
-            
-            delete [] e->bodyText;
-        
-            e->bodyText = NULL;
-            }
-        
-        }
-    for( int i=0; i<mPendingSocketEvents.size(); i++ ) {
-        SocketEvent *e = mPendingSocketEvents.getElement( i );
-        
-        if( e->bodyBytesHex != NULL ) {
-            
-            delete [] e->bodyBytesHex;
-        
-            e->bodyBytesHex = NULL;
-            }
-        
-        }
-
-	}
-
-
-
-void ScreenGL::startRecordingOrPlayback() {
     mRecordingOrPlaybackStarted = true;
     }
 
@@ -2047,6 +2054,13 @@ void ScreenGL::start() {
 void ScreenGL::setMaxFrameRate( unsigned int inMaxFrameRate ) {
     mMaxFrameRate = inMaxFrameRate;
     }
+
+
+void ScreenGL::setFullFrameRate( unsigned int inFullFrameRate ) {
+    mFullFrameRate = inFullFrameRate;
+    mMaxFrameRate = mFullFrameRate;
+    }
+
 
 
 

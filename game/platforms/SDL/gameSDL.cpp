@@ -2275,8 +2275,16 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         screen->addMouseHandler( sceneHandler );
         screen->addKeyboardHandler( sceneHandler );
 
-        // start recording/playback right away
-        screen->startRecordingOrPlayback();
+        if( screen->isPlayingBack() ) {
+            
+            // start playback right away
+            screen->startRecordingOrPlayback();
+            
+            AppLog::infoF( "Using frame rate from recording file:  %d fps\n", 
+                           screen->getMaxFramerate() );
+            }
+        // else wait to start recording until after we've measured
+        // frame rate
         }
     
     screen->start();
@@ -2784,9 +2792,10 @@ void GameSceneHandler::drawScene() {
                     screen->useFrameSleep( true );
                     countingOnVsync = false;
                     }
-            
                 
                 
+                screen->setFullFrameRate( targetFrameRate );
+                screen->startRecordingOrPlayback();
                 
                 measureFrameRate = false;
                 }

@@ -287,8 +287,14 @@ class ScreenGL {
         // (has no effect if no recording or playback pending)
         void startRecordingOrPlayback();
         
-        
+        // our current max
+        // can be changed with speed control keys, if enabled
         void setMaxFrameRate( unsigned int inMaxFrameRate );
+
+        // our absolute max
+        // speed control key adjustments are relative to this full rate
+        void setFullFrameRate( unsigned int inFullFrameRate );
+        
         
         unsigned int getMaxFramerate();
         
@@ -783,6 +789,7 @@ class ScreenGL {
         char mRecordingOrPlaybackStarted;
         
         char *mCustomRecordedGameData;
+        char *mHashSalt;
         
 
         void writeEventBatchToFile();
