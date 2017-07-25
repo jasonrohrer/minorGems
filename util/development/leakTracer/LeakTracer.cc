@@ -581,22 +581,31 @@ void LeakTracer::writeLeakReport() {
 	}
 	for (int i = 0; i <  leaksCount; i++)
 		if (leaks[i].addr != NULL) {
-			// This ought to be 64-bit safe?
-			char *memContents = (char *)LT_MALLOC( leaks[i].size + 1 );
-			memcpy( (void *)memContents, (void *)( leaks[i].addr ),
-				leaks[i].size );
-			memContents[ leaks[i].size ] = '\0';
 			fprintf(report, "L %10p   %9ld",
 				leaks[i].allocAddr,
 				(long) leaks[i].size );
 
             addStackTraceToReport( leaks[i] );
 
-            fprintf(report, "  # %p,   \"%s\"\n",
-				leaks[i].addr,
-				memContents );
-
-			LT_FREE( memContents );
+            // write memory contents of leaked memory in a safe way
+            // it may no longer be accessible (deallocated some other way)
+            // so we shouldn't access it directly.
+            // But the system call "write" can do it.
+            // See:
+            // https://stackoverflow.com/questions/14507524/
+            //         testing-whether-memory-is-accessible-in-linux
+            fprintf( report, "  # %p,   \"", leaks[i].addr );
+            fflush( report );
+            
+            // this uses file descriptor directly so is not buffered
+            ssize_t writeResult = 
+                    write( fileno( report ), leaks[i].addr, leaks[i].size );
+            
+            if( writeResult == -1 ) {
+            	fprintf( report, " [reading memory contents failed] " );
+            }
+            
+            fprintf( report, "\"\n" );
 		}
 	fprintf(report, "# total allocation requests: %6ld ; max. mem used"
 		" %d kBytes\n", totalAllocations, maxAllocated / 1024);
