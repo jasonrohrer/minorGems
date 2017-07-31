@@ -213,7 +213,8 @@ char *PrintLog::generateLogMessage( const char *inLoggerName,
     
 
 
-    unsigned long seconds, milliseconds;
+    time_t seconds;
+    unsigned long milliseconds;
     
     Time::getCurrentTime( &seconds, &milliseconds );
 

@@ -5,7 +5,7 @@
 
 #include "minorGems/util/SimpleVector.h"
 
-#include <limits.h>
+#include <float.h>
 
 
 
@@ -30,7 +30,7 @@ class MinPriorityQueue {
             }
         
 
-        void insert( Type inValue, unsigned int inPriority ) {
+        void insert( Type inValue, double inPriority ) {
             
             // stick it at the bottom of the heap
             mStorage.push_back( inValue );
@@ -41,7 +41,7 @@ class MinPriorityQueue {
             }
 
         
-        unsigned int checkMinPriority() {
+        double checkMinPriority() {
             if( mStorage.size() > 0 ) {
                 return mPriority.getElementDirect( 0 );
                 }
@@ -131,7 +131,7 @@ class MinPriorityQueue {
                         }
                     }
                 
-                printf( "(%d)\n", 
+                printf( "(%f)\n", 
                         mPriority.getElementDirect( inNextParentIndex ) );
                 
                 int childA = 2 * inNextParentIndex + 1;
@@ -151,14 +151,14 @@ class MinPriorityQueue {
 
 
         void swap( int inIndexA, int inIndexB ) {
-            unsigned int *aP = mPriority.getElement( inIndexA );
-            unsigned int *bP = mPriority.getElement( inIndexB );
+            double *aP = mPriority.getElement( inIndexA );
+            double *bP = mPriority.getElement( inIndexB );
 
             Type *aV = mStorage.getElement( inIndexA );
             Type *bV = mStorage.getElement( inIndexB );
 
 
-            unsigned int tempP = *aP;
+            double tempP = *aP;
             *aP = *bP;
             *bP = tempP;
 
@@ -172,8 +172,8 @@ class MinPriorityQueue {
         void bubbleUp( int inIndex ) {
             int parent = (inIndex - 1 ) / 2;
             
-            unsigned int thisP = mPriority.getElementDirect( inIndex );
-            unsigned int parentP = mPriority.getElementDirect( parent );
+            double thisP = mPriority.getElementDirect( inIndex );
+            double parentP = mPriority.getElementDirect( parent );
 
             if( thisP < parentP ) {
 
@@ -195,10 +195,10 @@ class MinPriorityQueue {
             int num = mStorage.size();
             
             int smallestChild = -1;
-            unsigned int smallestChildP = UINT_MAX;
+            double smallestChildP = DBL_MAX;
             
             if( childA < num ) {
-                unsigned int p = mPriority.getElementDirect( childA );
+                double p = mPriority.getElementDirect( childA );
                 
                 if( p < smallestChildP ) {
                     smallestChild = childA;
@@ -207,7 +207,7 @@ class MinPriorityQueue {
                 }
 
             if( childB < num ) {
-                unsigned int p = mPriority.getElementDirect( childB );
+                double p = mPriority.getElementDirect( childB );
                 
                 if( p < smallestChildP ) {
                     smallestChild = childB;
@@ -234,7 +234,7 @@ class MinPriorityQueue {
 
 
         SimpleVector<Type> mStorage;
-        SimpleVector<unsigned int> mPriority;
+        SimpleVector<double> mPriority;
     };
 
 

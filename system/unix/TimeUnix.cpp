@@ -24,7 +24,7 @@
 
 
 
-void Time::getCurrentTime( unsigned long *outSeconds,
+void Time::getCurrentTime( time_t *outSeconds,
 						   unsigned long *outMilliseconds ) {
 	
 	struct timeval currentTime;

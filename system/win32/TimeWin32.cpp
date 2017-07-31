@@ -34,7 +34,7 @@
 
 
 
-void Time::getCurrentTime( unsigned long *outSeconds,
+void Time::getCurrentTime( time_t *outSeconds,
 						   unsigned long *outMilliseconds ) {
     // convert from win32 broken-down time (which has msec resolution)
     // to an ANSI time struct and then convert to an absolute time in
@@ -68,7 +68,7 @@ void Time::getCurrentTime( unsigned long *outSeconds,
     // if we fail to init this value, we can get inconsistent results
     ansiTimeStruct.tm_isdst = -1;
     
-    unsigned long secondsSinceEpoch = mktime( &ansiTimeStruct );
+    time_t secondsSinceEpoch = mktime( &ansiTimeStruct );
 
     *outSeconds = secondsSinceEpoch;
 	*outMilliseconds = (unsigned long)( win32TimeStruct.wMilliseconds );	

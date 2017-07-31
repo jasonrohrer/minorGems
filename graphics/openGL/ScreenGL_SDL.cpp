@@ -1302,9 +1302,9 @@ void ScreenGL::playNextEventBatch() {
                 }
                 break;
             case 't': {
-                int t;
-                fscanf( mEventFile, "%d", &t );
-                mLastTimeValue = t;
+                double t;
+                fscanf( mEventFile, "%lf", &t );
+                mLastTimeValue = (time_t)t;
                 mTimeValuePlayedBack = true;
                 }
                 break;
@@ -1556,7 +1556,8 @@ void ScreenGL::start() {
     // main loop
     while( true ) {
         
-        unsigned long frameStartSec, frameStartMSec;
+        time_t frameStartSec;
+        unsigned long frameStartMSec;
         
         Time::getCurrentTime( &frameStartSec, &frameStartMSec );
 
@@ -2029,7 +2030,8 @@ void ScreenGL::start() {
                     minFrameTime - ( frameTime + oversleepMSec );
                 
                 //SDL_Delay( timeToSleep );
-                unsigned long sleepStartSec, sleepStartMSec;
+                time_t sleepStartSec;
+                unsigned long sleepStartMSec;
                 Time::getCurrentTime( &sleepStartSec, &sleepStartMSec );
                 
                 Thread::staticSleep( timeToSleep );
@@ -2106,7 +2108,8 @@ time_t ScreenGL::getTime( time_t *__timer ) {
 
         if( currentTime != mLastRecordedTimeValue ) {
             
-            char *eventString = autoSprintf( "t %d", currentTime );
+            char *eventString = autoSprintf( "t %.0f", 
+                                             Time::toDouble( currentTime ) );
             
             mEventBatch.push_back( eventString );
             

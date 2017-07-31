@@ -304,7 +304,7 @@ inline void Socket::sendFlushBeforeClose( int inMaxTimeInMilliseconds ) {
     
     long totalTimeout = 0;
 
-    unsigned long startSec;
+    time_t startSec;
     unsigned long startMsec;
 
     Time::getCurrentTime( &startSec, &startMsec );

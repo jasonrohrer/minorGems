@@ -14,6 +14,8 @@
 #include "minorGems/common.h"
 
 
+#include <time.h>
+
 
 #ifndef TIME_INCLUDED
 #define TIME_INCLUDED 
@@ -28,6 +30,9 @@
 class Time {
 	public:
 
+        // seconds since epoch, converted to a double
+        // portable way to convert time to a double for printing
+        static double toDouble( time_t inTime );
 
 		
 		/**
@@ -41,7 +46,7 @@ class Time {
 		 * @param outMilliseconds pointer to where the extra
 		 *   milliseconds will be returned.  Value returned is in [0,999].
 		 */
-		static void getCurrentTime( unsigned long *outSeconds,
+		static void getCurrentTime( time_t *outSeconds,
 									unsigned long *outMilliseconds );
 
         
@@ -67,7 +72,7 @@ class Time {
 		 *   more than 49 days have passed (assuming 32-bit longs).
 		 */
 		static unsigned long getMillisecondsSince(
-			unsigned long inSeconds, unsigned long inMilliseconds );
+			time_t inSeconds, unsigned long inMilliseconds );
 
 
 		
@@ -76,7 +81,7 @@ class Time {
 
 
 inline double Time::getCurrentTime() {
-    unsigned long currentTimeS;
+    time_t currentTimeS;
 	unsigned long currentTimeMS;
 	getCurrentTime( &currentTimeS, &currentTimeMS );
 
@@ -86,14 +91,14 @@ inline double Time::getCurrentTime() {
 
 
 inline unsigned long Time::getMillisecondsSince(
-	unsigned long inSeconds, unsigned long inMilliseconds ) {
+	time_t inSeconds, unsigned long inMilliseconds ) {
 
-	unsigned long currentTimeS;
+	time_t currentTimeS;
 	unsigned long currentTimeMS;
 	getCurrentTime( &currentTimeS, &currentTimeMS );
 
 	
-	unsigned long deltaS = ( currentTimeS - inSeconds );
+	unsigned long deltaS = (unsigned long)( currentTimeS - inSeconds );
 	long deltaMS = ( (long)currentTimeMS - (long)inMilliseconds );
 
 	// carry, if needed
@@ -104,6 +109,12 @@ inline unsigned long Time::getMillisecondsSince(
 
 	return 1000 * deltaS + deltaMS;
 	}
+
+
+
+inline double Time::toDouble( time_t inTime ) {    
+    return difftime( inTime, (time_t)0 );
+    }
 
 
 
