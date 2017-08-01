@@ -525,9 +525,17 @@ static SimpleVector<double> playingSoundSpriteVolumesR( 100 );
 static SimpleVector<double> playingSoundSpriteVolumesL( 100 );
 
 
+static SDL_Cursor *ourCursor = NULL;
+
+
 // function that destroys object when exit is called.
 // exit is the only way to stop the loop in  ScreenGL
 void cleanUpAtExit() {
+
+    if( ourCursor != NULL ) {
+        SDL_FreeCursor( ourCursor );
+        }
+    
     AppLog::info( "exiting...\n" );
 
     AppLog::info( "exiting: Deleting sceneHandler\n" );
@@ -1957,6 +1965,88 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     screenWidth = screen->getWidth();
     screenHeight = screen->getHeight();
     targetFrameRate = screen->getMaxFramerate();
+
+
+
+
+    // watch out for huge resolutions that make default SDL cursor
+    // too small
+
+    if( screenWidth > 1920 || screenHeight > 1080 ) {
+        // big cursor
+        
+        AppLog::info( "Large screen size, trying to load pointer from "
+                      "graphics/bigPointer.tga" );
+
+
+        Image *cursorImage = readTGAFile( "bigPointer.tga" );
+
+        if( cursorImage != NULL ) {
+
+            if( cursorImage->getWidth() == 40 &&
+                cursorImage->getHeight() == 40 &&
+                cursorImage->getNumChannels() == 4 ) {
+                
+                double *r = cursorImage->getChannel( 0 );
+                double *a = cursorImage->getChannel( 3 );
+                
+
+                Uint8 data[5*40];
+                Uint8 mask[5*40];
+                int i = -1;
+                
+                for( int y=0; y<40; y++ ) {
+                    for( int x=0; x<40; x++ ) {
+                        int p = y * 40 + x;
+                        
+                        if ( x % 8 ) {
+                            data[i] <<= 1;
+                            mask[i] <<= 1;
+                            } 
+                        else {
+                            i++;
+                            data[i] = mask[i] = 0;
+                            }
+                        
+                        if( a[p] == 1 ) {
+                            if( r[p] == 0 ) {
+                                data[i] |= 0x01;
+                                }
+                            mask[i] |= 0x01;
+                            }
+                        }
+                    }
+                
+                // hot in upper left corner, (0,0)
+                ourCursor = 
+                    SDL_CreateCursor( data, mask, 40, 40, 0, 0 );
+    
+                SDL_SetCursor( ourCursor );
+                }
+            else {
+                AppLog::error( 
+                    "bigPointer.tga is not a 40x40 4-channel image." );
+
+                }
+            
+            delete cursorImage;
+            }
+        else {
+            
+            AppLog::error( "Failed to read bigPointer.tga" );
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
     
     
     // adjust gameWidth to match available screen space
