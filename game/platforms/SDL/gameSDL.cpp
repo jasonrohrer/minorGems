@@ -1972,11 +1972,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     // watch out for huge resolutions that make default SDL cursor
     // too small
 
-    if( screenWidth > 1920 || screenHeight > 1080 ) {
+    int forceBigPointer = SettingsManager::getIntSetting( "forceBigPointer",
+                                                          0 );
+    if( forceBigPointer ||
+        screenWidth > 1920 || screenHeight > 1080 ) {
         // big cursor
         
-        AppLog::info( "Large screen size, trying to load pointer from "
-                      "graphics/bigPointer.tga" );
+        AppLog::info( "Trying to load pointer from graphics/bigPointer.tga" );
 
 
         Image *cursorImage = readTGAFile( "bigPointer.tga" );
