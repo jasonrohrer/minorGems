@@ -23,8 +23,13 @@
 #include <stdio.h>
 
 
+char Time::sEpochTimeSet = false;
 
-void Time::getCurrentTime( time_t *outSeconds,
+// C standard says that -1 is a valid time_t value
+time_t Time::sEpochTime = (time_t)( -1 );
+
+
+void Time::getCurrentTime( timeSec_t *outSeconds,
 						   unsigned long *outMilliseconds ) {
 	
 	struct timeval currentTime;
@@ -33,8 +38,9 @@ void Time::getCurrentTime( time_t *outSeconds,
 
     
 	*outMilliseconds = currentTime.tv_usec / 1000;
-	*outSeconds = currentTime.tv_sec;
-
+	
+    
+    *outSeconds = normalize( currentTime.tv_sec );
 	}
 
 

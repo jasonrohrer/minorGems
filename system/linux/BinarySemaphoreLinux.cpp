@@ -114,7 +114,7 @@ int BinarySemaphore::wait( int inTimeoutInMilliseconds ) {
             unsigned long nsecPerMillisecond = 1000000;
 
 
-            time_t currentSec;
+            timeSec_t currentSec;
             unsigned long currentMS;
 
             Time::getCurrentTime( &currentSec, &currentMS );
@@ -128,8 +128,8 @@ int BinarySemaphore::wait( int inTimeoutInMilliseconds ) {
             long extraNS = extraMS * nsecPerMillisecond;
 
             
-
-            time_t absTimeoutSec = currentSec + timeoutSec;
+            // on linux, we can assume that doubles can be converted to time_t
+            time_t absTimeoutSec = (time_t)( currentSec + timeoutSec );
             unsigned long absTimeoutNsec = currentNS + extraNS;
 
             // check for nsec overflow

@@ -45,8 +45,9 @@
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/system/MutexLock.h"
 
+#include "minorGems/system/Time.h"
+
 #include <stdio.h>
-#include <time.h>
 
 
 
@@ -194,13 +195,10 @@ class SettingsManager {
         
 
         /**
-         * Returns time_t value of unix timestamp in seconds, UTC.
-         *
-         * Converted from future-proof string format stored in settings file
-         * (ISO 8601).
+         * Returns seconds since GMT epoch.
          */
-        static time_t getTimeSetting( const char *inSettingName,
-                                      time_t inDefaultValue );
+        static timeSec_t getTimeSetting( const char *inSettingName,
+                                         timeSec_t inDefaultValue );
         
         
         
@@ -244,17 +242,17 @@ class SettingsManager {
 
 
         /**
-         * Sets a setting to a single unix timestamp value in seconds UTC.
+         * Sets a setting to a time in seconds since the GMT epoch.
          *
          * This is written to file internally in a future-proof string
-         * format (ISO 8601).
+         * format (double).
          *
          * @param inSettingName the name of the setting to set.
          *   Must be destroyed by caller if non-const.
          * @param inSettingValue the value to set.
          */
         static void setSetting( const char *inSettingName,
-                                time_t inSettingValue );
+                                timeSec_t inSettingValue );
 
 
         

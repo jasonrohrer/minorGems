@@ -5,7 +5,6 @@
 #include "minorGems/crypto/hashes/sha1.h"
 #include "minorGems/util/log/AppLog.h"
 
-#include <time.h>
 
 
 
@@ -19,7 +18,8 @@ DemoCodeChecker::DemoCodeChecker( char *inCode,
           mError( false ),
           mErrorString( NULL ) {
 
-    char *challengeString = autoSprintf( "%d%s", time( NULL ), mSharedSecret );
+    char *challengeString = autoSprintf( "%.f%s", Time::timeSec(), 
+                                         mSharedSecret );
     
     mChallenge = computeSHA1Digest( challengeString );
     

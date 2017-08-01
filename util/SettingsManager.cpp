@@ -264,71 +264,21 @@ int SettingsManager::getIntSetting( const char *inSettingName,
     }
 
 
-// Scans ISO 8601 format UTC string and fills a tm struct
-// returns true on success
-static char stringToTimeStruct( const char *inString, struct tm *inStruct ) {
-    // strptime not available everywhere
-
-    int year, month, day, hours, minutes, seconds;
-
-    int numScanned = sscanf( inString, "%d-%d-%dT%d:%d:%dZ",
-                             &year, &month, &day, &hours, &minutes, &seconds );
-    
-    if( numScanned != 6 ) {
-        return false;
-        }
-    
-    inStruct->tm_year = year - 1900;
-    inStruct->tm_mon = month - 1;
-    inStruct->tm_mday = day;
-
-    inStruct->tm_hour = hours;
-    inStruct->tm_min = minutes;
-    inStruct->tm_sec = seconds;
-    inStruct->tm_isdst = -1;
-    
-
-    return true;
-    }
 
 
 
-time_t SettingsManager::getTimeSetting( const char *inSettingName,
-                                        time_t inDefaultValue ) {
+timeSec_t SettingsManager::getTimeSetting( const char *inSettingName,
+                                           timeSec_t inDefaultValue ) {
 
-    time_t value = inDefaultValue;
+    timeSec_t value = inDefaultValue;
 
 
     char *stringValue = getStringSetting( inSettingName );
 
     if( stringValue != NULL ) {
-        struct tm timeStruct;
-
-        char result = stringToTimeStruct( stringValue, &timeStruct );
         
-        if( result ) {
-            // correct for local time assumption in mktime
-            
-            // push two days ahead of epoch
-            struct tm timeStructDayTwo;
-            stringToTimeStruct( "1970-01-03T00:00:00Z",
-                                &timeStructDayTwo );
-
-            // mktime will interpret this as local time
-            time_t timeDayTwo = mktime( &timeStructDayTwo );
-            
-            // we expect two days beyond the epoch to have a time of this
-            // number of seconds in UTC
-            time_t expectedTime = 24 * 3600 * 2;
-            
-            // can be 0 if mktime thinks we're in UTC
-            time_t offset = timeDayTwo - expectedTime;
-
-            // convert mktime's output back to UTC
-            value = mktime( &timeStruct ) - offset;
-            }
+        sscanf( stringValue, "%lf", &value );
         
-
         delete [] stringValue;
         }
 
@@ -423,21 +373,14 @@ void SettingsManager::setSetting( const char *inSettingName,
 
 
 void SettingsManager::setSetting( const char *inSettingName,
-                                  time_t inSettingValue ) {
+                                  timeSec_t inSettingValue ) {
 
-    // from here:
-    // http://stackoverflow.com/questions/4113976/
-    //     how-should-i-store-a-time-t-timestamp-to-a-file-using-c
-    // and here
-    // http://stackoverflow.com/questions/9527960/
-    //     how-do-i-construct-an-iso-8601-datetime-in-c
-
-
-    char buffer[ 128 ];
-    strftime( buffer, sizeof buffer, "%Y-%m-%dT%H:%M:%SZ", 
-              gmtime( &inSettingValue ) );
-
-    setSetting( inSettingName, buffer );
+    // don't want a fixed buffer for printing doubles
+    char *stringVal = autoSprintf( "%f", inSettingValue );
+    
+    setSetting( inSettingName, stringVal );
+    
+    delete [] stringVal;
     }
 
 

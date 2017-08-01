@@ -229,11 +229,12 @@ void loadingComplete();
 unsigned int getRandSeed();
 
 
-#include <time.h>
+#include "minorGems/system/Time.h"
 
-// a replacement for time.h's time() implementation that makes time values
+
+// a replacement for Time::timeSec() that makes time values
 // replayable during recorded game playback
-time_t game_time( time_t *__timer );
+timeSec_t game_timeSec();
 
 
 // a replacement for Time::getCurrentTime that is replayable

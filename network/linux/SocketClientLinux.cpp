@@ -77,7 +77,6 @@
 #include <sys/socket.h>
 
 #include <fcntl.h>
-#include <time.h>
 #include <sys/time.h>
 
 #include <unistd.h>

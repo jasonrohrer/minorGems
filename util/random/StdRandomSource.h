@@ -31,7 +31,7 @@
 #define STD_RANDOM_SOURCE_INCLUDED
 
 #include <stdlib.h>
-#include <time.h>
+#include <limits.h>
 #include "RandomSource.h"
 
 class StdRandomSource : public RandomSource {
@@ -66,7 +66,8 @@ class StdRandomSource : public RandomSource {
 
 inline StdRandomSource::StdRandomSource() {
 	MAX = RAND_MAX;
-	srand( (unsigned)time(NULL) );
+	
+    srand( (unsigned int)fmod( Time::timeSec(), UINT_MAX ) );
 	invMAX = (float)1.0 / ((float)MAX);
 	invDMAX = 1.0 / ((double)MAX);
 	mInvMAXPlusOne = 1.0 / ( ( (float)MAX ) + 1.0 );

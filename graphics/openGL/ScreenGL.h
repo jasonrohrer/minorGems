@@ -129,7 +129,7 @@
 #include "minorGems/util/SimpleVector.h"
 
 
-#include <time.h>
+#include "minorGems/system/Time.h"
 
 
 // prototypes
@@ -318,8 +318,8 @@ class ScreenGL {
         unsigned int getRandSeed();
         
 
-        // enables time() values to be recorded and played back
-        time_t getTime( time_t *__timer );
+        // enables Time::timeSec() values to be recorded and played back
+        timeSec_t getTimeSec();
         double getCurrentTime();
 
         
@@ -816,13 +816,13 @@ class ScreenGL {
 
         unsigned int mRandSeed;
         
-        time_t mLastTimeValue;
+        timeSec_t mLastTimeValue;
         double mLastCurrentTimeValue;
 
         double mLastActualFrameRate;
         
 
-        time_t mLastRecordedTimeValue;
+        timeSec_t mLastRecordedTimeValue;
         double mLastRecordedCurrentTimeValue;
         
         // for emulating time() values during playback where

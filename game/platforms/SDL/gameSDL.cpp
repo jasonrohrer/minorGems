@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <time.h>
 #include <math.h>
 
 
@@ -431,7 +430,7 @@ class GameSceneHandler :
         
     protected:
 
-        int mStartTimeSeconds;
+        timeSec_t mStartTimeSeconds;
         
 
         char mPrintFrameRate;
@@ -2304,7 +2303,7 @@ GameSceneHandler::GameSceneHandler( ScreenGL *inScreen )
       mPausedSleepTime( 0 ),
       mBlockQuitting( false ),
       mLastFrameRate( targetFrameRate ),
-      mStartTimeSeconds( time( NULL ) ),
+      mStartTimeSeconds( Time::timeSec() ),
       mPrintFrameRate( true ),
       mNumFrames( 0 ), mFrameBatchSize( 100 ),
       mFrameBatchStartTimeSeconds( -1 ),
@@ -4619,8 +4618,8 @@ unsigned char *getAsyncFileData( int inHandle, int *outDataLength ) {
 
 
 
-time_t game_time( time_t *__timer ) {
-    return screen->getTime( __timer );
+timeSec_t game_timeSec() {
+    return screen->getTimeSec();
     }
 
 

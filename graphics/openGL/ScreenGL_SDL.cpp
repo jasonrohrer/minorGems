@@ -146,9 +146,9 @@
 
 
 #include <math.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <time.h>
 
 
 #include "minorGems/util/stringUtils.h"
@@ -270,9 +270,9 @@ ScreenGL::ScreenGL( int inWide, int inHigh, char inFullScreen,
 		}
 
     
-    mRandSeed = time( NULL );
+    mRandSeed = (unsigned int)fmod( Time::timeSec(), UINT_MAX );
     
-    mLastTimeValue = time( NULL );
+    mLastTimeValue = Time::timeSec();
     mLastRecordedTimeValue = 0;
 
     mLastCurrentTimeValue = Time::getCurrentTime();
@@ -1302,9 +1302,7 @@ void ScreenGL::playNextEventBatch() {
                 }
                 break;
             case 't': {
-                double t;
-                fscanf( mEventFile, "%lf", &t );
-                mLastTimeValue = (time_t)t;
+                fscanf( mEventFile, "%lf", &mLastTimeValue );
                 mTimeValuePlayedBack = true;
                 }
                 break;
@@ -1556,7 +1554,7 @@ void ScreenGL::start() {
     // main loop
     while( true ) {
         
-        time_t frameStartSec;
+        timeSec_t frameStartSec;
         unsigned long frameStartMSec;
         
         Time::getCurrentTime( &frameStartSec, &frameStartMSec );
@@ -2030,7 +2028,7 @@ void ScreenGL::start() {
                     minFrameTime - ( frameTime + oversleepMSec );
                 
                 //SDL_Delay( timeToSleep );
-                time_t sleepStartSec;
+                timeSec_t sleepStartSec;
                 unsigned long sleepStartMSec;
                 Time::getCurrentTime( &sleepStartSec, &sleepStartMSec );
                 
@@ -2082,21 +2080,17 @@ unsigned int ScreenGL::getRandSeed() {
 
 
 
-time_t ScreenGL::getTime( time_t *__timer ) {
+timeSec_t ScreenGL::getTimeSec() {
     
     if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
         mEventFile != NULL ) {
-        
-        if( __timer != NULL ) {
-            *__timer = mLastTimeValue;
-            }
         
         return mLastTimeValue;
         }
     
 
     // else just normal behavior (platform's time() output)
-    time_t currentTime = time( __timer );
+    timeSec_t currentTime = Time::timeSec();
 
     if( mRecordingEvents && 
         mRecordingOrPlaybackStarted ) {
@@ -2108,8 +2102,7 @@ time_t ScreenGL::getTime( time_t *__timer ) {
 
         if( currentTime != mLastRecordedTimeValue ) {
             
-            char *eventString = autoSprintf( "t %.0f", 
-                                             Time::toDouble( currentTime ) );
+            char *eventString = autoSprintf( "t %.f", currentTime );
             
             mEventBatch.push_back( eventString );
             

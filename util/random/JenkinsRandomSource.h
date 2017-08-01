@@ -12,6 +12,12 @@
 
 #include "RandomSource32.h"
 
+#include "minorGems/system/Time.h"
+
+#include <math.h>
+#include <limits.h>
+
+
 
 /**
  * Implementation of RandomSource based on Bob Jenkins smallprng:
@@ -56,7 +62,7 @@ class JenkinsRandomSource : public RandomSource32 {
 
 inline JenkinsRandomSource::JenkinsRandomSource() {
     
-    reseed( (unsigned)( time(NULL) ) );
+    reseed( (unsigned int)fmod( Time::timeSec(), UINT_MAX ) );
     }
 
 

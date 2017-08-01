@@ -30,7 +30,6 @@
 
 
 #include <stdio.h>
-#include <time.h>
 
 
 
@@ -42,7 +41,7 @@ FileLog::FileLog( const char *inFileName, unsigned long inSecondsBetweenBackups 
     : mLogFile( NULL ),
       mLogFileName( stringDuplicate( inFileName ) ),
       mSecondsBetweenBackups( inSecondsBetweenBackups ),
-      mTimeOfLastBackup( time( NULL ) ) {
+      mTimeOfLastBackup( Time::timeSec() ) {
 
     
     mLogFile = fopen( mLogFileName, "a" );
@@ -111,7 +110,7 @@ void FileLog::logStringV( const char *inLoggerName,
                 }
             
             
-            if( time( NULL ) - mTimeOfLastBackup > mSecondsBetweenBackups ) {
+            if( Time::timeSec() - mTimeOfLastBackup > mSecondsBetweenBackups ) {
                 makeBackup();
                 }
             
@@ -152,7 +151,7 @@ void FileLog::makeBackup() {
         printf( "Log file %s failed to open.\n", mLogFileName );
         }
 
-    mTimeOfLastBackup = time( NULL );
+    mTimeOfLastBackup = Time::timeSec();
     }
 
 

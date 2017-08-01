@@ -11,7 +11,6 @@
 #define RANDOM_SOURCE_32_INCLUDED
 
 #include <stdlib.h>
-#include <time.h>
 #include "RandomSource.h"
 
 

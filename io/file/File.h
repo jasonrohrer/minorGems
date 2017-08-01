@@ -106,7 +106,6 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #include <dirent.h>
 
@@ -114,6 +113,7 @@
 
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/util/stringUtils.h"
+#include "minorGems/system/Time.h"
 
 
 
@@ -247,10 +247,11 @@ class File {
 		/**
 		 * Gets the last modification time of this file.
 		 *
-		 * @return the modification time in seconds based on the
-         *   system clock.  Returns 0 if the file does not exist.
+		 * @return the modification time in seconds since the epoch.
+         *
+         * Returns 0 if the file does not exist.
 		 */
-		time_t getModificationTime();
+		timeSec_t getModificationTime();
 
 
 		
@@ -765,7 +766,7 @@ inline char File::exists() {
 
 
 
-inline time_t File::getModificationTime() {
+inline timeSec_t File::getModificationTime() {
     struct stat fileInfo;
 	
 	// get full file name
@@ -777,7 +778,7 @@ inline time_t File::getModificationTime() {
 	delete [] stringName;
 	
 	if( statError == 0 ) {
-		return fileInfo.st_mtime;
+		return Time::normalize( fileInfo.st_mtime );
 		}
 	else {
 		// file does not exist

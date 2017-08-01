@@ -13,6 +13,7 @@
 
 
 #include "minorGems/common.h"
+#include "minorGems/system/Time.h"
 
 
 
@@ -83,7 +84,7 @@ class FileLog : public PrintLog {
                 
         unsigned long mSecondsBetweenBackups;
         
-        unsigned long mTimeOfLastBackup;
+        timeSec_t mTimeOfLastBackup;
         
         
         static const char *mDefaultLogFileName;
