@@ -65,6 +65,11 @@ char SocketPoll::addSocket( Socket *inSock, void *inOtherData ) {
 
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLPRI | EPOLLERR | EPOLLHUP;
+    // clear entire union to suppress valgrind uninit errors on platforms
+    // with 32-bit pointers
+    ev.data.u64 = 0;
+    
+    // store our pointer
     ev.data.ptr = s;
 
     int result = epoll_ctl( epollHandle, EPOLL_CTL_ADD, socketID, &ev );
