@@ -92,6 +92,9 @@
  * 2017-March-13    Jason Rohrer
  * Functions for reading/writing an int from/to a file.
  * Function for comparing files.
+ *
+ * 2017-August-8    Jason Rohrer
+ * Function for getting alphabetically sorted child files.
  */
 
 
@@ -180,6 +183,9 @@ class File {
 		 *    Must be destroyed by caller if non-NULL.
 		 */
 		File **getChildFiles( int *outNumFiles );
+        
+        // sorted in alphabetical order
+        File **getChildFilesSorted( int *outNumFiles );
 
 
 
@@ -591,6 +597,39 @@ inline File **File::getChildFiles( int *outNumFiles ) {
 
 	
 	}
+
+
+
+
+static int fileNameCompare(const void *inA, const void * inB ) {
+    
+    File *a = *( (File**)inA );
+    File *b = *( (File**)inB );
+
+    char *nameA = a->getFileName();
+    char *nameB = b->getFileName();
+    
+    int result = strcmp( nameA, nameB );
+
+    delete [] nameA;
+    delete [] nameB;
+    
+    return result;
+    }
+
+
+
+
+inline File **File::getChildFilesSorted( int *outNumFiles ) {
+    File **result = getChildFiles( outNumFiles );
+    
+
+    qsort( result, *outNumFiles, sizeof(File*), fileNameCompare );
+
+    return result;
+    }
+
+
 
 
 
