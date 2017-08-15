@@ -25,6 +25,12 @@
 #include <stdio.h>
 
 
+char Time::sEpochTimeSet = false;
+
+// C standard says that -1 is a valid time_t value
+time_t Time::sEpochTime = (time_t)( -1 );
+
+
 
 /**
  * Windows implementation of Time.h.
