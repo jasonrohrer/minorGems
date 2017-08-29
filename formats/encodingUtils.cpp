@@ -450,6 +450,7 @@ unsigned char *base64Decode( char *inBase64String,
 
 
 
+#include "miniz.h"
 #include "miniz.c"
 
 
