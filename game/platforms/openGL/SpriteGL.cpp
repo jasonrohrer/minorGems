@@ -367,7 +367,7 @@ SpriteGL::~SpriteGL() {
 // only construct these once, not every draw call
 GLfloat squareVertices[4*2];
 
-GLubyte squareColors[4*4];
+GLfloat squareColors[4*4];
 
 GLfloat squareTextureCoords[4*2];
 
@@ -535,8 +535,6 @@ void SpriteGL::draw( int inFrame,
 
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    mTexture->disable();
     }
 
 
@@ -588,8 +586,6 @@ void SpriteGL::draw( int inFrame,
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    mTexture->disable();
     }
 
 
@@ -602,9 +598,18 @@ void SpriteGL::draw( int inFrame,
 
 // opt (found with profiler)
 // only construct these once, not every draw call
-Vector3D corners[4];
+
 
 double textXA, textXB, textYA, textYB;
+
+
+GLfloat squareVertices[4*2];
+
+GLfloat squareColors[4*4];
+
+GLfloat squareTextureCoords[4*2];
+
+
 
 
 void SpriteGL::prepareDraw( int inFrame, 
@@ -653,54 +658,50 @@ void SpriteGL::prepareDraw( int inFrame,
         double posX = inPosition->mX - centerOffset.x;
         double posY = inPosition->mY + centerOffset.y;
         
-        corners[0].mX = posX - xLeftRadius;
-        corners[0].mY = posY - yBottomRadius;
-        //corners[0].mZ = 0;
+        squareVertices[0] = posX - xLeftRadius;
+        squareVertices[1] = posY - yBottomRadius;
         
-        corners[1].mX = posX + xRightRadius;
-        corners[1].mY = posY - yBottomRadius;
-        //corners[1].mZ = 0;
+        squareVertices[2] = posX + xRightRadius; 
+        squareVertices[3] = posY - yBottomRadius;
         
-        corners[2].mX = posX + xRightRadius;
-        corners[2].mY = posY + yTopRadius;
-        //corners[2].mZ = 0;
+        squareVertices[4] = posX - xLeftRadius; 
+        squareVertices[5] = posY + yTopRadius;
         
-        corners[3].mX = posX - xLeftRadius;
-        corners[3].mY = posY + yTopRadius;
-        //corners[3].mZ = 0;
+        squareVertices[6] = posX + xRightRadius; 
+        squareVertices[7] = posY + yTopRadius;
+        
         }
     else {
         double posX = inPosition->mX;
         double posY = inPosition->mY;
 
-        corners[0].mX = - xLeftRadius - centerOffset.x;
-        corners[0].mY = - yBottomRadius + centerOffset.y;
-        //corners[0].mZ = 0;
+        squareVertices[0] = - xLeftRadius - centerOffset.x;
+        squareVertices[1] = - yBottomRadius + centerOffset.y;
         
-        corners[1].mX = xRightRadius - centerOffset.x;
-        corners[1].mY = - yBottomRadius + centerOffset.y;
-        //corners[1].mZ = 0;
+        squareVertices[2] = xRightRadius - centerOffset.x;
+        squareVertices[3] = - yBottomRadius + centerOffset.y;        
         
-        corners[2].mX = xRightRadius - centerOffset.x;
-        corners[2].mY = yTopRadius + centerOffset.y;
-        //corners[2].mZ = 0;
-        
-        corners[3].mX = - xLeftRadius - centerOffset.x;
-        corners[3].mY = yTopRadius + centerOffset.y;
+        squareVertices[4] = - xLeftRadius - centerOffset.x;
+        squareVertices[5] = yTopRadius + centerOffset.y;
+
+        squareVertices[6] = xRightRadius - centerOffset.x;
+        squareVertices[7] = yTopRadius + centerOffset.y;
+
 
         double cosAngle = cos( - 2 * M_PI * inRotation );
         double sinAngle = sin( - 2 * M_PI * inRotation );
         
-        for( int i=0; i<4; i++ ) {
-            double x = corners[i].mX;
-            double y = corners[i].mY;
+        for( int i=0; i<7; i+=2 ) {
+            double x = squareVertices[i];
+            double y = squareVertices[i+1];
             
-            corners[i].mX = x * cosAngle - y * sinAngle;
-            corners[i].mY = x * sinAngle + y * cosAngle;
+            squareVertices[i] = x * cosAngle - y * sinAngle;
+            squareVertices[i+1] = x * sinAngle + y * cosAngle;
 
-            corners[i].mX += posX;
-            corners[i].mY += posY;
+            squareVertices[i] += posX;
+            squareVertices[i+1] += posY;
             }
+
         }
 
     // int i;
@@ -773,6 +774,18 @@ void SpriteGL::prepareDraw( int inFrame,
 
     textYB += 0.5 - mColoredRadiusTopY;
     textYA -= 0.5 - mColoredRadiusBottomY;
+
+    squareTextureCoords[0] = textXA;
+    squareTextureCoords[1] = textYA;
+
+    squareTextureCoords[2] = textXB;
+    squareTextureCoords[3] = textYA;
+    
+    squareTextureCoords[4] = textXA;
+    squareTextureCoords[5] = textYB;
+
+    squareTextureCoords[6] = textXB;
+    squareTextureCoords[7] = textYB;
     }
 
 
@@ -795,49 +808,50 @@ void SpriteGL::draw( int inFrame,
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
                  inMipMapFilter,
                  inRotation, inFlipH );
+
+
+    glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
+    glEnableClientState( GL_VERTEX_ARRAY );
     
-    glBegin( GL_QUADS ); {
-        
-        glTexCoord2f( textXA, textYA );
-        glVertex2d( corners[0].mX, corners[0].mY );
-        
-        glTexCoord2f( textXB, textYA );
-        glVertex2d( corners[1].mX, corners[1].mY );
-        
-        glTexCoord2f( textXB, textYB );
-        glVertex2d( corners[2].mX, corners[2].mY );
-        
-        glTexCoord2f( textXA, textYB );
-        glVertex2d( corners[3].mX, corners[3].mY );
-        }
-    glEnd();
-    mTexture->disable();
+    
+    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    
+    glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+
 
     /*
       // for debugging
       // show red square around each sprite
     
+    SingleTextureGL::disableTexturing();
+    
     FloatColor oldColor = getDrawColor();
     setDrawColor( 1, 0, 0, 0.75 );
-    glBegin( GL_LINE_LOOP ); {
-        glVertex2d( corners[0].mX, corners[0].mY );
-        
-        glVertex2d( corners[1].mX, corners[1].mY );
-        
-        glVertex2d( corners[2].mX, corners[2].mY );
-        
-        glVertex2d( corners[3].mX, corners[3].mY );
-        }
-    glEnd();
+
+    GLfloat temp = squareVertices[4];
+    squareVertices[4] = squareVertices[6];
+    squareVertices[6] = temp;
+    
+    temp = squareVertices[5];
+    squareVertices[5] = squareVertices[7];
+    squareVertices[7] = temp;
+    //glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
+    
+    glDrawArrays( GL_LINE_LOOP, 0, 4 );
+    
     setDrawColor( oldColor );
     */
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
     if( sCountingPixels ) {
         double increment = 
-            ( corners[2].mX - corners[0].mX ) *
-            ( corners[2].mY - corners[0].mY );        
+            ( squareVertices[6] - squareVertices[0] ) *
+            ( squareVertices[7] - squareVertices[1] );        
         sPixelsDrawn += increment;
-        }   
-
+        }
     }
 
 
@@ -854,31 +868,48 @@ void SpriteGL::draw( int inFrame,
     prepareDraw( inFrame, inPosition, inScale, inLinearMagFilter,
                  inMipMapFilter,
                  inRotation, inFlipH );
-    
-    glBegin( GL_QUADS ); {
+
+    glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
+    glEnableClientState( GL_VERTEX_ARRAY );
+
+    for( int c=0; c<4; c++ ) {
         
-        glColor4f( inCornerColors[0].r, inCornerColors[0].g, 
-                   inCornerColors[0].b, inCornerColors[0].a );
-        glTexCoord2f( textXA, textYA );
-        glVertex2d( corners[0].mX, corners[0].mY );
-        
-        glColor4f( inCornerColors[1].r, inCornerColors[1].g, 
-                   inCornerColors[1].b, inCornerColors[1].a );
-        glTexCoord2f( textXB, textYA );
-        glVertex2d( corners[1].mX, corners[1].mY );
-        
-        glColor4f( inCornerColors[2].r, inCornerColors[2].g, 
-                   inCornerColors[2].b, inCornerColors[2].a );
-        glTexCoord2f( textXB, textYB );
-        glVertex2d( corners[2].mX, corners[2].mY );
-        
-        glColor4f( inCornerColors[3].r, inCornerColors[3].g, 
-                   inCornerColors[3].b, inCornerColors[3].a );
-        glTexCoord2f( textXA, textYB );
-        glVertex2d( corners[3].mX, corners[3].mY );
+        int cDest = c;
+        if( c == 2 ) {
+            cDest = 3;
+            }
+        else if( c == 3 ) {
+            cDest = 2;
+            }
+
+        int start = cDest * 4;
+        squareColors[ start ] = inCornerColors[c].r;
+        squareColors[ start + 1 ] = inCornerColors[c].g;
+        squareColors[ start + 2 ] = inCornerColors[c].b;
+        squareColors[ start + 3 ] = inCornerColors[c].a;
         }
-    glEnd();
-    mTexture->disable();
+    
+    
+    glColorPointer( 4, GL_FLOAT, 0, squareColors );
+    glEnableClientState( GL_COLOR_ARRAY );
+
+
+    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
+    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+
+    if( sCountingPixels ) {
+        double increment = 
+            ( squareVertices[6] - squareVertices[0] ) *
+            ( squareVertices[7] - squareVertices[1] );        
+        sPixelsDrawn += increment;
+        }
     }
 
 

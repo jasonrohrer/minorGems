@@ -2747,7 +2747,6 @@ void GameSceneHandler::drawScene() {
     redoDrawMatrix();
 
 
-	glDisable( GL_TEXTURE_2D );
 	glDisable( GL_CULL_FACE );
     glDisable( GL_DEPTH_TEST );
 

@@ -584,9 +584,6 @@ inline void TextGL::drawCharacter( unsigned char inCharacter,
 		glVertex3d( charStartX, charEndY, mZ );
 		}
 	glEnd();
-
-
-	mFontTexture->disable();
 	}
 
 

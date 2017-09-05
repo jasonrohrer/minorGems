@@ -241,6 +241,7 @@ static double *quadVertsToTriangles( int inNumQuads, double inVertices[] ) {
 
 
 void drawQuads( int inNumQuads, double inVertices[] ) {
+    SingleTextureGL::disableTexturing();
     
     double *triangleVertices = quadVertsToTriangles( inNumQuads, inVertices );
         
@@ -252,6 +253,8 @@ void drawQuads( int inNumQuads, double inVertices[] ) {
 
 void drawQuads( int inNumQuads, double inVertices[], 
                 float inVertexColors[] ) {
+
+    SingleTextureGL::disableTexturing();
 
     double *triangleVertices = quadVertsToTriangles( inNumQuads, inVertices );
     
@@ -300,6 +303,9 @@ void drawQuads( int inNumQuads, double inVertices[],
 
 void drawTriangles( int inNumTriangles, double inVertices[], 
                     char inStrip, char inFan ) {
+    
+    SingleTextureGL::disableTexturing();
+    
     glEnableClientState( GL_VERTEX_ARRAY );
 
     int numVerts;
@@ -343,6 +349,8 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 void drawTrianglesColor( int inNumTriangles, double inVertices[], 
                          float inVertexColors[], char inStrip, char inFan ) {
 
+    SingleTextureGL::disableTexturing();
+    
     glEnableClientState( GL_VERTEX_ARRAY );
     
     int numVerts;
@@ -393,6 +401,7 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
 
 
 void drawQuads( int inNumQuads, double inVertices[] ) {
+    SingleTextureGL::disableTexturing();
     
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -406,6 +415,8 @@ void drawQuads( int inNumQuads, double inVertices[] ) {
 
 void drawQuads( int inNumQuads, double inVertices[], 
                 float inVertexColors[] ) {
+
+    SingleTextureGL::disableTexturing();
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -425,6 +436,9 @@ void drawQuads( int inNumQuads, double inVertices[],
 
 void drawTriangles( int inNumTriangles, double inVertices[], 
                     char inStrip, char inFan ) {
+    
+    SingleTextureGL::disableTexturing();
+    
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
         
@@ -447,6 +461,8 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 void drawTrianglesColor( int inNumTriangles, double inVertices[], 
                          float inVertexColors[], char inStrip, char inFan ) {
 
+    SingleTextureGL::disableTexturing();
+    
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
     

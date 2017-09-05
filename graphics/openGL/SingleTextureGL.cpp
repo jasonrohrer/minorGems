@@ -30,6 +30,8 @@
 
 SimpleVector<SingleTextureGL *> SingleTextureGL::sAllLoadedTextures;
 
+char SingleTextureGL::sTexturingEnabled = false;
+
 
 
 void SingleTextureGL::contextChanged() {
@@ -46,6 +48,16 @@ void SingleTextureGL::contextChanged() {
         t->reloadFromBackup();
         }
     }
+
+
+
+
+
+void SingleTextureGL::disableTexturing() {    
+    glDisable( GL_TEXTURE_2D );
+	sTexturingEnabled = false;
+    }
+
 
 
 

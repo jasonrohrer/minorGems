@@ -164,21 +164,21 @@ class SingleTextureGL {
 		/**
 		 * Enables this texture.
 		 */
-		void enable();
-
-		
-		
-		/**
-		 * Disables this texture and all of its layers.
-		 */
-		void disable();		
+		void enable();	
 
 
         // tell all textures about a GL context change so they can reload
         // int texture memory
         static void contextChanged();
         
-		
+
+        // disable texturing globally
+        // in general, should be left on for texturing-heavy applications
+        // and turned off selectively when drawing flat squares, etc.
+        // Is turned on automatically again whenever a given texture
+        // is enabled.
+        static void disableTexturing();
+        
 		
 	private:
         char mRepeat;
@@ -204,7 +204,7 @@ class SingleTextureGL {
 
         static SimpleVector<SingleTextureGL *> sAllLoadedTextures;
         
-        
+        static char sTexturingEnabled;
 	};
 
 
@@ -215,7 +215,13 @@ class SingleTextureGL {
 
 
 inline void SingleTextureGL::enable() {	
-    glEnable( GL_TEXTURE_2D );
+
+    if( !sTexturingEnabled ) {    
+        glEnable( GL_TEXTURE_2D );
+        sTexturingEnabled = true;
+        }
+    
+    
 	glBindTexture( GL_TEXTURE_2D, mTextureID ); 
 
     int error = glGetError();
@@ -223,12 +229,6 @@ inline void SingleTextureGL::enable() {
 		printf( "Error binding texture id %d, error = %d\n",
                 (int)mTextureID, error );
 		}
-	}
-
-
-
-inline void SingleTextureGL::disable() {
-	glDisable( GL_TEXTURE_2D );
 	}
 	
 	
