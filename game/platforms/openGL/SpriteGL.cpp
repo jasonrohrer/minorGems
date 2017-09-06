@@ -897,9 +897,6 @@ void SpriteGL::draw( int inFrame,
     
     setDrawColor( oldColor );
     */
-
-    //glDisableClientState( GL_VERTEX_ARRAY );
-    //glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     }
 
 
@@ -917,8 +914,15 @@ void SpriteGL::draw( int inFrame,
                  inMipMapFilter,
                  inRotation, inFlipH );
 
+
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
-    glEnableClientState( GL_VERTEX_ARRAY );
+    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
+    
+    if( !sStateSet ) {    
+        glEnableClientState( GL_VERTEX_ARRAY );
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+        sStateSet = true;
+        }
 
     for( int c=0; c<4; c++ ) {
         
@@ -942,14 +946,10 @@ void SpriteGL::draw( int inFrame,
     glEnableClientState( GL_COLOR_ARRAY );
 
 
-    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-    
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glDisableClientState( GL_VERTEX_ARRAY );
+    
     glDisableClientState( GL_COLOR_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     }
 
 
