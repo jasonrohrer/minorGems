@@ -144,6 +144,12 @@ class SpriteGL{
             return sPixelsDrawn;
             }
         
+        
+        static void setTexturingDisabled() {
+            // need to renable client states later
+            sStateSet = false;
+            SingleTextureGL::disableTexturing();
+            }
 
         
         int mWidth, mHeight;
@@ -154,6 +160,16 @@ class SpriteGL{
         
         static char sCountingPixels;
         static unsigned int sPixelsDrawn;
+
+        // -1 for unset, 0 for nearest, 1 for linear, 2 for mipmap
+        static int sLastSetMinFilter;
+        
+        // -1 for unset, 0 for nearest, 1 for linear
+        static int sLastSetMagFilter;
+        
+        static char sWrapSet;
+
+        static char sStateSet;
         
 
         SingleTextureGL *mTexture;

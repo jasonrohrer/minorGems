@@ -208,6 +208,14 @@ void startCountingSpritePixelsDrawn();
 unsigned int endCountingSpritePixelsDrawn();
 
 
+
+void startCountingSpritesDrawn();
+
+// returns the number of sprites drawn since we started counting
+unsigned int endCountingSpritesDrawn();
+
+
+
 // draw with current draw color
 // mag filter defaults to off (nearest neighbor, big pixels)
 // Rotation is in fractions of a full clockwise rotation (0.25 is 90 deg cw)

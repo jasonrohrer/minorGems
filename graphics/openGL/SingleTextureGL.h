@@ -205,6 +205,8 @@ class SingleTextureGL {
         static SimpleVector<SingleTextureGL *> sAllLoadedTextures;
         
         static char sTexturingEnabled;
+
+        static GLuint sLastBoundTextureID;
 	};
 
 
@@ -221,14 +223,19 @@ inline void SingleTextureGL::enable() {
         sTexturingEnabled = true;
         }
     
+    if( sLastBoundTextureID != mTextureID ) {
+        glBindTexture( GL_TEXTURE_2D, mTextureID ); 
+        
+        sLastBoundTextureID = mTextureID;
+        
+        int error = glGetError();
+        if( error != GL_NO_ERROR ) {		// error
+            printf( "Error binding texture id %d, error = %d\n",
+                    (int)mTextureID, error );
+            sLastBoundTextureID = -1;
+            }
+        }
     
-	glBindTexture( GL_TEXTURE_2D, mTextureID ); 
-
-    int error = glGetError();
-	if( error != GL_NO_ERROR ) {		// error
-		printf( "Error binding texture id %d, error = %d\n",
-                (int)mTextureID, error );
-		}
 	}
 	
 	

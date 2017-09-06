@@ -6,6 +6,14 @@
 #include "minorGems/util/log/AppLog.h"
 
 
+int SpriteGL::sLastSetMinFilter = -1;
+        
+int SpriteGL::sLastSetMagFilter = -1;
+
+char SpriteGL::sWrapSet = false;
+char SpriteGL::sStateSet = false;
+        
+
 
 char SpriteGL::sGenerateMipMaps = false;
 
@@ -453,27 +461,43 @@ void SpriteGL::prepareDraw( int inFrame,
     mTexture->enable();
     
     if( inMipMapFilter ) {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                         GL_LINEAR_MIPMAP_LINEAR );
+        if( sLastSetMinFilter != 2 ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                             GL_LINEAR_MIPMAP_LINEAR );
+            sLastSetMinFilter = 2;
+            }
         }
     else {
         
         if( inLinearMagFilter ) {
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                             GL_LINEAR );
+            if( sLastSetMinFilter != 1 ) {
+                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                                 GL_LINEAR );
+                sLastSetMinFilter = 1;
+                }
             }
         else {
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                             GL_NEAREST );
+            if( sLastSetMinFilter != 0 ) {
+                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                                 GL_NEAREST );
+                sLastSetMinFilter = 0;
+                }
             }
         }
     
     if( inLinearMagFilter ) {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        if( sLastSetMagFilter != 1 ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+            sLastSetMagFilter = 1;
+            }
         }
     else {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        if( sLastSetMagFilter != 0 ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+            sLastSetMagFilter = 0;
+            }
         }
+    
 
 
     float textXA = (1.0f / mNumPages) * mCurrentPage;
@@ -640,6 +664,16 @@ void SpriteGL::prepareDraw( int inFrame,
     doublePair centerOffset = mult( mCenterOffset, inScale );
 
 
+    if( sCountingPixels ) {
+        // do this pre-flip and pre-rotation
+        double increment = 
+            ( xLeftRadius + xRightRadius ) *
+            ( yTopRadius + yBottomRadius );        
+        sPixelsDrawn += increment;
+        }
+
+
+
     if( !(mFlipHorizontal) != !(inFlipH) ) {
         // make sure flips don't override eachother, xor
 
@@ -733,33 +767,50 @@ void SpriteGL::prepareDraw( int inFrame,
     mTexture->enable();
     
 
-    
-    if( inMipMapFilter ) {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                         GL_LINEAR_MIPMAP_LINEAR );
+        if( inMipMapFilter ) {
+        if( sLastSetMinFilter != 2 ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                             GL_LINEAR_MIPMAP_LINEAR );
+            sLastSetMinFilter = 2;
+            }
         }
     else {
         
         if( inLinearMagFilter ) {
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                             GL_LINEAR );
+            if( sLastSetMinFilter != 1 ) {
+                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                                 GL_LINEAR );
+                sLastSetMinFilter = 1;
+                }
             }
         else {
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                             GL_NEAREST );
+            if( sLastSetMinFilter != 0 ) {
+                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                                 GL_NEAREST );
+                sLastSetMinFilter = 0;
+                }
             }
         }
     
     if( inLinearMagFilter ) {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        if( sLastSetMagFilter != 1 ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+            sLastSetMagFilter = 1;
+            }
         }
     else {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        if( sLastSetMagFilter != 0 ) {
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+            sLastSetMagFilter = 0;
+            }
         }
 
     
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+    if( !sWrapSet ) {    
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+        sWrapSet = true;
+        }
     
     
     textXA = (1.0 / mNumPages) * mCurrentPage;
@@ -811,11 +862,15 @@ void SpriteGL::draw( int inFrame,
 
 
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
-    glEnableClientState( GL_VERTEX_ARRAY );
     
     
     glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    
+    if( !sStateSet ) {    
+        glEnableClientState( GL_VERTEX_ARRAY );
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+        sStateSet = true;
+        }
     
     glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
@@ -843,15 +898,8 @@ void SpriteGL::draw( int inFrame,
     setDrawColor( oldColor );
     */
 
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    if( sCountingPixels ) {
-        double increment = 
-            ( squareVertices[6] - squareVertices[0] ) *
-            ( squareVertices[7] - squareVertices[1] );        
-        sPixelsDrawn += increment;
-        }
+    //glDisableClientState( GL_VERTEX_ARRAY );
+    //glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     }
 
 
@@ -902,14 +950,6 @@ void SpriteGL::draw( int inFrame,
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-
-    if( sCountingPixels ) {
-        double increment = 
-            ( squareVertices[6] - squareVertices[0] ) *
-            ( squareVertices[7] - squareVertices[1] );        
-        sPixelsDrawn += increment;
-        }
     }
 
 

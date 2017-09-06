@@ -32,11 +32,15 @@ SimpleVector<SingleTextureGL *> SingleTextureGL::sAllLoadedTextures;
 
 char SingleTextureGL::sTexturingEnabled = false;
 
+GLuint SingleTextureGL::sLastBoundTextureID = 0;
+
 
 
 void SingleTextureGL::contextChanged() {
     // tell all textures to reload
 
+    sLastBoundTextureID = 0;
+    
     int numTextures = sAllLoadedTextures.size();
     
     printf( "Reloading %d textures due to OpenGL context change\n",
@@ -56,6 +60,7 @@ void SingleTextureGL::contextChanged() {
 void SingleTextureGL::disableTexturing() {    
     glDisable( GL_TEXTURE_2D );
 	sTexturingEnabled = false;
+    sLastBoundTextureID = 0;
     }
 
 

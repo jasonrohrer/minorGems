@@ -241,7 +241,7 @@ static double *quadVertsToTriangles( int inNumQuads, double inVertices[] ) {
 
 
 void drawQuads( int inNumQuads, double inVertices[] ) {
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
     
     double *triangleVertices = quadVertsToTriangles( inNumQuads, inVertices );
         
@@ -254,7 +254,7 @@ void drawQuads( int inNumQuads, double inVertices[] ) {
 void drawQuads( int inNumQuads, double inVertices[], 
                 float inVertexColors[] ) {
 
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
 
     double *triangleVertices = quadVertsToTriangles( inNumQuads, inVertices );
     
@@ -304,7 +304,7 @@ void drawQuads( int inNumQuads, double inVertices[],
 void drawTriangles( int inNumTriangles, double inVertices[], 
                     char inStrip, char inFan ) {
     
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
     
     glEnableClientState( GL_VERTEX_ARRAY );
 
@@ -349,7 +349,7 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 void drawTrianglesColor( int inNumTriangles, double inVertices[], 
                          float inVertexColors[], char inStrip, char inFan ) {
 
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
     
     glEnableClientState( GL_VERTEX_ARRAY );
     
@@ -401,7 +401,7 @@ void drawTrianglesColor( int inNumTriangles, double inVertices[],
 
 
 void drawQuads( int inNumQuads, double inVertices[] ) {
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
     
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -416,7 +416,7 @@ void drawQuads( int inNumQuads, double inVertices[] ) {
 void drawQuads( int inNumQuads, double inVertices[], 
                 float inVertexColors[] ) {
 
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -437,7 +437,7 @@ void drawQuads( int inNumQuads, double inVertices[],
 void drawTriangles( int inNumTriangles, double inVertices[], 
                     char inStrip, char inFan ) {
     
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
     
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -461,7 +461,7 @@ void drawTriangles( int inNumTriangles, double inVertices[],
 void drawTrianglesColor( int inNumTriangles, double inVertices[], 
                          float inVertexColors[], char inStrip, char inFan ) {
 
-    SingleTextureGL::disableTexturing();
+    SpriteGL::setTexturingDisabled();
     
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_DOUBLE, 0, inVertices );
@@ -674,18 +674,42 @@ unsigned int endCountingSpritePixelsDrawn() {
 
 
 
+// more efficient and simpler to always count
+// instead of keeping an "are we counting" state
+// just set this to zero whenever user asks to start counting
+static unsigned int numSpritesDrawn = 0;
+
+
+void startCountingSpritesDrawn() {
+    numSpritesDrawn = 0;
+    }
+
+
+
+unsigned int endCountingSpritesDrawn() {
+    return numSpritesDrawn;
+    }
+
+
+
+// profiler found constructor/deconstructor calls were using 1.8% of time
+static Vector3D spritePos( 0, 0, 0 );
+
 // draw with current draw color
 void drawSprite( SpriteHandle inSprite, doublePair inCenter, 
                  double inZoom, double inRotation, char inFlipH ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
     
-    Vector3D pos( inCenter.x, inCenter.y, 0 );
-
+    spritePos.mX = inCenter.x;
+    spritePos.mY = inCenter.y;
+    
     sprite->draw( 0,
-                  &pos,
+                  &spritePos,
                   inZoom,
                   linearTextureFilterOn,
                   mipMapTextureFilterOn, inRotation, inFlipH );
+    
+    numSpritesDrawn++;
     }
 
 
@@ -695,14 +719,17 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
                  double inZoom, double inRotation, char inFlipH ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
     
-    Vector3D pos( inCenter.x, inCenter.y, 0 );
+    spritePos.mX = inCenter.x;
+    spritePos.mY = inCenter.y;
 
     sprite->draw( 0,
-                  &pos,
+                  &spritePos,
                   inCornerColors,
                   inZoom,
                   linearTextureFilterOn, mipMapTextureFilterOn,
                   inRotation, inFlipH );
+    
+    numSpritesDrawn++;
     }
 
 
