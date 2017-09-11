@@ -96,7 +96,7 @@ unsigned char *getAIFFHeader( int inNumChannels, int inSampleSizeInBits,
 
 
 int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
-                             int *outNumSamples ) {
+                             int *outNumSamples, int *outSampleRate ) {
     
     if( inNumBytes < 34 ) {
         printf( "AIFF not long enough for header\n" );
@@ -121,6 +121,16 @@ int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
         inData[23] << 16 |
         inData[24] << 8 |
         inData[25];
+
+
+    int sampleRate =
+        inData[30] << 8 |
+        inData[31];
+    
+    if( outSampleRate != NULL ) {
+        *outSampleRate = sampleRate;
+        }
+
 
     int sampleStartByte = 54;
                         

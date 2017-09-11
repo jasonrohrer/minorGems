@@ -12,6 +12,7 @@
 
 
 #include <stdint.h>
+#include <stdlib.h>
 
 
 
@@ -36,7 +37,8 @@ unsigned char *getAIFFHeader( int inNumChannels, int inSampleSizeInBits,
 
 // returns newly allocated array of samples destroyed by caller
 int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
-                             int *outNumSamples );
+                             int *outNumSamples,
+                             int *outSampleRate = NULL );
 
 
 #endif
