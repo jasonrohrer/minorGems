@@ -2378,6 +2378,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         // frame rate
         }
     
+
+    // default texture mode
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+
+    
     screen->start();
 
     
