@@ -3873,6 +3873,25 @@ void saveScreenShot( const char *inPrefix ) {
 
 
 
+void startOutputAllFrames() {
+    if( screenShotPrefix != NULL ) {
+        delete [] screenShotPrefix;
+        }
+    screenShotPrefix = stringDuplicate( "frame" );
+    
+    outputAllFrames = true;
+    shouldTakeScreenshot = true;
+    }
+
+
+void stopOutputAllFrames() {
+    outputAllFrames = false;
+    shouldTakeScreenshot = false;
+    }
+
+
+
+
 
 // if manualScreenShot false, then any blend settings (for saving blended 
 // double-frames) are applied

@@ -511,6 +511,12 @@ char isGamePlayingBack();
 void saveScreenShot( const char *inPrefix );
 
 
+// equivalent to the outputAllFrames.ini setting, but
+// turned on and off programatically
+void startOutputAllFrames();
+void stopOutputAllFrames();
+
+
 
 // the supporting platform wraps web requests to ensure that web
 // data repeats during playback of recorded games
