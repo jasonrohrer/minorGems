@@ -61,6 +61,10 @@ void toggleAdditiveTextureColoring( char inAdditive );
 // defautls to nearest-neighbor texture magnification
 void toggleLinearMagFilter( char inLinearFilterOn );
 
+char getLinearMagFilterOn();
+
+
+
 void toggleMipMapMinFilter( char inMipMapFilterOn );
 
 

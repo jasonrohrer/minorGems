@@ -182,6 +182,12 @@ void toggleLinearMagFilter( char inLinearFilterOn ) {
 
 
 
+char getLinearMagFilterOn() {
+    return linearTextureFilterOn;
+    }
+
+
+
 void toggleMipMapGeneration( char inGenerateMipMaps ) {
     SpriteGL::toggleMipMapGeneration( inGenerateMipMaps );
     }
