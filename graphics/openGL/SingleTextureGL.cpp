@@ -401,6 +401,14 @@ void SingleTextureGL::setTextureData( unsigned char *inBytes,
     
     
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+    if( mRepeat ) {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+        }
+    else {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+        }
     
     if( mMipMap ) {
         // GL_GENERATE_MIPMAP not available on some platforms,

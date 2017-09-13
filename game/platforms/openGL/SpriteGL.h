@@ -162,10 +162,10 @@ class SpriteGL{
         static unsigned int sPixelsDrawn;
 
         // -1 for unset, 0 for nearest, 1 for linear, 2 for mipmap
-        static int sLastSetMinFilter;
+        int mLastSetMinFilter;
         
         // -1 for unset, 0 for nearest, 1 for linear
-        static int sLastSetMagFilter;
+        int mLastSetMagFilter;
         
         static char sWrapSet;
 

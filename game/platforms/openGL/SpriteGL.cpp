@@ -6,11 +6,7 @@
 #include "minorGems/util/log/AppLog.h"
 
 
-int SpriteGL::sLastSetMinFilter = -1;
-        
-int SpriteGL::sLastSetMagFilter = -1;
 
-char SpriteGL::sWrapSet = false;
 char SpriteGL::sStateSet = false;
         
 
@@ -199,6 +195,9 @@ void SpriteGL::initTexture( Image *inImage,
                             int inNumFrames,
                             int inNumPages, char inSetColoredRadii ) {
     
+    mLastSetMinFilter = -1;
+    mLastSetMagFilter = -1;
+    
     mColoredRadiusLeftX = 0.5;
     mColoredRadiusRightX = 0.5;
     mColoredRadiusTopY = 0.5;
@@ -283,6 +282,9 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
                     int inNumPages,
                     char inSetColoredRadii ) {
 
+    mLastSetMinFilter = -1;
+    mLastSetMagFilter = -1;
+    
     mColoredRadiusLeftX = 0.5;
     mColoredRadiusRightX = 0.5;
     mColoredRadiusTopY = 0.5;
@@ -323,6 +325,9 @@ SpriteGL::SpriteGL( char inAlphaOnly,
                     int inNumPages,
                     char inSetColoredRadii ) {
 
+    mLastSetMinFilter = -1;
+    mLastSetMagFilter = -1;
+    
     mColoredRadiusLeftX = 0.5;
     mColoredRadiusRightX = 0.5;
     mColoredRadiusTopY = 0.5;
@@ -461,40 +466,40 @@ void SpriteGL::prepareDraw( int inFrame,
     mTexture->enable();
     
     if( inMipMapFilter ) {
-        if( sLastSetMinFilter != 2 ) {
+        if( mLastSetMinFilter != 2 ) {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                              GL_LINEAR_MIPMAP_LINEAR );
-            sLastSetMinFilter = 2;
+            mLastSetMinFilter = 2;
             }
         }
     else {
         
         if( inLinearMagFilter ) {
-            if( sLastSetMinFilter != 1 ) {
+            if( mLastSetMinFilter != 1 ) {
                 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                                  GL_LINEAR );
-                sLastSetMinFilter = 1;
+                mLastSetMinFilter = 1;
                 }
             }
         else {
-            if( sLastSetMinFilter != 0 ) {
+            if( mLastSetMinFilter != 0 ) {
                 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                                  GL_NEAREST );
-                sLastSetMinFilter = 0;
+                mLastSetMinFilter = 0;
                 }
             }
         }
     
     if( inLinearMagFilter ) {
-        if( sLastSetMagFilter != 1 ) {
+        if( mLastSetMagFilter != 1 ) {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-            sLastSetMagFilter = 1;
+            mLastSetMagFilter = 1;
             }
         }
     else {
-        if( sLastSetMagFilter != 0 ) {
+        if( mLastSetMagFilter != 0 ) {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-            sLastSetMagFilter = 0;
+            mLastSetMagFilter = 0;
             }
         }
     
@@ -767,50 +772,45 @@ void SpriteGL::prepareDraw( int inFrame,
     mTexture->enable();
     
 
-        if( inMipMapFilter ) {
-        if( sLastSetMinFilter != 2 ) {
+    if( inMipMapFilter ) {
+        if( mLastSetMinFilter != 2 ) {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                              GL_LINEAR_MIPMAP_LINEAR );
-            sLastSetMinFilter = 2;
+            mLastSetMinFilter = 2;
             }
         }
     else {
         
         if( inLinearMagFilter ) {
-            if( sLastSetMinFilter != 1 ) {
+            if( mLastSetMinFilter != 1 ) {
                 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                                  GL_LINEAR );
-                sLastSetMinFilter = 1;
+                mLastSetMinFilter = 1;
                 }
             }
         else {
-            if( sLastSetMinFilter != 0 ) {
+            if( mLastSetMinFilter != 0 ) {
                 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                                  GL_NEAREST );
-                sLastSetMinFilter = 0;
+                mLastSetMinFilter = 0;
                 }
             }
         }
     
     if( inLinearMagFilter ) {
-        if( sLastSetMagFilter != 1 ) {
+        if( mLastSetMagFilter != 1 ) {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-            sLastSetMagFilter = 1;
+            mLastSetMagFilter = 1;
             }
         }
     else {
-        if( sLastSetMagFilter != 0 ) {
+        if( mLastSetMagFilter != 0 ) {
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-            sLastSetMagFilter = 0;
+            mLastSetMagFilter = 0;
             }
         }
 
     
-    if( !sWrapSet ) {    
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-        sWrapSet = true;
-        }
     
     
     textXA = (1.0 / mNumPages) * mCurrentPage;
