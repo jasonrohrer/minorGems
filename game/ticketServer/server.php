@@ -674,6 +674,7 @@ function ts_checkTicketHash() {
         $ticket_id = mysql_result( $result, 0, "ticket_id" );
         }
     else {
+        ts_log( "email $email not found on check_ticket_hash" );
         echo "INVALID";
         return;
         }
@@ -698,6 +699,7 @@ function ts_checkTicketHash() {
         echo "VALID";
         }
     else {
+        ts_log( "hash for $email invalid on check_ticket_hash" );
         echo "INVALID";
         }
     }
