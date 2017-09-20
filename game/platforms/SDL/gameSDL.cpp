@@ -2860,8 +2860,10 @@ void GameSceneHandler::drawScene() {
                         AppLog::infoF( 
                             "Will sleep each frame to enforce desired "
                             "frame rate of %d fps\n",
-                            targetFrameRate );
+                            closestTargetFrameRate );
                     
+                        targetFrameRate = closestTargetFrameRate;
+
                         screen->useFrameSleep( true );
                         countingOnVsync = false;
                         }
