@@ -1,5 +1,2 @@
-# use glob syntax.
-syntax: glob
-
 *.o
 *~
