@@ -1,0 +1,8 @@
+[user]
+	name = Jason Rohrer
+	email = jasonrohrer@fastmail.fm
+[push]
+	default = simple
+
+[alias]
+	xdiff = difftool --dir-diff --tool=meld --no-prompt
