@@ -315,6 +315,8 @@ static FILE *aiffOutFile = NULL;
 
 static int samplesLeftToRecord = 0;
 
+static char bufferSizeHinted = false;
+
 
 
 
@@ -991,6 +993,7 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
     
     int numSamples = inLengthToFill / 4;
 
+    printf( "Audio callback called for %d samples\n", numSamples );
     
     if( playingSoundSprites.size() > 0 ) {
         
@@ -2225,13 +2228,27 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         audioFormat.userdata = NULL;
         
         SDL_AudioSpec actualFormat;
+        
+
+        int recordAudioFlag = 
+            SettingsManager::getIntSetting( "recordAudio", 0 );
+        int recordAudioLengthInSeconds = 
+            SettingsManager::getIntSetting( "recordAudioLengthInSeconds", 0 );
+
 
 
         SDL_LockAudio();
+        
+        int openResult = 0;
+        
+        if( ! recordAudioFlag ) {
+            openResult = SDL_OpenAudio( &audioFormat, &actualFormat );
+            }
+        
 
 
         /* Open the audio device and start playing sound! */
-        if( SDL_OpenAudio( &audioFormat, &actualFormat ) < 0 ) {
+        if( openResult < 0 ) {
             AppLog::getLog()->logPrintf( 
                 Log::ERROR_LEVEL,
                 "Unable to open audio: %s\n", SDL_GetError() );
@@ -2239,8 +2256,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             }
         else {
 
-            if( actualFormat.format != AUDIO_S16 ||
-                actualFormat.channels != 2 ) {
+            if( !recordAudioFlag && 
+                ( actualFormat.format != AUDIO_S16 ||
+                  actualFormat.channels != 2 ) ) {
                 
                 
                 AppLog::getLog()->logPrintf( 
@@ -2255,18 +2273,30 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 
                 int desiredRate = soundSampleRate;
                 
+                if( !recordAudioFlag ) {    
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Successfully opened audio: %dHz (requested %dHz), "
+                        "sample buffer size=%d (requested %d)\n", 
+                        actualFormat.freq, desiredRate, actualFormat.samples,
+                        bufferSize );
+                    
+                    // tell game what their buffer size will be
+                    // so they can allocate it outside the callback
+                    hintBufferSize( actualFormat.samples * 4 );
+                    bufferSizeHinted = true;
+                    }
+                else {
+                    AppLog::getLog()->logPrintf( 
+                        Log::INFO_LEVEL,
+                        "Successfully faked opening of audio for "
+                        "recording to file: %dHz\n", desiredRate );
+                    // don't hint buffer size yet
+                    bufferSizeHinted = false;
+                    }
+                
 
-                AppLog::getLog()->logPrintf( 
-                    Log::INFO_LEVEL,
-                    "Successfully opened audio: %dHz (requested %dHz), "
-                    "sample buffer size=%d (requested %d)\n", 
-                    actualFormat.freq, desiredRate, actualFormat.samples,
-                    bufferSize );
 
-
-                // tell game what their buffer size will be
-                // so they can allocate it outside the callback
-                hintBufferSize( actualFormat.samples * 4 );
                 
                 soundSpriteNoClip =
                     resetAudioNoClip( 
@@ -2288,17 +2318,20 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                                       soundSampleRate / 20 );
 
 
-                soundSpriteMixingBufferL = new double[ actualFormat.samples ];
-                soundSpriteMixingBufferR = new double[ actualFormat.samples ];
 
-                soundSampleRate = actualFormat.freq;
-                soundRunning = true;
-
-                int recordAudioFlag = 
-                    SettingsManager::getIntSetting( "recordAudio", 0 );
-                int recordAudioLengthInSeconds = 
-                    SettingsManager::getIntSetting( 
-                        "recordAudioLengthInSeconds", 0 );
+                if( !recordAudioFlag ) {
+                    soundSampleRate = actualFormat.freq;
+                    
+                    soundSpriteMixingBufferL = 
+                        new double[ actualFormat.samples ];
+                    soundSpriteMixingBufferR = 
+                        new double[ actualFormat.samples ];
+                    }
+                
+                
+                if( !recordAudioFlag ) {
+                    soundRunning = true;
+                    }
 
                 if( recordAudioFlag == 1 && recordAudioLengthInSeconds > 0 ) {
                     recordAudio = true;
@@ -2939,7 +2972,32 @@ void GameSceneHandler::drawScene() {
         char update = !mPaused;
         
         drawFrame( update );
+        
+        if( recordAudio ) {
+            // frame-accurate audio recording
+            int samplesPerFrame = soundSampleRate / targetFrameRate;
+            
+            // stereo 16-bit
+            int bytesPerSample = 4;
+            
+            int numSampleBytes = bytesPerSample * samplesPerFrame;
 
+            Uint8 *bytes = new Uint8[ numSampleBytes ];
+
+            if( !bufferSizeHinted ) {
+                hintBufferSize( numSampleBytes );
+
+                soundSpriteMixingBufferL = new double[ samplesPerFrame ];
+                soundSpriteMixingBufferR = new double[ samplesPerFrame ];
+
+                bufferSizeHinted = true;
+                }
+
+            audioCallback( NULL, bytes, numSampleBytes );
+            
+            delete [] bytes;
+            }
+        
 
         if( screen->isPlayingBack() && screen->shouldShowPlaybackDisplay() ) {
 
