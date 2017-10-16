@@ -265,7 +265,9 @@ char countingOnVsync = false;
 int soundSampleRate = 22050;
 //int soundSampleRate = 44100;
 
+
 char soundRunning = false;
+char soundOpen = false;
 
 
 char hardToQuitMode = false;
@@ -544,11 +546,11 @@ void cleanUpAtExit() {
     delete sceneHandler;
 
 
-    if( soundRunning ) {
+    if( soundOpen ) {
         AppLog::info( "exiting: calling SDL_CloseAudio\n" );
         SDL_CloseAudio();
         }
-    soundRunning = false;
+    soundOpen = false;
 
 
     AppLog::info( "Freeing sound sprites\n" );
@@ -993,7 +995,6 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
     
     int numSamples = inLengthToFill / 4;
 
-    printf( "Audio callback called for %d samples\n", numSamples );
     
     if( playingSoundSprites.size() > 0 ) {
         
@@ -2253,6 +2254,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 Log::ERROR_LEVEL,
                 "Unable to open audio: %s\n", SDL_GetError() );
             soundRunning = false;
+            soundOpen = false;
             }
         else {
 
@@ -2268,6 +2270,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 
                 SDL_CloseAudio();
                 soundRunning = false;
+                soundOpen = false;
                 }
             else {
                 
@@ -2329,8 +2332,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                     }
                 
                 
-                if( !recordAudioFlag ) {
-                    soundRunning = true;
+                soundRunning = true;
+                soundOpen = true;
+                
+                if( recordAudioFlag ) {
+                    soundOpen = false;
                     }
 
                 if( recordAudioFlag == 1 && recordAudioLengthInSeconds > 0 ) {
