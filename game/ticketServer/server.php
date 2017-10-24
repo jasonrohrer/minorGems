@@ -139,6 +139,9 @@ else if( $action == "block_ticket_id" ) {
 else if( $action == "delete_ticket_id" ) {
     ts_deleteTicketID();
     }
+else if( $action == "bulk_email_opt_out" ) {
+    ts_bulkEmailOptOut();
+    }
 else if( $action == "check_ticket" ) {
     ts_checkTicket();
     }
@@ -835,6 +838,75 @@ function ts_deleteTicketID() {
 
         echo "DELETE operation failed?";
         }
+    }
+
+
+
+function ts_bulkEmailOptOut() {
+    ts_checkPassword( "bulk_email_opt_out" );
+
+    global $tableNamePrefix, $remoteIP;
+
+    // input filtering handled below
+    $emails = "";
+    if( isset( $_REQUEST[ "emails" ] ) ) {
+        $emails = $_REQUEST[ "emails" ];
+        }
+    
+    $emailArray = preg_split( "/\s+/", $emails );
+
+
+    $totalCount = count( $emailArray );
+    ts_log( "$totalCount opt-out initiated by $remoteIP" );
+
+
+    $failedCount = 0;
+    $alreadyOutCount = 0;
+    $successCount = 0;
+    foreach( $emailArray as $email ) {        
+        $unfilteredEmail = $email;
+        $email = ts_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
+        if( $email == "" ) {
+            echo "Invalid email address: $unfilteredEmail<br>";
+            $failedCount++;
+            }
+        else {
+            $email = strtolower( $email );
+
+            $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
+                "WHERE email = '$email';";
+            
+            $result = ts_queryDatabase( $query );
+
+            $countMatching = mysql_result( $result, 0, 0 );
+
+            if( $countMatching > 0 ) {
+                
+            
+                $query = "UPDATE $tableNamePrefix"."tickets ".
+                    "SET email_opt_in=0 WHERE email = '$email';";
+
+                $result = ts_queryDatabase( $query );
+
+                $affected = mysql_affected_rows();
+
+                $successCount += $affected;
+
+                $alreadyOutCount += ( $countMatching - $affected );
+                }
+            else {
+                echo "Email $email not found<br>";
+                $failedCount++;
+                }
+            }
+        }
+
+    echo "Summary:  $failedCount Failed, ".
+        "$alreadyOutCount already opted-out, ".
+        "$successCount newly opted out";
+    echo "<hr>";
+    ts_showData( false );
     }
 
 
@@ -1573,6 +1645,23 @@ function ts_showData( $checkPassword = true ) {
         </td>
 <?php
 
+
+
+    // form for bulk opt-out
+?>
+        <td>
+        Mass email opt-out:<br><br>
+            <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="bulk_email_opt_out">
+             Emails (one per line):<br>
+             <TEXTAREA NAME="emails" COLS=30 ROWS=10></TEXTAREA><br>
+    <INPUT TYPE="Submit" VALUE="Opt-out">
+    </FORM>
+        </td>
+<?php
+
+
+          
     echo "</tr></table></center>\n";
 
     
@@ -2635,9 +2724,20 @@ function ts_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
     if( ! isset( $_REQUEST[ $inRequestVariable ] ) ) {
         return $inDefault;
         }
+
+    return ts_filter( $_REQUEST[ $inRequestVariable ], $inRegex, $inDefault );
+    }
+
+
+/**
+ * Filters a value  using a regex match.
+ *
+ * Returns "" (or specified default value) if there is no match.
+ */
+function ts_filter( $inValue, $inRegex, $inDefault = "" ) {
     
     $numMatches = preg_match( $inRegex,
-                              $_REQUEST[ $inRequestVariable ], $matches );
+                              $inValue, $matches );
 
     if( $numMatches != 1 ) {
         return $inDefault;
