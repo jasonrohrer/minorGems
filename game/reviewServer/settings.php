@@ -12,6 +12,10 @@ $databaseName = "test";
 $fullServerURL = "http://localhost/jcr13/reviewServer/server.php";
 
 
+// for checking ticket_id hashes
+$ticketServerURL = "http://localhost/jcr13/ticketServer/server.php";
+
+
 // The URL of the main, public-face website
 $mainSiteURL = "http://onehouronelife.com";
 
@@ -24,6 +28,18 @@ $mainSiteURL = "http://onehouronelife.com";
 // Customization settings
 
 // Adjust these to change the way the server  works.
+
+
+// secret shared with trusted game servers that allows them to post
+// game stats
+
+// MUST be changed from this default to prevent false game stats reporting.
+
+// should not contain spaces
+
+$sharedGameServerSecret = "secret_phrase";
+
+
 
 
 // Prefix to use in table names (in case more than one application is using

@@ -1,0 +1,68 @@
+
+
+
+server.php
+?action=get_sequence_number
+&email=[email address]
+
+Return:
+sequence number
+
+Gets next valid sequence number associated with email.  Note that even if
+email is unknown to server, 0 will be returned so that first score can be
+submitted.
+
+
+
+
+
+server.php
+?action=log_game
+&email=[email address]
+&game_seconds=[integer]
+&sequence_number=[number]
+&hash_value=[hash value]
+
+Return:
+VALID
+-or-
+INVALID
+
+Used by game servers to log game stats.
+
+string_to_hash must contain only the charcters 0-9, A-Z, and a-z
+
+hash_value is computed on both ends with:
+
+HMAC_SHA1( $shared_secret, $sequence_number )
+
+
+Where $shared_secret is a secret string known to both the reviewServer and
+the game servers that have permission to post game stats.
+
+If sequence number is <= previously used sequence number for this email address,
+request will be rejected.
+
+
+
+
+
+server.php
+?action=submit_review
+&email=[email address]
+&review_score=[positiv integer]
+&review_text=[url-encoded text]
+&hash_value=[hash value]
+
+Return:
+VALID
+-or-
+INVALID
+
+Used by game clients to submit or replace user reviews.
+
+hash_value computed by concatonating review_score with decoded review_text 
+
+hash_value is computed on both ends with:
+
+HMAC_SHA1( $ticket_id, $review_score . $plain_review_text )

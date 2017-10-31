@@ -117,6 +117,15 @@ if( $action == "version" ) {
     global $rs_version;
     echo "$rs_version";
     }
+else if( $action == "get_sequence_number" ) {
+    rs_getSequenceNumber();
+    }
+else if( $action == "log_game" ) {
+    rs_logGame();
+    }
+else if( $action == "submit_review" ) {
+    rs_submitReview();
+    }
 else if( $action == "show_log" ) {
     rs_showLog();
     }
@@ -233,6 +242,7 @@ function rs_setupDatabase() {
         $query =
             "CREATE TABLE $tableName(" .
             "email VARCHAR(254) NOT NULL PRIMARY KEY," .
+            "sequence_number INT NOT NULL," .
             "first_game_date DATETIME NOT NULL," .
             "last_game_date DATETIME NOT NULL," .
             "last_game_seconds INT NOT NULL," .
@@ -242,12 +252,7 @@ function rs_setupDatabase() {
             "review_score TINYINT NOT NULL," .
             "review_text TEXT NOT NULL," .
             // in future, we may allow users to upvote/downvote reviews
-            "review_votes INT NOT NULL," .
-            // opaque field for other game-specific stats
-            // in comma-delimited, key=value pairs where keys and values
-            // contain a-z, A-Z, 0-9 and -_. characters only
-            // example:  "food_eaten=100, favorite_food=Apple_Pie"
-            "other_stats TEXT NOT NULL );";
+            "review_votes INT NOT NULL );";
 
         $result = rs_queryDatabase( $query );
 
@@ -380,8 +385,7 @@ function rs_showData( $checkPassword = true ) {
         
 
         $keywordClause = "WHERE ( email LIKE '%$search%' " .
-            "OR review_text LIKE '%$search%' " .
-            "OR other_stats LIKE '%$search%' ) ";
+            "OR review_text LIKE '%$search%' ) ";
 
         $searchDisplay = " matching <b>$search</b>";
         }
@@ -501,8 +505,6 @@ function rs_showData( $checkPassword = true ) {
         $review_text = mysql_result( $result, $i, "review_text" );
 
         $review_score = mysql_result( $result, $i, "review_score" );
-
-        $other_stats = mysql_result( $result, $i, "other_stats" );
     
         
         echo "<tr>\n";
@@ -515,7 +517,6 @@ function rs_showData( $checkPassword = true ) {
         echo "<td>$first_game_date</td>\n";
         echo "<td>$review_votes</td>\n";
         echo "<td><b>($review_score)</b> $review_text</td>\n";
-        echo "<td>$other_stats</td>\n";
         echo "</tr>\n";
         }
     echo "</table>";
@@ -553,6 +554,179 @@ function rs_showDetail( $checkPassword = true ) {
     echo "No details available in this version";
     }
  
+
+
+
+function rs_getSequenceNumber() {
+    global $tableNamePrefix;
+    
+
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
+    if( $email == "" ) {
+        echo "INVALID";
+        return;
+        }
+    
+    
+    $seq = rs_getSequenceNumberForEmail( $email );
+
+    echo $seq;
+    }
+
+
+
+// assumes already-filtered, valid email
+// returns 0 if not found
+function rs_getSequenceNumberForEmail( $inEmail ) {
+    global $tableNamePrefix;
+    
+    $query = "SELECT sequence_number FROM $tableNamePrefix"."user_stats ".
+        "WHERE email = '$inEmail';";
+    $result = rs_queryDatabase( $query );
+
+    $numRows = mysql_numrows( $result );
+
+    if( $numRows < 1 ) {
+        return 0;
+        }
+    else {
+        return mysql_result( $result, $i, "sequence_number" );
+        }
+    }
+
+
+
+function rs_logGame() {
+    global $tableNamePrefix, $sharedGameServerSecret;
+    
+
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $game_seconds = ts_requestFilter( "game_seconds", "/[0-9]+/i", "0" );
+    $sequence_number = ts_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
+
+    $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+
+    $hash_value = strtoupper( $hash_value );
+
+
+    if( $email == "" ||
+        $game_seconds == 0 ) {
+        echo "INVALID";
+        return;
+        }
+    
+    $trueSeq = rs_getSequenceNumberForEmail( $email );
+
+    if( $trueSeq > $sequence_number ) {
+        echo "INVALID";
+        return;
+        }
+
+    $computedHashValue =
+        strtoupper( ts_hmac_sha1( $sharedGameServerSecret, $sequence_number ) );
+
+    if( $computedHashValue != $hash_value ) {
+        echo "INVALID";
+        return;
+        }
+
+    if( $trueSeq == 0 ) {
+        // no record exists, add one
+        $query = "INSERT INTO $tableNamePrefix". "user_stats VALUES ( " .
+            "'$email', $sequence_number + 1, CURRENT_TIMESTAMP, ".
+            "CURRENT_TIMESTAMP, $game_seconds, 1, $game_seconds, -1, '', ".
+            "0 );";
+        }
+    else {
+        // update the existing one
+        $query = "UPDATE $tableNamePrefix"."user_stats SET " .
+            "sequence_number = $sequence_number + 1, ".
+            "game_count = game_count + 1, " .
+            "game_total_seconds = game_total_seconds + $game_seconds, " .
+            "last_game_date = CURRENT_TIMESTAMP, " .
+            "last_game_seconds = game_seconds " .
+            "WHERE email = '$email' ); ";
+        
+        }
+
+    rs_queryDatabase( $query );
+    
+    echo "VALID";
+    }
+
+
+
+
+
+
+
+function rs_submitReview() {
+    global $tableNamePrefix, $sharedGameServerSecret;
+    
+
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $review_score = ts_requestFilter( "review_score", "/[0-9]+/i", "0" );
+    $review_text = ts_requestFilter( "review_text", "/.+/i", "" );
+
+    $slashedText = mysql_real_escape_string( $review_text );
+    
+    $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+
+    $hash_value = strtoupper( $hash_value );
+
+    
+    
+
+    if( $email == "" ) {
+        echo "INVALID";
+        return;
+        }
+
+    $stringToHash = $review_score . $review_text;
+
+
+    $encodedString = urlencode( $stringToHash );
+    $encodedEmail = urlencode( $email );
+
+    global $ticketServerURL;
+    
+    $result = file_get_contents(
+            "$ticketServerURL".
+            "?action=check_ticket_hash".
+            "&email=$encodedEmail" .
+            "&hash_value=$hash_value" .
+            "&string_to_hash=$encodedString" );
+
+    if( $result != "VALID" ) {
+        echo "INVALID";
+        return;
+        }
+
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix".
+        "user_stats WHERE email = '$email';";
+
+    $result = rs_queryDatabase( $query );
+    $count = mysql_result( $result, 0, 0 );
+
+    if( $count == 0 ) {
+        // can't post review with no games logged
+        echo "INVALID";
+        return;
+        }
+    
+    
+
+    // update the existing one
+    $query = "UPDATE $tableNamePrefix"."user_stats SET " .
+        "review_score = $review_score, ".
+        "review_text = '$slashedText' ); ";
+    
+    
+    rs_queryDatabase( $query );
+    
+    echo "VALID";
+    }
 
 
 
