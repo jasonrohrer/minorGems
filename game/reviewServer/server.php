@@ -507,14 +507,17 @@ function rs_showData( $checkPassword = true ) {
 
         $review_score = rs_mysql_result( $result, $i, "review_score" );
     
+
+        $lastDuration = rs_secondsToTimeSummary( $last_game_seconds );
+        $totalDuration = rs_secondsToTimeSummary( $game_total_seconds );
         
         echo "<tr>\n";
         
         echo "<td>$email</td>\n";
         echo "<td>$last_game_date</td>\n";
-        echo "<td>$last_game_seconds</td>\n";
+        echo "<td>$lastDuration</td>\n";
         echo "<td>$game_count</td>\n";
-        echo "<td>$game_total_seconds</td>\n";
+        echo "<td>$totalDuration</td>\n";
         echo "<td>$first_game_date</td>\n";
         echo "<td>$review_votes</td>\n";
         echo "<td><b>($review_score)</b> $review_text</td>\n";
@@ -765,6 +768,27 @@ function rs_closeDatabase() {
     global $rs_mysqlLink;
     
     mysqli_close( $rs_mysqlLink );
+    }
+
+
+/**
+ * Returns human-readable summary of a timespan.
+ * Examples:  10.5 hours
+ *            34 minutes
+ *            45 seconds
+ */
+function rs_secondsToTimeSummary( $inSeconds ) {
+    if( $inSeconds < 120 ) {
+        return "$inSeconds seconds";
+        }
+    else if( $inSeconds < 3600 ) {
+        $min = number_format( $inSeconds / 60, 0 );
+        return "$min minutes";
+        }
+    else {
+        $hours = number_format( $inSeconds / 3600, 1 );
+        return "$hours hours";
+        }
     }
 
 
