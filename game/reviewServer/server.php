@@ -408,7 +408,10 @@ function rs_showData( $checkPassword = true ) {
         }
     
              
-    $query = "SELECT * FROM $tableNamePrefix"."user_stats $keywordClause".
+    $query = "SELECT *, ".
+        "TIME_TO_SEC(".
+        "    TIMEDIFF( last_game_date, first_game_date) ) as play_span ".
+        "FROM $tableNamePrefix"."user_stats $keywordClause".
         "ORDER BY $order_by $orderDir ".
         "LIMIT $skip, $usersPerPage;";
     $result = rs_queryDatabase( $query );
@@ -484,6 +487,7 @@ function rs_showData( $checkPassword = true ) {
     echo "<td>".orderLink( "game_count", "Game Count" )."</td>\n";
     echo "<td>".orderLink( "game_total_seconds", "Total Game Time" )."</td>\n";
     echo "<td>".orderLink( "first_game_date", "First Game" )."</td>\n";
+    echo "<td>".orderLink( "play_span", "Play Span" )."</td>\n";
     echo "<td>".orderLink( "review_votes", "Review Votes" )."</td>\n";
     echo "<td>Review</td>\n";
     echo "</tr>\n";
@@ -495,6 +499,9 @@ function rs_showData( $checkPassword = true ) {
         $last_game_seconds = rs_mysql_result( $result, $i,
                                               "last_game_seconds" );
 
+        $play_span = rs_mysql_result( $result, $i, "play_span" );
+
+        
         $game_count = rs_mysql_result( $result, $i, "game_count" );
         $game_total_seconds = rs_mysql_result( $result, $i,
                                                "game_total_seconds" );
@@ -510,15 +517,25 @@ function rs_showData( $checkPassword = true ) {
 
         $lastDuration = rs_secondsToTimeSummary( $last_game_seconds );
         $totalDuration = rs_secondsToTimeSummary( $game_total_seconds );
+
+        $spanDuration = rs_secondsToAgeSummary( $play_span );
+        
+        $lastGameAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
+                                               strtotime( $last_game_date ) );
+
+        $firstGameAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
+                                                strtotime( $first_game_date ) );
+        
         
         echo "<tr>\n";
         
         echo "<td>$email</td>\n";
-        echo "<td>$last_game_date</td>\n";
+        echo "<td>$last_game_date<br>($lastGameAgo ago)</td>\n";
         echo "<td>$lastDuration</td>\n";
         echo "<td>$game_count</td>\n";
         echo "<td>$totalDuration</td>\n";
-        echo "<td>$first_game_date</td>\n";
+        echo "<td>$first_game_date<br>($firstGameAgo ago)</td>\n";
+        echo "<td>$spanDuration</td>\n";
         echo "<td>$review_votes</td>\n";
         echo "<td><b>($review_score)</b> $review_text</td>\n";
         echo "</tr>\n";
@@ -788,6 +805,46 @@ function rs_secondsToTimeSummary( $inSeconds ) {
     else {
         $hours = number_format( $inSeconds / 3600, 1 );
         return "$hours hours";
+        }
+    }
+
+
+/**
+ * Returns human-readable summary of a distance back in time.
+ * Examples:  10 hours
+ *            34 minutes
+ *            45 seconds
+ *            19 days
+ *            3 months
+ *            2.5 years
+ */
+function rs_secondsToAgeSummary( $inSeconds ) {
+    if( $inSeconds < 120 ) {
+        return "$inSeconds seconds";
+        }
+    else if( $inSeconds < 3600 * 2 ) {
+        $min = number_format( $inSeconds / 60, 0 );
+        return "$min minutes";
+        }
+    else if( $inSeconds < 24 * 3600 * 2 ) {
+        $hours = number_format( $inSeconds / 3600, 0 );
+        return "$hours hours";
+        }
+    else if( $inSeconds < 24 * 3600 * 60 ) {
+        $days = number_format( $inSeconds / ( 3600 * 24 ), 0 );
+        return "$days days";
+        }
+    else if( $inSeconds < 24 * 3600 * 365 * 2 ) {
+        // average number of days per month
+        // based on 400 year calendar cycle
+        // we skip a leap year every 100 years unless the year is divisible by 4
+        $months = number_format( $inSeconds / ( 3600 * 24 * 30.436875 ), 0 );
+        return "$months months";
+        }
+    else {
+        // same logic behind computing average length of a year
+        $years = number_format( $inSeconds / ( 3600 * 24 * 365.2425 ), 1 );
+        return "$years years";
         }
     }
 
