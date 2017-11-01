@@ -290,8 +290,8 @@ function rs_showLog() {
         
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $time = rs_mysql_result( $result, $i, "entry_time" );
-        $entry = htmlspecialchars( rs_mysql_result( $result, $i, "entry" ) );
+        $time = rs_mysqli_result( $result, $i, "entry_time" );
+        $entry = htmlspecialchars( rs_mysqli_result( $result, $i, "entry" ) );
 
         echo "<b>$time</b>:<br>$entry<hr>\n";
         }
@@ -398,7 +398,7 @@ function rs_showData( $checkPassword = true ) {
         "user_stats $keywordClause;";
 
     $result = rs_queryDatabase( $query );
-    $totalRecords = rs_mysql_result( $result, 0, 0 );
+    $totalRecords = rs_mysqli_result( $result, 0, 0 );
 
 
     $orderDir = "DESC";
@@ -494,25 +494,25 @@ function rs_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $email = rs_mysql_result( $result, $i, "email" );
-        $last_game_date = rs_mysql_result( $result, $i, "last_game_date" );
-        $last_game_seconds = rs_mysql_result( $result, $i,
+        $email = rs_mysqli_result( $result, $i, "email" );
+        $last_game_date = rs_mysqli_result( $result, $i, "last_game_date" );
+        $last_game_seconds = rs_mysqli_result( $result, $i,
                                               "last_game_seconds" );
 
-        $play_span = rs_mysql_result( $result, $i, "play_span" );
+        $play_span = rs_mysqli_result( $result, $i, "play_span" );
 
         
-        $game_count = rs_mysql_result( $result, $i, "game_count" );
-        $game_total_seconds = rs_mysql_result( $result, $i,
+        $game_count = rs_mysqli_result( $result, $i, "game_count" );
+        $game_total_seconds = rs_mysqli_result( $result, $i,
                                                "game_total_seconds" );
 
-        $first_game_date = rs_mysql_result( $result, $i, "first_game_date" );
+        $first_game_date = rs_mysqli_result( $result, $i, "first_game_date" );
 
-        $review_votes = rs_mysql_result( $result, $i, "review_votes" );
+        $review_votes = rs_mysqli_result( $result, $i, "review_votes" );
         
-        $review_text = rs_mysql_result( $result, $i, "review_text" );
+        $review_text = rs_mysqli_result( $result, $i, "review_text" );
 
-        $review_score = rs_mysql_result( $result, $i, "review_score" );
+        $review_score = rs_mysqli_result( $result, $i, "review_score" );
     
 
         $lastDuration = rs_secondsToTimeSummary( $last_game_seconds );
@@ -612,7 +612,7 @@ function rs_getSequenceNumberForEmail( $inEmail ) {
         return 0;
         }
     else {
-        return rs_mysql_result( $result, 0, "sequence_number" );
+        return rs_mysqli_result( $result, 0, "sequence_number" );
         }
     }
 
@@ -728,7 +728,7 @@ function rs_submitReview() {
         "user_stats WHERE email = '$email';";
 
     $result = rs_queryDatabase( $query );
-    $count = rs_mysql_result( $result, 0, 0 );
+    $count = rs_mysqli_result( $result, 0, 0 );
 
     if( $count == 0 ) {
         // can post review with no games logged
@@ -769,11 +769,11 @@ function rs_connectToDatabase() {
     $rs_mysqlLink =
         mysqli_connect( $databaseServer, $databaseUsername, $databasePassword )
         or rs_operationError( "Could not connect to database server: " .
-                              mysqli_error() );
+                              mysqli_error( $rs_mysqlLink ) );
     
     mysqli_select_db( $rs_mysqlLink, $databaseName )
         or rs_operationError( "Could not select $databaseName database: " .
-                              mysqli_error() );
+                              mysqli_error( $rs_mysqlLink ) );
     }
 
 
@@ -906,7 +906,7 @@ function rs_queryDatabase( $inQueryString ) {
 /**
  * Replacement for the old mysql_result function.
  */
-function rs_mysql_result( $result, $number, $field=0 ) {
+function rs_mysqli_result( $result, $number, $field=0 ) {
     mysqli_data_seek( $result, $number );
     $row = mysqli_fetch_array( $result );
     return $row[ $field ];
@@ -933,7 +933,7 @@ function rs_doesTableExist( $inTableName ) {
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = rs_mysql_result( $result, $i, 0 );
+        $tableName = rs_mysqli_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
