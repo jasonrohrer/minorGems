@@ -30,8 +30,6 @@ INVALID
 
 Used by game servers to log game stats.
 
-string_to_hash must contain only the charcters 0-9, A-Z, and a-z
-
 hash_value is computed on both ends with:
 
 HMAC_SHA1( $shared_secret, $sequence_number )

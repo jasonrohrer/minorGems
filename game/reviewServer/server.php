@@ -277,7 +277,7 @@ function rs_showLog() {
         "ORDER BY entry_time DESC;";
     $result = rs_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
 
@@ -290,8 +290,8 @@ function rs_showLog() {
         
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $time = mysql_result( $result, $i, "entry_time" );
-        $entry = htmlspecialchars( mysql_result( $result, $i, "entry" ) );
+        $time = rs_mysql_result( $result, $i, "entry_time" );
+        $entry = htmlspecialchars( rs_mysql_result( $result, $i, "entry" ) );
 
         echo "<b>$time</b>:<br>$entry<hr>\n";
         }
@@ -398,7 +398,7 @@ function rs_showData( $checkPassword = true ) {
         "user_stats $keywordClause;";
 
     $result = rs_queryDatabase( $query );
-    $totalRecords = mysql_result( $result, 0, 0 );
+    $totalRecords = rs_mysql_result( $result, 0, 0 );
 
 
     $orderDir = "DESC";
@@ -413,7 +413,7 @@ function rs_showData( $checkPassword = true ) {
         "LIMIT $skip, $usersPerPage;";
     $result = rs_queryDatabase( $query );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     $startSkip = $skip + 1;
     
@@ -491,20 +491,20 @@ function rs_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $email = mysql_result( $result, $i, "email" );
-        $last_game_date = mysql_result( $result, $i, "last_game_date" );
-        $last_game_seconds = mysql_result( $result, $i, "last_game_seconds" );
+        $email = rs_mysql_result( $result, $i, "email" );
+        $last_game_date = rs_mysql_result( $result, $i, "last_game_date" );
+        $last_game_seconds = rs_mysql_result( $result, $i, "last_game_seconds" );
 
-        $game_count = mysql_result( $result, $i, "game_count" );
-        $game_total_seconds = mysql_result( $result, $i, "game_total_seconds" );
+        $game_count = rs_mysql_result( $result, $i, "game_count" );
+        $game_total_seconds = rs_mysql_result( $result, $i, "game_total_seconds" );
 
-        $first_game_date = mysql_result( $result, $i, "first_game_date" );
+        $first_game_date = rs_mysql_result( $result, $i, "first_game_date" );
 
-        $review_votes = mysql_result( $result, $i, "review_votes" );
+        $review_votes = rs_mysql_result( $result, $i, "review_votes" );
         
-        $review_text = mysql_result( $result, $i, "review_text" );
+        $review_text = rs_mysql_result( $result, $i, "review_text" );
 
-        $review_score = mysql_result( $result, $i, "review_score" );
+        $review_score = rs_mysql_result( $result, $i, "review_score" );
     
         
         echo "<tr>\n";
@@ -544,7 +544,7 @@ function rs_showDetail( $checkPassword = true ) {
     global $tableNamePrefix;
     
 
-    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
             
     $query = "SELECT * FROM $tableNamePrefix"."user_stats ".
             "WHERE email = '$email';";
@@ -561,7 +561,7 @@ function rs_getSequenceNumber() {
     global $tableNamePrefix;
     
 
-    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
     if( $email == "" ) {
         echo "INVALID";
@@ -585,13 +585,13 @@ function rs_getSequenceNumberForEmail( $inEmail ) {
         "WHERE email = '$inEmail';";
     $result = rs_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     if( $numRows < 1 ) {
         return 0;
         }
     else {
-        return mysql_result( $result, $i, "sequence_number" );
+        return rs_mysql_result( $result, $i, "sequence_number" );
         }
     }
 
@@ -601,11 +601,11 @@ function rs_logGame() {
     global $tableNamePrefix, $sharedGameServerSecret;
     
 
-    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
-    $game_seconds = ts_requestFilter( "game_seconds", "/[0-9]+/i", "0" );
-    $sequence_number = ts_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $game_seconds = rs_requestFilter( "game_seconds", "/[0-9]+/i", "0" );
+    $sequence_number = rs_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
 
-    $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+    $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
 
     $hash_value = strtoupper( $hash_value );
 
@@ -624,7 +624,7 @@ function rs_logGame() {
         }
 
     $computedHashValue =
-        strtoupper( ts_hmac_sha1( $sharedGameServerSecret, $sequence_number ) );
+        strtoupper( rs_hmac_sha1( $sharedGameServerSecret, $sequence_number ) );
 
     if( $computedHashValue != $hash_value ) {
         echo "INVALID";
@@ -662,16 +662,16 @@ function rs_logGame() {
 
 
 function rs_submitReview() {
-    global $tableNamePrefix, $sharedGameServerSecret;
+    global $tableNamePrefix, $sharedGameServerSecret, $rs_mysqlLink;
     
 
-    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
-    $review_score = ts_requestFilter( "review_score", "/[0-9]+/i", "0" );
-    $review_text = ts_requestFilter( "review_text", "/.+/i", "" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $review_score = rs_requestFilter( "review_score", "/[0-9]+/i", "0" );
+    $review_text = rs_requestFilter( "review_text", "/.+/i", "" );
 
-    $slashedText = mysql_real_escape_string( $review_text );
+    $slashedText = mysqli_real_escape_string( $rs_mysqlLink, $review_text );
     
-    $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+    $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
 
     $hash_value = strtoupper( $hash_value );
 
@@ -707,7 +707,7 @@ function rs_submitReview() {
         "user_stats WHERE email = '$email';";
 
     $result = rs_queryDatabase( $query );
-    $count = mysql_result( $result, 0, 0 );
+    $count = rs_mysql_result( $result, 0, 0 );
 
     if( $count == 0 ) {
         // can post review with no games logged
@@ -746,13 +746,13 @@ function rs_connectToDatabase() {
     
     
     $rs_mysqlLink =
-        mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
+        mysqli_connect( $databaseServer, $databaseUsername, $databasePassword )
         or rs_operationError( "Could not connect to database server: " .
-                              mysql_error() );
+                              mysqli_error() );
     
-    mysql_select_db( $databaseName )
+    mysqli_select_db( $rs_mysqlLink, $databaseName )
         or rs_operationError( "Could not select $databaseName database: " .
-                              mysql_error() );
+                              mysqli_error() );
     }
 
 
@@ -763,7 +763,7 @@ function rs_connectToDatabase() {
 function rs_closeDatabase() {
     global $rs_mysqlLink;
     
-    mysql_close( $rs_mysqlLink );
+    mysqli_close( $rs_mysqlLink );
     }
 
 
@@ -783,11 +783,11 @@ function rs_queryDatabase( $inQueryString ) {
         rs_connectToDatabase();
         }
     
-    $result = mysql_query( $inQueryString );
+    $result = mysqli_query( $rs_mysqlLink, $inQueryString );
     
     if( $result == FALSE ) {
 
-        $errorNumber = mysql_errno();
+        $errorNumber = mysqli_errno( $rs_mysqlLink );
         
         // server lost or gone?
         if( $errorNumber == 2006 ||
@@ -802,20 +802,32 @@ function rs_queryDatabase( $inQueryString ) {
             rs_closeDatabase();
             rs_connectToDatabase();
 
-            $result = mysql_query( $inQueryString, $rs_mysqlLink )
+            $result = mysqli_query( $rs_mysqlLink,
+                                    $inQueryString, $rs_mysqlLink )
                 or rs_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
-                    mysql_error() );
+                    mysqli_error( $rs_mysqlLink ) );
             }
         else {
             // some other error (we're still connected, so we can
             // add log messages to database
             rs_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                           mysql_error() );
+                           mysqli_error( $rs_mysqlLink ) );
             }
         }
 
     return $result;
+    }
+
+
+
+/**
+ * Replacement for the old mysql_result function.
+ */
+function rs_mysql_result( $result, $number, $field=0 ) {
+    mysqli_data_seek( $result, $number );
+    $row = mysqli_fetch_array( $result );
+    return $row[ $field ];
     }
 
 
@@ -834,12 +846,12 @@ function rs_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = rs_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = mysql_result( $result, $i, 0 );
+        $tableName = rs_mysql_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
@@ -851,10 +863,10 @@ function rs_doesTableExist( $inTableName ) {
 
 
 function rs_log( $message ) {
-    global $enableLog, $tableNamePrefix;
+    global $enableLog, $tableNamePrefix, $rs_mysqlLink;
 
     if( $enableLog ) {
-        $slashedMessage = mysql_real_escape_string( $message );
+        $slashedMessage = mysqli_real_escape_string( $rs_mysqlLink, $message );
     
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";
