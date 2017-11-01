@@ -228,7 +228,7 @@ $smtpPortTrans = $smtpPort;
 
 $smtpUsernameTrans = $smtpUsername;
 
-$smtpPasswordTrans = $smtpPasswordTrans;
+$smtpPasswordTrans = $smtpPassword;
 
 
 ?>
