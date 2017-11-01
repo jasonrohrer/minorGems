@@ -31,6 +31,9 @@
  *
  * 2017-April-13    Jason Rohrer
  * Functions for saving time settings in a future-proof format.
+ *
+ * 2017-November-1    Jason Rohrer
+ * More convenient getStringSetting call (with default value).
  */
 
 #include "minorGems/common.h"
@@ -146,6 +149,14 @@ class SettingsManager {
          *   Must be destroyed by caller if non-NULL.
          */
         static char *getStringSetting( const char *inSettingName );
+
+
+
+        // same as above, but never returns NULL
+        // if setting cannot be read, returns copy of inDefaultValue
+        static char *getStringSetting( const char *inSettingName,
+                                       const char *inDefaultValue );
+
 
 
         /**

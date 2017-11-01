@@ -31,6 +31,9 @@
  *
  * 2017-April-13    Jason Rohrer
  * Functions for saving time settings in a future-proof format.
+ *
+ * 2017-November-1    Jason Rohrer
+ * More convenient getStringSetting call (with default value).
  */
 
 
@@ -182,6 +185,20 @@ char *SettingsManager::getStringSetting( const char *inSettingName ) {
 
     return value;
     }
+
+
+
+char *SettingsManager::getStringSetting( const char *inSettingName,
+                                         const char *inDefaultValue ) {
+    char *val = getStringSetting( inSettingName );
+    
+    if( val == NULL ) {
+        val = stringDuplicate( inDefaultValue );
+        }
+
+    return val;
+    }
+
 
 
 
