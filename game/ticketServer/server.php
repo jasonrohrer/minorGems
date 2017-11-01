@@ -354,7 +354,7 @@ function ts_showLog() {
         "ORDER BY entry_time DESC;";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
 
@@ -367,8 +367,8 @@ function ts_showLog() {
         
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $time = mysql_result( $result, $i, "entry_time" );
-        $entry = htmlspecialchars( mysql_result( $result, $i, "entry" ) );
+        $time = ts_mysqli_result( $result, $i, "entry_time" );
+        $entry = htmlspecialchars( ts_mysqli_result( $result, $i, "entry" ) );
 
         echo "<b>$time</b>:<br>$entry<hr>\n";
         }
@@ -403,7 +403,7 @@ function ts_clearLog() {
 
 function ts_sellTicket() {
     global $tableNamePrefix, $fastspringPrivateKeys, $remoteIP;
-    global $ticketIDLength, $ticketGenerationSecret;
+    global $ticketIDLength, $ticketGenerationSecret, $ts_mysqlLink;
 
 
     $tags = ts_requestFilter( "tags", "/[A-Z0-9_,-]+/i" );
@@ -459,7 +459,7 @@ function ts_sellTicket() {
 
     // some names have ' in them
     // need to escape this for use in DB query
-    $name = mysql_real_escape_string( $name );
+    $name = mysqli_real_escape_string( $ts_mysqlLink, $name );
     
 
         
@@ -554,7 +554,7 @@ function ts_sellTicket() {
             "'$email_opt_in' );";
 
 
-        $result = mysql_query( $query );
+        $result = mysqli_query( $ts_mysqlLink, $query );
 
         if( $result ) {
             $found_unused_id = 1;
@@ -567,7 +567,8 @@ function ts_sellTicket() {
         else {
             global $debug;
             if( $debug == 1 ) {
-                echo "Duplicate ids?  Error:  " . mysql_error() ."<br>";
+                echo "Duplicate ids?  Error:  " .
+                    mysqli_error( $ts_mysqlLink ) ."<br>";
                 }
             // try again
             $salt += 1;
@@ -589,14 +590,14 @@ function ts_getTicketID() {
         "WHERE email = '$email' AND blocked = '0';";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     $ticket_id = "";
     
     // could be more than one with this email
     // return first only
     if( $numRows > 0 ) {
-        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+        $ticket_id = ts_mysqli_result( $result, 0, "ticket_id" );
         }
     else {
         echo "DENIED";
@@ -667,14 +668,14 @@ function ts_checkTicketHash() {
         "WHERE email = '$email' AND blocked = '0';";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     $ticket_id = "";
     
     // could be more than one with this email
     // return first only
     if( $numRows > 0 ) {
-        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+        $ticket_id = ts_mysqli_result( $result, 0, "ticket_id" );
         }
     else {
         ts_log( "email $email not found on check_ticket_hash" );
@@ -713,7 +714,7 @@ function ts_checkTicketHash() {
 function ts_editTicket() {
 
     ts_checkPassword( "edit_ticket" );
-    global $tableNamePrefix, $remoteIP;
+    global $tableNamePrefix, $remoteIP, $ts_mysqlLink;
 
 
     $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
@@ -725,7 +726,7 @@ function ts_editTicket() {
 
     // some names have ' in them
     // need to escape this for use in DB query
-    $name = mysql_real_escape_string( $name );
+    $name = mysqli_real_escape_string( $ts_mysqlLink, $name );
     
     
     $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
@@ -744,8 +745,9 @@ function ts_editTicket() {
         "email_opt_in = '$email_opt_in' " .
         "WHERE ticket_id = '$ticket_id';";
     
-
-    $result = mysql_query( $query );
+    global $ts_mysqlLink;
+    
+    $result = mysqli_query( $ts_mysqlLink, $query );
 
     if( $result ) {
         ts_log( "$ticket_id data changed by $remoteIP" );
@@ -786,7 +788,7 @@ function ts_blockTicketID() {
         "WHERE ticket_id = '$ticket_id';";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     if( $numRows == 1 ) {
 
@@ -845,7 +847,7 @@ function ts_deleteTicketID() {
 function ts_bulkEmailOptOut() {
     ts_checkPassword( "bulk_email_opt_out" );
 
-    global $tableNamePrefix, $remoteIP;
+    global $tableNamePrefix, $remoteIP, $ts_mysqlLink;
 
     // input filtering handled below
     $emails = "";
@@ -879,7 +881,7 @@ function ts_bulkEmailOptOut() {
             
             $result = ts_queryDatabase( $query );
 
-            $countMatching = mysql_result( $result, 0, 0 );
+            $countMatching = ts_mysqli_result( $result, 0, 0 );
 
             if( $countMatching > 0 ) {
                 
@@ -889,7 +891,7 @@ function ts_bulkEmailOptOut() {
 
                 $result = ts_queryDatabase( $query );
 
-                $affected = mysql_affected_rows();
+                $affected = mysqli_affected_rows( $ts_mysqlLink );
 
                 $successCount += $affected;
 
@@ -928,11 +930,11 @@ function ts_downloadAllowed() {
         "WHERE ticket_id = '$ticket_id';";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     if( $numRows == 1 ) {
         
-        $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+        $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
         $blocked = $row[ "blocked" ];
 
@@ -1081,7 +1083,7 @@ function ts_checkTicket() {
         "WHERE ticket_id = '$ticket_id' AND blocked = 0;";
     $result = ts_queryDatabase( $query );
 
-    $countMatching = mysql_result( $result, 0, 0 );
+    $countMatching = ts_mysqli_result( $result, 0, 0 );
 
     if( $countMatching == 1 ) {
         echo "VALID";
@@ -1107,9 +1109,9 @@ function ts_getTicketEmail() {
         "WHERE ticket_id = '$ticket_id' AND blocked = 0;";
     $result = ts_queryDatabase( $query );
 
-    if( mysql_numrows( $result ) == 1 ) {
+    if( mysqli_num_rows( $result ) == 1 ) {
         
-        $email = mysql_result( $result, 0, 0 );
+        $email = ts_mysqli_result( $result, 0, 0 );
 
         echo $email;
         }
@@ -1139,7 +1141,7 @@ function ts_showDownloads() {
 
         $result = ts_queryDatabase( $query );
     
-        $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+        $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
         
         $email = $row[ "email" ];
         $coupon_code = $row[ "coupon_code" ];
@@ -1167,11 +1169,11 @@ function ts_showDownloads() {
             "WHERE ticket_id = '$ticket_id';";
         $result = ts_queryDatabase( $query );
 
-        $numRows = mysql_numrows( $result );
+        $numRows = mysqli_num_rows( $result );
 
         if( $numRows == 1 ) {
         
-            $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+            $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
             $email_opt_in = $row[ "email_opt_in" ];
 
@@ -1196,6 +1198,8 @@ function ts_showDownloads() {
 
 
 function ts_download() {
+    global $ts_mysqlLink;
+    
     $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
     
     $ticket_id = strtoupper( $ticket_id );    
@@ -1216,11 +1220,11 @@ function ts_download() {
         "WHERE ticket_id = '$ticket_id';";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     if( $numRows == 1 ) {
         
-        $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+        $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
 
         // catalog blocked runs, too
@@ -1242,7 +1246,7 @@ function ts_download() {
             "'$ticket_id', CURRENT_TIMESTAMP, '$file_name', ".
             "'$blocked', '$remoteIP' );";
         
-        $result = mysql_query( $query );
+        $result = mysqli_query( $ts_mysqlLink, $query );
 
         
         if( !$blocked ) {
@@ -1309,11 +1313,11 @@ function ts_emailOptIn() {
             "WHERE ticket_id = '$ticket_id';";
         $result = ts_queryDatabase( $query );
 
-        $numRows = mysql_numrows( $result );
+        $numRows = mysqli_num_rows( $result );
 
         if( $numRows == 1 ) {
         
-            $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+            $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
             $email_opt_in = $row[ "email_opt_in" ];
 
@@ -1403,7 +1407,7 @@ function ts_showData( $checkPassword = true ) {
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets $keywordClause;";
 
     $result = ts_queryDatabase( $query );
-    $totalTickets = mysql_result( $result, 0, 0 );
+    $totalTickets = ts_mysqli_result( $result, 0, 0 );
 
 
     $orderDir = "DESC";
@@ -1418,7 +1422,7 @@ function ts_showData( $checkPassword = true ) {
         "LIMIT $skip, $ticketsPerPage;";
     $result = ts_queryDatabase( $query );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     $startSkip = $skip + 1;
     
@@ -1497,16 +1501,16 @@ function ts_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $ticket_id = mysql_result( $result, $i, "ticket_id" );
-        $sale_date = mysql_result( $result, $i, "sale_date" );
-        $lastDL = mysql_result( $result, $i, "last_download_date" );
-        $count = mysql_result( $result, $i, "download_count" );
-        $name = mysql_result( $result, $i, "name" );
-        $email = mysql_result( $result, $i, "email" );
-        $tag = mysql_result( $result, $i, "tag" );
-        $coupon_code = mysql_result( $result, $i, "coupon_code" );
-        $blocked = mysql_result( $result, $i, "blocked" );
-        $sent = mysql_result( $result, $i, "email_sent" );
+        $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+        $sale_date = ts_mysqli_result( $result, $i, "sale_date" );
+        $lastDL = ts_mysqli_result( $result, $i, "last_download_date" );
+        $count = ts_mysqli_result( $result, $i, "download_count" );
+        $name = ts_mysqli_result( $result, $i, "name" );
+        $email = ts_mysqli_result( $result, $i, "email" );
+        $tag = ts_mysqli_result( $result, $i, "tag" );
+        $coupon_code = ts_mysqli_result( $result, $i, "coupon_code" );
+        $blocked = ts_mysqli_result( $result, $i, "blocked" );
+        $sent = ts_mysqli_result( $result, $i, "email_sent" );
 
         $block_toggle = "";
         
@@ -1688,10 +1692,10 @@ function ts_showData( $checkPassword = true ) {
 	$query = "SELECT DISTINCT file_name FROM $tableNamePrefix"."downloads;";
     $result = ts_queryDatabase( $query );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 	for( $i=0; $i<$numRows; $i++ ) {
-        $file_name = mysql_result( $result, $i, "file_name" );
+        $file_name = ts_mysqli_result( $result, $i, "file_name" );
         echo "<OPTION VALUE=\"$file_name\">$file_name</OPTION>";
         }
 ?>
@@ -1781,9 +1785,9 @@ function ts_showDetail( $checkPassword = true ) {
             "WHERE ticket_id = '$ticket_id';";
     $result = ts_queryDatabase( $query );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
-    $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+    $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
     $email = $row[ "email" ];
     $name = $row[ "name" ];
@@ -1829,7 +1833,7 @@ function ts_showDetail( $checkPassword = true ) {
         "WHERE ticket_id = '$ticket_id' ORDER BY download_date DESC;";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     echo "$numRows downloads for $ticket_id:";
 
@@ -1840,11 +1844,11 @@ function ts_showDetail( $checkPassword = true ) {
         
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $date = mysql_result( $result, $i, "download_date" );
-        $ipAddress = mysql_result( $result, $i, "ip_address" );
-        $file_name = mysql_result( $result, $i, "file_name" );
+        $date = ts_mysqli_result( $result, $i, "download_date" );
+        $ipAddress = ts_mysqli_result( $result, $i, "ip_address" );
+        $file_name = ts_mysqli_result( $result, $i, "file_name" );
 
-        $blocked = mysql_result( $result, $i, "blocked" );
+        $blocked = ts_mysqli_result( $result, $i, "blocked" );
 
         if( $blocked ) {
             $blocked = "BLOCKED";
@@ -1930,14 +1934,14 @@ function ts_sendEmail_q( $inQuery ) {
     
     $result = ts_queryDatabase( $inQuery );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     echo "Based on query, sending $numRows emails:<br><br><br>\n";
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $ticket_id = mysql_result( $result, $i, "ticket_id" );
-        $name = mysql_result( $result, $i, "name" );
-        $email = mysql_result( $result, $i, "email" );
+        $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+        $name = ts_mysqli_result( $result, $i, "name" );
+        $email = ts_mysqli_result( $result, $i, "email" );
 
         echo "[$i] Sending email to $email for ticket $ticket_id ... ";
         
@@ -1971,11 +1975,11 @@ function ts_sendEmail( $inTickeID ) {
         "WHERE ticket_id = '$ticket_id';";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     if( $numRows == 1 ) {
         
-        $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+        $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
         $email = $row[ "email" ];
         $name = $row[ "name" ];
@@ -2040,7 +2044,7 @@ function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
          "WHERE blocked = '0' AND email_opt_in = '1';";
     $result = ts_queryDatabase( $query );
-    $totalTickets = mysql_result( $result, 0, 0 );
+    $totalTickets = ts_mysqli_result( $result, 0, 0 );
 
     $numToSkip = 0;
     global $emailMaxBatchSize;
@@ -2238,7 +2242,7 @@ function ts_addCouponCodes() {
 
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
     if( $numRows < $numCodes ) {
@@ -2253,8 +2257,8 @@ function ts_addCouponCodes() {
     
 
     for( $i=0; $i<$numRows && $j<$numCodes; $i++ ) {
-        $ticket_id = mysql_result( $result, $i, "ticket_id" );
-        $email = mysql_result( $result, $i, "email" );
+        $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+        $email = ts_mysqli_result( $result, $i, "email" );
     
         $coupon_code = $separateCodes[ $j ];
 
@@ -2266,7 +2270,7 @@ function ts_addCouponCodes() {
                 "WHERE coupon_code = '$coupon_code';";
             $countResult = ts_queryDatabase( $query );
             
-            $alreadyUsingCount = mysql_result( $countResult, 0, 0 );
+            $alreadyUsingCount = ts_mysqli_result( $countResult, 0, 0 );
 
             if( $alreadyUsingCount == 0 ) {
                 $unused = true;
@@ -2339,7 +2343,9 @@ function ts_clearCouponCodes() {
     
     $result = ts_queryDatabase( $query );
 
-    $affected = mysql_affected_rows();
+    global $ts_mysqlLink;
+    
+    $affected = mysqli_affected_rows( $ts_mysqlLink );
 
     echo "Cleared <b>$affected</b> coupon codes.<br>\n";
     }
@@ -2355,17 +2361,17 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
     
     $result = ts_queryDatabase( $inQuery );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     echo "Query is:<br>$inQuery<br><br>";
 
     echo "Based on query, sending $numRows emails:<br><br><br>\n";
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $name = mysql_result( $result, $i, "name" );
-        $email = mysql_result( $result, $i, "email" );
-        $ticket_id = mysql_result( $result, $i, "ticket_id" );
-        $coupon_code = mysql_result( $result, $i, "coupon_code" );
+        $name = ts_mysqli_result( $result, $i, "name" );
+        $email = ts_mysqli_result( $result, $i, "email" );
+        $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+        $coupon_code = ts_mysqli_result( $result, $i, "coupon_code" );
 
         echo "[$i] Sending note to $email ... ";
 
@@ -2524,13 +2530,13 @@ function ts_connectToDatabase() {
     
     
     $ts_mysqlLink =
-        mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
+        mysqli_connect( $databaseServer, $databaseUsername, $databasePassword )
         or ts_operationError( "Could not connect to database server: " .
-                              mysql_error() );
+                              mysqli_error( $ts_mysqlLink ) );
     
-    mysql_select_db( $databaseName )
+    mysqli_select_db( $ts_mysqlLink, $databaseName )
         or ts_operationError( "Could not select $databaseName database: " .
-                              mysql_error() );
+                              mysqli_error( $ts_mysqlLink ) );
     }
 
 
@@ -2541,7 +2547,7 @@ function ts_connectToDatabase() {
 function ts_closeDatabase() {
     global $ts_mysqlLink;
     
-    mysql_close( $ts_mysqlLink );
+    mysqli_close( $ts_mysqlLink );
     }
 
 
@@ -2561,11 +2567,11 @@ function ts_queryDatabase( $inQueryString ) {
         ts_connectToDatabase();
         }
     
-    $result = mysql_query( $inQueryString );
+    $result = mysqli_query( $ts_mysqlLink, $inQueryString );
     
     if( $result == FALSE ) {
 
-        $errorNumber = mysql_errno();
+        $errorNumber = mysqli_errno( $ts_mysqlLink );
         
         // server lost or gone?
         if( $errorNumber == 2006 ||
@@ -2580,20 +2586,30 @@ function ts_queryDatabase( $inQueryString ) {
             ts_closeDatabase();
             ts_connectToDatabase();
 
-            $result = mysql_query( $inQueryString, $ts_mysqlLink )
+            $result = mysqli_query( $ts_mysqlLink, $inQueryString )
                 or ts_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
-                    mysql_error() );
+                    mysqli_error( $ts_mysqlLink ) );
             }
         else {
             // some other error (we're still connected, so we can
             // add log messages to database
             ts_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                           mysql_error() );
+                           mysqli_error( $ts_mysqlLink ) );
             }
         }
 
     return $result;
+    }
+
+
+/**
+ * Replacement for the old mysql_result function.
+ */
+function ts_mysqli_result( $result, $number, $field=0 ) {
+    mysqli_data_seek( $result, $number );
+    $row = mysqli_fetch_array( $result );
+    return $row[ $field ];
     }
 
 
@@ -2612,12 +2628,12 @@ function ts_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = ts_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = mysql_result( $result, $i, 0 );
+        $tableName = ts_mysqli_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
@@ -2629,10 +2645,10 @@ function ts_doesTableExist( $inTableName ) {
 
 
 function ts_log( $message ) {
-    global $enableLog, $tableNamePrefix;
+    global $enableLog, $tableNamePrefix, $ts_mysqlLink;
 
     if( $enableLog ) {
-        $slashedMessage = mysql_real_escape_string( $message );
+        $slashedMessage = mysqli_real_escape_string( $ts_mysqlLink, $message );
     
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";
