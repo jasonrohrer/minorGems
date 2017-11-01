@@ -486,17 +486,18 @@ function rs_showData( $checkPassword = true ) {
     echo "<td>".orderLink( "first_game_date", "First Game" )."</td>\n";
     echo "<td>".orderLink( "review_votes", "Review Votes" )."</td>\n";
     echo "<td>Review</td>\n";
-    echo "<td>Other Stats</td>\n";
     echo "</tr>\n";
 
 
     for( $i=0; $i<$numRows; $i++ ) {
         $email = rs_mysql_result( $result, $i, "email" );
         $last_game_date = rs_mysql_result( $result, $i, "last_game_date" );
-        $last_game_seconds = rs_mysql_result( $result, $i, "last_game_seconds" );
+        $last_game_seconds = rs_mysql_result( $result, $i,
+                                              "last_game_seconds" );
 
         $game_count = rs_mysql_result( $result, $i, "game_count" );
-        $game_total_seconds = rs_mysql_result( $result, $i, "game_total_seconds" );
+        $game_total_seconds = rs_mysql_result( $result, $i,
+                                               "game_total_seconds" );
 
         $first_game_date = rs_mysql_result( $result, $i, "first_game_date" );
 
@@ -591,7 +592,7 @@ function rs_getSequenceNumberForEmail( $inEmail ) {
         return 0;
         }
     else {
-        return rs_mysql_result( $result, $i, "sequence_number" );
+        return rs_mysql_result( $result, 0, "sequence_number" );
         }
     }
 
@@ -645,8 +646,8 @@ function rs_logGame() {
             "game_count = game_count + 1, " .
             "game_total_seconds = game_total_seconds + $game_seconds, " .
             "last_game_date = CURRENT_TIMESTAMP, " .
-            "last_game_seconds = game_seconds " .
-            "WHERE email = '$email' ); ";
+            "last_game_seconds = $game_seconds " .
+            "WHERE email = '$email'; ";
         
         }
 
@@ -721,7 +722,7 @@ function rs_submitReview() {
         // update the existing one
         $query = "UPDATE $tableNamePrefix"."user_stats SET " .
             "review_score = $review_score, ".
-            "review_text = '$slashedText' ); ";
+            "review_text = '$slashedText'; ";
         }
     
     rs_queryDatabase( $query );
