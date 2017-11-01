@@ -710,18 +710,19 @@ function rs_submitReview() {
     $count = mysql_result( $result, 0, 0 );
 
     if( $count == 0 ) {
-        // can't post review with no games logged
-        echo "INVALID";
-        return;
-        }
-    
-    
+        // can post review with no games logged
 
-    // update the existing one
-    $query = "UPDATE $tableNamePrefix"."user_stats SET " .
-        "review_score = $review_score, ".
-        "review_text = '$slashedText' ); ";
-    
+        $query = "INSERT INTO $tableNamePrefix". "user_stats VALUES ( " .
+            "'$email', 0, CURRENT_TIMESTAMP, ".
+            "CURRENT_TIMESTAMP, 0, 0, 0, $review_score, '$slashedText', ".
+            "0 );";
+        }
+    else {
+        // update the existing one
+        $query = "UPDATE $tableNamePrefix"."user_stats SET " .
+            "review_score = $review_score, ".
+            "review_text = '$slashedText' ); ";
+        }
     
     rs_queryDatabase( $query );
     
