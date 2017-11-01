@@ -884,8 +884,7 @@ function rs_queryDatabase( $inQueryString ) {
             rs_closeDatabase();
             rs_connectToDatabase();
 
-            $result = mysqli_query( $rs_mysqlLink,
-                                    $inQueryString, $rs_mysqlLink )
+            $result = mysqli_query( $rs_mysqlLink, $inQueryString )
                 or rs_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
                     mysqli_error( $rs_mysqlLink ) );
