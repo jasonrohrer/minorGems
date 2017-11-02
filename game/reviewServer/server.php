@@ -251,6 +251,11 @@ function rs_setupDatabase() {
             // -1 if not submitted yet
             "review_score TINYINT NOT NULL," .
             "review_text TEXT NOT NULL," .
+            // stats about player's state when they posted the review
+            // they may have played more games since the review
+            "review_date DATETIME NOT NULL," .
+            "review_game_seconds INT NOT NULL," .
+            "review_game_count INT NOT NULL," .
             // in future, we may allow users to upvote/downvote reviews
             "review_votes INT NOT NULL );";
 
@@ -657,7 +662,7 @@ function rs_logGame() {
         $query = "INSERT INTO $tableNamePrefix". "user_stats VALUES ( " .
             "'$email', $sequence_number + 1, CURRENT_TIMESTAMP, ".
             "CURRENT_TIMESTAMP, $game_seconds, 1, $game_seconds, -1, '', ".
-            "0 );";
+            "CURRENT_TIMESTAMP, 0, 0, 0 );";
         }
     else {
         // update the existing one
@@ -736,13 +741,16 @@ function rs_submitReview() {
         $query = "INSERT INTO $tableNamePrefix". "user_stats VALUES ( " .
             "'$email', 0, CURRENT_TIMESTAMP, ".
             "CURRENT_TIMESTAMP, 0, 0, 0, $review_score, '$slashedText', ".
-            "0 );";
+            "CURRENT_TIMESTAMP, 0, 0, 0 );";
         }
     else {
         // update the existing one
         $query = "UPDATE $tableNamePrefix"."user_stats SET " .
             "review_score = $review_score, ".
-            "review_text = '$slashedText'; ";
+            "review_text = '$slashedText', ".
+            "review_date = CURRENT_TIMESTAMP,".
+            "review_game_count = game_count,".
+            "review_game_seconds = game_total_seconds; ";
         }
     
     rs_queryDatabase( $query );
