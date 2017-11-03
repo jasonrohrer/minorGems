@@ -420,7 +420,8 @@ function rs_showData( $checkPassword = true ) {
              
     $query = "SELECT *, ".
         "TIME_TO_SEC(".
-        "    TIMEDIFF( last_game_date, first_game_date) ) as play_span ".
+        "    TIMEDIFF( last_game_date, first_game_date) ) as play_span, ".
+        "ROUND( game_total_seconds / game_count ) as average_game_seconds ".
         "FROM $tableNamePrefix"."user_stats $keywordClause".
         "ORDER BY $order_by $orderDir ".
         "LIMIT $skip, $usersPerPage;";
@@ -496,6 +497,8 @@ function rs_showData( $checkPassword = true ) {
     echo "<td>".orderLink( "last_game_seconds", "Last Game Time" )."</td>\n";
     echo "<td>".orderLink( "game_count", "Game Count" )."</td>\n";
     echo "<td>".orderLink( "game_total_seconds", "Total Game Time" )."</td>\n";
+    echo "<td>".orderLink( "average_game_seconds",
+                           "Ave Game Time" )."</td>\n";
     echo "<td>".orderLink( "first_game_date", "First Game" )."</td>\n";
     echo "<td>".orderLink( "play_span", "Play Span" )."</td>\n";
     echo "<td>".orderLink( "review_votes", "Review Votes" )."</td>\n";
@@ -510,6 +513,9 @@ function rs_showData( $checkPassword = true ) {
                                               "last_game_seconds" );
 
         $play_span = rs_mysqli_result( $result, $i, "play_span" );
+
+        $average_game_seconds =
+            rs_mysqli_result( $result, $i, "average_game_seconds" );
 
         
         $game_count = rs_mysqli_result( $result, $i, "game_count" );
@@ -528,6 +534,8 @@ function rs_showData( $checkPassword = true ) {
         $lastDuration = rs_secondsToTimeSummary( $last_game_seconds );
         $totalDuration = rs_secondsToTimeSummary( $game_total_seconds );
 
+        $averageDuration = rs_secondsToTimeSummary( $average_game_seconds );
+
         $spanDuration = rs_secondsToAgeSummary( $play_span );
         
         $lastGameAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
@@ -544,6 +552,7 @@ function rs_showData( $checkPassword = true ) {
         echo "<td>$lastDuration</td>\n";
         echo "<td>$game_count</td>\n";
         echo "<td>$totalDuration</td>\n";
+        echo "<td>$averageDuration</td>\n";
         echo "<td>$first_game_date<br>($firstGameAgo ago)</td>\n";
         echo "<td>$spanDuration</td>\n";
         echo "<td>$review_votes</td>\n";
