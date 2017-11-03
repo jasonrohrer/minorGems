@@ -241,7 +241,9 @@ function rs_setupDatabase() {
         // this table contains general info about each ticket
         $query =
             "CREATE TABLE $tableName(" .
-            "email VARCHAR(254) NOT NULL PRIMARY KEY," .
+            "id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT," .
+            "email VARCHAR(254) NOT NULL," .
+            "UNIQUE KEY( email )," .
             "sequence_number INT NOT NULL," .
             "first_game_date DATETIME NOT NULL," .
             "last_game_date DATETIME NOT NULL," .
@@ -250,6 +252,7 @@ function rs_setupDatabase() {
             "game_total_seconds INT NOT NULL," .
             // -1 if not submitted yet
             "review_score TINYINT NOT NULL," .
+            "review_name VARCHAR(20) NOT NULL," .
             "review_text TEXT NOT NULL," .
             // stats about player's state when they posted the review
             // they may have played more games since the review
@@ -390,6 +393,8 @@ function rs_showData( $checkPassword = true ) {
         
 
         $keywordClause = "WHERE ( email LIKE '%$search%' " .
+            "OR id LIKE '%$search%' " .
+            "OR review_name LIKE '%$search%' " .
             "OR review_text LIKE '%$search%' ) ";
 
         $searchDisplay = " matching <b>$search</b>";
@@ -659,10 +664,21 @@ function rs_logGame() {
 
     if( $trueSeq == 0 ) {
         // no record exists, add one
-        $query = "INSERT INTO $tableNamePrefix". "user_stats VALUES ( " .
-            "'$email', $sequence_number + 1, CURRENT_TIMESTAMP, ".
-            "CURRENT_TIMESTAMP, $game_seconds, 1, $game_seconds, -1, '', ".
-            "CURRENT_TIMESTAMP, 0, 0, 0 );";
+        $query = "INSERT INTO $tableNamePrefix". "user_stats SET " .
+            "email = '$email', ".
+            "sequence_number = $sequence_number + 1, ".
+            "first_game_date = CURRENT_TIMESTAMP, ".
+            "last_game_date = CURRENT_TIMESTAMP, ".
+            "last_game_seconds = $game_seconds, ".
+            "game_count = 1,".
+            "game_total_seconds = $game_seconds,".
+            "review_score = -1, ".
+            "review_name = '',".
+            "review_text = '',".
+            "review_date = CURRENT_TIMESTAMP,".
+            "review_game_seconds = 0,".
+            "review_game_count=0,".
+            "review_votes = 0;";
         }
     else {
         // update the existing one
@@ -693,8 +709,11 @@ function rs_submitReview() {
 
     $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
     $review_score = rs_requestFilter( "review_score", "/[0-9]+/i", "0" );
-    $review_text = rs_requestFilter( "review_text", "/.+/i", "" );
 
+    $review_name = rs_requestFilter( "review_name", "/[A-Z0-9._- ]+/i", "" );
+
+    $review_text = rs_requestFilter( "review_text", "/.+/i", "" );
+    
     $slashedText = mysqli_real_escape_string( $rs_mysqlLink, $review_text );
     
     $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
@@ -709,7 +728,7 @@ function rs_submitReview() {
         return;
         }
 
-    $stringToHash = $review_score . $review_text;
+    $stringToHash = $review_score . $review_name . $review_text;
 
 
     $encodedString = urlencode( $stringToHash );
@@ -737,16 +756,27 @@ function rs_submitReview() {
 
     if( $count == 0 ) {
         // can post review with no games logged
-
-        $query = "INSERT INTO $tableNamePrefix". "user_stats VALUES ( " .
-            "'$email', 0, CURRENT_TIMESTAMP, ".
-            "CURRENT_TIMESTAMP, 0, 0, 0, $review_score, '$slashedText', ".
-            "CURRENT_TIMESTAMP, 0, 0, 0 );";
+        $query = "INSERT INTO $tableNamePrefix". "user_stats SET " .
+            "email = '$email', ".
+            "sequence_number = 0, ".
+            "first_game_date = CURRENT_TIMESTAMP, ".
+            "last_game_date = CURRENT_TIMESTAMP, ".
+            "last_game_seconds = 0, ".
+            "game_count = 0,".
+            "game_total_seconds = 0,".
+            "review_score = $review_score, ".
+            "review_name = '$review_name',".
+            "review_text = '$slashedText',".
+            "review_date = CURRENT_TIMESTAMP,".
+            "review_game_seconds = 0,".
+            "review_game_count=0,".
+            "review_votes = 0;";
         }
     else {
         // update the existing one
         $query = "UPDATE $tableNamePrefix"."user_stats SET " .
             "review_score = $review_score, ".
+            "review_name = '$review_name', ".
             "review_text = '$slashedText', ".
             "review_date = CURRENT_TIMESTAMP,".
             "review_game_count = game_count,".

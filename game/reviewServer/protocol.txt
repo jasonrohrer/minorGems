@@ -49,6 +49,7 @@ server.php
 ?action=submit_review
 &email=[email address]
 &review_score=[positiv integer]
+&review_name=[url-encoded text]
 &review_text=[url-encoded text]
 &hash_value=[hash value]
 
@@ -59,8 +60,9 @@ INVALID
 
 Used by game clients to submit or replace user reviews.
 
-hash_value computed by concatonating review_score with decoded review_text 
+hash_value computed by concatonating review_score with decoded review_name and 
+review_text 
 
 hash_value is computed on both ends with:
 
-HMAC_SHA1( $ticket_id, $review_score . $plain_review_text )
+HMAC_SHA1( $ticket_id, $review_score . $plain_review_name . $plain_review_text )
