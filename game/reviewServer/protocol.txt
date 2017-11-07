@@ -48,7 +48,7 @@ request will be rejected.
 server.php
 ?action=submit_review
 &email=[email address]
-&review_score=[positiv integer]
+&review_score=[positive integer]
 &review_name=[url-encoded text]
 &review_text=[url-encoded text]
 &hash_value=[hash value]
