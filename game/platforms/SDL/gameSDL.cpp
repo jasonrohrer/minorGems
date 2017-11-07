@@ -4846,10 +4846,22 @@ void loadingComplete() {
 
 
 
+static char noClipboardLogged = false;
+
 
 char isClipboardSupported() {
 #ifdef LINUX
-    return true;
+    if( system( "which xclip > /dev/null 2>&1" ) ) {
+        // xclip not installed
+        if( !noClipboardLogged ) {
+            noClipboardLogged = true;
+            AppLog::error( "xclip must be installed for clipboard to work" );
+            }
+        return false;
+        }
+    else {
+        return true;
+        }
 #elif defined(__mac__)
     return true;
 #elif defined(WIN_32)
@@ -4858,7 +4870,6 @@ char isClipboardSupported() {
     return false;
 #endif
     }
-
 
 
 
@@ -4879,63 +4890,26 @@ char isClipboardSupported() {
 
 
 char *getClipboardText() {
-    char *fromClipboard = NULL;
     
-
-    Display *display = XOpenDisplay( NULL );
-	
-    Atom XA_CLIPBOARD = XInternAtom( display, "CLIPBOARD", 0 );
-
-	
-    Window selectionOwner = XGetSelectionOwner( display, XA_CLIPBOARD );
-    
-    if( selectionOwner != None ) {
-        Atom ourSelection = XInternAtom( display, "OUR_SELECTION", false );
-
-        XConvertSelection( display, XA_CLIPBOARD, XA_STRING, ourSelection,
-                           selectionOwner, CurrentTime );
-
-        Atom type;
-        int format;
-        unsigned long length, bytesLeft, dummy;
-        unsigned char *data;
-        
-        // check how long the data is
-        XGetWindowProperty( display, selectionOwner, 
-                            ourSelection,
-                            0, 0,	  	  // offset, len
-                            0, 	 	  // Delete 0==FALSE
-                            XA_STRING,  // type
-                            &type,		  // return type
-                            &format,	  // return format
-                            &length, &bytesLeft,  //that 
-                            &data );				
-
-        if( bytesLeft > 0 ) {
-            int result = XGetWindowProperty( display, selectionOwner, 
-                                             ourSelection, 
-                                             0, bytesLeft, 
-                                             0,
-                                             XA_STRING, 
-                                             &type, 
-                                             &format,
-                                             &length, &dummy, 
-                                             &data );
-            if( result == Success ) {
-                fromClipboard = stringDuplicate( (char*)data );
-                XFree (data);
-                }
-            }
-        }
-    
-    XCloseDisplay( display );
-
-    if( fromClipboard != NULL ) {
-        return fromClipboard;
-        }
-    else { 
+    FILE* pipe = popen( "xclip -silent -selection clipboard -o", "r");
+    if( pipe == NULL ) {
         return stringDuplicate( "" );
         }
+
+    SimpleVector<char> textVector;
+
+    char buffer[512];
+    char *line = fgets( buffer, sizeof( buffer ), pipe );
+
+    while( line != NULL ) {
+        textVector.appendElementString( buffer );
+        line = fgets( buffer, sizeof( buffer ), pipe );
+        }
+
+    pclose( pipe );
+
+
+    return textVector.getElementString();
     }
 
 
