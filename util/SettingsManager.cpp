@@ -34,6 +34,9 @@
  *
  * 2017-November-1    Jason Rohrer
  * More convenient getStringSetting call (with default value).
+ *
+ * 2017-November-8    Jason Rohrer
+ * getStringSetting now returns entire file contents.
  */
 
 
@@ -92,6 +95,28 @@ void SettingsManager::setHashingOn( char inOn ) {
 SimpleVector<char *> *SettingsManager::getSetting( 
     const char *inSettingName ) {
 
+    char *fileContents = getStringSetting( inSettingName );
+    
+    if( fileContents == NULL ) {
+        // return empty vector
+        return new SimpleVector<char*>();
+        }
+
+
+    // else tokenize the file contents
+    SimpleVector<char *> *returnVector = tokenizeString( fileContents );
+
+    delete [] fileContents;
+    
+    return returnVector;
+    }
+
+
+
+
+
+char *SettingsManager::getStringSetting( const char *inSettingName ) {
+
     char *fileName = getSettingsFileName( inSettingName );
     File *settingsFile = new File( NULL, fileName );
 
@@ -101,11 +126,9 @@ SimpleVector<char *> *SettingsManager::getSetting(
 
     delete settingsFile;
 
-
     
     if( fileContents == NULL ) {
-        // return empty vector
-        return new SimpleVector<char *>();
+        return NULL;
         }
     
     if( mHashingOn ) {
@@ -124,7 +147,7 @@ SimpleVector<char *> *SettingsManager::getSetting(
             printf( "Hash missing for setting %s\n", inSettingName );
 
             delete [] fileContents;
-            return new SimpleVector<char *>();
+            return NULL;
             }
     
         
@@ -147,43 +170,11 @@ SimpleVector<char *> *SettingsManager::getSetting(
             printf( "Hash mismatch for setting %s\n", inSettingName );
             
             delete [] fileContents;
-            return new SimpleVector<char *>();
+            return NULL;
             }
         }
-
-
-    // else tokenize the file contents
-    SimpleVector<char *> *returnVector = tokenizeString( fileContents );
-
-    delete [] fileContents;
     
-    return returnVector;
-    }
-
-
-
-char *SettingsManager::getStringSetting( const char *inSettingName ) {
-    char *value = NULL;
-    
-    SimpleVector<char *> *settingsVector = getSetting( inSettingName );
-
-    int numStrings = settingsVector->size(); 
-    if( numStrings >= 1 ) {
-
-        char *firstString = *( settingsVector->getElement( 0 ) );
-
-        value = stringDuplicate( firstString );
-        }
-
-    for( int i=0; i<numStrings; i++ ) {
-        char *nextString = *( settingsVector->getElement( i ) );
-
-        delete [] nextString;
-        }
-    
-    delete settingsVector;
-
-    return value;
+    return fileContents;
     }
 
 
@@ -317,12 +308,19 @@ void SettingsManager::setSetting( const char *inSettingName,
                                  "\n" );
     delete [] settingParts;
     
+    setSetting( inSettingName, settingString );
+    }
+
+
+
+void SettingsManager::setSetting( const char *inSettingName,
+                                  const char *inSettingValue ) {
 
     if( mHashingOn ) {
         
         // compute hash
         char *stringToHash = autoSprintf( "%s%s",
-                                          settingString,
+                                          inSettingValue,
                                           mStaticMembers.mHashSalt );
 
         char *hash = computeSHA1Digest( stringToHash );
@@ -351,14 +349,10 @@ void SettingsManager::setSetting( const char *inSettingName,
     
     if( file != NULL ) {
         
-        fprintf( file, "%s", settingString );
+        fprintf( file, "%s", inSettingValue );
         
         fclose( file );
         }
-
-    delete [] settingString;
-
-    // else do nothing
     }
 
 
@@ -400,18 +394,6 @@ void SettingsManager::setSetting( const char *inSettingName,
     delete [] stringVal;
     }
 
-
-
-void SettingsManager::setSetting( const char *inSettingName,
-                                  const char *inSettingValue ) {
-    SimpleVector<char *> *settingsVector = new SimpleVector<char *>( 1 );
-
-    settingsVector->push_back( (char *)inSettingValue );
-
-    setSetting( inSettingName, settingsVector );
-
-    delete settingsVector; 
-    }
 
 
 

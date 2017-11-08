@@ -34,6 +34,9 @@
  *
  * 2017-November-1    Jason Rohrer
  * More convenient getStringSetting call (with default value).
+ *
+ * 2017-November-8    Jason Rohrer
+ * getStringSetting now returns entire file contents.
  */
 
 #include "minorGems/common.h"
@@ -125,7 +128,7 @@ class SettingsManager {
 
         
         /**
-         * Gets a setting.
+         * Gets a setting, tokenized by whitespace into separate strings.
          *
          * @param inSettingName the name of the setting to get.
          *   Must be destroyed by caller if non-const.
@@ -139,7 +142,8 @@ class SettingsManager {
 
 
         /**
-         * Gets a string setting.
+         * Gets a string setting.  Entire contents of settings file
+         * as a string.
          *
          * @param inSettingName the name of the setting to get.
          *   Must be destroyed by caller if non-const.
