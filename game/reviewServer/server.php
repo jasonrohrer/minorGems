@@ -604,7 +604,7 @@ function rs_getSequenceNumber() {
     $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
     if( $email == "" ) {
-        echo "INVALID";
+        echo "DENIED";
         return;
         }
     
@@ -652,14 +652,14 @@ function rs_logGame() {
 
     if( $email == "" ||
         $game_seconds == 0 ) {
-        echo "INVALID";
+        echo "DENIED";
         return;
         }
     
     $trueSeq = rs_getSequenceNumberForEmail( $email );
 
     if( $trueSeq > $sequence_number ) {
-        echo "INVALID";
+        echo "DENIED";
         return;
         }
 
@@ -667,7 +667,7 @@ function rs_logGame() {
         strtoupper( rs_hmac_sha1( $sharedGameServerSecret, $sequence_number ) );
 
     if( $computedHashValue != $hash_value ) {
-        echo "INVALID";
+        echo "DENIED";
         return;
         }
 
@@ -703,7 +703,7 @@ function rs_logGame() {
 
     rs_queryDatabase( $query );
     
-    echo "VALID";
+    echo "OK";
     }
 
 
@@ -733,7 +733,7 @@ function rs_submitReview() {
     
 
     if( $email == "" ) {
-        echo "INVALID";
+        echo "DENIED";
         return;
         }
 
@@ -753,7 +753,7 @@ function rs_submitReview() {
             "&string_to_hash=$encodedString" );
 
     if( $result != "VALID" ) {
-        echo "INVALID";
+        echo "DENIED";
         return;
         }
 
@@ -794,7 +794,7 @@ function rs_submitReview() {
     
     rs_queryDatabase( $query );
     
-    echo "VALID";
+    echo "OK";
     }
 
 

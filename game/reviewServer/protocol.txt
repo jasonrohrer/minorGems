@@ -24,9 +24,9 @@ server.php
 &hash_value=[hash value]
 
 Return:
-VALID
+OK
 -or-
-INVALID
+DENIED
 
 Used by game servers to log game stats.
 
@@ -54,9 +54,9 @@ server.php
 &hash_value=[hash value]
 
 Return:
-VALID
+OK
 -or-
-INVALID
+DENIED
 
 Used by game clients to submit or replace user reviews.
 
