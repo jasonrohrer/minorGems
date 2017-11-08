@@ -4846,22 +4846,26 @@ void loadingComplete() {
 
 
 
-static char noClipboardLogged = false;
+static char clipboardSupportKnown = false;
+static char clipboardSupport = false;
 
 
 char isClipboardSupported() {
 #ifdef LINUX
-    if( system( "which xclip > /dev/null 2>&1" ) ) {
-        // xclip not installed
-        if( !noClipboardLogged ) {
-            noClipboardLogged = true;
+    // only check once, since system forks a process each time
+    if( !clipboardSupportKnown ) {
+        
+        if( system( "which xclip > /dev/null 2>&1" ) ) {
+            // xclip not installed
             AppLog::error( "xclip must be installed for clipboard to work" );
+            clipboardSupport = false;
             }
-        return false;
+        else {
+            clipboardSupport = true;
+            }
+        clipboardSupportKnown = true;
         }
-    else {
-        return true;
-        }
+    return clipboardSupport;
 #elif defined(__mac__)
     return true;
 #elif defined(WIN_32)
