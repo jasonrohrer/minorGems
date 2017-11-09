@@ -66,3 +66,26 @@ review_text
 hash_value is computed on both ends with:
 
 HMAC_SHA1( $ticket_id, $review_score . $plain_review_name . $plain_review_text )
+
+
+
+
+server.php
+?action=remove_review
+&email=[email address]
+&sequence_number=[number]
+&hash_value=[hash value]
+
+Return:
+OK
+-or-
+DENIED
+
+Used by game clients to request review removal.
+
+hash_value is computed on both ends with:
+
+HMAC_SHA1( $ticket_id, $sequence_number )
+
+If sequence number is <= previously used sequence number for this email address,
+request will be rejected.

@@ -126,6 +126,9 @@ else if( $action == "log_game" ) {
 else if( $action == "submit_review" ) {
     rs_submitReview();
     }
+else if( $action == "remove_review" ) {
+    rs_removeReview();
+    }
 else if( $action == "show_log" ) {
     rs_showLog();
     }
@@ -767,7 +770,7 @@ function rs_submitReview() {
         // can post review with no games logged
         $query = "INSERT INTO $tableNamePrefix". "user_stats SET " .
             "email = '$email', ".
-            "sequence_number = 0, ".
+            "sequence_number = 1, ".
             "first_game_date = CURRENT_TIMESTAMP, ".
             "last_game_date = CURRENT_TIMESTAMP, ".
             "last_game_seconds = 0, ".
@@ -792,6 +795,69 @@ function rs_submitReview() {
             "review_game_seconds = game_total_seconds; ";
         }
     
+    rs_queryDatabase( $query );
+    
+    echo "OK";
+    }
+
+
+
+
+function rs_removeReview() {
+    global $tableNamePrefix, $rs_mysqlLink;
+    
+
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
+    $sequence_number = rs_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
+
+    $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+
+    $hash_value = strtoupper( $hash_value );
+    
+
+    if( $email == "" ) {
+        echo "DENIED";
+        return;
+        }
+    
+    $trueSeq = rs_getSequenceNumberForEmail( $email );
+
+    if( $trueSeq > $sequence_number || $trueSeq == 0 ) {
+        // stale sequence number or user doesn't exist in DB
+        echo "DENIED";
+        return;
+        }
+    
+
+    $stringToHash = $sequence_number;
+
+
+    $encodedString = urlencode( $stringToHash );
+    $encodedEmail = urlencode( $email );
+
+    global $ticketServerURL;
+    
+    $result = file_get_contents(
+            "$ticketServerURL".
+            "?action=check_ticket_hash".
+            "&email=$encodedEmail" .
+            "&hash_value=$hash_value" .
+            "&string_to_hash=$encodedString" );
+
+    if( $result != "VALID" ) {
+        echo "DENIED";
+        return;
+        }
+
+    // just set score as -1
+    // keep old review text in place for reference
+    
+    $query = "UPDATE $tableNamePrefix"."user_stats SET " .
+        "sequence_number = $sequence_number + 1, ".
+        "review_score = = -1 ".
+        "WHERE email = '$email'; ";
+
     rs_queryDatabase( $query );
     
     echo "OK";
