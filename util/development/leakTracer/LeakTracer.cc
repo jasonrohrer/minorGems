@@ -141,7 +141,9 @@ static class LeakTracer {
         
 		int         nextBucket;
 	};
-	
+
+public:
+        
 	int  newCount;      // how many memory blocks do we have
 	int  leaksCount;    // amount of entries in the leaks array
 	int  firstFreeSpot; // Where is the first free spot in the leaks array?
@@ -646,6 +648,21 @@ char *strdup( const char *inString ) {
     strcpy( outString, inString );
     return outString;
     }
+
+
+// added by Jason Rohrer
+
+#include <malloc.h>
+
+// overrides mallinfo to set uordblks more accurately.
+// normal mallinfo uordblks don't include larger allocations
+struct mallinfo mallinfo() {
+    struct mallinfo mi;
+    mi.uordblks = leakTracer.currentAllocated;
+    return mi;
+    }
+
+
 
 
 /* Emacs: 
