@@ -563,14 +563,19 @@ void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
 
 
 
-double Font::measureString( const char *inString ) {
+double Font::measureString( const char *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
 
-    unsigned int numChars = strlen( inString );
+    int numChars = inCharLimit;
 
+    if( numChars == -1 ) {
+        // no limit, measure whole string
+        numChars = strlen( inString );
+        }
+    
     double width = 0;
     
-    for( unsigned int i=0; i<numChars; i++ ) {
+    for( int i=0; i<numChars; i++ ) {
         unsigned char c = inString[i];
         
         if( c == ' ' ) {
