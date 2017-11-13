@@ -384,7 +384,7 @@ function rs_showData( $checkPassword = true ) {
     
     global $usersPerPage;
     
-    $search = rs_requestFilter( "search", "/[A-Z0-9_@. -]+/i" );
+    $search = rs_requestFilter( "search", "/[A-Z0-9_@. \-]+/i" );
 
     $order_by = rs_requestFilter( "order_by", "/[A-Z_]+/i",
                                   "last_game_date" );
@@ -587,7 +587,7 @@ function rs_showDetail( $checkPassword = true ) {
     global $tableNamePrefix;
     
 
-    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i" );
             
     $query = "SELECT * FROM $tableNamePrefix"."user_stats ".
             "WHERE email = '$email';";
@@ -604,9 +604,11 @@ function rs_getSequenceNumber() {
     global $tableNamePrefix;
     
 
-    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
 
     if( $email == "" ) {
+        rs_log( "getSequenceNumber denied for bad email" );
+
         echo "DENIED";
         return;
         }
@@ -644,7 +646,7 @@ function rs_logGame() {
     global $tableNamePrefix, $sharedGameServerSecret;
     
 
-    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
     $game_seconds = rs_requestFilter( "game_seconds", "/[0-9]+/i", "0" );
     $sequence_number = rs_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
 
@@ -655,6 +657,9 @@ function rs_logGame() {
 
     if( $email == "" ||
         $game_seconds == 0 ) {
+
+        rs_log( "logGame denied for bad email or game_seconds" );
+        
         echo "DENIED";
         return;
         }
@@ -662,6 +667,8 @@ function rs_logGame() {
     $trueSeq = rs_getSequenceNumberForEmail( $email );
 
     if( $trueSeq > $sequence_number ) {
+        rs_log( "logGame denied for stale sequence number" );
+
         echo "DENIED";
         return;
         }
@@ -670,6 +677,8 @@ function rs_logGame() {
         strtoupper( rs_hmac_sha1( $sharedGameServerSecret, $sequence_number ) );
 
     if( $computedHashValue != $hash_value ) {
+        rs_log( "logGame denied for bad hash value" );
+
         echo "DENIED";
         return;
         }
@@ -719,14 +728,14 @@ function rs_submitReview() {
     global $tableNamePrefix, $sharedGameServerSecret, $rs_mysqlLink;
     
 
-    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
     $review_score = rs_requestFilter( "review_score", "/[0-9]+/i", "0" );
 
-    $review_name = rs_requestFilter( "review_name", "/[A-Z0-9._- ]+/i", "" );
-
-    $review_text = rs_requestFilter( "review_text", "/.+/i", "" );
+    $review_name = rs_requestFilter( "review_name", "/[A-Z0-9._\- ]+/i", "" );
     
-    $slashedText = mysqli_real_escape_string( $rs_mysqlLink, $review_text );
+    $review_text_RAW = $_REQUEST[ "review_text" ];
+    
+    $slashedText = mysqli_real_escape_string( $rs_mysqlLink, $review_text_RAW );
     
     $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
 
@@ -736,26 +745,35 @@ function rs_submitReview() {
     
 
     if( $email == "" ) {
+        rs_log( "submitReview denied for bad email" );
+
         echo "DENIED";
         return;
         }
 
-    $stringToHash = $review_score . $review_name . $review_text;
+
+    $textSHA1 = strtoupper( sha1( $review_text_RAW ) );
+    $nameSHA1 = strtoupper( sha1( $review_name ) );
+
+    $stringToHash = $review_score . $nameSHA1 . $textSHA1;
 
 
     $encodedString = urlencode( $stringToHash );
     $encodedEmail = urlencode( $email );
 
     global $ticketServerURL;
+
+    $request = "$ticketServerURL".
+        "?action=check_ticket_hash".
+        "&email=$encodedEmail" .
+        "&hash_value=$hash_value" .
+        "&string_to_hash=$encodedString";
     
-    $result = file_get_contents(
-            "$ticketServerURL".
-            "?action=check_ticket_hash".
-            "&email=$encodedEmail" .
-            "&hash_value=$hash_value" .
-            "&string_to_hash=$encodedString" );
+    $result = file_get_contents( $request );
 
     if( $result != "VALID" ) {
+        rs_log( "submitReview denied for failed hash check " );
+
         echo "DENIED";
         return;
         }
@@ -807,7 +825,7 @@ function rs_removeReview() {
     global $tableNamePrefix, $rs_mysqlLink;
     
 
-    $email = rs_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
 
     $sequence_number = rs_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
 
@@ -817,6 +835,8 @@ function rs_removeReview() {
     
 
     if( $email == "" ) {
+        rs_log( "removeReview denied for bad email" );
+
         echo "DENIED";
         return;
         }
@@ -825,6 +845,8 @@ function rs_removeReview() {
 
     if( $trueSeq > $sequence_number || $trueSeq == 0 ) {
         // stale sequence number or user doesn't exist in DB
+        rs_log( "removeReview denied for stale sequence number" );
+
         echo "DENIED";
         return;
         }
@@ -846,6 +868,8 @@ function rs_removeReview() {
             "&string_to_hash=$encodedString" );
 
     if( $result != "VALID" ) {
+        rs_log( "removeReview denied for failed hash check" );
+
         echo "DENIED";
         return;
         }

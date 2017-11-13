@@ -65,7 +65,9 @@ review_text
 
 hash_value is computed on both ends with:
 
-HMAC_SHA1( $ticket_id, $review_score . $plain_review_name . $plain_review_text )
+HMAC_SHA1( $ticket_id, $review_score . 
+                       sha1( $plain_review_name ) . 
+                       sha1( $plain_review_text ) )
 
 
 
