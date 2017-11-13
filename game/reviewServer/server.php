@@ -141,6 +141,9 @@ else if( $action == "show_data" ) {
 else if( $action == "show_detail" ) {
     rs_showDetail();
     }
+else if( $action == "view_review" ) {
+    rs_viewReview();
+    }
 else if( $action == "logout" ) {
     rs_logout();
     }
@@ -532,6 +535,8 @@ function rs_showData( $checkPassword = true ) {
         $review_text = rs_mysqli_result( $result, $i, "review_text" );
 
         $review_score = rs_mysqli_result( $result, $i, "review_score" );
+
+        $review_name = rs_mysqli_result( $result, $i, "review_name" );
     
 
         $lastDuration = rs_secondsToTimeSummary( $last_game_seconds );
@@ -547,10 +552,29 @@ function rs_showData( $checkPassword = true ) {
         $firstGameAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
                                                 strtotime( $first_game_date ) );
         
+
+        $oldLen = strlen( $review_text );
+        
+        $review_text = substr( $review_text, 0, 80 );
+
+        if( $oldLen > 80 ) {
+            $review_text = $review_text . " ...";
+            }
+        
+        $encodedEmail = urlencode( $email );
+
+        $nameString = "";
+
+        if( $review_name != "" ) {
+            $nameString = "($review_name) ";
+            }
+        
         
         echo "<tr>\n";
         
-        echo "<td>$email</td>\n";
+        echo "<td>".
+            "<a href=\"server.php?action=show_detail&email=$encodedEmail\">".
+            "$email</a></td>\n";
         echo "<td>$last_game_date<br>($lastGameAgo ago)</td>\n";
         echo "<td>$lastDuration</td>\n";
         echo "<td>$game_count</td>\n";
@@ -559,7 +583,7 @@ function rs_showData( $checkPassword = true ) {
         echo "<td>$first_game_date<br>($firstGameAgo ago)</td>\n";
         echo "<td>$spanDuration</td>\n";
         echo "<td>$review_votes</td>\n";
-        echo "<td><b>($review_score)</b> $review_text</td>\n";
+        echo "<td>$nameString<b>($review_score)</b><br>$review_text</td>\n";
         echo "</tr>\n";
         }
     echo "</table>";
@@ -593,10 +617,95 @@ function rs_showDetail( $checkPassword = true ) {
             "WHERE email = '$email';";
     $result = rs_queryDatabase( $query );
 
+    $id = rs_mysqli_result( $result, 0, "id" );
+    $email = rs_mysqli_result( $result, 0, "email" );
+    $review_date = rs_mysqli_result( $result, 0, "review_date" );
 
-    echo "No details available in this version";
+    $review_text = rs_mysqli_result( $result, 0, "review_text" );
+    
+    $review_score = rs_mysqli_result( $result, 0, "review_score" );
+    
+    $review_name = rs_mysqli_result( $result, 0, "review_name" );
+
+    echo "<center><table border=0><tr><td>";
+    
+    echo "<b>Email:</b> $email<br><br>";
+    echo "<b>Date:</b> $review_date<br><br>";
+    echo "<b>Name:</b> $review_name<br><br>";
+    echo "<b>Score:</b> $review_score<br><br>";
+
+
+    global $fullServerURL;
+    
+    echo "<b>View:</b> ".
+        "<a href='$fullServerURL?action=view_review&id=$id'>[$id]</a><br><br>";
+    
+    
+    $review_text = preg_replace( '/\n/', "<br>", $review_text );
+    
+    echo "<b>Review:</b><br> ".
+        "<table width=600 border=1 cellpadding=5 cellspacing=0><tr><td>$review_text</td></tr></table>";
+
+    echo "</td></tr></table></center>";
+    
+    
     }
- 
+
+
+
+function rs_viewReview( $checkPassword = true ) {
+    
+    global $tableNamePrefix;
+    
+    global $header, $footer;
+
+    eval( $header );
+    
+    $id = rs_requestFilter( "id", "/[0-9]+/i", 0 );
+            
+    $query = "SELECT * FROM $tableNamePrefix"."user_stats ".
+            "WHERE id = '$id';";
+    $result = rs_queryDatabase( $query );
+
+    $game_total_seconds = rs_mysqli_result( $result, 0, "game_total_seconds" );
+    
+    $last_game_date = rs_mysqli_result( $result, 0, "last_game_date" );
+
+    $review_date = rs_mysqli_result( $result, 0, "review_date" );
+
+    $review_text = rs_mysqli_result( $result, 0, "review_text" );
+    
+    $review_score = rs_mysqli_result( $result, 0, "review_score" );
+    
+    $review_name = rs_mysqli_result( $result, 0, "review_name" );
+
+
+    $totalDuration = rs_secondsToTimeSummary( $game_total_seconds );
+
+        
+    $lastGameAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
+                                           strtotime( $last_game_date ) );
+
+    $reviewAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
+                                         strtotime( $last_game_date ) );
+    
+    echo "<center><table border=0><tr><td>";
+    
+    echo "<b>Review Posted:</b> $reviewAgo ago<br><br>";
+    echo "<b>Last Played:</b> $lastGameAgo ago<br><br>";
+    echo "<b>Name:</b> $review_name<br><br>";
+    echo "<b>Recommended?:</b> $review_score<br><br>";
+    
+    $review_text = preg_replace( '/\n/', "<br>", $review_text );
+    
+    echo "<b>Review:</b><br> ".
+        "<table width=600 border=1 cellpadding=5 cellspacing=0><tr><td>$review_text</td></tr></table>";
+
+    echo "</td></tr></table></center>";
+    
+    eval( $footer );
+    }
+
 
 
 

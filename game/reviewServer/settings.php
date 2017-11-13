@@ -109,4 +109,9 @@ $accessPasswords = array( "8e409075ab35b161f6d2d57775e5efbee8d7b674",
 $usersPerPage = 6;
 
 
+
+// header and footers for various pages
+$header = "include( \"header.php\" );";
+$footer = "include( \"footer.php\" );";
+
 ?>
