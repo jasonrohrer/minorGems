@@ -616,7 +616,7 @@ function rs_getSequenceNumber() {
     
     $seq = rs_getSequenceNumberForEmail( $email );
 
-    echo $seq;
+    echo "$seq\n"."OK";
     }
 
 
@@ -810,7 +810,8 @@ function rs_submitReview() {
             "review_text = '$slashedText', ".
             "review_date = CURRENT_TIMESTAMP,".
             "review_game_count = game_count,".
-            "review_game_seconds = game_total_seconds; ";
+            "review_game_seconds = game_total_seconds ".
+            "WHERE email = '$email'; ";
         }
     
     rs_queryDatabase( $query );
@@ -879,7 +880,7 @@ function rs_removeReview() {
     
     $query = "UPDATE $tableNamePrefix"."user_stats SET " .
         "sequence_number = $sequence_number + 1, ".
-        "review_score = = -1 ".
+        "review_score = -1 ".
         "WHERE email = '$email'; ";
 
     rs_queryDatabase( $query );
