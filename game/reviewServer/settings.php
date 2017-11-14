@@ -120,4 +120,36 @@ $recIcon = "$mainSiteURL/reviewServer/rec.png";
 $notRecIcon = "$mainSiteURL/reviewServer/notRec.png";
 
 
+// how many reviews to show in a list
+$reviewListLength = 8;
+
+// number of characters to show in a review summary
+// -1 shows entire text
+$summaryTextLength = 400;
+
+// width in pixels for summary lists
+$reviewListWidth = 400;
+
+// for full page views
+$reviewPageWidth = 600;
+
+
+
+// Where generated HTML should be written
+// must be writeable by the process that runs PHP
+// these are updated whenever a review is posted or stats change
+$outputPathRecent =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/recentReviews.html";
+
+$outputPathPlaytime =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/playtimeReviews.html";
+
+// includes these variables:
+// $rs_reviewCount
+// $rs_positivePercent
+// percent is an integer from 0-100
+$outputReviewCountPHP =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/reviewCount.php";
+
+
 ?>

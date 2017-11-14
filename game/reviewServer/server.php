@@ -138,11 +138,20 @@ else if( $action == "clear_log" ) {
 else if( $action == "show_data" ) {
     rs_showData();
     }
+else if( $action == "regen_static_html" ) {
+    rs_regenStaticHTML();
+    }
 else if( $action == "show_detail" ) {
     rs_showDetail();
     }
 else if( $action == "view_review" ) {
     rs_viewReview();
+    }
+else if( $action == "list_recent" ) {
+    rs_listRecent();
+    }
+else if( $action == "list_playtime" ) {
+    rs_listPlaytime();
     }
 else if( $action == "logout" ) {
     rs_logout();
@@ -375,7 +384,8 @@ function rs_showData( $checkPassword = true ) {
 
     echo "<table width='100%' border=0><tr>".
         "<td>[<a href=\"server.php?action=show_data" .
-            "\">Main</a>]</td>".
+            "\">Main</a>] [<a href='server.php?action=regen_static_html'>".
+        "Regen HTML</a>]</td>".
         "<td align=right>[<a href=\"server.php?action=logout" .
             "\">Logout</a>]</td>".
         "</tr></table><br><br><br>";
@@ -653,18 +663,24 @@ function rs_showDetail( $checkPassword = true ) {
 
 
 
-function rs_viewReview( $checkPassword = true ) {
-    
-    global $tableNamePrefix;
-    
-    global $header, $footer;
 
-    eval( $header );
-    
-    $id = rs_requestFilter( "id", "/[0-9]+/i", 0 );
-            
+function rs_regenStaticHTML() {
+    rs_checkPassword( "regen_static_html" );
+
+    rs_generateRecentStatic();
+    rs_generateTopPlaytimeStatic();
+    rs_generateReviewCountStatic();
+
+    rs_showData( false );
+    }
+
+
+
+function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
+    global $tableNamePrefix;
+
     $query = "SELECT * FROM $tableNamePrefix"."user_stats ".
-            "WHERE id = '$id';";
+            "WHERE id = '$inID';";
     $result = rs_queryDatabase( $query );
 
     $game_total_seconds = rs_mysqli_result( $result, 0, "game_total_seconds" );
@@ -700,27 +716,289 @@ function rs_viewReview( $checkPassword = true ) {
         $recText = "Not Recommended";
         }
 
+    $text = "<table width=$inWidth cellspacing=0 cellpadding=10 border=0><tr>";
+
+
+    if( $inWidth >= 500 ) {
+        // full width view
+        $text= $text.
+            "<td valign=middle bgcolor=#404040 width=40><img src='$icon'></td>".
+            "<td valign=middle bgcolor=#404040>".
+            "<table width=100% cellspacing=0 cellpadding=0><tr>".
+            "<td valign=middle><font size=5><b>$recText</b></font></td>".
+            "<td align=right>by $review_name<br>".
+            "Played $totalDuration</td></tr></table></td></tr>";
+        }
+    else {
+        // compact view
+        $text= $text.
+            "<td valign=middle bgcolor=#404040 width=40><img src='$icon'></td>".
+            "<td valign=middle bgcolor=#404040>".
+            "<table width=100% cellspacing=0 cellpadding=0><tr>".
+            "<td valign=middle><b>$recText</b><br>".
+            "$review_name ".
+            "($totalDuration)</td></tr></table></td></tr>";
+        }
+    
+    $review_text = preg_replace( '/\n/', "<br>", $review_text );
+
+    $bottomLink = "";
+    
+    if( $inTextLengthLimit != -1 ) {
+        if( strlen( $review_text ) > $inTextLengthLimit ) {
+            $review_text = substr( $review_text, 0, $inTextLengthLimit );
+
+            $review_text = $review_text . "...";
+            
+            global $fullServerURL;
+            $bottomLink =
+                "<div style='text-align:right'>[<a ".
+                "href='$fullServerURL?action=view_review&id=$inID'>".
+                "Read more</a>]</div>";
+            }
+        }
+    
+    $text = $text .
+        "<tr>".
+        "<td colspan=2 bgcolor=#202020>".
+        "<table border=0 cellpadding=0 cellspacing=0 width=100%>";
+
+    if( $inWidth >= 500 ) {
+        $text = $text .
+            "<tr><td>Posted $reviewAgo ago</td>".
+            "<td align=right>Last Played $lastGameAgo ago</td></tr></table>";
+        }
+    else {
+        $text = $text .
+            "<tr><td colspan=2>Posted $reviewAgo ago</td></tr></table>";
+        }
+    
+    $text = $text .
+        "<div style='border-top: 2px solid gray'></div><br>".
+        "$review_text$bottomLink</td></tr></table>";
+
+    return $text;
+    }
+
+
+
+// pass in full ORDER BY clause
+function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
+                         $inSkip=0 ) {
+    
+    global $tableNamePrefix, $reviewListLength, $summaryTextLength,
+        $reviewListWidth;
+
+    
+    if( $inWidth == -1 ) {
+        $inWidth = $reviewListWidth;
+        }
+    
+    
+    $query = "SELECT id FROM $tableNamePrefix"."user_stats ".
+        "WHERE review_score != -1 ".
+        "$inOrderBy LIMIT $inSkip, $reviewListLength;";
+    $result = rs_queryDatabase( $query );
+
+    $numRows = mysqli_num_rows( $result );
+
+    $totalText = "";
+    
+    for( $i=0; $i<$numRows; $i++ ) {
+        $id = rs_mysqli_result( $result, i, "id" );
+
+        $text = rs_getReviewHTML( $id, $inWidth, $summaryTextLength );
+
+        $totalText = $totalText . $text . "<br>";
+
+        if( $inWidth >= 500 ) {
+            $totalText = $totalText . "<br>";
+            }
+        }
+
+    // next/prev widget on bottom
+
+    $widgetText = "<table border=0 width=$inWidth><tr>";
+
+    global $fullServerURL;
+
+    $prevShown = false;
+    
+    if( $inSkip > 0 ) {
+        $prev = $inSkip - $reviewListLength;
+        if( $prev < 0 ) {
+            $prev = 0;
+            }
+        $widgetText = $widgetText .
+            "<td>[<a ".
+            "href='$fullServerURL?action=$inAction&skip=$prev'>Prev Page</a>]".
+            "</td>";
+        
+        $prevShown = true;
+        }
+
+    $next = $inSkip + $reviewListLength;
+
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
+        "WHERE review_score != -1 ".
+        "$inOrderBy;";
+    $result = rs_queryDatabase( $query );
+
+    $count = rs_mysqli_result( $result, 0, 0 );
+
+    if( $count > $next ) {
+        if( $prevShown ) {
+            $widgetText = $widgetText .
+                "<td align=right>[<a ".
+                "href='$fullServerURL?action=$inAction&skip=$next'>".
+                "Next Page</a>]</td>";
+            }
+        else {
+            $widgetText = $widgetText .
+                "<td align=center>[<a ".
+                "href='$fullServerURL?action=$inAction&skip=$next'>".
+                "More Reviews</a>]</td>";
+            }
+        }
+    
+    $widgetText = $widgetText . "</tr></table>";
+    
+    
+    $totalText = $totalText . $widgetText;
+    
+    
+    return $totalText;
+    }
+
+
+
+function rs_getRecentReviewHTML( $inWidth, $inSkip ) {
+    return rs_getListHTML( "ORDER BY review_date DESC",
+                           "list_recent", $inWidth, $inSkip );
+    }
+
+
+function rs_getTopPlaytimeReviewHTML( $inWidth, $inSkip ) {
+    return rs_getListHTML( "ORDER BY game_total_seconds DESC",
+                       "list_playtime", $inWidth, $inSkip );
+    }
+
+
+
+function rs_listRecent() {
+    global $header, $footer;
+
+    eval( $header );
+    
+    $skip = rs_requestFilter( "skip", "/[0-9]+/i", 0 );
+    
+    echo "<center><table border=0><tr><td>";
+
+    global $reviewPageWidth;
+    
+    $text = rs_getRecentReviewHTML( $reviewPageWidth, $skip );
+
+    echo $text;
+    
+    echo "</td></tr></table></center>";
+    
+    eval( $footer );
+    }
+
+
+
+function rs_listPlaytime() {
+    global $header, $footer;
+
+    eval( $header );
+    
+    $skip = rs_requestFilter( "skip", "/[0-9]+/i", 0 );
+    
+    echo "<center><table border=0><tr><td>";
+
+    global $reviewPageWidth;
+    
+    $text = rs_getTopPlaytimeReviewHTML( $reviewPageWidth, $skip );
+
+    echo $text;
+    
+    echo "</td></tr></table></center>";
+    
+    eval( $footer );
+    }
+
+
+
+// saves HTML to disk
+function rs_generateRecentStatic() {
+    $text = rs_getRecentReviewHTML( -1, 0 );
+
+    global $outputPathRecent;
+
+    file_put_contents ( $outputPathRecent, $text );
+    }
+
+
+function rs_generateTopPlaytimeStatic() {
+    $text = rs_getTopPlaytimeReviewHTML( -1, 0 );
+
+    global $outputPathPlaytime;
+
+    file_put_contents ( $outputPathPlaytime, $text );
+    }
+
+
+
+function rs_generateReviewCountStatic() {
+    global $tableNamePrefix;
+    
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
+        "WHERE review_score != -1;";
+    $result = rs_queryDatabase( $query );
+
+    $count = rs_mysqli_result( $result, 0, 0 );
+
+    
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
+        "WHERE review_score = 1;";
+    $result = rs_queryDatabase( $query );
+
+    
+    $posCount = rs_mysqli_result( $result, 0, 0 );
+
+    
+    $fraction = $posCount / $count;
+
+    $percent = floor( $fraction * 100 );
+    
+    $text = "<?php \$rs_reviewCount = $count; ".
+        "\$rs_positivePercent = $percent; ?>";
+
+    global $outputReviewCountPHP;
+
+    file_put_contents ( $outputReviewCountPHP, $text );
+    }
+
+
+
+
+
+function rs_viewReview() {
+    global $header, $footer;
+
+    eval( $header );
+    
+    $id = rs_requestFilter( "id", "/[0-9]+/i", 0 );
+    $w = rs_requestFilter( "w", "/[0-9]+/i", 600 );
 
     echo "<center><table border=0><tr><td>";
 
-    echo " <table width=600 cellspacing=0 cellpadding=10 border=0><tr>".
-        "<td valign=middle bgcolor=#404040 width=40><img src='$icon'></td>".
-        "<td valign=middle bgcolor=#404040>".
-        "<table width=100% cellspacing=0 cellpadding=0><tr>".
-        "<td valign=middle><font size=5><b>$recText</b></font></td>".
-        "<td align=right>by $review_name<br>".
-        "Played $totalDuration</td></tr></table></td></tr>";
+    global $reviewPageWidth;
     
-    $review_text = preg_replace( '/\n/', "<br>", $review_text );
-    
-    echo "<tr>".
-        "<td colspan=2 bgcolor=#202020>".
-        "<table border=0 cellpadding=0 cellspacing=0 width=100%>".
-        "<tr><td>Posted $reviewAgo ago</td>".
-        "<td align=right>Last Played $lastGameAgo ago</td></tr></table>".
-        "<div style='border-top: 2px solid gray'></div><br>".
-        "$review_text</td></tr></table>";
+    $text = rs_getReviewHTML( $id, $reviewPageWidth, -1 );
 
+    echo $text;
+    
     echo "</td></tr></table></center>";
     
     eval( $footer );
@@ -843,6 +1121,9 @@ function rs_logGame() {
         }
 
     rs_queryDatabase( $query );
+
+    // recent reviews won't change, but top playtime might
+    rs_generateTopPlaytimeStatic();
     
     echo "OK";
     }
@@ -944,6 +1225,10 @@ function rs_submitReview() {
         }
     
     rs_queryDatabase( $query );
+
+    rs_generateRecentStatic();
+    rs_generateTopPlaytimeStatic();
+    rs_generateReviewCountStatic();
     
     echo "OK";
     }
@@ -1013,6 +1298,10 @@ function rs_removeReview() {
         "WHERE email = '$email'; ";
 
     rs_queryDatabase( $query );
+
+    rs_generateRecentStatic();
+    rs_generateTopPlaytimeStatic();
+    rs_generateRecentStatic();
     
     echo "OK";
     }
