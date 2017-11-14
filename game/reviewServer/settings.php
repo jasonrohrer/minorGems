@@ -17,7 +17,7 @@ $ticketServerURL = "http://localhost/jcr13/ticketServer/server.php";
 
 
 // The URL of the main, public-face website
-$mainSiteURL = "http://onehouronelife.com";
+$mainSiteURL = "http://localhost/jcr13/";
 
 
 
@@ -113,5 +113,11 @@ $usersPerPage = 6;
 // header and footers for various pages
 $header = "include( \"header.php\" );";
 $footer = "include( \"footer.php\" );";
+
+
+// should be 40x40
+$recIcon = "$mainSiteURL/reviewServer/rec.png";
+$notRecIcon = "$mainSiteURL/reviewServer/notRec.png";
+
 
 ?>

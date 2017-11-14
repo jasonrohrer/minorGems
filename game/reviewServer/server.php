@@ -687,19 +687,39 @@ function rs_viewReview( $checkPassword = true ) {
                                            strtotime( $last_game_date ) );
 
     $reviewAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
-                                         strtotime( $last_game_date ) );
-    
+                                         strtotime( $review_date ) );
+
+    global $recIcon, $notRecIcon;
+
+    $icon = $recIcon;
+
+    $recText = "Recommended";
+
+    if( $review_score == 0 ) {
+        $icon = $notRecIcon;
+        $recText = "Not Recommended";
+        }
+
+
     echo "<center><table border=0><tr><td>";
-    
-    echo "<b>Review Posted:</b> $reviewAgo ago<br><br>";
-    echo "<b>Last Played:</b> $lastGameAgo ago<br><br>";
-    echo "<b>Name:</b> $review_name<br><br>";
-    echo "<b>Recommended?:</b> $review_score<br><br>";
+
+    echo " <table width=600 cellspacing=0 cellpadding=10 border=0><tr>".
+        "<td valign=middle bgcolor=#404040 width=40><img src='$icon'></td>".
+        "<td valign=middle bgcolor=#404040>".
+        "<table width=100% cellspacing=0 cellpadding=0><tr>".
+        "<td valign=middle><font size=5><b>$recText</b></font></td>".
+        "<td align=right>by $review_name<br>".
+        "Played $totalDuration</td></tr></table></td></tr>";
     
     $review_text = preg_replace( '/\n/', "<br>", $review_text );
     
-    echo "<b>Review:</b><br> ".
-        "<table width=600 border=1 cellpadding=5 cellspacing=0><tr><td>$review_text</td></tr></table>";
+    echo "<tr>".
+        "<td colspan=2 bgcolor=#202020>".
+        "<table border=0 cellpadding=0 cellspacing=0 width=100%>".
+        "<tr><td>Posted $reviewAgo ago</td>".
+        "<td align=right>Last Played $lastGameAgo ago</td></tr></table>".
+        "<div style='border-top: 2px solid gray'></div><br>".
+        "$review_text</td></tr></table>";
 
     echo "</td></tr></table></center>";
     
