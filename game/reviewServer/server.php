@@ -1123,7 +1123,12 @@ function rs_logGame() {
     rs_queryDatabase( $query );
 
     // recent reviews won't change, but top playtime might
+
+    // still, regenerate them all so that the Posted On timestamps
+    // will update
+    rs_generateRecentStatic();
     rs_generateTopPlaytimeStatic();
+    rs_generateReviewCountStatic();
     
     echo "OK";
     }
