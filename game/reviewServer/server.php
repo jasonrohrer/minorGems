@@ -705,7 +705,7 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
     $reviewAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
                                          strtotime( $review_date ) );
 
-    global $recIcon, $notRecIcon;
+    global $recIcon, $notRecIcon, $fullServerURL;
 
     $icon = $recIcon;
 
