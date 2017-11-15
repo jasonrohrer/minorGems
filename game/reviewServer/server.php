@@ -1301,7 +1301,7 @@ function rs_removeReview() {
 
     rs_generateRecentStatic();
     rs_generateTopPlaytimeStatic();
-    rs_generateRecentStatic();
+    rs_generateReviewCountStatic();
     
     echo "OK";
     }
