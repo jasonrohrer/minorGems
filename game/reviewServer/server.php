@@ -722,7 +722,9 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
     if( $inWidth >= 500 ) {
         // full width view
         $text= $text.
-            "<td valign=middle bgcolor=#404040 width=40><img src='$icon'></td>".
+            "<td valign=middle bgcolor=#404040 width=40>".
+            "<a href='$fullServerURL?action=view_review&id=$inID'>".
+            "<img src='$icon' border=0></a></td>".
             "<td valign=middle bgcolor=#404040>".
             "<table width=100% cellspacing=0 cellpadding=0><tr>".
             "<td valign=middle><font size=5><b>$recText</b></font></td>".
@@ -732,7 +734,9 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
     else {
         // compact view
         $text= $text.
-            "<td valign=middle bgcolor=#404040 width=40><img src='$icon'></td>".
+            "<td valign=middle bgcolor=#404040 width=40>".
+            "<a href='$fullServerURL?action=view_review&id=$inID'>".
+            "<img src='$icon' border=0></a></td>".
             "<td valign=middle bgcolor=#404040>".
             "<table width=100% cellspacing=0 cellpadding=0><tr>".
             "<td valign=middle><b>$recText</b><br>".
