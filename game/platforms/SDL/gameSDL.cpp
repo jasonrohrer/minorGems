@@ -1989,21 +1989,21 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
         if( cursorImage != NULL ) {
 
-            if( cursorImage->getWidth() == 40 &&
-                cursorImage->getHeight() == 40 &&
+            if( cursorImage->getWidth() == 32 &&
+                cursorImage->getHeight() == 32 &&
                 cursorImage->getNumChannels() == 4 ) {
                 
                 double *r = cursorImage->getChannel( 0 );
                 double *a = cursorImage->getChannel( 3 );
                 
 
-                Uint8 data[5*40];
-                Uint8 mask[5*40];
+                Uint8 data[4*32];
+                Uint8 mask[4*32];
                 int i = -1;
                 
-                for( int y=0; y<40; y++ ) {
-                    for( int x=0; x<40; x++ ) {
-                        int p = y * 40 + x;
+                for( int y=0; y<32; y++ ) {
+                    for( int x=0; x<32; x++ ) {
+                        int p = y * 32 + x;
                         
                         if ( x % 8 ) {
                             data[i] <<= 1;
@@ -2025,13 +2025,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 
                 // hot in upper left corner, (0,0)
                 ourCursor = 
-                    SDL_CreateCursor( data, mask, 40, 40, 0, 0 );
+                    SDL_CreateCursor( data, mask, 32, 32, 0, 0 );
     
                 SDL_SetCursor( ourCursor );
                 }
             else {
                 AppLog::error( 
-                    "bigPointer.tga is not a 40x40 4-channel image." );
+                    "bigPointer.tga is not a 32x32 4-channel image." );
 
                 }
             
