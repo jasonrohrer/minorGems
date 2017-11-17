@@ -37,6 +37,10 @@
  *
  * 2017-November-8    Jason Rohrer
  * getStringSetting now returns entire file contents.
+ *
+ * 2017-November-17    Jason Rohrer
+ * getStringSetting back to returning first token, with new getSettingContents
+ * function for getting entire file contents.
  */
 
 
@@ -95,7 +99,7 @@ void SettingsManager::setHashingOn( char inOn ) {
 SimpleVector<char *> *SettingsManager::getSetting( 
     const char *inSettingName ) {
 
-    char *fileContents = getStringSetting( inSettingName );
+    char *fileContents = getSettingContents( inSettingName );
     
     if( fileContents == NULL ) {
         // return empty vector
@@ -115,7 +119,7 @@ SimpleVector<char *> *SettingsManager::getSetting(
 
 
 
-char *SettingsManager::getStringSetting( const char *inSettingName ) {
+char *SettingsManager::getSettingContents( const char *inSettingName ) {
 
     char *fileName = getSettingsFileName( inSettingName );
     File *settingsFile = new File( NULL, fileName );
@@ -175,6 +179,45 @@ char *SettingsManager::getStringSetting( const char *inSettingName ) {
         }
     
     return fileContents;
+    }
+
+
+
+char *SettingsManager::getSettingContents( const char *inSettingName,
+                                           const char *inDefaultValue ) {
+    char *val = getSettingContents( inSettingName );
+    
+    if( val == NULL ) {
+        val = stringDuplicate( inDefaultValue );
+        }
+
+    return val;
+    }
+
+
+
+char *SettingsManager::getStringSetting( const char *inSettingName ) {
+    char *value = NULL;
+    
+    SimpleVector<char *> *settingsVector = getSetting( inSettingName );
+
+    int numStrings = settingsVector->size(); 
+    if( numStrings >= 1 ) {
+
+        char *firstString = *( settingsVector->getElement( 0 ) );
+
+        value = stringDuplicate( firstString );
+        }
+
+    for( int i=0; i<numStrings; i++ ) {
+        char *nextString = *( settingsVector->getElement( i ) );
+
+        delete [] nextString;
+        }
+    
+    delete settingsVector;
+
+    return value;
     }
 
 

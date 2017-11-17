@@ -37,6 +37,10 @@
  *
  * 2017-November-8    Jason Rohrer
  * getStringSetting now returns entire file contents.
+ *
+ * 2017-November-17    Jason Rohrer
+ * getStringSetting back to returning first token, with new getSettingContents
+ * function for getting entire file contents.
  */
 
 #include "minorGems/common.h"
@@ -142,8 +146,8 @@ class SettingsManager {
 
 
         /**
-         * Gets a string setting.  Entire contents of settings file
-         * as a string.
+         * Gets a string setting.  First whitespace-delimited value
+         * found in the settings file
          *
          * @param inSettingName the name of the setting to get.
          *   Must be destroyed by caller if non-const.
@@ -160,6 +164,22 @@ class SettingsManager {
         // if setting cannot be read, returns copy of inDefaultValue
         static char *getStringSetting( const char *inSettingName,
                                        const char *inDefaultValue );
+
+
+        /**
+         * Gets full contents of a settings file as a string.
+         *
+         * Returns NULL on failure.
+         *
+         * Result destroyed by caller if non-NULL.
+         */
+        static char *getSettingContents( const char *inSettingName );
+        
+        
+        // same as above, but never returns NULL
+        // if setting cannot be read, returns copy of inDefaultValue
+        static char *getSettingContents( const char *inSettingName,
+                                         const char *inDefaultValue );
 
 
 
