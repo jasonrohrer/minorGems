@@ -4842,6 +4842,12 @@ void loadingComplete() {
 
 
 
+char isHardToQuitMode() {
+    return hardToQuitMode;
+    }
+
+
+
 // platform-specific clipboard code
 
 

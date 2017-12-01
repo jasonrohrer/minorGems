@@ -226,6 +226,14 @@ void loadingFailed( const char *inFailureMessage );
 void loadingComplete();
 
 
+
+// true if quit should only be accomplished by a special key sequence
+// (gallery mode)
+char isHardToQuitMode();
+
+
+
+
 unsigned int getRandSeed();
 
 
