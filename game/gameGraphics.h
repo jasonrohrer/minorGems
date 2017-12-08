@@ -237,6 +237,14 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
                  char inFlipH = false );
 
 
+// draw sprite with specific corner positions
+// Sprite is stretched so that its widest non-transparent pixels fill
+// the quad.
+// corners in BL, BR, TR, TL order
+void drawSprite( SpriteHandle inSprite, doublePair inCornerPos[4], 
+                 FloatColor inCornerColors[4] );
+
+
 // draw with current draw color, but ignore sprite's colors and use
 // only it's alpha.
 void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 

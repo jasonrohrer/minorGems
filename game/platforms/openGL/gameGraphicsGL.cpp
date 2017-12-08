@@ -740,6 +740,20 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
 
 
 
+void drawSprite( SpriteHandle inSprite, doublePair inCornerPos[4], 
+                 FloatColor inCornerColors[4] ) {
+    SpriteGL *sprite = (SpriteGL *)inSprite;
+    
+    sprite->draw( 0,
+                  inCornerPos,
+                  inCornerColors,
+                  linearTextureFilterOn, mipMapTextureFilterOn );
+    
+    numSpritesDrawn++;
+    }
+
+
+
 void drawSpriteAlphaOnly( SpriteHandle inSprite, doublePair inCenter, 
                           double inZoom, double inRotation, char inFlipH ) {
 

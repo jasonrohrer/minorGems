@@ -390,7 +390,8 @@ void SpriteGL::prepareDraw( int inFrame,
                             double inScale,
                             char inLinearMagFilter,
                             char inMipMapFilter,
-                            double inRotation, inFlipH ) {
+                            double inRotation, char inFlipH,
+                            char inComputeCornerPos ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -404,63 +405,66 @@ void SpriteGL::prepareDraw( int inFrame,
     
 
 
-
-    float xLeftRadius = (float)( inScale * mBaseScaleX * mColoredRadiusLeftX );
-    float xRightRadius = 
-        (float)( inScale * mBaseScaleX * mColoredRadiusRightX );
-    
-    float yTopRadius = (float)( inScale * mBaseScaleY * mColoredRadiusTopY );
-    float yBottomRadius = 
-        (float)( inScale * mBaseScaleY * mColoredRadiusBottomY );
-
-    doublePair centerOffset = mult( mCenterOffset, inScale );
-
-
-    if( !(mFlipHorizontal) != !(inFlipH) ) {
-        // make sure flips don't override each other, xor
+    if( inComputeCornerPos ) {
         
-        xLeftRadius = -xLeftRadius;
-        xRightRadius = -xRightRadius;
-        centerOffset.x = - centerOffset.x;
-        }
+        float xLeftRadius = 
+            (float)( inScale * mBaseScaleX * mColoredRadiusLeftX );
+        float xRightRadius = 
+            (float)( inScale * mBaseScaleX * mColoredRadiusRightX );
     
-
-
-    // first, set up corners relative to 0,0
-    // loop is unrolled here, with all offsets added in
-    // also, mZ ignored now, since rotation no longer done
-    float posX = (float)( inPosition->mX - centerOffset.x );
-    float posY = (float)( inPosition->mY + centerOffset.y );
-    
-    squareVertices[0] = posX - xLeftRadius;
-    squareVertices[1] = posY - yBottomRadius;
-    
-    squareVertices[2] = posX + xRightRadius; 
-    squareVertices[3] = posY - yBottomRadius;
-    
-    squareVertices[4] = posX - xLeftRadius; 
-    squareVertices[5] = posY + yTopRadius;
-    
-    squareVertices[6] = posX + xRightRadius; 
-    squareVertices[7] = posY + yTopRadius;
-    
-    
-    if( inRotation != 0 ) {
-        double cosAngle = cos( - 2 * M_PI * inRotation );
-        double sinAngle = sin( - 2 * M_PI * inRotation );
+        float yTopRadius = 
+            (float)( inScale * mBaseScaleY * mColoredRadiusTopY );
+        float yBottomRadius = 
+            (float)( inScale * mBaseScaleY * mColoredRadiusBottomY );
         
-        int index = 0;
-        for( int i=0; i<4; i++ ) {
-            double x = squareVertices[ index ];
-            double y = squareVertices[ index + 1 ];
+        doublePair centerOffset = mult( mCenterOffset, inScale );
+        
+        
+        if( !(mFlipHorizontal) != !(inFlipH) ) {
+            // make sure flips don't override each other, xor
             
-            squareVertices[ index ] = x * cosAngle - y * sinAngle;
-            squareVertices[ index + 1 ] = x * sinAngle + y * cosAngle;
+            xLeftRadius = -xLeftRadius;
+            xRightRadius = -xRightRadius;
+            centerOffset.x = - centerOffset.x;
+            }
+        
+        
+        
+        // first, set up corners relative to 0,0
+        // loop is unrolled here, with all offsets added in
+        // also, mZ ignored now, since rotation no longer done
+        float posX = (float)( inPosition->mX - centerOffset.x );
+        float posY = (float)( inPosition->mY + centerOffset.y );
+        
+        squareVertices[0] = posX - xLeftRadius;
+        squareVertices[1] = posY - yBottomRadius;
+        
+        squareVertices[2] = posX + xRightRadius; 
+        squareVertices[3] = posY - yBottomRadius;
+        
+        squareVertices[4] = posX - xLeftRadius; 
+        squareVertices[5] = posY + yTopRadius;
+    
+        squareVertices[6] = posX + xRightRadius; 
+        squareVertices[7] = posY + yTopRadius;
+        
+        
+        if( inRotation != 0 ) {
+            double cosAngle = cos( - 2 * M_PI * inRotation );
+            double sinAngle = sin( - 2 * M_PI * inRotation );
             
-            index += 2;
+            int index = 0;
+            for( int i=0; i<4; i++ ) {
+                double x = squareVertices[ index ];
+                double y = squareVertices[ index + 1 ];
+                
+                squareVertices[ index ] = x * cosAngle - y * sinAngle;
+                squareVertices[ index + 1 ] = x * sinAngle + y * cosAngle;
+                
+                index += 2;
+                }
             }
         }
-    
 
 
     mTexture->enable();
@@ -647,7 +651,8 @@ void SpriteGL::prepareDraw( int inFrame,
                             char inLinearMagFilter,
                             char inMipMapFilter,
                             double inRotation,
-                            char inFlipH ) {
+                            char inFlipH,
+                            char inComputeCornerPos ) {
     /*
     printf( "Drawing sprite %d, r%f, (%f,%f), s%f, f%f\n",
             (int)(this), inRotation, inPosition->mX, inPosition->mY, inScale,
@@ -659,90 +664,93 @@ void SpriteGL::prepareDraw( int inFrame,
     // (all frame references are specific and never auto-cycling)
     // inFrame = inFrame % mNumFrames;
     
+    
+    if( inComputeCornerPos ) {
+        
+        double xLeftRadius = inScale * mBaseScaleX * mColoredRadiusLeftX;
+        double xRightRadius = inScale * mBaseScaleX * mColoredRadiusRightX;
+        
+        double yTopRadius = inScale * mBaseScaleY * mColoredRadiusTopY;
+        double yBottomRadius = inScale * mBaseScaleY * mColoredRadiusBottomY;
+        
+        doublePair centerOffset = mult( mCenterOffset, inScale );
+        
+        
+        if( sCountingPixels ) {
+            // do this pre-flip and pre-rotation
+            double increment = 
+                ( xLeftRadius + xRightRadius ) *
+                ( yTopRadius + yBottomRadius );        
+            sPixelsDrawn += increment;
+            }
+        
+        
 
-    double xLeftRadius = inScale * mBaseScaleX * mColoredRadiusLeftX;
-    double xRightRadius = inScale * mBaseScaleX * mColoredRadiusRightX;
-
-    double yTopRadius = inScale * mBaseScaleY * mColoredRadiusTopY;
-    double yBottomRadius = inScale * mBaseScaleY * mColoredRadiusBottomY;
-
-    doublePair centerOffset = mult( mCenterOffset, inScale );
-
-
-    if( sCountingPixels ) {
-        // do this pre-flip and pre-rotation
-        double increment = 
-            ( xLeftRadius + xRightRadius ) *
-            ( yTopRadius + yBottomRadius );        
-        sPixelsDrawn += increment;
-        }
-
-
-
-    if( !(mFlipHorizontal) != !(inFlipH) ) {
-        // make sure flips don't override eachother, xor
-
-        xLeftRadius = -xLeftRadius;
-        xRightRadius = -xRightRadius;
-        centerOffset.x = - centerOffset.x;
+        if( !(mFlipHorizontal) != !(inFlipH) ) {
+            // make sure flips don't override eachother, xor
+            
+            xLeftRadius = -xLeftRadius;
+            xRightRadius = -xRightRadius;
+            centerOffset.x = - centerOffset.x;
+            }
+        
+        
+        
+        // first, set up corners relative to 0,0
+        // loop is unrolled here, with all offsets added in
+        // also, mZ ignored now, since rotation no longer done
+        
+        if( inRotation == 0 ) {
+            double posX = inPosition->mX - centerOffset.x;
+            double posY = inPosition->mY + centerOffset.y;
+            
+            squareVertices[0] = posX - xLeftRadius;
+            squareVertices[1] = posY - yBottomRadius;
+            
+            squareVertices[2] = posX + xRightRadius; 
+            squareVertices[3] = posY - yBottomRadius;
+        
+            squareVertices[4] = posX - xLeftRadius; 
+            squareVertices[5] = posY + yTopRadius;
+            
+            squareVertices[6] = posX + xRightRadius; 
+            squareVertices[7] = posY + yTopRadius;
+            
+            }
+        else {
+            double posX = inPosition->mX;
+            double posY = inPosition->mY;
+            
+            squareVertices[0] = - xLeftRadius - centerOffset.x;
+            squareVertices[1] = - yBottomRadius + centerOffset.y;
+            
+            squareVertices[2] = xRightRadius - centerOffset.x;
+            squareVertices[3] = - yBottomRadius + centerOffset.y;        
+        
+            squareVertices[4] = - xLeftRadius - centerOffset.x;
+            squareVertices[5] = yTopRadius + centerOffset.y;
+            
+            squareVertices[6] = xRightRadius - centerOffset.x;
+            squareVertices[7] = yTopRadius + centerOffset.y;
+            
+            
+            double cosAngle = cos( - 2 * M_PI * inRotation );
+            double sinAngle = sin( - 2 * M_PI * inRotation );
+            
+            for( int i=0; i<7; i+=2 ) {
+                double x = squareVertices[i];
+                double y = squareVertices[i+1];
+                
+                squareVertices[i] = x * cosAngle - y * sinAngle;
+                squareVertices[i+1] = x * sinAngle + y * cosAngle;
+                
+                squareVertices[i] += posX;
+                squareVertices[i+1] += posY;
+                }
+            
+            }
         }
     
-
-
-    // first, set up corners relative to 0,0
-    // loop is unrolled here, with all offsets added in
-    // also, mZ ignored now, since rotation no longer done
-
-    if( inRotation == 0 ) {
-        double posX = inPosition->mX - centerOffset.x;
-        double posY = inPosition->mY + centerOffset.y;
-        
-        squareVertices[0] = posX - xLeftRadius;
-        squareVertices[1] = posY - yBottomRadius;
-        
-        squareVertices[2] = posX + xRightRadius; 
-        squareVertices[3] = posY - yBottomRadius;
-        
-        squareVertices[4] = posX - xLeftRadius; 
-        squareVertices[5] = posY + yTopRadius;
-        
-        squareVertices[6] = posX + xRightRadius; 
-        squareVertices[7] = posY + yTopRadius;
-        
-        }
-    else {
-        double posX = inPosition->mX;
-        double posY = inPosition->mY;
-
-        squareVertices[0] = - xLeftRadius - centerOffset.x;
-        squareVertices[1] = - yBottomRadius + centerOffset.y;
-        
-        squareVertices[2] = xRightRadius - centerOffset.x;
-        squareVertices[3] = - yBottomRadius + centerOffset.y;        
-        
-        squareVertices[4] = - xLeftRadius - centerOffset.x;
-        squareVertices[5] = yTopRadius + centerOffset.y;
-
-        squareVertices[6] = xRightRadius - centerOffset.x;
-        squareVertices[7] = yTopRadius + centerOffset.y;
-
-
-        double cosAngle = cos( - 2 * M_PI * inRotation );
-        double sinAngle = sin( - 2 * M_PI * inRotation );
-        
-        for( int i=0; i<7; i+=2 ) {
-            double x = squareVertices[i];
-            double y = squareVertices[i+1];
-            
-            squareVertices[i] = x * cosAngle - y * sinAngle;
-            squareVertices[i+1] = x * sinAngle + y * cosAngle;
-
-            squareVertices[i] += posX;
-            squareVertices[i+1] += posY;
-            }
-
-        }
-
     // int i;
     
 
@@ -915,6 +923,75 @@ void SpriteGL::draw( int inFrame,
                  inRotation, inFlipH );
 
 
+    glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
+    glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
+    
+    if( !sStateSet ) {    
+        glEnableClientState( GL_VERTEX_ARRAY );
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+        sStateSet = true;
+        }
+
+    for( int c=0; c<4; c++ ) {
+        
+        int cDest = c;
+        if( c == 2 ) {
+            cDest = 3;
+            }
+        else if( c == 3 ) {
+            cDest = 2;
+            }
+
+        int start = cDest * 4;
+        squareColors[ start ] = inCornerColors[c].r;
+        squareColors[ start + 1 ] = inCornerColors[c].g;
+        squareColors[ start + 2 ] = inCornerColors[c].b;
+        squareColors[ start + 3 ] = inCornerColors[c].a;
+        }
+    
+    
+    glColorPointer( 4, GL_FLOAT, 0, squareColors );
+    glEnableClientState( GL_COLOR_ARRAY );
+
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    
+    glDisableClientState( GL_COLOR_ARRAY );
+    }
+
+
+
+static Vector3D dummyPosition( 0, 0, 0 );
+
+
+void SpriteGL::draw( int inFrame,
+                     doublePair inCornerPos[4],
+                     FloatColor inCornerColors[4],
+                     char inLinearMagFilter,
+                     char inMipMapFilter ) {
+
+    prepareDraw( inFrame, &dummyPosition, 1, inLinearMagFilter,
+                 inMipMapFilter,
+                 0, false,
+                 // don't compute corners in prepare
+                 false );
+
+
+    squareVertices[0] = inCornerPos[0].x;
+    squareVertices[1] = inCornerPos[0].y;
+
+    // swap order
+    squareVertices[2] = inCornerPos[1].x;
+    squareVertices[3] = inCornerPos[1].y;
+
+    squareVertices[4] = inCornerPos[3].x;
+    squareVertices[5] = inCornerPos[3].y;
+
+    squareVertices[6] = inCornerPos[2].x;
+    squareVertices[7] = inCornerPos[2].y;
+    
+    
     glVertexPointer( 2, GL_FLOAT, 0, squareVertices );
     glTexCoordPointer( 2, GL_FLOAT, 0, squareTextureCoords );
     

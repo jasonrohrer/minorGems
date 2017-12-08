@@ -4,6 +4,7 @@
 
 #include "minorGems/graphics/openGL/SingleTextureGL.h"
 #include "minorGems/game/gameGraphics.h"
+#include "minorGems/game/doublePair.h"
 
 
 #include "minorGems/math/geometry/Vector3D.h"
@@ -77,7 +78,16 @@ class SpriteGL{
                    double inRotation = 0,
                    char inFlipH = false );
         
-
+        
+        // draw sprite on a quad with particular corner positions
+        // (allows for sprite distortion)
+        void draw( int inFrame,
+                   doublePair inCornerPos[4],
+                   FloatColor inCornerColors[4],
+                   char inLinearMagFilter = false,
+                   char inMipMapFilter = false );
+        
+        
 
         int getNumFrames() {
             return mNumFrames;
@@ -215,7 +225,8 @@ class SpriteGL{
                           char inLinearMagFilter,
                           char inMipMapFilter,
                           double inRotation,
-                          char inFlipH );
+                          char inFlipH,
+                          char inComputeCornerPos = true );
         
 
 
