@@ -92,3 +92,15 @@ HMAC_SHA1( $ticket_id, $sequence_number )
 
 If sequence number is <= previously used sequence number for this email address,
 request will be rejected.
+
+
+
+
+
+server.php
+?action=update_html
+
+Return:
+OK
+
+Used by cron job to trigger regeneration of static html

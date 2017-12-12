@@ -129,6 +129,9 @@ else if( $action == "submit_review" ) {
 else if( $action == "remove_review" ) {
     rs_removeReview();
     }
+else if( $action == "update_html" ) {
+    rs_updateHTML();
+    }
 else if( $action == "show_log" ) {
     rs_showLog();
     }
@@ -663,7 +666,7 @@ function rs_showDetail( $checkPassword = true ) {
 
 
 
-
+// called from web UI
 function rs_regenStaticHTML() {
     rs_checkPassword( "regen_static_html" );
 
@@ -672,6 +675,16 @@ function rs_regenStaticHTML() {
     rs_generateReviewCountStatic();
 
     rs_showData( false );
+    }
+
+
+// called from cron job
+function rs_updateHTML() {
+    rs_generateRecentStatic();
+    rs_generateTopPlaytimeStatic();
+    rs_generateReviewCountStatic();
+
+    echo "OK";
     }
 
 
