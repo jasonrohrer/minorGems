@@ -1449,7 +1449,14 @@ void ScreenGL::playNextEventBatch() {
                 break;
                 }
             case 'a': {
-                fscanf( mEventFile, "%d", &mLastAsyncFileHandleDone );
+                int nextHandle;
+                fscanf( mEventFile, "%d", &nextHandle );
+                
+                if( nextHandle > mLastAsyncFileHandleDone ) {
+                    // track the largest handle seen done so far
+                    // (async files are ready in handle order)
+                    mLastAsyncFileHandleDone = nextHandle;
+                    }
                 }
                 break;
             default:
