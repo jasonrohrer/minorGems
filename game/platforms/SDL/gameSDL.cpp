@@ -4201,7 +4201,7 @@ Image *getScreenRegion( double inX, double inY,
 
 
 
-
+    char oldManual = manualScreenShot;
     manualScreenShot = true;
 
     
@@ -4210,7 +4210,7 @@ Image *getScreenRegion( double inX, double inY,
                 lrint( winStartX ), lrint( winStartY ), 
                 lrint( winEndX - winStartX ), lrint( winEndY - winStartY ) );
 
-    manualScreenShot = false;
+    manualScreenShot = oldManual;
     
     return result;
     }
