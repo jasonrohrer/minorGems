@@ -22,6 +22,10 @@ APP_NAME = gameApp
 ROOT_PATH = ../..
 
 
+# extension for generated dependency files
+# can be overridden by makeFileList
+DEP_EXT = dep
+
 
 include makeFileList
 
@@ -42,7 +46,7 @@ TEST_OBJECTS = ${TEST_SOURCE:.cpp=.o}
 
 
 # separate dependency files
-LAYER_DEPENDS = ${LAYER_SOURCE:.cpp=.dep}
+LAYER_DEPENDS = ${LAYER_SOURCE:.cpp=.${DEP_EXT}}
 
 
 
@@ -93,11 +97,27 @@ ${APP_NAME}: ${LAYER_OBJECTS} ${NEEDED_MINOR_GEMS_OBJECTS} ${ICON_FILE}
 #
 # Map all .cpp files into .dep files
 #
-# $@   represents the name.dep file
-# $<   represents the name.cpp file
+# $@   represents the path/name.dep file
+# $<   represents the path/name.cpp file
+# $*   represents the stem with path:  "path/name"
 #
-%.dep: %.cpp
-	${COMPILE} -MM $< > $@
+# the -MT flag sets the name of the target
+# without that flag, a no-path target name is used
+#
+# Also, the dependency file itself depends on the include files found
+# via the compiler.
+#
+# We need to re-make the dependency file if any of those files change
+# (because what they include might change).
+#
+# So, append a dependency rule with the dependency file itself as a target.
+#
+# Leave a blank line in between
+#
+%.${DEP_EXT}: %.cpp
+	${COMPILE} -MM -MT $*.o $< > $@
+	echo "" >> $@
+	${COMPILE} -MM -MT $*.${DEP_EXT} $< >> $@
 
 # include them all
 include ${LAYER_DEPENDS}
