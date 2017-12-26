@@ -87,7 +87,7 @@ class SimpleVector {
 		void push_back(Type *inArray, int inLength);		
 
         // add all elements from other vector
-        void push_back( SimpleVector<Type> *inOtherVector );
+        void push_back_other( SimpleVector<Type> *inOtherVector );
 		
 
         void push_front(Type x);  // add x to the front of the vector (slower)
@@ -566,7 +566,8 @@ inline void SimpleVector<Type>::push_back(Type *inArray, int inLength)	{
 
 
 template <class Type>
-inline void SimpleVector<Type>::push_back(SimpleVector<Type> *inOtherVector ) {
+inline void SimpleVector<Type>::push_back_other(
+    SimpleVector<Type> *inOtherVector ) {
     
     for( int i=0; i<inOtherVector->size(); i++ ) {
         push_back( inOtherVector->getElementDirect( i ) );
