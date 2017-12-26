@@ -46,6 +46,7 @@
 *		Jason Rohrer	5-20-2016	Added functions for getting last element.
 *		Jason Rohrer	8-30-2016	Added shrink function.
 *		Jason Rohrer	4-12-2017	Added swap function.
+*		Jason Rohrer	12-26-2017	deleteLastElement, push_back other vector.
 */
 
 #include "minorGems/common.h"
@@ -84,6 +85,9 @@ class SimpleVector {
 
         // add array of elements to the end of the vector
 		void push_back(Type *inArray, int inLength);		
+
+        // add all elements from other vector
+        void push_back( SimpleVector<Type> *inOtherVector );
 		
 
         void push_front(Type x);  // add x to the front of the vector (slower)
@@ -115,6 +119,10 @@ class SimpleVector {
 		
 		bool deleteElement(int index);		// delete element at an index in vector
 		
+        void deleteLastElement() {
+            deleteElement( size() - 1 );
+            }
+        
 		/**
 		 * Deletes a particular element.  Deletes the first element
 		 * in vector == to inElement.
@@ -553,6 +561,15 @@ inline void SimpleVector<Type>::push_back(Type *inArray, int inLength)	{
     
     for( int i=0; i<inLength; i++ ) {
         push_back( inArray[i] );
+        }
+    }
+
+
+template <class Type>
+inline void SimpleVector<Type>::push_back(SimpleVector<Type> *inOtherVector ) {
+    
+    for( int i=0; i<inOtherVector->size(); i++ ) {
+        push_back( inOtherVector->getElementDirect( i ) );
         }
     }
 
