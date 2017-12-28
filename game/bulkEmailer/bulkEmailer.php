@@ -161,7 +161,15 @@ function be_sendBatch() {
             $body = $row[ "body" ];
 
             $numLeftInBatch = $be_emailMaxBatchSize - $numSent;
-        
+
+            // make sure sending lag doesn't result in cron jobs running
+            // in parallel, which can lead to double-sending
+
+            // lock table, get list of recipients in batch, then
+            // delete recipients from table BEFORE sending any
+            be_queryDatabase( "LOCK TABLE $be_tableNamePrefix".
+                              "recipients WRITE;" );
+            
             $query = "SELECT email, custom_data ".
                 "FROM $be_tableNamePrefix"."recipients ".
                 "WHERE message_id = $message_id LIMIT $numLeftInBatch";
@@ -169,6 +177,12 @@ function be_sendBatch() {
 
             $numRows = mysql_numrows( $result );
 
+            $query = "DELETE FROM $be_tableNamePrefix"."recipients ".
+                "WHERE message_id = $message_id LIMIT $numLeftInBatch";
+            be_queryDatabase( $query );
+
+            be_queryDatabase( "UNLOCK TABLES;" );
+            
 
             if( $numRows > 0 ) {
                 echo "Message has $numRows recipients waiting\n";
