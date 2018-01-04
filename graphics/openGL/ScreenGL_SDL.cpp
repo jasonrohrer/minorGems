@@ -516,7 +516,7 @@ ScreenGL::~ScreenGL() {
 	delete mKeyboardHandlerVector;
 	delete mSceneHandlerVector;
 
-    if( mRecordingEvents ) {    
+    if( mRecordingEvents && mRecordingOrPlaybackStarted ) {    
         writeEventBatchToFile();
         }
     

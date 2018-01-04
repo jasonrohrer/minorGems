@@ -322,6 +322,32 @@ static char bufferSizeHinted = false;
 
 
 
+
+static char measureFrameRate = true;
+static char startMeasureTimeRecorded = false;
+
+
+static double startMeasureTime = 0;
+
+static int numFramesMeasured = 0;
+
+// show measure screen longer if there's a vsync warning
+static double noWarningSecondsToMeasure = 1;
+static double warningSecondsToMeasure = 3;
+
+static double secondsToMeasure = noWarningSecondsToMeasure;
+
+static int numFramesSkippedBeforeMeasure = 0;
+static int numFramesToSkipBeforeMeasure = 30;
+
+static char measureRecorded = false;
+
+
+
+
+
+
+
 char mouseWorldCoordinates = true;
 
 
@@ -564,7 +590,12 @@ void cleanUpAtExit() {
     playingSoundSpriteRates.deleteAll();
     playingSoundSpriteVolumesL.deleteAll();
     playingSoundSpriteVolumesR.deleteAll();
-
+    
+    if( bufferSizeHinted ) {
+        freeHintedBuffers();
+        bufferSizeHinted = false;
+        }
+    
 
     if( frameDrawerInited ) {
         AppLog::info( "exiting: freeing frameDrawer\n" );
@@ -2418,6 +2449,20 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
     
 
+    int readTarget = SettingsManager::getIntSetting( "targetFrameRate", -1 );
+    int readCounting = SettingsManager::getIntSetting( "countingOnVsync", -1 );
+    
+    if( readTarget != -1 && readCounting != -1 ) {
+        targetFrameRate = readTarget;
+        countingOnVsync = readCounting;
+
+        screen->setFullFrameRate( targetFrameRate );
+        screen->useFrameSleep( !countingOnVsync );
+        screen->startRecordingOrPlayback();
+        measureFrameRate = false;
+        }
+    
+
     // default texture mode
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
@@ -2714,21 +2759,20 @@ int numPixelsDrawn = 0;
 extern int totalLoadedTextureBytes;
 
 
-static char measureFrameRate = true;
-static char startMeasureTimeRecorded = false;
 
-static double startMeasureTime = 0;
 
-static int numFramesMeasured = 0;
 
-// show measure screen longer if there's a vsync warning
-static double noWarningSecondsToMeasure = 1;
-static double warningSecondsToMeasure = 3;
+void saveFrameRateSettings() {
+    SettingsManager::setSetting( "targetFrameRate", targetFrameRate );
+    
+    int settingValue = 0;
+    if( countingOnVsync ) {
+        settingValue = 1;
+        }
+    
+    SettingsManager::setSetting( "countingOnVsync", settingValue );
+    }
 
-static double secondsToMeasure = noWarningSecondsToMeasure;
-
-static int numFramesSkippedBeforeMeasure = 0;
-static int numFramesToSkipBeforeMeasure = 30;
 
 
 
@@ -2809,8 +2853,9 @@ void GameSceneHandler::drawScene() {
             }
         }
     else if( !screen->isPlayingBack() && measureFrameRate ) {
-        screen->useFrameSleep( false );
-
+        if( !measureRecorded ) {
+            screen->useFrameSleep( false );
+            }
         
 
         if( numFramesSkippedBeforeMeasure < numFramesToSkipBeforeMeasure ) {
@@ -2854,86 +2899,102 @@ void GameSceneHandler::drawScene() {
             
 
 
-            const char *warningMessageA = "";
-            const char *warningMessageB = "";
-            
             if( numFramesMeasured > 10 && 
                 frameRate > overAllowFactor * closestTargetFrameRate ) {
 
-                warningMessageA = translate( "vsyncWarning" );
-                warningMessageB = translate( "vsyncWarning2" );
-                
                 secondsToMeasure = warningSecondsToMeasure;
                 }
             else {
                 secondsToMeasure = noWarningSecondsToMeasure;
                 }
-
-            char *message = autoSprintf( "%s\n%0.2f\nFPS\n\n%s\n%s",
-                                         translate( "measuringFPS" ),
-                                         frameRate,
-                                         warningMessageA,
-                                         warningMessageB );
             
-
-            drawString( message, true );
-
-            delete [] message;
-
+            if( totalTime <= secondsToMeasure ) {    
+                char *message = autoSprintf( "%s\n%0.2f\nFPS",
+                                             translate( "measuringFPS" ),
+                                             frameRate );
+                
+                
+                drawString( message, true );
+                
+                delete [] message;
+                }
+            
             if( totalTime > secondsToMeasure ) {
                 
-                if( targetFrameRate == idealTargetFrameRate ) {
-                    // not invoking halfFrameRate
-
-                    AppLog::infoF( "Measured frame rate = %f fps\n", 
-                                   frameRate );
-                    AppLog::infoF( "Closest possible frame rate = %d fps\n", 
-                                   closestTargetFrameRate );                
-                
-                    if( frameRate > overAllowFactor * closestTargetFrameRate ) {
-                        AppLog::infoF( 
-                            "Vsync to enforce our target frame rate of "
-                            "%d fps doesn't seem to be in effect.\n", 
-                            closestTargetFrameRate );
+                if( ! measureRecorded ) {
                     
-                        AppLog::infoF( 
-                            "Will sleep each frame to enforce desired "
-                            "frame rate of %d fps\n",
-                            closestTargetFrameRate );
-                    
-                        targetFrameRate = closestTargetFrameRate;
+                    if( targetFrameRate == idealTargetFrameRate ) {
+                        // not invoking halfFrameRate
 
+                        AppLog::infoF( "Measured frame rate = %f fps\n", 
+                                       frameRate );
+                        AppLog::infoF( 
+                            "Closest possible frame rate = %d fps\n", 
+                            closestTargetFrameRate );                
+                        
+                        if( frameRate > 
+                            overAllowFactor * closestTargetFrameRate ) {
+                            
+                            AppLog::infoF( 
+                                "Vsync to enforce closested frame rate of "
+                                "%d fps doesn't seem to be in effect.\n", 
+                                closestTargetFrameRate );
+                    
+                            AppLog::infoF( 
+                                "Will sleep each frame to enforce desired "
+                                "frame rate of %d fps\n",
+                                idealTargetFrameRate );
+                            
+                            targetFrameRate = idealTargetFrameRate;
+                            
+                            screen->useFrameSleep( true );
+                            countingOnVsync = false;
+                            }
+                        else {
+                            AppLog::infoF( 
+                                "Vsync seems to be enforcing an allowed frame "
+                                "rate of %d fps.\n", closestTargetFrameRate );
+                            
+                            targetFrameRate = closestTargetFrameRate;
+                            
+                            screen->useFrameSleep( false );
+                            countingOnVsync = true;
+                            }
+                        }
+                    else {
+                        // half frame rate must be set
+                        
+                        AppLog::infoF( 
+                            "User has halfFrameRate set, so we're going "
+                        "to manually sleep to enforce a target "
+                            "frame rate of %d fps.\n", targetFrameRate );
                         screen->useFrameSleep( true );
                         countingOnVsync = false;
                         }
-                    else if( targetFrameRate == idealTargetFrameRate ) {
-                        // don't have half frame rate on
-                        AppLog::infoF( 
-                            "Vsync seems to be enforcing an allowed frame "
-                            "rate of %d fps.\n", closestTargetFrameRate );
-                        
-                        targetFrameRate = closestTargetFrameRate;
-
-                        screen->useFrameSleep( false );
-                        countingOnVsync = true;
-                        }
+                
+                
+                    screen->setFullFrameRate( targetFrameRate );
+                    measureRecorded = true;
+                    }
+                
+                if( !countingOnVsync ) {
+                    // show warning message
+                    char *message = 
+                        autoSprintf( "%s\n%s\n\n%s\n\n\n%s",
+                                     translate( "vsyncWarning" ),
+                                     translate( "vsyncWarning2" ),
+                                     translate( "vsyncWarning3" ),
+                                     translate( "vsyncContinueMessage" ) );
+                    drawString( message, true );
+                
+                    delete [] message;
                     }
                 else {
-                    // half frame rate must be set
-
-                    AppLog::infoF( 
-                        "User has halfFrameRate set, so we're going "
-                        "to manually sleep to enforce a target "
-                        "frame rate of %d fps.\n", targetFrameRate );
-                    screen->useFrameSleep( true );
-                    countingOnVsync = false;
+                    // auto-save it now
+                    saveFrameRateSettings();
+                    screen->startRecordingOrPlayback();
+                    measureFrameRate = false;
                     }
-                
-                
-                screen->setFullFrameRate( targetFrameRate );
-                screen->startRecordingOrPlayback();
-                
-                measureFrameRate = false;
                 }
             }
 
@@ -3413,6 +3474,18 @@ void GameSceneHandler::keyPressed(
     if( writeFailed || loadingFailedFlag ) {
         exit( 0 );
         }
+
+    if( measureFrameRate && measureRecorded ) {
+        if( inKey == 'y' || inKey == 'Y' ) {
+            saveFrameRateSettings();
+            screen->startRecordingOrPlayback();
+            measureFrameRate = false;
+            }
+        else if( inKey == 27 ) {
+            exit( 0 );
+            }
+        }
+    
     
 
     // reset to become responsive while paused
