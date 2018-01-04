@@ -4914,6 +4914,11 @@ void loadingComplete() {
     }
 
 
+char getCountingOnVsync() {
+    return countingOnVsync;
+    }
+
+
 
 char isHardToQuitMode() {
     return hardToQuitMode;

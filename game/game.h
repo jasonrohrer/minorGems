@@ -228,6 +228,10 @@ void loadingFailed( const char *inFailureMessage );
 void loadingComplete();
 
 
+// true if game engine is depending on vsync to control frame rate
+char getCountingOnVsync();
+
+
 
 // true if quit should only be accomplished by a special key sequence
 // (gallery mode)
