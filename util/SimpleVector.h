@@ -47,6 +47,7 @@
 *		Jason Rohrer	8-30-2016	Added shrink function.
 *		Jason Rohrer	4-12-2017	Added swap function.
 *		Jason Rohrer	12-26-2017	deleteLastElement, push_back other vector.
+*		Jason Rohrer	1-4-2018	deleteStartElements for efficiency.
 */
 
 #include "minorGems/common.h"
@@ -118,6 +119,11 @@ class SimpleVector {
 		int size();		// return the number of allocated elements in the vector
 		
 		bool deleteElement(int index);		// delete element at an index in vector
+        
+        // deletes a block of elements from the start
+        // way more efficient than calling deleteElement(0) repeatedly
+        bool deleteStartElements( int inNumToDelete );
+        
 		
         void deleteLastElement() {
             deleteElement( size() - 1 );
@@ -420,6 +426,32 @@ inline bool SimpleVector<Type>::deleteElement(int index) {
 			}
 			
 		numFilledElements--;	// one less element in vector
+		return true;
+		}
+	else {				// index not valid for this vector
+		return false;
+		}
+	}
+
+
+
+template <class Type>
+inline bool SimpleVector<Type>::deleteStartElements( int inNumToDelete ) {
+	if( inNumToDelete <= numFilledElements) {
+		
+		if( inNumToDelete != numFilledElements)  {	
+            
+
+            // memmove NOT okay here, because it leaves shallow copies
+            // behind that cause errors when the whole element array is 
+            // destroyed.
+
+            for( int i=inNumToDelete; i<numFilledElements; i++ ) {
+                elements[i - inNumToDelete] = elements[i];
+                }
+			}
+			
+		numFilledElements -= inNumToDelete;
 		return true;
 		}
 	else {				// index not valid for this vector
