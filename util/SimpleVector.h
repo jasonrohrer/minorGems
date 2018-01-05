@@ -454,10 +454,37 @@ inline bool SimpleVector<Type>::deleteStartElements( int inNumToDelete ) {
 		numFilledElements -= inNumToDelete;
 		return true;
 		}
-	else {				// index not valid for this vector
+	else {				// not enough eleements in vector
 		return false;
 		}
 	}
+
+
+
+// special case implementation
+// we do this A LOT for unsigned char vectors
+// and we can use the more efficient memmove for unsigned chars
+template <>
+inline bool SimpleVector<unsigned char>::deleteStartElements( 
+    int inNumToDelete ) {
+	
+    if( inNumToDelete <= numFilledElements) {
+		
+		if( inNumToDelete != numFilledElements)  {
+
+            memmove( elements, &( elements[inNumToDelete] ),
+                     numFilledElements - inNumToDelete );
+            }
+			
+		numFilledElements -= inNumToDelete;
+		return true;
+		}
+	else {				// not enough elements in vector
+		return false;
+		}
+	}
+
+
 
 
 template <class Type>
