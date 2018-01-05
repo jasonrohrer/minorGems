@@ -485,6 +485,28 @@ inline bool SimpleVector<unsigned char>::deleteStartElements(
 	}
 
 
+// same for signed char vectors
+template <>
+inline bool SimpleVector<char>::deleteStartElements( 
+    int inNumToDelete ) {
+	
+    if( inNumToDelete <= numFilledElements) {
+		
+		if( inNumToDelete != numFilledElements)  {
+
+            memmove( elements, &( elements[inNumToDelete] ),
+                     numFilledElements - inNumToDelete );
+            }
+			
+		numFilledElements -= inNumToDelete;
+		return true;
+		}
+	else {				// not enough elements in vector
+		return false;
+		}
+	}
+
+
 
 
 template <class Type>
