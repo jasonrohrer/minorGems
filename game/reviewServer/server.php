@@ -742,7 +742,7 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
             "<table width=100% cellspacing=0 cellpadding=0><tr>".
             "<td valign=middle><font size=5><b>$recText</b></font></td>".
             "<td align=right>by $review_name<br>".
-            "Played $totalDuration</td></tr></table></td></tr>";
+            "$totalDuration on record</td></tr></table></td></tr>";
         }
     else {
         // compact view
@@ -754,7 +754,7 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
             "<table width=100% cellspacing=0 cellpadding=0><tr>".
             "<td valign=middle><b>$recText</b><br>".
             "$review_name ".
-            "($totalDuration)</td></tr></table></td></tr>";
+            "($totalDuration on record)</td></tr></table></td></tr>";
         }
     
     $review_text = preg_replace( '/\n/', "<br>", $review_text );
