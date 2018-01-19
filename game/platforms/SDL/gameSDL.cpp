@@ -2459,6 +2459,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         screen->setFullFrameRate( targetFrameRate );
         screen->useFrameSleep( !countingOnVsync );
         screen->startRecordingOrPlayback();
+        
+        if( screen->isPlayingBack() ) {
+            screen->useFrameSleep( true );
+            }
         measureFrameRate = false;
         }
     
