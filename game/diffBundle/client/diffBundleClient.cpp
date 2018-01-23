@@ -636,6 +636,12 @@ int stepUpdate() {
             
 
             if( strstr( result, "URLS" ) == result ) {
+                
+                // init rand source once here
+                // if we init it over and over in the loop, we're likely
+                // going to be seeding with the same time repeatedly.
+                JenkinsRandomSource shuffleRand;
+
                 // starts with URLS
                 // batch update from remote mirrors
                 printf( "Receiving URL list: \n%s\n\n", result );
@@ -680,10 +686,9 @@ int stepUpdate() {
                         // shuffle them
                         // https://en.wikipedia.org/wiki/
                         //     Fisher%E2%80%93Yates_shuffle
-                        JenkinsRandomSource randSource;
                         
                         for( int j=numMirrors - 1; j >= 1; j-- ) {
-                            int k = randSource.getRandomBoundedInt( 0, j );
+                            int k = shuffleRand.getRandomBoundedInt( 0, j );
                             list.mirrorURLS.swap( k, j );
                             }
                         
