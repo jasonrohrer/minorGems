@@ -776,9 +776,12 @@ float getUpdateProgress() {
         
 
         if( updateSize > 0 ) {
-            float progress = 
-                getWebProgressSize( webHandle ) / (float)updateSize;
-        
+            float progress = 0;
+            
+            if( webHandle != -1 ) {
+                progress = getWebProgressSize( webHandle ) / (float)updateSize;
+                }
+            
             if( progress > 1 ) {
                 // getWebProgressSize includes headers
                 progress = 1;
