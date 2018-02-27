@@ -822,7 +822,7 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
     $totalText = "";
     
     for( $i=0; $i<$numRows; $i++ ) {
-        $id = rs_mysqli_result( $result, i, "id" );
+        $id = rs_mysqli_result( $result, $i, "id" );
 
         $text = rs_getReviewHTML( $id, $inWidth, $summaryTextLength );
 
