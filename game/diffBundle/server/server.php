@@ -99,6 +99,20 @@ function dbs_getLatestVersionAll( $inPlatform ) {
     if( $latestAll > $latest ) {
         $latest = $latestAll;
         }
+
+    global $downloadFilePath;
+
+    $latestLimitPath = $downloadFilePath . "latest.txt";
+
+    if( file_exists( $latestLimitPath ) ) {
+        
+        $latestLimit = file_get_contents( $latestLimitPath );
+
+        if( $latest > $latestLimit ) {
+            $latest = $latestLimit;
+            }
+        }
+    
     return $latest;
     }
 

@@ -31,4 +31,10 @@ $downloadFilePath = "/home/thomasbailey/diffDownloads/";
 // these are URL list files for mirrors hosting .dbz files
 
 
+// also, to limit which file versions are served (while building
+// newer versions):
+
+// latest.txt  can contain the latest version number
+
+
 ?>
