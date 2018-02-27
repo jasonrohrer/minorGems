@@ -106,7 +106,7 @@ function dbs_getLatestVersionAll( $inPlatform ) {
 
     if( file_exists( $latestLimitPath ) ) {
         
-        $latestLimit = file_get_contents( $latestLimitPath );
+        $latestLimit = trim( file_get_contents( $latestLimitPath ) );
 
         if( $latest > $latestLimit ) {
             $latest = $latestLimit;
