@@ -479,8 +479,17 @@ static int applyUpdateFromWebResult() {
                         
                 delete [] backupName;
                 }
-                    
-
+            else {
+                // try to set permissions manually on mac for main app exe
+                if( strcmp( PLATFORM_CODE, "mac" ) == 0 ) {
+                    if( strstr( fileName, "Contents/MacOS/" ) != NULL ) {
+                        const char *mode = "0755";
+                        int modeInt = strtol( mode, 0, 8 );
+                        chmod( fileName, modeInt );
+                        }
+                    }
+                }
+            
 
             if( currentUpdateUniversal &&
                 WINDOWS_LINE_ENDS &&
