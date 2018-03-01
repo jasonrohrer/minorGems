@@ -1308,8 +1308,8 @@ char isSoundRunning() {
 static char *pickFolder( const char *inPrompt ) {
     
     const char *commandFormat = 
-        "osascript -e 'tell application \"System Events\" to activate' "
-        "-e 'tell app \"System Events\" to return POSIX path of "
+        "osascript -e 'tell application \"Finder\" to activate' "
+        "-e 'tell app \"Finder\" to return POSIX path of "
         "(choose folder with prompt \"%s\")'";
 
     char *command = autoSprintf( commandFormat, inPrompt );
@@ -1351,11 +1351,11 @@ static void showMessage( const char *inAppName,
         }
 
     const char *commandFormat =
-        "osascript -e 'tell app \"System Events\" to activate' "
-        "-e 'tell app \"System Events\" to display dialog \"%s\" "
+        "osascript -e 'tell app \"Finder\" to activate' "
+        "-e 'tell app \"Finder\" to display dialog \"%s\" "
         "with title \"%s:  %s\" buttons \"Ok\" "
         "with icon %s default button \"Ok\"' "
-        "-e 'tell app \"System Events\" to quit' ";
+        "-e 'tell app \"Finder\" to quit' ";
     
     char *command = autoSprintf( commandFormat, inMessage, inAppName, inTitle, 
                                  iconName );
