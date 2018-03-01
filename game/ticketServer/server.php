@@ -2064,7 +2064,8 @@ function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
         echo "<OPTION VALUE=\"$tag\">$tag</OPTION>";
         }
 ?>
-    </SELECT><br>
+    </SELECT> Skip: <INPUT TYPE="text" MAXLENGTH=20 SIZE=10 NAME="message_skip"
+          value="0" ><br>
      Message:<br>
      (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
      (<b>#DOWNLOAD_CODE#</b> will be replaced with individual's DL code)<br>
@@ -2130,6 +2131,9 @@ function ts_sendAllNote() {
             // Only send one batch now, according to tag
             $numToSkip = $tagParts[2];
 
+            $message_skip = ts_requestFilter( "message_skip", "/[0-9]+/i", 0 );
+            $numToSkip += $message_skip;
+            
             global $emailMaxBatchSize;
             
             $query = "SELECT * FROM $tableNamePrefix"."tickets ".
