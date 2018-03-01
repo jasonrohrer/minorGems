@@ -49,9 +49,14 @@ char isNonIntegerScalingAllowed();
 // Example:  CastleDoctrine
 //
 // On Windows, we might compile to CastleDoctrine.exe
-// On Mac, we might bundle to CastleDoctrine.app
+// On Mac, we might bundle to CastleDoctrine_v58.app
 // But the app name is the same (CastleDoctrine) on both platforms.
 const char *getAppName();
+
+// gets the version number of the binary code
+// On Mac, we name the bundle with the version number.
+int getAppVersion();
+
 
 // depending on directory structure for source builds, Linux app name
 // might be different than Windows or Mac app name (no .exe or .app extension

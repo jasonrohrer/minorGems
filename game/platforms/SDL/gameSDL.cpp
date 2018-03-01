@@ -1500,7 +1500,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         // arg 0 is the path to the app executable
         char *appDirectoryPath = stringDuplicate( inArgs[0] );
     
-        char *bundleName = autoSprintf( "%s.app", getAppName() );
+        char *bundleName = autoSprintf( "%s_%d.app", 
+                                        getAppName(), getAppVersion() );
 
         char *appNamePointer = strstr( appDirectoryPath, bundleName );
 
@@ -5171,7 +5172,8 @@ char relaunchGame() {
     
     /*
     char *launchTarget = 
-        autoSprintf( "%s%s", getAppName(), macLaunchExtension );
+        autoSprintf( "%s_$d%s", getAppName(), 
+                     getAppVersion(), macLaunchExtension );
     
     AppLog::infoF( "Relaunching game %s", launchTarget );
     
