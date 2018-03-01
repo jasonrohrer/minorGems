@@ -1354,8 +1354,7 @@ static void showMessage( const char *inAppName,
         "osascript -e 'tell app \"Finder\" to activate' "
         "-e 'tell app \"Finder\" to display dialog \"%s\" "
         "with title \"%s:  %s\" buttons \"Ok\" "
-        "with icon %s default button \"Ok\"' "
-        "-e 'tell app \"Finder\" to quit' ";
+        "with icon %s default button \"Ok\"' ";
     
     char *command = autoSprintf( commandFormat, inMessage, inAppName, inTitle, 
                                  iconName );
