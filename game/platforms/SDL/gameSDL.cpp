@@ -2426,8 +2426,6 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         // wait to start recording/playback
         }
     else if( writeFailed ) {
-        showWriteFailedPanel( screen, getFontTGAFileName(), gameWidth,
-                              gameHeight );
         // handle key events right away to listen for ESC
         screen->addKeyboardHandler( sceneHandler );
         }
@@ -2523,9 +2521,7 @@ GameSceneHandler::~GameSceneHandler() {
         demoMode = false;
         }
 
-    if( writeFailed ) {
-        freeWriteFailedPanel();
-        }
+
     if( loadingFailedMessage != NULL ) {
         delete [] loadingFailedMessage;
         loadingFailedMessage = NULL;
@@ -2855,6 +2851,9 @@ void GameSceneHandler::drawScene() {
 
             screen->startRecordingOrPlayback();
             }
+        }
+    else if( writeFailed ) {
+        drawString( translate( "writeFailed" ), true );
         }
     else if( !screen->isPlayingBack() && measureFrameRate ) {
         if( !measureRecorded ) {
