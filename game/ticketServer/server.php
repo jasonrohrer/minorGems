@@ -11,6 +11,11 @@ $ts_version = "2";
 include( "settings.php" );
 
 
+if( $useBulkEmailerForNotes ) {    
+    require( "$bulkEmailerPath" );
+    }
+
+
 
 
 // no end-user settings below this point
@@ -2063,13 +2068,20 @@ function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
     foreach( $allowedDownloadDates as $tag => $date ){
         echo "<OPTION VALUE=\"$tag\">$tag</OPTION>";
         }
+
+    global $useBulkEmailerForNotes;
+
+    if( $useBulkEmailerForNotes ) {
+        echo "<OPTION VALUE=\"BULK_TO_ALL\">BULK_TO_ALL</OPTION>";
+        }
+    
 ?>
     </SELECT> Skip: <INPUT TYPE="text" MAXLENGTH=20 SIZE=10 NAME="message_skip"
           value="0" ><br>
      Message:<br>
-     (<b>#DOWNLOAD_LINK#</b> will be replaced with individual's link)<br>
-     (<b>#DOWNLOAD_CODE#</b> will be replaced with individual's DL code)<br>
-     (<b>#COUPON_CODE#</b> will be replaced with individual's coupon code)<br>
+     (<b>#DOWNLOAD_LINK#</b> will be replaced with individual links)<br>
+     (<b>#DOWNLOAD_CODE#</b> will be replaced with individual DL codes)<br>
+     (<b>#COUPON_CODE#</b> will be replaced with individual coupon codes)<br>
           <TEXTAREA NAME="message_text" COLS=50 ROWS=10><?php echo $inSetMessageBody;?></TEXTAREA><br>
     <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
     <INPUT TYPE="Submit" VALUE="Send">
@@ -2124,6 +2136,8 @@ function ts_sendAllNote() {
 
     $tagParts = preg_split( "/_/", $tag );
 
+    $useBulk = 0;
+    
     if( count( $tagParts ) == 3 ) {
         
         if( $tagParts[0] == "ALL" && $tagParts[1] == "BATCH" ) {
@@ -2140,11 +2154,18 @@ function ts_sendAllNote() {
                 "WHERE blocked = '0' AND email_opt_in = '1' ".
                 "ORDER BY sale_date ASC LIMIT $numToSkip, $emailMaxBatchSize;";
             }
+        else if( $tagParts[0] == "BULK" && $tagParts[2] == "ALL" ) {
+            // send to all
+            $query = "SELECT * FROM $tableNamePrefix"."tickets ".
+                "WHERE blocked = '0' AND email_opt_in = '1' ".
+                "ORDER BY sale_date ASC;";
+            $useBulk = 1;
+            }
         }
     
     
     // show opt-out URL at bottom of email
-    ts_sendNote_q( $query, $message_subject, $message_text, 1 );
+    ts_sendNote_q( $query, $message_subject, $message_text, 1, $useBulk );
 
 
     // show resend form
@@ -2205,7 +2226,7 @@ function ts_sendAllFileNote() {
     $query = "SELECT * FROM $tableNamePrefix"."tickets ".
         "WHERE tag = '$tag' AND blocked = '0' AND email_opt_in = '1';";
 */
-    ts_sendNote_q( $query, $message_subject, $message_text, 0 );
+    ts_sendNote_q( $query, $message_subject, $message_text, 0, 0 );
     }
 
 
@@ -2360,7 +2381,7 @@ function ts_clearCouponCodes() {
 
 // sends note emails for every result in a SQL query
 function ts_sendNote_q( $inQuery, $message_subject, $message_text,
-                        $inShowOptOutLink ) {
+                        $inShowOptOutLink, $inUseBulkEmailer ) {
     global $tableNamePrefix, $fullServerURL;
     
     $result = ts_queryDatabase( $inQuery );
@@ -2371,6 +2392,60 @@ function ts_sendNote_q( $inQuery, $message_subject, $message_text,
 
     echo "Based on query, sending $numRows emails:<br><br><br>\n";
 
+    if( $inUseBulkEmailer ) {
+        echo "Using bulk emailer<br><br>";
+
+        $allEmails = array();
+        $allCodes = array();
+        $allCoupons = array();
+
+
+        $custom_message_text = $message_text;
+        
+        if( $inShowOptOutLink ) {
+            $custom_message_text = $message_text .
+                "\n\n" .
+                "-----\n" .
+                "You can opt out of future email updates by clicking the " .
+                "following link:\n" .
+                "  $fullServerURL?action=email_opt_in&in=0&" .
+                "ticket_id=%CUSTOM%" .
+                "\n\n";
+            }
+        
+        $custom_link = "$fullServerURL?action=show_downloads&" .
+            "ticket_id=%CUSTOM%";
+
+        $custom_message_text =
+            preg_replace( '/#DOWNLOAD_LINK#/', $custom_link,
+                          $custom_message_text );
+
+        $custom_message_text =
+            preg_replace( '/#DOWNLOAD_CODE#/', "%CUSTOM%",
+                          $custom_message_text );
+
+        $custom_message_text =
+            preg_replace( '/#COUPON_CODE#/', "%CUSTOM2%",
+                          $custom_message_text );
+        
+        for( $i=0; $i<$numRows; $i++ ) {
+            $allEmails[] = ts_mysqli_result( $result, $i, "email" );
+            $allCodes[] = ts_mysqli_result( $result, $i, "ticket_id" );
+            $allCoupons[] = ts_mysqli_result( $result, $i, "coupon_code" );
+            }
+        
+
+        be_addMessage( $message_subject, $custom_message_text,
+                       $allEmails, $allCodes, $allCoupons );
+
+        
+        $numAdded = count( $allEmails );
+        
+        echo "Added $numAdded messages to bulk emailer.<br><br>";
+        return;
+        }
+    
+    
     for( $i=0; $i<$numRows; $i++ ) {
         $name = ts_mysqli_result( $result, $i, "name" );
         $email = ts_mysqli_result( $result, $i, "email" );

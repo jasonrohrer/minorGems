@@ -586,7 +586,8 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
                                "&code=$confirmation_code\n\n".
                                $firstMessageExtraB,
                                array( $email ),
-                               array( ""  ) );
+                               array( "" ),
+                               array( "" ) );
                 }
 
             return 1;
@@ -1102,6 +1103,8 @@ function ml_sendMessage() {
     
     $allEmails = array();
     $allCodes = array();
+    // not used, full of empty strings
+    $allCustom2 = array();
     
     for( $i=0; $i<$numRows; $i++ ) {
         $email = mysql_result( $result, $i, "email" );
@@ -1109,6 +1112,7 @@ function ml_sendMessage() {
         
         $allEmails[] = $email;
         $allCodes[] = $code;
+        $allCustom2[] = "";
         }
 
     global $fullServerURL;
@@ -1120,7 +1124,8 @@ function ml_sendMessage() {
         "$fullServerURL?action=remove&code=%CUSTOM%\n\n";
     
     
-    be_addMessage( $message_subject, $message_text, $allEmails, $allCodes );
+    be_addMessage( $message_subject, $message_text, $allEmails, $allCodes,
+                   $allCustom2 );
 
     $query = "UPDATE $tableNamePrefix"."recipients SET ".
         "last_sent_date = CURRENT_TIMESTAMP, ".

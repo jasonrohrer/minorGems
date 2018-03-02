@@ -18,14 +18,14 @@ function be_connectToDatabase() {
         $be_mysqlLink;
     
     
-    $be_mysqlLink = mysql_connect( $be_databaseServer, $be_databaseUsername,
-                                   $be_databasePassword )
+    $be_mysqlLink = mysqli_connect( $be_databaseServer, $be_databaseUsername,
+                                    $be_databasePassword )
         or be_operationError( "Could not connect to database server: " .
-                              mysql_error() );
+                              mysqli_error( $be_mysqlLink ) );
     
-	mysql_select_db( $be_databaseName )
+	mysqli_select_db( $be_mysqlLink, $be_databaseName )
         or be_operationError( "Could not select $be_databaseName database: " .
-                              mysql_error() );
+                              mysqli_error( $be_mysqlLink ) );
     }
 
 
@@ -36,7 +36,7 @@ function be_connectToDatabase() {
 function be_closeDatabase() {
     global $be_mysqlLink;
 
-    mysql_close( $be_mysqlLink );
+    mysqli_close( $be_mysqlLink );
     }
 
 
@@ -51,16 +51,16 @@ function be_closeDatabase() {
 function be_queryDatabase( $inQueryString ) {
     global $be_mysqlLink;
 
-    if( gettype( $be_mysqlLink ) != "resource" ) {
+    if( gettype( $be_mysqlLink ) != "object" ) {
         // not a valid mysql link?
         be_connectToDatabase();
         }
     
-    $result = mysql_query( $inQueryString, $be_mysqlLink );
+    $result = mysqli_query( $be_mysqlLink, $inQueryString );
     
     if( $result == FALSE ) {
 
-        $errorNumber = mysql_errno();
+        $errorNumber = mysqli_errno( $be_mysqlLink );
         
         // server lost or gone?
         if( $errorNumber == 2006 ||
@@ -75,20 +75,31 @@ function be_queryDatabase( $inQueryString ) {
             be_closeDatabase();
             be_connectToDatabase();
 
-            $result = mysql_query( $inQueryString, $be_mysqlLink )
+            $result = mysqli_query( $be_mysqlLink, $inQueryString )
                 or be_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
-                    mysql_error() );
+                    mysqli_error( $be_mysqlLink ) );
             }
         else {
             // some other error (we're still connected, so we can
             // add log messages to database
             be_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                           mysql_error() );
+                           mysqli_error( $be_mysqlLink ) );
             }
         }
     
     return $result;
+    }
+
+
+
+/**
+ * Replacement for the old mysql_result function.
+ */
+function be_mysqli_result( $result, $number, $field=0 ) {
+    mysqli_data_seek( $result, $number );
+    $row = mysqli_fetch_array( $result );
+    return $row[ $field ];
     }
 
 
@@ -107,12 +118,12 @@ function be_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = be_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = mysql_result( $result, $i, 0 );
+        $tableName = be_mysqli_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
@@ -124,10 +135,10 @@ function be_doesTableExist( $inTableName ) {
 
 
 function be_log( $message ) {
-    global $be_enableLog, $be_tableNamePrefix;
+    global $be_enableLog, $be_tableNamePrefix, $be_mysqlLink;
 
     if( $be_enableLog ) {
-        $slashedMessage = mysql_real_escape_string( $message );
+        $slashedMessage = mysqli_real_escape_string( $be_mysqlLink, $message );
     
         $query = "INSERT INTO $be_tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";

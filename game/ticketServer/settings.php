@@ -231,4 +231,12 @@ $smtpUsernameTrans = $smtpUsername;
 $smtpPasswordTrans = $smtpPassword;
 
 
+// set to 1 to use bulk emailer instead of smtp directly
+// this is ONLY used for bulk notes to all
+$useBulkEmailerForNotes = 1;
+
+// path to bulkEmailer api
+$bulkEmailerPath = "../bulkEmailer/bulkEmailerAPI.php";
+
+
 ?>

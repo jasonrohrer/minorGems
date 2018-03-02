@@ -108,6 +108,7 @@ function be_setupDatabase() {
             "CREATE TABLE $tableName(" .
             "email CHAR(255) NOT NULL," .
             "custom_data TEXT NOT NULL,".
+            "custom2_data TEXT NOT NULL,".
             "message_id INT NOT NULL,".
             "PRIMARY KEY( email, message_id ) );";
         
@@ -146,14 +147,14 @@ function be_sendBatch() {
             "ORDER BY send_time ASC LIMIT 1";
         $result = be_queryDatabase( $query );
 
-        $numRows = mysql_numrows( $result );
+        $numRows = mysqli_num_rows( $result );
 
         if( $numRows == 1 ) {
             echo "Found a message\n";
             
             $foundMessage = true;
             
-            $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+            $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
 
             $message_id = $row[ "message_id" ];
@@ -170,12 +171,12 @@ function be_sendBatch() {
             be_queryDatabase( "LOCK TABLE $be_tableNamePrefix".
                               "recipients WRITE;" );
             
-            $query = "SELECT email, custom_data ".
+            $query = "SELECT email, custom_data, custom2_data ".
                 "FROM $be_tableNamePrefix"."recipients ".
                 "WHERE message_id = $message_id LIMIT $numLeftInBatch";
             $result = be_queryDatabase( $query );
 
-            $numRows = mysql_numrows( $result );
+            $numRows = mysqli_num_rows( $result );
 
             $query = "DELETE FROM $be_tableNamePrefix"."recipients ".
                 "WHERE message_id = $message_id LIMIT $numLeftInBatch";
@@ -187,11 +188,16 @@ function be_sendBatch() {
             if( $numRows > 0 ) {
                 echo "Message has $numRows recipients waiting\n";
                 for( $i=0; $i<$numRows; $i++ ) {
-                    $email = mysql_result( $result, $i, "email" );
-                    $custom_data = mysql_result( $result, $i, "custom_data" );
+                    $email = be_mysqli_result( $result, $i, "email" );
+                    $custom_data =
+                        be_mysqli_result( $result, $i, "custom_data" );
+                    $custom2_data =
+                        be_mysqli_result( $result, $i, "custom2_data" );
 
                     $customBody =
                         preg_replace('/%CUSTOM%/', $custom_data, $body );
+                    $customBody =
+                        preg_replace('/%CUSTOM2%/', $custom2_data, $body );
                     
                     $success = be_sendEmail( $subject, $customBody, $email,
                                              false );
@@ -229,7 +235,7 @@ function be_sendBatch() {
                 "WHERE message_id = $message_id;";
             $result = be_queryDatabase( $query );
 
-            $numLeft = mysql_result( $result, 0, 0 );
+            $numLeft = be_mysqli_result( $result, 0, 0 );
             
                         
             if( $numLeft == 0 ) {
