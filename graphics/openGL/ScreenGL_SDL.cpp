@@ -724,7 +724,7 @@ void ScreenGL::setupSurface() {
             mFullScreen = false;
             
             flags = SDL_OPENGL;
-#ifndef RASPBIAN  
+#ifdef RASPBIAN  
             flags = 0;
 #endif
             }
