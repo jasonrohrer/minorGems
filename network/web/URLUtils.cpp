@@ -251,9 +251,13 @@ char *URLUtils::urlEncode( char *inString ) {
             ||
             ( c >= 'a' && c <= 'z' )
             ||
+            ( c >= '0' && c <= '9' )
+            ||
             c == '-'
             ||
             c == '_'
+            ||
+            c == '~'
             ||
             c == '.' ) {
             // unreserved
