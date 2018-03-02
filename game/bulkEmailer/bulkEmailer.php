@@ -197,7 +197,8 @@ function be_sendBatch() {
                     $customBody =
                         preg_replace('/%CUSTOM%/', $custom_data, $body );
                     $customBody =
-                        preg_replace('/%CUSTOM2%/', $custom2_data, $body );
+                        preg_replace('/%CUSTOM2%/', $custom2_data,
+                                     $customBody );
                     
                     $success = be_sendEmail( $subject, $customBody, $email,
                                              false );
