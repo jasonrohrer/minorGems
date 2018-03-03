@@ -86,7 +86,8 @@ function be_addMessage( $subject, $body, $recipientEmailArray,
         $custom_data = mysqli_real_escape_string( $be_mysqlLink, $custom_data );
         
         $query = "INSERT INTO $be_tableNamePrefix"."recipients ".
-        "VALUES( '$email', '$custom_data', '$custom2_data', $message_id );";
+            "VALUES( '$email', '$custom_data', '$custom2_data', $message_id ) ".
+            "ON DUPLICATE KEY UPDATE email = '$email';";
         be_queryDatabase( $query );
         }
 
