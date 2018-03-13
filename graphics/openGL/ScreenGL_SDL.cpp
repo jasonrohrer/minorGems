@@ -663,12 +663,15 @@ void ScreenGL::setupSurface() {
 
     // NOTE:  flags are also adjusted below if fullscreen resolution not
     // available
+    int borderless = 0;
+    
 	if( mFullScreen ) {
-        int borderless = SettingsManager::getIntSetting( "borderless", 0 );
+        borderless = SettingsManager::getIntSetting( "borderless", 0 );
         
         if( borderless ) {
             AppLog::info( "Setting borderless mode for fullscreen" );
-
+            SDL_putenv( "SDL_VIDEO_WINDOW_POS=0,0" );
+            
             flags = flags | SDL_NOFRAME;
             }
         else {
@@ -712,8 +715,21 @@ void ScreenGL::setupSurface() {
         if( mFullScreen && mDoNotChangeNativeResolution ) {
             AppLog::info( "Sticking with user's current screen resolution" );
             
+            int borderlessHeightAdjust = 
+                SettingsManager::getIntSetting( "borderlessHeightAdjust", 0 );
+
             mWide = currentW;
             mHigh = currentH;
+            
+            if( borderless && borderlessHeightAdjust != 0 ) {
+                AppLog::getLog()->logPrintf( 
+                    Log::INFO_LEVEL,
+                    "Adding %d to borderless window height of %d "
+                    "resulting in total height of %d",
+                    borderlessHeightAdjust, mHigh,
+                    mHigh + borderlessHeightAdjust );
+                mHigh += borderlessHeightAdjust;
+                }
             }
         }
     else if( mForceSpecifiedDimensions && mFullScreen ) {
