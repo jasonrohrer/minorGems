@@ -1667,7 +1667,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
     AppLog::getLog()->logPrintf( 
         Log::INFO_LEVEL,
-        "Screen dimensions for fullscreen mode:  %dx%d\n",
+        "Ideal window dimensions:  %dx%d\n",
         screenWidth, screenHeight );
 
 
@@ -1717,6 +1717,13 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         fullscreen = false;
         }
 
+    if( fullscreen ) {
+        AppLog::info( "Trying to start in fullscreen mode." );
+        }
+    else {
+        AppLog::info( "Trying to start in window mode." );
+        }
+    
 
     char useLargestWindowFound = false;
     int readUseLargestWindow = 
@@ -1731,7 +1738,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
 
     if( !fullscreen && useLargestWindow ) {
-        
+        AppLog::info( "Want to use largest window that fits on screen." );
+
         const SDL_VideoInfo* currentScreenInfo = SDL_GetVideoInfo();
         
         int currentW = currentScreenInfo->current_w;

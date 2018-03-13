@@ -664,7 +664,17 @@ void ScreenGL::setupSurface() {
     // NOTE:  flags are also adjusted below if fullscreen resolution not
     // available
 	if( mFullScreen ) {
-        flags = flags | SDL_FULLSCREEN;
+        int borderless = SettingsManager::getIntSetting( "borderless", 0 );
+        
+        if( borderless ) {
+            AppLog::info( "Setting borderless mode for fullscreen" );
+
+            flags = flags | SDL_NOFRAME;
+            }
+        else {
+            AppLog::info( "Setting real (not borderless) fullscreen mode" );
+            flags = flags | SDL_FULLSCREEN;
+            }
         }
 
     const SDL_VideoInfo* currentScreenInfo = SDL_GetVideoInfo();
@@ -698,6 +708,13 @@ void ScreenGL::setupSurface() {
     // Check if our resolution is restricted
     if( modes == (SDL_Rect**)-1 ) {
         AppLog::info( "All resolutions available" );
+        
+        if( mFullScreen && mDoNotChangeNativeResolution ) {
+            AppLog::info( "Sticking with user's current screen resolution" );
+            
+            mWide = currentW;
+            mHigh = currentH;
+            }
         }
     else if( mForceSpecifiedDimensions && mFullScreen ) {
         
