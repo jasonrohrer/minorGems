@@ -271,6 +271,7 @@ char soundOpen = false;
 
 
 char hardToQuitMode = false;
+int pauseOnMinimize = 1;
 
 
 char demoMode = false;
@@ -2168,6 +2169,8 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         hardToQuitMode = true;
         }
 
+    pauseOnMinimize = SettingsManager::getIntSetting( "pauseOnMinimize", 1 );
+    
 
     
     // translation language
@@ -3033,7 +3036,7 @@ void GameSceneHandler::drawScene() {
         
 
         // auto-pause when minimized
-        if( screen->isMinimized() ) {
+        if( pauseOnMinimize && screen->isMinimized() ) {
             mPaused = true;
             }
 
