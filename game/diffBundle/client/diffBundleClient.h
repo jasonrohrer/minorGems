@@ -15,6 +15,11 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber );
 // return 0 if request still in-progress
 int stepUpdate();
 
+// if stepUpdate returns -1, this returns true if the error
+// was a write error (likely due to file permissions)
+char wasUpdateWriteError();
+
+
 
 // return fraction of update completion from 0 to 1
 float getUpdateProgress();

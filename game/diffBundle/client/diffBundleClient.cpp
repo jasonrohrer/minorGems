@@ -89,9 +89,17 @@ static SimpleVector<MirrorList> mirrors;
 static const char *platformCode = "";
 
 
+static char writeError = false;
+
+char wasUpdateWriteError() {
+    return writeError;
+    }
+
+
 
 char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
-
+    writeError = false;
+    
     batchMirrorUpdate = false;
     currentUpdateUniversal = false;
 
@@ -387,7 +395,11 @@ static int applyUpdateFromWebResult() {
             }                
 
         printf( "Updating %d files\n", numFiles );
-                
+        
+        char fileCreationFailed = false;
+        
+        SimpleVector<char*> backupList;
+
         for( int f=0; f<numFiles; f++ ) {
                     
             int fileNameLength =
@@ -435,13 +447,64 @@ static int applyUpdateFromWebResult() {
                     
             if( targetFile.exists() ) {
                 backupName = autoSprintf( "%s.bak", fileName );
-                        
-                rename( fileName, backupName );
-                        
+
                 printf( "File %s exists, moving temporariliy to %s\n",
                         fileName, backupName );
+                        
+                int result = rename( fileName, backupName );
+                
+                if( result != 0 ) {
+                    printf( "Moving backup to %s failed\n",
+                            backupName );
+                    fileCreationFailed = true;
+                    delete [] fileName;
+                    delete [] backupName;
+                    printf( "Ending update process\n" );
+                    break;
+                    }
+                else {
+                    backupList.push_back( stringDuplicate( backupName ) );
+                    }
                 }
+            else {
+                if( strstr( fileName, "/" ) != NULL ) {
+                    // file name contains a path
                     
+                    // make sure the dir exists
+                    char *dirName = stringDuplicate( fileName );
+                    
+                    // find last / and terminate there to get dir name
+                    int len = strlen( dirName );
+                    for( int i=len-1; i>=0; i-- ) {
+                        if( dirName[i] == '/' ) {
+                            dirName[i] = '\0';
+                            break;
+                            }
+                        }
+                    File dirFile( NULL, dirName );
+                    
+                    if( ! dirFile.exists() ) {
+                        printf( "Making necessary directory %s for "
+                                "new file %s\n",
+                                dirName, fileName );
+                        
+                        char made = Directory::makeDirectory( &dirFile );
+                    
+                        if( !made ) {
+                            printf( "Failed to make directory %s\n",
+                                    dirName );
+                            
+                            delete [] dirName;
+                            printf( "Ending update process\n" );
+                            fileCreationFailed = true;
+                            break;
+                            }
+                        }
+                    delete [] dirName;
+                    }
+                
+                }
+            
 
             FILE *file = fopen( fileName, "wb" );
                     
@@ -449,6 +512,13 @@ static int applyUpdateFromWebResult() {
             if( file == NULL ) {
                 printf( "Failed to open file %s for writing\n",
                         fileName );
+                fileCreationFailed = true;
+                delete [] fileName;
+                if( backupName != NULL ) {
+                    delete [] backupName;
+                    }
+                printf( "Ending update process\n" );
+                break;
                 }
             else {
                 int numWritten = 
@@ -464,18 +534,7 @@ static int applyUpdateFromWebResult() {
                     
                     
             if( backupName != NULL ) {
-                copyPermissions( backupName, fileName );
-                        
-                if( remove( backupName ) != 0 ) {
-                    FILE *postRemoveListFile =
-                        fopen( "postRemoveList.txt", "a" );
-                    if( postRemoveListFile != NULL ) {    
-                        fprintf( postRemoveListFile, 
-                                 "%s\n", backupName );
-                        fclose( postRemoveListFile );
-                        }
-                    }
-                        
+                copyPermissions( backupName, fileName );                        
                         
                 delete [] backupName;
                 }
@@ -524,6 +583,65 @@ static int applyUpdateFromWebResult() {
                 
             nextScanPointer = &( nextScanPointer[ fileSize ] );
             }
+        
+        if( fileCreationFailed ) {
+            writeError = true;
+            
+            // restore from backups if possible
+            
+            
+            for( int i=0; i<backupList.size(); i++ ) {
+                char *backName = backupList.getElementDirect( i );
+                char *origName = stringDuplicate( backName );
+                
+                char *bakStart = strstr( origName, ".bak" );
+                
+                if( bakStart != NULL ) {
+                    bakStart[0] = '\0';
+                    }
+                
+                printf( "Trying to restore %s from %s\n",
+                        origName, backName );
+                       
+                if( remove( origName ) != 0 ) {
+                    printf( "    Failed to remove %s\n", origName );
+                    }
+                if( rename( backName, origName ) != 0 ) {
+                    printf( "    Failed to move %s to %s\n", 
+                            backName, origName );
+                    }
+                delete [] origName;
+                }
+
+            backupList.deallocateStringElements();
+            
+            return -1;
+            }
+        
+
+        // success
+        // remove backup files if we can
+        
+        for( int i=0; i<backupList.size(); i++ ) {
+            char *backName = backupList.getElementDirect( i );
+            
+            if( remove( backName ) != 0 ) {
+                // can't remove
+                // save on list to remove later if postUpdate called
+                // (if postUpdate not call, just leave them)
+                FILE *postRemoveListFile =
+                    fopen( "postRemoveList.txt", "a" );
+                if( postRemoveListFile != NULL ) {    
+                    fprintf( postRemoveListFile, 
+                             "%s\n", backName );
+                    fclose( postRemoveListFile );
+                    }
+                }
+            }
+        
+        backupList.deallocateStringElements();
+
+
                 
         delete [] rawData;
         printf( "Update complete\n" );
@@ -562,7 +680,12 @@ static int batchMirrorStep() {
                 }
             
             if( result == -1 ) {
-                
+                if( writeError ) {
+                    // stop immediately, don't try another mirror
+                    clearWebRequest( webHandle );
+                    webHandle = -1;
+                    return -1;
+                    }
                 MirrorList *list = mirrors.getElement( batchStepsDone );
             
                 if( list->currentMirror < list->mirrorURLS.size() - 1 ) {
