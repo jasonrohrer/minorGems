@@ -162,7 +162,9 @@
 #include "minorGems/crypto/hashes/sha1.h"
 #include "minorGems/formats/encodingUtils.h"
 
-
+#ifdef __mac__
+#include "minorGems/game/platforms/SDL/mac/SDLMain_Ext.h"
+#endif
 
 #ifdef RASPBIAN
 
@@ -666,8 +668,13 @@ void ScreenGL::setupSurface() {
     int borderless = 0;
     
 	if( mFullScreen ) {
+#ifdef __mac__
+        borderless = 1;
+        NSMenu_setMenuBarVisible(0);
+#else
         borderless = SettingsManager::getIntSetting( "borderless", 0 );
-        
+#endif
+
         if( borderless ) {
             AppLog::info( "Setting borderless mode for fullscreen" );
             SDL_putenv( "SDL_VIDEO_WINDOW_POS=0,0" );

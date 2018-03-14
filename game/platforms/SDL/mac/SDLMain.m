@@ -7,6 +7,7 @@
 
 #import <SDL/SDL.h>
 #import "SDLMain.h"
+#import "SDLMain_Ext.h"
 #import <sys/param.h> /* for MAXPATHLEN */
 #import <unistd.h>
 
@@ -315,6 +316,13 @@ static void CustomApplicationMain (int argc, char **argv)
 }
 @end
 
+void NSMenu_setMenuBarVisible(int flag) {
+    if (flag) {
+        [NSMenu setMenuBarVisible:TRUE];
+    } else {
+        [NSMenu setMenuBarVisible:FALSE];
+    }
+}
 
 @implementation NSString (ReplaceSubString)
 
