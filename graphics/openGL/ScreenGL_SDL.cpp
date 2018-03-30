@@ -670,7 +670,7 @@ void ScreenGL::setupSurface() {
         
         if( borderless ) {
             AppLog::info( "Setting borderless mode for fullscreen" );
-            SDL_putenv( "SDL_VIDEO_WINDOW_POS=0,0" );
+            SDL_putenv( (char*)"SDL_VIDEO_WINDOW_POS=0,0" );
             
             flags = flags | SDL_NOFRAME;
             }
