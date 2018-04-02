@@ -7,8 +7,18 @@
 
 #import <SDL/SDL.h>
 #import "SDLMain.h"
+#import "SDLMain_Ext.h"
 #import <sys/param.h> /* for MAXPATHLEN */
 #import <unistd.h>
+
+/* Apparently when you use NSBorderlessWindowMask (as SDL's Quartz driver does)
+   it becomes impossible to change the cursor. Forcing canBecomeKeyWindow
+   fixes this. */
+@implementation NSWindow (KeyWindow)
+- (BOOL)canBecomeKeyWindow {
+  return YES;
+}
+@end
 
 /* For some reaon, Apple removed setAppleMenu from the headers in 10.4,
  but the method still is there and works. To avoid warnings, we declare
@@ -315,6 +325,13 @@ static void CustomApplicationMain (int argc, char **argv)
 }
 @end
 
+void NSMenu_setMenuBarVisible(int flag) {
+    if (flag) {
+        [NSMenu setMenuBarVisible:TRUE];
+    } else {
+        [NSMenu setMenuBarVisible:FALSE];
+    }
+}
 
 @implementation NSString (ReplaceSubString)
 
