@@ -1583,9 +1583,9 @@ function ts_showData( $checkPassword = true ) {
     <INPUT TYPE="hidden" NAME="action" VALUE="sell_ticket">
     <INPUT TYPE="hidden" NAME="manual" VALUE="1">
              Email:
-    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"><br>
+    <INPUT TYPE="text" MAXLENGTH=80 SIZE=20 NAME="email"><br>
     Name:
-    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="name"><br>
+    <INPUT TYPE="text" MAXLENGTH=80 SIZE=20 NAME="name"><br>
     Order #:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="reference"><br>
     Tag:
@@ -1812,10 +1812,10 @@ function ts_showDetail( $checkPassword = true ) {
     <INPUT TYPE="hidden" NAME="action" VALUE="edit_ticket">
     <INPUT TYPE="hidden" NAME="ticket_id" VALUE="<?php echo $ticket_id;?>">
     Email:
-    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"
+    <INPUT TYPE="text" MAXLENGTH=80 SIZE=20 NAME="email"
             VALUE="<?php echo $email;?>"><br>
     Name:
-    <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="name"
+    <INPUT TYPE="text" MAXLENGTH=80 SIZE=20 NAME="name"
             VALUE="<?php echo $name;?>"><br>
     Order #:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=40 NAME="reference"
