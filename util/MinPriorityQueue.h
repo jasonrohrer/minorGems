@@ -30,6 +30,13 @@ class MinPriorityQueue {
             }
         
 
+        void clear() {
+            mStorage.deleteAll();
+            mPriority.deleteAll();
+            }
+        
+        
+
         void insert( Type inValue, double inPriority ) {
             
             // stick it at the bottom of the heap
