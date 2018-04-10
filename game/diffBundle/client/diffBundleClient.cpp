@@ -450,20 +450,28 @@ static int applyUpdateFromWebResult() {
 
                 printf( "File %s exists, moving temporariliy to %s\n",
                         fileName, backupName );
-                        
-                int result = rename( fileName, backupName );
                 
-                if( result != 0 ) {
-                    printf( "Moving backup to %s failed\n",
+                File backFile( NULL, backupName );
+                
+                if( backFile.exists() ) {
+                    printf( "Backup file %s already exists, skipping move\n",
                             backupName );
-                    fileCreationFailed = true;
-                    delete [] fileName;
-                    delete [] backupName;
-                    printf( "Ending update process\n" );
-                    break;
                     }
                 else {
-                    backupList.push_back( stringDuplicate( backupName ) );
+                    int result = rename( fileName, backupName );
+                
+                    if( result != 0 ) {
+                        printf( "Moving backup to %s failed\n",
+                                backupName );
+                        fileCreationFailed = true;
+                        delete [] fileName;
+                        delete [] backupName;
+                        printf( "Ending update process\n" );
+                        break;
+                        }
+                    else {
+                        backupList.push_back( stringDuplicate( backupName ) );
+                        }
                     }
                 }
             else {
