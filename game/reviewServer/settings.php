@@ -144,6 +144,21 @@ $outputPathRecent =
 $outputPathPlaytime =
     "/var/www/html/jcr13/OneLifeHTML/reviewPages/playtimeReviews.html";
 
+
+$outputPathRecentPositive =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/recentReviewsPositive.html";
+
+$outputPathPlaytimePositive =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/playtimeReviewsPositive.html";
+
+
+$outputPathRecentNegative =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/recentReviewsNegative.html";
+
+$outputPathPlaytimeNegative =
+    "/var/www/html/jcr13/OneLifeHTML/reviewPages/playtimeReviewsNegative.html";
+
+
 // includes these variables:
 // $rs_reviewCount
 // $rs_positivePercent

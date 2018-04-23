@@ -800,8 +800,13 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
 
 
 // pass in full ORDER BY clause
+// $inPosNeg is 1 or 0, only pos/neg reviews will be shown
+//             -1 to show all
+// $inFractionList 1 means list length modulated by fraction of positive
+//                 or negative reviews
 function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
-                         $inSkip=0 ) {
+                         $inSkip=0, $inPosNeg=-1,
+                         $inFractionList = 0 ) {
     
     global $tableNamePrefix, $reviewListLength, $summaryTextLength,
         $reviewListWidth;
@@ -810,11 +815,54 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
     if( $inWidth == -1 ) {
         $inWidth = $reviewListWidth;
         }
-    
+
+    $posNegClause = "";
+
+    if( $inPosNeg != -1 ) {
+        $posNegClause = "AND review_score = $inPosNeg";
+        }
+
+
+    $displayListLength = $reviewListLength;
+
+
+    if( $inPosNeg != -1 && $inFractionList  ) {
+        $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
+            "WHERE review_score != -1;";
+        $result = rs_queryDatabase( $query );
+        
+        $count = rs_mysqli_result( $result, 0, 0 );
+        
+        
+        $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
+            "WHERE review_score = 1;";
+        $result = rs_queryDatabase( $query );
+        
+        
+        $posCount = rs_mysqli_result( $result, 0, 0 );
+        
+        
+        $fraction = $posCount / $count;
+
+        if( $inPosNeg == 1 ) {
+            $displayListLength = $fraction * $displayListLength;
+            if( $displayListLength < 1 ) {
+                $displayListLength = 1;
+                }
+            }
+        else {
+            $displayListLength = (1 - $fraction ) * $displayListLength;
+            }
+        
+        if( $displayListLength < 1 ) {
+            $displayListLength = 1;
+            }
+        }
+
     
     $query = "SELECT id FROM $tableNamePrefix"."user_stats ".
-        "WHERE review_score != -1 ".
-        "$inOrderBy LIMIT $inSkip, $reviewListLength;";
+        "WHERE review_score != -1 $posNegClause ".
+        "$inOrderBy LIMIT $inSkip, $displayListLength;";
     $result = rs_queryDatabase( $query );
 
     $numRows = mysqli_num_rows( $result );
@@ -848,7 +896,8 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
             }
         $widgetText = $widgetText .
             "<td>[<a ".
-            "href='$fullServerURL?action=$inAction&skip=$prev'>Prev Page</a>]".
+            "href='$fullServerURL?action=$inAction".
+            "&pos_neg=$inPosNeg&skip=$prev'>Prev Page</a>]".
             "</td>";
         
         $prevShown = true;
@@ -857,7 +906,7 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
     $next = $inSkip + $reviewListLength;
 
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
-        "WHERE review_score != -1 ".
+        "WHERE review_score != -1 $posNegClause ".
         "$inOrderBy;";
     $result = rs_queryDatabase( $query );
 
@@ -867,13 +916,15 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
         if( $prevShown ) {
             $widgetText = $widgetText .
                 "<td align=right>[<a ".
-                "href='$fullServerURL?action=$inAction&skip=$next'>".
+                "href='$fullServerURL?action=$inAction".
+                "&pos_neg=$inPosNeg&skip=$next'>".
                 "Next Page</a>]</td>";
             }
         else {
             $widgetText = $widgetText .
                 "<td align=center>[<a ".
-                "href='$fullServerURL?action=$inAction&skip=$next'>".
+                "href='$fullServerURL?action=$inAction".
+                "&pos_neg=$inPosNeg&skip=$next'>".
                 "More Reviews</a>]</td>";
             }
         }
@@ -889,15 +940,19 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
 
 
 
-function rs_getRecentReviewHTML( $inWidth, $inSkip ) {
+function rs_getRecentReviewHTML( $inWidth, $inSkip, $inPosNeg = -1,
+                                 $inFractionList = 0 ) {
     return rs_getListHTML( "ORDER BY review_date DESC",
-                           "list_recent", $inWidth, $inSkip );
+                           "list_recent", $inWidth, $inSkip, $inPosNeg,
+                           $inFractionList );
     }
 
 
-function rs_getTopPlaytimeReviewHTML( $inWidth, $inSkip ) {
+function rs_getTopPlaytimeReviewHTML( $inWidth, $inSkip, $inPosNeg = -1,
+                                      $inFractionList = 0 ) {
     return rs_getListHTML( "ORDER BY game_total_seconds DESC",
-                       "list_playtime", $inWidth, $inSkip );
+                           "list_playtime", $inWidth, $inSkip, $inPosNeg,
+                           $inFractionList );
     }
 
 
@@ -907,13 +962,14 @@ function rs_listRecent() {
 
     eval( $header );
     
+    $posNeg = rs_requestFilter( "pos_neg", "/[\-01]+/i", -1 );
     $skip = rs_requestFilter( "skip", "/[0-9]+/i", 0 );
     
     echo "<center><table border=0><tr><td>";
 
     global $reviewPageWidth;
     
-    $text = rs_getRecentReviewHTML( $reviewPageWidth, $skip );
+    $text = rs_getRecentReviewHTML( $reviewPageWidth, $skip, $posNeg );
 
     echo $text;
     
@@ -929,13 +985,14 @@ function rs_listPlaytime() {
 
     eval( $header );
     
+    $posNeg = rs_requestFilter( "pos_neg", "/[\-01]+/i", -1 );
     $skip = rs_requestFilter( "skip", "/[0-9]+/i", 0 );
     
     echo "<center><table border=0><tr><td>";
 
     global $reviewPageWidth;
     
-    $text = rs_getTopPlaytimeReviewHTML( $reviewPageWidth, $skip );
+    $text = rs_getTopPlaytimeReviewHTML( $reviewPageWidth, $skip, $posNeg );
 
     echo $text;
     
@@ -953,6 +1010,18 @@ function rs_generateRecentStatic() {
     global $outputPathRecent;
 
     file_put_contents ( $outputPathRecent, $text );
+    
+    $text = rs_getRecentReviewHTML( -1, 0, 1, 1 );
+
+    global $outputPathRecentPositive;
+
+    file_put_contents ( $outputPathRecentPositive, $text );
+
+    $text = rs_getRecentReviewHTML( -1, 0, 0, 1 );
+
+    global $outputPathRecentNegative;
+
+    file_put_contents ( $outputPathRecentNegative, $text );
     }
 
 
@@ -962,6 +1031,20 @@ function rs_generateTopPlaytimeStatic() {
     global $outputPathPlaytime;
 
     file_put_contents ( $outputPathPlaytime, $text );
+
+    
+    $text = rs_getTopPlaytimeReviewHTML( -1, 0, 1, 1 );
+
+    global $outputPathPlaytimePositive;
+
+    file_put_contents ( $outputPathPlaytimePositive, $text );
+
+
+    $text = rs_getTopPlaytimeReviewHTML( -1, 0, 0, 1 );
+
+    global $outputPathPlaytimeNegative;
+
+    file_put_contents ( $outputPathPlaytimeNegative, $text );
     }
 
 
@@ -985,10 +1068,13 @@ function rs_generateReviewCountStatic() {
 
     
     $fraction = $posCount / $count;
-
+    $negCount = $count - $posCount;
+    
     $percent = floor( $fraction * 100 );
     
     $text = "<?php \$rs_reviewCount = $count; ".
+        "\$rs_reviewCount_positive = $posCount; ".
+        "\$rs_reviewCount_negative = $negCount; ".
         "\$rs_positivePercent = $percent; ?>";
 
     global $outputReviewCountPHP;
