@@ -1067,12 +1067,15 @@ function rs_generateReviewCountStatic() {
     $fraction = $posCount / $count;
     $negCount = $count - $posCount;
     
-    $percent = floor( $fraction * 100 );
+    $percent = ceil( $fraction * 100 );
+    $negPercent = 100 - $percent;
     
     $text = "<?php \$rs_reviewCount = $count; ".
         "\$rs_reviewCount_positive = $posCount; ".
         "\$rs_reviewCount_negative = $negCount; ".
-        "\$rs_positivePercent = $percent; ?>";
+        "\$rs_positivePercent = $percent; ".
+        "\$rs_negativePercent = $negPercent; ".
+        "?>";
 
     global $outputReviewCountPHP;
 
