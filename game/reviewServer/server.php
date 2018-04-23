@@ -846,17 +846,14 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
 
         if( $inPosNeg == 1 ) {
             $displayListLength = $fraction * $displayListLength;
-            if( $displayListLength < 1 ) {
-                $displayListLength = 1;
-                }
             }
         else {
             $displayListLength = (1 - $fraction ) * $displayListLength;
             }
-        
-        if( $displayListLength < 1 ) {
-            $displayListLength = 1;
-            }
+
+        // extend list by 1
+        // most lists have at least 2, then, if positive fraction < 1.00
+        $displayListLength = ceil( $displayListLength ) + 1;        
         }
 
     
