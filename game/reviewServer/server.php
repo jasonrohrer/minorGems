@@ -438,7 +438,7 @@ function rs_showData( $checkPassword = true ) {
     
              
     $query = "SELECT *, ".
-        "TIMESTAMPDIFF( SECOND, last_game_date, first_game_date ) ".
+        "TIMESTAMPDIFF( SECOND, first_game_date, last_game_date ) ".
         "   as play_span, ".
         "ROUND( game_total_seconds / game_count ) as average_game_seconds ".
         "FROM $tableNamePrefix"."user_stats $keywordClause".
