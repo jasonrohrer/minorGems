@@ -383,12 +383,30 @@ function rs_showData( $checkPassword = true ) {
         }
     
     global $tableNamePrefix, $remoteIP;
+
+
+    $query =
+        "SELECT SUM( game_total_seconds ) / COUNT(*) ".
+        "   as average_game_total_seconds, ".
+        "SUM( game_count ) / COUNT(*) ".
+        "   as average_game_count ".
+        "FROM $tableNamePrefix"."user_stats;";
+    $result = rs_queryDatabase( $query );
+
+    $average_game_total_seconds =
+        rs_mysqli_result( $result, 0, "average_game_total_seconds" );
+
+    $averageTotal = rs_secondsToTimeSummary( $average_game_total_seconds );
+        
+    $average_game_count = rs_mysqli_result( $result, 0, "average_game_count" );
     
 
     echo "<table width='100%' border=0><tr>".
         "<td>[<a href=\"server.php?action=show_data" .
             "\">Main</a>] [<a href='server.php?action=regen_static_html'>".
         "Regen HTML</a>]</td>".
+        "<td align=center>Average: ".
+        "$averageTotal spent in $average_game_count games</td>". 
         "<td align=right>[<a href=\"server.php?action=logout" .
             "\">Logout</a>]</td>".
         "</tr></table><br><br><br>";
