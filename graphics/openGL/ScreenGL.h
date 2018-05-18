@@ -817,7 +817,10 @@ class ScreenGL {
         unsigned int mRandSeed;
         
         timeSec_t mLastTimeValue;
+        SimpleVector<timeSec_t> mLastTimeValueStack;
+        
         double mLastCurrentTimeValue;
+        SimpleVector<double> mLastCurrentTimeValueStack;
 
         double mLastActualFrameRate;
         

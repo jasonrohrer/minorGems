@@ -1260,6 +1260,9 @@ void ScreenGL::playNextEventBatch() {
     // we get a minimized event every frame that we're minimized
     mLastMinimizedStatus = false;
     
+    mLastTimeValueStack.deleteAll();
+    mLastCurrentTimeValueStack.deleteAll();
+    
 
     // read and playback next batch
     int batchSize = 0;
@@ -1343,6 +1346,7 @@ void ScreenGL::playNextEventBatch() {
                 break;
             case 't': {
                 fscanf( mEventFile, "%lf", &mLastTimeValue );
+                mLastTimeValueStack.push_back( mLastTimeValue );
                 mTimeValuePlayedBack = true;
                 }
                 break;
@@ -1350,6 +1354,7 @@ void ScreenGL::playNextEventBatch() {
                 double t;
                 fscanf( mEventFile, "%lf", &t );
                 mLastCurrentTimeValue = t;
+                mLastCurrentTimeValueStack.push_back( mLastCurrentTimeValue );
                 mTimeValuePlayedBack = true;
                 }
                 break;
@@ -2132,7 +2137,14 @@ timeSec_t ScreenGL::getTimeSec() {
     if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
         mEventFile != NULL ) {
         
-        return mLastTimeValue;
+        if( mLastTimeValueStack.size() > 0 ) {
+            timeSec_t t = mLastTimeValueStack.getElementDirect( 0 );
+            mLastTimeValueStack.deleteElement( 0 );
+            return t;
+            }
+        else {
+            return mLastTimeValue;
+            }
         }
     
 
@@ -2169,8 +2181,14 @@ double ScreenGL::getCurrentTime() {
     if( mPlaybackEvents && mRecordingOrPlaybackStarted && 
         mEventFile != NULL ) {
         
-
-        return mLastCurrentTimeValue;
+        if( mLastCurrentTimeValueStack.size() > 0 ) {
+            double t = mLastCurrentTimeValueStack.getElementDirect( 0 );
+            mLastCurrentTimeValueStack.deleteElement( 0 );
+            return t;
+            }
+        else {
+            return mLastCurrentTimeValue;
+            }
         }
     
 
