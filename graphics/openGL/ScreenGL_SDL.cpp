@@ -1350,10 +1350,22 @@ void ScreenGL::playNextEventBatch() {
                 mTimeValuePlayedBack = true;
                 }
                 break;
+            case 'r': {
+                // repeat last time value
+                mLastTimeValueStack.push_back( mLastTimeValue );
+                mTimeValuePlayedBack = true;
+                }
+                break;
             case 'T': {
                 double t;
                 fscanf( mEventFile, "%lf", &t );
                 mLastCurrentTimeValue = t;
+                mLastCurrentTimeValueStack.push_back( mLastCurrentTimeValue );
+                mTimeValuePlayedBack = true;
+                }
+                break;
+            case 'R': {
+                // repeat last time value
                 mLastCurrentTimeValueStack.push_back( mLastCurrentTimeValue );
                 mTimeValuePlayedBack = true;
                 }
@@ -2167,6 +2179,12 @@ timeSec_t ScreenGL::getTimeSec() {
             
             mLastRecordedTimeValue = currentTime;
             }
+        else {
+            // repeat, record short string to indicate this
+            char *eventString = stringDuplicate( "r" );
+            
+            mEventBatch.push_back( eventString );
+            }
         }
     
 
@@ -2210,6 +2228,12 @@ double ScreenGL::getCurrentTime() {
             mEventBatch.push_back( eventString );
             
             mLastRecordedCurrentTimeValue = currentTime;
+            }
+        else {
+            // repeat, record short string to indicate this
+            char *eventString = stringDuplicate( "R" );
+            
+            mEventBatch.push_back( eventString );
             }
         }
     
