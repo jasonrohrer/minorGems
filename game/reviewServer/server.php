@@ -385,6 +385,37 @@ function rs_showData( $checkPassword = true ) {
     global $tableNamePrefix, $remoteIP;
 
 
+    $query = "SELECT COUNT(*) ".
+            "FROM $tableNamePrefix"."user_stats;";
+
+    $result = rs_queryDatabase( $query );
+    
+    $count = rs_mysqli_result( $result, 0, 0 );
+
+    $halfCount = round( $count / 2 );
+
+    $query = "SELECT game_total_seconds ".
+        "FROM $tableNamePrefix"."user_stats ORDER BY game_total_seconds DESC ".
+        "LIMIT $halfCount, 1;";
+
+    $result = rs_queryDatabase( $query );
+    
+    $medianSec = rs_mysqli_result( $result, 0, 0 );
+
+    $medianTime = rs_secondsToTimeSummary( $medianSec );
+
+    
+    $query = "SELECT game_count ".
+        "FROM $tableNamePrefix"."user_stats ORDER BY game_count DESC ".
+        "LIMIT $halfCount, 1;";
+
+    $result = rs_queryDatabase( $query );
+    
+    $medianGames = rs_mysqli_result( $result, 0, 0 );
+
+
+    
+
     $query =
         "SELECT SUM( game_total_seconds ) / COUNT(*) ".
         "   as average_game_total_seconds, ".
@@ -406,7 +437,8 @@ function rs_showData( $checkPassword = true ) {
             "\">Main</a>] [<a href='server.php?action=regen_static_html'>".
         "Regen HTML</a>]</td>".
         "<td align=center>Average: ".
-        "$averageTotal spent in $average_game_count games</td>". 
+        "$averageTotal spent in $average_game_count games<br>".
+        "Median: $medianTime spent in $medianGames games</td>". 
         "<td align=right>[<a href=\"server.php?action=logout" .
             "\">Logout</a>]</td>".
         "</tr></table><br><br><br>";
