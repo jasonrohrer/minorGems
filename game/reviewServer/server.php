@@ -937,7 +937,7 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
     $prevShown = false;
     
     if( $inSkip > 0 ) {
-        $prev = $inSkip - $reviewListLength;
+        $prev = $inSkip - $displayListLength;
         if( $prev < 0 ) {
             $prev = 0;
             }
@@ -950,7 +950,7 @@ function rs_getListHTML( $inOrderBy, $inAction, $inWidth = -1,
         $prevShown = true;
         }
 
-    $next = $inSkip + $reviewListLength;
+    $next = $inSkip + $displayListLength;
 
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."user_stats ".
         "WHERE review_score != -1 $posNegClause ".
