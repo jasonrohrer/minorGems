@@ -623,6 +623,10 @@ function rs_showData( $checkPassword = true ) {
         if( $oldLen > 80 ) {
             $review_text = $review_text . " ...";
             }
+
+        $review_text = wordwrap( $review_text, 20, " ", true );
+
+        
         
         $encodedEmail = urlencode( $email );
 
@@ -705,6 +709,8 @@ function rs_showDetail( $checkPassword = true ) {
     
     
     $review_text = preg_replace( '/\n/', "<br>", $review_text );
+
+    $review_text = wordwrap( $review_text, 20, " ", true );
     
     echo "<b>Review:</b><br> ".
         "<table width=600 border=1 cellpadding=5 cellspacing=0><tr><td>$review_text</td></tr></table>";
@@ -839,6 +845,9 @@ function rs_getReviewHTML( $inID, $inWidth=600, $inTextLengthLimit = -1 ) {
         $text = $text .
             "<tr><td colspan=2>Posted $reviewAgo ago</td></tr></table>";
         }
+
+    
+    $review_text = wordwrap( $review_text, 20, " ", true );
     
     $text = $text .
         "<div style='border-top: 2px solid gray'></div><br>".
