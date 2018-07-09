@@ -569,15 +569,16 @@ void cleanUpAtExit() {
     
     AppLog::info( "exiting...\n" );
 
-    AppLog::info( "exiting: Deleting sceneHandler\n" );
-    delete sceneHandler;
-
-
     if( soundOpen ) {
         AppLog::info( "exiting: calling SDL_CloseAudio\n" );
         SDL_CloseAudio();
         }
     soundOpen = false;
+
+
+    AppLog::info( "exiting: Deleting sceneHandler\n" );
+    delete sceneHandler;
+
 
 
     AppLog::info( "Freeing sound sprites\n" );
