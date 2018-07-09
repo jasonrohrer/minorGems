@@ -789,6 +789,9 @@ int stepUpdate() {
                 int numParts;
                 char **parts = split( result, "#", &numParts );
                 
+                delete [] result;
+                
+                
                 if( numParts > 0 ) {
                     // "URLS\n"
                     delete [] parts[0];
