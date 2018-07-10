@@ -571,16 +571,29 @@ static int applyUpdateFromWebResult() {
                         // and no \r, which is part of windows \r\n
                         // and other platforms, or ill-formed, line endings
 
-                        char found;
-                        char *convertedContents =
-                            replaceAll( contents, "\n", "\r\n", &found );
-                        
-                        if( convertedContents != NULL ) {
-                            
-                            targetFile.writeToFile( convertedContents );
 
-                            delete [] convertedContents;
+                        // replaceAll too slow in this case
+                        // some files have 20k + newlines to replace
+                        SimpleVector<char> newContents;
+                        
+                        int oldLen = strlen( contents );
+                        
+                        for( int i=0; i<oldLen; i++ ) {
+                            if( contents[i] == '\n' ) {
+                                newContents.push_back( '\r' );
+                                newContents.push_back( '\n' );
+                                }
+                            else {
+                                newContents.push_back( contents[i] );
+                                }
                             }
+                        
+                        char *convertedContents = 
+                            newContents.getElementString();
+                        
+                        targetFile.writeToFile( convertedContents );
+                        
+                        delete [] convertedContents;
                         }
                     delete [] contents;
                     }
