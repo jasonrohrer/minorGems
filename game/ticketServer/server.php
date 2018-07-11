@@ -2072,7 +2072,17 @@ function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
     global $useBulkEmailerForNotes;
 
     if( $useBulkEmailerForNotes ) {
-        echo "<OPTION VALUE=\"BULK_TO_ALL\">BULK_TO_ALL</OPTION>";
+        $totalTickets = ts_mysqli_result( $result, 0, 0 );
+
+        $numToSkip = 0;
+        global $bulkEmailBatchSize;
+    
+        while( $totalTickets > 0 ) {
+            echo "<OPTION VALUE=\"BULK_BATCH_$numToSkip\">".
+                "BULK_BATCH_$numToSkip</OPTION>";
+            $totalTickets -= $bulkEmailBatchSize;
+            $numToSkip += $bulkEmailBatchSize;
+            }
         }
     
 ?>
@@ -2140,7 +2150,8 @@ function ts_sendAllNote() {
     
     if( count( $tagParts ) == 3 ) {
         
-        if( $tagParts[0] == "ALL" && $tagParts[1] == "BATCH" ) {
+        if( ( $tagParts[0] == "ALL"  || $tagParts[0] == "BULK" ) &&
+            $tagParts[1] == "BATCH" ) {
 
             // Only send one batch now, according to tag
             $numToSkip = $tagParts[2];
@@ -2149,17 +2160,18 @@ function ts_sendAllNote() {
             $numToSkip += $message_skip;
             
             global $emailMaxBatchSize;
+
+            $batchSize = $emailMaxBatchSize;
+
+            if( $tagParts[0] == "BULK" ) {
+                global $bulkEmailBatchSize;
+                $batchSize = $bulkEmailBatchSize;
+                $useBulk = 1;
+                }
             
             $query = "SELECT * FROM $tableNamePrefix"."tickets ".
                 "WHERE blocked = '0' AND email_opt_in = '1' ".
-                "ORDER BY sale_date ASC LIMIT $numToSkip, $emailMaxBatchSize;";
-            }
-        else if( $tagParts[0] == "BULK" && $tagParts[2] == "ALL" ) {
-            // send to all
-            $query = "SELECT * FROM $tableNamePrefix"."tickets ".
-                "WHERE blocked = '0' AND email_opt_in = '1' ".
-                "ORDER BY sale_date ASC;";
-            $useBulk = 1;
+                "ORDER BY sale_date ASC LIMIT $numToSkip, $batchSize;";
             }
         }
     

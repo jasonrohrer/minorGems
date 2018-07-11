@@ -239,4 +239,12 @@ $useBulkEmailerForNotes = 1;
 $bulkEmailerPath = "../bulkEmailer/bulkEmailerAPI.php";
 
 
+// transfering all data to the bulk emailer can still
+// take a while, causing PHP gateway timeouts
+// Even if timeout wasn't an issue, running a long sever-side
+// process is fragile (browser can crash, etc.)
+// so split it up into batches.
+$bulkEmailBatchSize = 10000;
+
+
 ?>
