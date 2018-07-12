@@ -48,6 +48,7 @@
 *		Jason Rohrer	4-12-2017	Added swap function.
 *		Jason Rohrer	12-26-2017	deleteLastElement, push_back other vector.
 *		Jason Rohrer	1-4-2018	deleteStartElements for efficiency.
+*		Jason Rohrer	7-12-2018	push_middle function.
 */
 
 #include "minorGems/common.h"
@@ -93,6 +94,10 @@ class SimpleVector {
 
         void push_front(Type x);  // add x to the front of the vector (slower)
 
+        // add x to middle of vector, after inNumBefore items, pushing
+        // the rest further back
+        void push_middle( Type x, int inNumBefore );
+        
 
 
 		Type *getElement(int index);		// get a ptr to element at index in vector
@@ -622,17 +627,24 @@ inline void SimpleVector<Type>::push_back(Type x)	{
 
 template <class Type>
 inline void SimpleVector<Type>::push_front(Type x)	{
+    push_middle( x, 0 );
+    }
+
+
+
+template <class Type>
+inline void SimpleVector<Type>::push_middle( Type x, int inNumBefore )	{
 
     // first push_back to reuse expansion code
     push_back( x );
     
-    // now shift all of the old elements forward
-    for( int i=numFilledElements-2; i>=0; i-- ) {
+    // now shift all of the "after" elements forward
+    for( int i=numFilledElements-2; i>=inNumBefore; i-- ) {
         elements[i+1] = elements[i];
         }
     
-    // finally, re-insert in front
-    elements[0] = x;
+    // finally, re-insert in middle spot
+    elements[inNumBefore] = x;
     }
 
 
