@@ -1400,6 +1400,7 @@ function ts_showData( $checkPassword = true ) {
             "OR email LIKE '%$search%' ".
             "OR ticket_id LIKE '%$search%' ".
             "OR coupon_code LIKE '%$search%' ".
+            "OR order_number LIKE '%$search%' ".
             "OR tag LIKE '%$search%' ) ";
 
         $searchDisplay = " matching <b>$search</b>";
