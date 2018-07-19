@@ -358,9 +358,12 @@ SimpleVector<char *> *tokenizeString( const char *inString ) {
         int tokenLen = 0;
         char *tokenStart = &( tempString[i] );
         
-        while( nextChar != ' ' && nextChar != '\n' &&
-               nextChar != '\r' && nextChar != '\t' &&
-               nextChar != '\0'  ) {
+        // optimization trick
+        // printable characters are all greater than space
+        // tab, newlines, and all other token separators. are below 
+        // in the ascii space
+        // this provides a slight speedup
+        while( nextChar > ' ' ) {
             i++;
             tokenLen ++;
             nextChar = tempString[i];
