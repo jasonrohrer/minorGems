@@ -339,9 +339,20 @@ char *replaceTargetListWithSubstituteList(
 
 
 SimpleVector<char *> *tokenizeString( const char *inString ) {
-    SimpleVector<char *> *foundTokens = new SimpleVector<char *>();
 
     int len = strlen( inString );
+
+    int numTokensGuess = 2;
+    
+    int wordCountGuess = len / 5;
+    
+    if( wordCountGuess > numTokensGuess ) {
+        numTokensGuess = wordCountGuess;
+        }
+
+    SimpleVector<char *> *foundTokens = 
+        new SimpleVector<char *>( numTokensGuess );
+
     
     if( len == 0 ) {
         return foundTokens;
