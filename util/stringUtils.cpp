@@ -41,6 +41,9 @@
  *
  * 2016-April-14    Jason Rohrer
  * Added fast int scanning function.
+ *
+ * 2018-July-19    Jason Rohrer
+ * 2x faster in-place tokenizeString implementation.
  */
 
 
@@ -334,56 +337,54 @@ char *replaceTargetListWithSubstituteList(
 
 
 
+
 SimpleVector<char *> *tokenizeString( const char *inString ) {
-
-    char *tempString = stringDuplicate( inString );
-
-    char *restOfString = tempString;
-    
     SimpleVector<char *> *foundTokens = new SimpleVector<char *>();
 
-    SimpleVector<char> *currentToken = new SimpleVector<char>();
-
-
-    while( restOfString[0] != '\0' ) {
-        // characters remain
-
-        // skip whitespace
-        char nextChar = restOfString[0];
-        while( nextChar == ' ' || nextChar == '\n' ||
-               nextChar == '\r' || nextChar == '\t' ) {
-
-            restOfString = &( restOfString[1] );
-            nextChar = restOfString[0];
-            }
-
-        if( restOfString[0] != '\0' ) {
-
-            // a token
-
-            while( nextChar != ' ' && nextChar != '\n' &&
-                   nextChar != '\r' && nextChar != '\t' &&
-                   nextChar != '\0'  ) {
-
-                // still not whitespace
-                currentToken->push_back( nextChar );
-                
-                restOfString = &( restOfString[1] );
-                nextChar = restOfString[0];
-                }
-
-            // reached end of token
-            foundTokens->push_back( currentToken->getElementString() );
-            currentToken->deleteAll();
-            }        
+    int len = strlen( inString );
+    
+    if( len == 0 ) {
+        return foundTokens;
         }
 
-    delete [] tempString;
+    char *tempString = stringDuplicate( inString );
+    
+    int i = 0;
+    
+    while( i < len ) {
+        
+        char nextChar = tempString[i];
+        
+        int tokenLen = 0;
+        char *tokenStart = &( tempString[i] );
+        
+        while( nextChar != ' ' && nextChar != '\n' &&
+               nextChar != '\r' && nextChar != '\t' &&
+               nextChar != '\0'  ) {
+            i++;
+            tokenLen ++;
+            nextChar = tempString[i];
+            }
+        // found one of our token separators
+        // replace with \0 to terminate our token
+        tempString[i] = '\0';
+        i++;
 
-    delete currentToken;
+        if( tokenLen > 0 ) {
+            foundTokens->push_back( stringDuplicate( tokenStart ) );
+            }
+        }
+    
+    
+
+    delete [] tempString;
+    
 
     return foundTokens;
     }
+
+
+
 
 
 
