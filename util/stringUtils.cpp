@@ -400,6 +400,61 @@ SimpleVector<char *> *tokenizeString( const char *inString ) {
 
 
 
+SimpleVector<char *> *tokenizeStringInPlace( char *inString ) {
+
+    int len = strlen( inString );
+
+    int numTokensGuess = 2;
+    
+    int wordCountGuess = len / 5;
+    
+    if( wordCountGuess > numTokensGuess ) {
+        numTokensGuess = wordCountGuess;
+        }
+
+    SimpleVector<char *> *foundTokens = 
+        new SimpleVector<char *>( numTokensGuess );
+
+    
+    if( len == 0 ) {
+        return foundTokens;
+        }
+
+    int i = 0;
+    
+    while( i < len ) {
+        
+        char nextChar = inString[i];
+        
+        int tokenLen = 0;
+        char *tokenStart = &( inString[i] );
+        
+        // optimization trick
+        // printable characters are all greater than space
+        // tab, newlines, and all other token separators. are below 
+        // in the ascii space
+        // this provides a slight speedup
+        while( nextChar > ' ' ) {
+            i++;
+            tokenLen ++;
+            nextChar = inString[i];
+            }
+        // found one of our token separators
+        // replace with \0 to terminate our token
+        inString[i] = '\0';
+        i++;
+
+        if( tokenLen > 0 ) {
+            foundTokens->push_back( tokenStart );
+            }
+        }
+
+    return foundTokens;
+    }
+
+
+
+
 
 
 char *trimWhitespace( char *inString ) {

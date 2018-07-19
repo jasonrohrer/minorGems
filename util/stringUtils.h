@@ -60,6 +60,9 @@
  *
  * 2016-April-14    Jason Rohrer
  * Added fast int scanning function.
+ *
+ * 2018-July-19    Jason Rohrer
+ * tokenizeStringInPlace is 3x faster.
  */
 
 
@@ -328,6 +331,13 @@ char *replaceTargetListWithSubstituteList(
  *   Vector and strings must be destroyed by caller.
  */
 SimpleVector<char *> *tokenizeString( const char *inString );
+
+// this version modifies inString by inserting \0 at the end of each token
+// and returns a vector of pointers into inString.
+// Thus, inString, and the vector, is the only thing that needs to be
+// destroyed by caller (not the returned string pointers in the vector)
+// This call is also much faster.
+SimpleVector<char *> *tokenizeStringInPlace( char *inString );
 
 
 
