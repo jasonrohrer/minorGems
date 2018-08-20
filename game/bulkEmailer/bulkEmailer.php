@@ -263,8 +263,9 @@ function be_sendBatch() {
             }
         }
     
-
-    if( $numSent > 0 ) {
+    global $be_sendReportEmails;
+    
+    if( $be_sendReportEmails && $numSent > 0 ) {
         be_sendEmail( "bulkEmailer Report:  Sent $numSent",
                       $reportBody, $be_reportToEmailAddress, true );
         }

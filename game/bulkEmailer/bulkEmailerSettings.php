@@ -55,6 +55,8 @@ $be_emailMaxBatchSize = 34;
 $be_siteEmailAddress = "jcr13@cornell.edu";
 
 
+$be_sendReportEmails = 1;
+
 // where batch reports are sent
 $be_reportToEmailAddress = "jcr13@cornell.edu";
 
