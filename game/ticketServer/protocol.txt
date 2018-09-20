@@ -133,7 +133,7 @@ server.php
 
 
 Return:
-VALID
+VALID account_index
 -or-
 INVALID
 
@@ -146,6 +146,11 @@ HMAC_SHA1( $ticket_id, $string_to_hash )
 
 
 Where $ticket_id has hyphens removed and is all uppercase.
+
+
+On VALID response, account_index is returned.  This will be 0 except in case
+where email has multiple accounts (in which case, the account order number
+will be returned, 0, 1, 2, etc.)
 
 
 Note that string_to_hash should not be re-used for subsequent checks to avoid
