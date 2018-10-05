@@ -77,6 +77,10 @@ function be_addMessage( $subject, $body, $recipientEmailArray,
     $message_id = mysqli_insert_id( $be_mysqlLink );
 
     $i = 0;
+
+    // build list of value sets
+    $valueList = array();
+    
     foreach( $recipientEmailArray as $email ) {
         $custom_data = $customDataArray[$i];
         $custom2_data = $custom2DataArray[$i];
@@ -84,13 +88,22 @@ function be_addMessage( $subject, $body, $recipientEmailArray,
 
 
         $custom_data = mysqli_real_escape_string( $be_mysqlLink, $custom_data );
-        
-        $query = "INSERT INTO $be_tableNamePrefix"."recipients ".
-            "VALUES( '$email', '$custom_data', '$custom2_data', $message_id ) ".
-            "ON DUPLICATE KEY UPDATE email = '$email';";
-        be_queryDatabase( $query );
+
+        $valueList[] =
+            "( '$email', '$custom_data', '$custom2_data', $message_id )";
         }
 
+    $valueCommaList = implode( ",", $valueList );
+
+    // now we can do a single insert all together
+        
+    $query = "INSERT INTO $be_tableNamePrefix"."recipients ".
+        "VALUES $valueCommaList ".
+        "ON DUPLICATE KEY UPDATE email = VALUES( email );";
+
+    be_queryDatabase( $query );
+
+    
     be_closeDatabase();
     }
 
