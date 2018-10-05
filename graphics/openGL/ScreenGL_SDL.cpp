@@ -571,58 +571,116 @@ void ScreenGL::startRecordingOrPlayback() {
         // find next event recording file
         int fileNumber = 0;
         
-        char hit = true;
-
-        while( hit ) {
-            fileNumber++;
-            char *fileName = autoSprintf( "recordedGame%05d.txt", 
-                                          fileNumber );
-            File *file = recordedGameDir.getChildFile( fileName );
+        // find max existing file number
+        int numFiles = 0;
+        File **childFiles = recordedGameDir.getChildFiles( &numFiles );
+        
+        for( int f=0; f<numFiles; f++ ) {
+            char *fileName = childFiles[f]->getFileName();
             
-            delete [] fileName;
+            int n = -1;
+            sscanf( fileName, "recordedGame%d.txt", &n );
             
-            if( !file->exists() ) {
-                hit = false;
-            
-                char *fullFileName = file->getFullFileName();
-                
-                mEventFile = fopen( fullFileName, "w" );
-
-                if( mEventFile == NULL ) {
-                    AppLog::error( "Failed to open event recording file" );
-                    }
-                else {
-                    AppLog::getLog()->logPrintf( 
-                        Log::INFO_LEVEL,
-                        "Recording game into file %s", fullFileName );
-
-                    int fullScreenFlag = 0;
-                    if( mFullScreen ) {
-                        fullScreenFlag = 1;
-                        }
-
-                    char *stringToHash = autoSprintf( "%s%s",
-                                                      mCustomRecordedGameData,
-                                                      mHashSalt );
-
-                    char *correctHash = computeSHA1Digest( stringToHash );
-                    
-                    delete [] stringToHash;
-                    
-
-                    fprintf( mEventFile, 
-                             "%u seed, %u fps, %dx%d, fullScreen=%d, %s %s\n",
-                             mRandSeed,
-                             mMaxFrameRate, mWide, mHigh, fullScreenFlag,
-                             mCustomRecordedGameData,
-                             correctHash );
-
-                    delete [] correctHash;
-                    }
-
-                delete [] fullFileName;                
+            if( n > fileNumber ) {
+                fileNumber = n;
                 }
-            delete file;
+            delete childFiles[f];
+
+            delete [] fileName;
+            }
+        delete [] childFiles;
+        
+        // next file number in sequence, after max found
+        fileNumber++;
+
+        char *fileName = autoSprintf( "recordedGame%06d.txt", 
+                                      fileNumber );
+        File *file = recordedGameDir.getChildFile( fileName );
+        
+        delete [] fileName;
+            
+        char *fullFileName = file->getFullFileName();
+                
+        mEventFile = fopen( fullFileName, "w" );
+        
+        if( mEventFile == NULL ) {
+            AppLog::error( "Failed to open event recording file" );
+            }
+        else {
+            AppLog::getLog()->logPrintf( 
+                Log::INFO_LEVEL,
+                "Recording game into file %s", fullFileName );
+            
+            int fullScreenFlag = 0;
+            if( mFullScreen ) {
+                fullScreenFlag = 1;
+                }
+
+            char *stringToHash = autoSprintf( "%s%s",
+                                              mCustomRecordedGameData,
+                                              mHashSalt );
+            
+            char *correctHash = computeSHA1Digest( stringToHash );
+            
+            delete [] stringToHash;
+            
+            
+            fprintf( mEventFile, 
+                     "%u seed, %u fps, %dx%d, fullScreen=%d, %s %s\n",
+                     mRandSeed,
+                     mMaxFrameRate, mWide, mHigh, fullScreenFlag,
+                     mCustomRecordedGameData,
+                     correctHash );
+            
+            delete [] correctHash;
+            
+        
+            delete [] fullFileName;                
+            }
+        delete file;
+        
+        
+
+        int keepNumber = SettingsManager::getIntSetting( "keepPastRecordings",
+                                                         -1 );
+        if( keepNumber >= 0 ) {
+            
+            AppLog::getLog()->logPrintf( 
+                Log::INFO_LEVEL,
+                "Only keeping %d past recordings", keepNumber );
+
+            int cutOffNumber = fileNumber - keepNumber;
+            
+            int numRemoved = 0;
+            
+            for( int f=1; f<cutOffNumber; f++ ) {
+                // handle removing both old 5-digit format and new 6-digit 
+                // format
+                char *fileName = autoSprintf( "recordedGame%05d.txt", f );
+                File *file = recordedGameDir.getChildFile( fileName );
+                
+                delete [] fileName;
+                
+                if( file->exists() ) {
+                    file->remove();
+                    numRemoved++;
+                    }
+                delete file;
+                
+                fileName = autoSprintf( "recordedGame%06d.txt", f );
+                file = recordedGameDir.getChildFile( fileName );
+            
+                delete [] fileName;
+            
+                if( file->exists() ) {
+                    file->remove();
+                    numRemoved++;
+                    }
+                delete file;
+                }
+            AppLog::getLog()->logPrintf( 
+                Log::INFO_LEVEL,
+                "Removed %d stale recordings", numRemoved );
             }
         }
 
