@@ -3,7 +3,6 @@
 #include "minorGems/util/SettingsManager.h"
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/network/web/WebClient.h"
-#include "minorGems/network/web/URLUtils.h"
 #include "minorGems/formats/encodingUtils.h"
 #include "minorGems/util/log/AppLog.h"
 #include "minorGems/util/log/FileLog.h"
@@ -86,13 +85,6 @@ static void showMessage( const char *inTitle, const char *inMessage,
     }
 
 
-static char *askQuestion() {
-    // FIXME
-    // not defined on Mac yet
-    return NULL;
-    }
-
-
 
 #elif defined(LINUX)
 
@@ -139,15 +131,6 @@ static void showMessage( const char *inTitle, const char *inMessage,
     }
 
 
-static char *askQuestion() {
-    // FIXME
-    // not defined on Linux yet
-    return NULL;
-    }
-
-
-
-
 #elif defined(WIN_32)
 
 #include <windows.h>
@@ -185,31 +168,6 @@ static void showMessage( const char *inTitle, const char *inMessage,
     delete [] wideTitle;
     delete [] wideMessage;
     }
-
-
-
-// result destroyed by caller, or NULL on failure
-static char *askQuestion() {
-    char *arguments[3] = { (char*)"cscript", "askQuestion.vbs", NULL };
-        
-    _spawnvp( _P_WAIT, "cscript", arguments );
-    
-    FILE *answerFile = fopen( "answer.txt", "r" );
-    
-    if( answerFile != NULL ) {
-        char *answer = new char[256];
-        answer[0] = '\0';
-
-        sscanf( answerFile, "%255s", answer );
-        
-        return answer;
-        }
-    else {
-        return NULL;
-        }
-    }
-
-
 
 
 int main();
@@ -431,21 +389,6 @@ int main() {
     AppLog::infoF( "Auth ticket data:  %s", authTicketHex );
 
 
-    char *enteredEmail = askQuestion();
-    
-
-    if( enteredEmail == NULL || strstr( enteredEmail, "@" ) == NULL ) {
-        showMessage( gameName ":  Error",
-                     "Failed to get a valid email address.",
-                     true );
-        AppLog::error( "NULL result to email question" );
-        SteamAPI_Shutdown();
-
-        if( enteredEmail != NULL ) {
-            delete [] enteredEmail;
-            }
-        return 0;
-        }
     
 
 
@@ -473,20 +416,15 @@ int main() {
 
     char *ourPubKeyHex = hexEncode( ourPubKey, 32 );
     
-    char *encodedEmail = URLUtils::urlEncode( enteredEmail );
-
     char *webRequest = 
         autoSprintf( 
             "%s?action=get_account"
-            "&email=%s"
             "&auth_session_ticket=%s"
             "&client_public_key=%s",
             steamGateServerURL,
-            encodedEmail,
             authTicketHex,
             ourPubKeyHex );
             
-    delete [] encodedEmail;
     delete [] ourPubKeyHex;
     delete [] authTicketHex;
 
@@ -602,7 +540,7 @@ int main() {
     
     SteamAPI_Shutdown();
 
-    showMessage( "One Hour One Life:  First Launch",
+    showMessage( gameName ":  First Launch",
                  "Your server account is set up.\n\n"
                  "The game will launch now." );
 
