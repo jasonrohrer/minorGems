@@ -3,6 +3,7 @@
 #include "minorGems/util/SettingsManager.h"
 #include "minorGems/util/stringUtils.h"
 #include "minorGems/network/web/WebClient.h"
+#include "minorGems/network/web/URLUtils.h"
 #include "minorGems/formats/encodingUtils.h"
 #include "minorGems/util/log/AppLog.h"
 #include "minorGems/util/log/FileLog.h"
@@ -21,11 +22,13 @@
 /////////////////////
 // settings:
 static const char *steamGateServerURL = 
-"http://thecastledoctrine.net/sg/server.php";
+"http://onehouronelife.com/sg/server.php";
 
-#define linuxLaunchTarget "./CastleDoctrineApp"
-#define macLaunchTarget "CastleDoctrine.app"
-#define winLaunchTarget "CastleDoctrine.exe"
+#define linuxLaunchTarget "./OneLifeApp"
+#define macLaunchTarget "OneLife.app"
+#define winLaunchTarget "OneLife.exe"
+
+#define gameName "One Hour One Life"
 
 // end settings
 /////////////////////
@@ -83,6 +86,13 @@ static void showMessage( const char *inTitle, const char *inMessage,
     }
 
 
+static char *askQuestion() {
+    // FIXME
+    // not defined on Mac yet
+    return NULL;
+    }
+
+
 
 #elif defined(LINUX)
 
@@ -129,6 +139,15 @@ static void showMessage( const char *inTitle, const char *inMessage,
     }
 
 
+static char *askQuestion() {
+    // FIXME
+    // not defined on Linux yet
+    return NULL;
+    }
+
+
+
+
 #elif defined(WIN_32)
 
 #include <windows.h>
@@ -166,6 +185,31 @@ static void showMessage( const char *inTitle, const char *inMessage,
     delete [] wideTitle;
     delete [] wideMessage;
     }
+
+
+
+// result destroyed by caller, or NULL on failure
+static char *askQuestion() {
+    char *arguments[3] = { (char*)"cscript", "askQuestion.vbs", NULL };
+        
+    _spawnvp( _P_WAIT, "cscript", arguments );
+    
+    FILE *answerFile = fopen( "answer.txt", "r" );
+    
+    if( answerFile != NULL ) {
+        char *answer = new char[256];
+        answer[0] = '\0';
+
+        sscanf( answerFile, "%255s", answer );
+        
+        return answer;
+        }
+    else {
+        return NULL;
+        }
+    }
+
+
 
 
 int main();
@@ -238,7 +282,7 @@ void AuthTicketListener::OnAuthSessionTicketResponse(
 
 
 static void showTicketCreationError() {
-    showMessage( "The Castle Doctrine:  Error",
+    showMessage( gameName ":  Error",
                  "Could not create an account for you on the game server.",
                  true );
     }
@@ -252,13 +296,13 @@ int main() {
     AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
-    char *code = SettingsManager::getStringSetting( "downloadCode" );
+    char *accountKey = SettingsManager::getStringSetting( "accountKey" );
     char *email = SettingsManager::getStringSetting( "email" );
 
 
-    if( code != NULL && email != NULL ) {
+    if( accountKey != NULL && email != NULL ) {
 
-        delete [] code;
+        delete [] accountKey;
         delete [] email;
         
         AppLog::info( "We already have saved login info.  Exiting." );
@@ -267,15 +311,15 @@ int main() {
         }
 
     
-    if( code != NULL ) {
-        delete [] code;
+    if( accountKey != NULL ) {
+        delete [] accountKey;
         }
      
     if( email != NULL ) {
         delete [] email;
         }
     
-    showMessage( "The Castle Doctrine:  First Launch",
+    showMessage( gameName ":  First Launch",
                  "The game will try to create a server-side account for"
                  " you through Steam.\n\nThis may take a few moments." );
     
@@ -284,7 +328,7 @@ int main() {
 
     
     if( ! SteamAPI_Init() ) {
-        showMessage( "The Castle Doctrine:  Error",
+        showMessage( gameName ":  Error",
                      "Failed to connect to Steam.",
                      true );
         AppLog::error( "Could not init Steam API." );
@@ -337,7 +381,7 @@ int main() {
 
     if( authTicketSize == 0 ) {
         
-        showMessage( "The Castle Doctrine:  Error",
+        showMessage( gameName ":  Error",
                      "Could not get an Authentication Ticket from Steam.",
                      true );
         AppLog::error( "GetAuthSessionTicket returned 0 length." );
@@ -354,7 +398,7 @@ int main() {
     
     while( ! authTicketCallbackCalled ) {
         if( Time::getCurrentTime() - startTime > maxTime ) {
-            showMessage( "The Castle Doctrine:  Error",
+            showMessage( gameName ":  Error",
                          "Timed out waiting for "
                          "Authentication Ticket validation from Steam.",
                          true );
@@ -373,7 +417,7 @@ int main() {
     delete listener;
     
     if( authTicketCallbackError ) {
-        showMessage( "The Castle Doctrine:  Error",
+        showMessage( gameName ":  Error",
                      "Could not validate the Steam Authentication Ticket.",
                      true );
         AppLog::error( "GetAuthSessionTicket callback returned error." );
@@ -387,6 +431,21 @@ int main() {
     AppLog::infoF( "Auth ticket data:  %s", authTicketHex );
 
 
+    char *enteredEmail = askQuestion();
+    
+
+    if( enteredEmail == NULL || strstr( enteredEmail, "@" ) == NULL ) {
+        showMessage( gameName ":  Error",
+                     "Failed to get a valid email address.",
+                     true );
+        AppLog::error( "NULL result to email question" );
+        SteamAPI_Shutdown();
+
+        if( enteredEmail != NULL ) {
+            delete [] enteredEmail;
+            }
+        return 0;
+        }
     
 
 
@@ -398,7 +457,7 @@ int main() {
         getCryptoRandomBytes( ourSecretKey, 32 );
     
     if( ! gotSecret ) {
-        showMessage( "The Castle Doctrine:  Error",
+        showMessage( gameName ":  Error",
                      "Could not get random data to generate an "
                      "encryption key.",
                      true );
@@ -414,15 +473,20 @@ int main() {
 
     char *ourPubKeyHex = hexEncode( ourPubKey, 32 );
     
+    char *encodedEmail = URLUtils::urlEncode( enteredEmail );
+
     char *webRequest = 
         autoSprintf( 
             "%s?action=get_account"
+            "&email=%s"
             "&auth_session_ticket=%s"
             "&client_public_key=%s",
             steamGateServerURL,
+            encodedEmail,
             authTicketHex,
             ourPubKeyHex );
             
+    delete [] encodedEmail;
     delete [] ourPubKeyHex;
     delete [] authTicketHex;
 
@@ -528,7 +592,7 @@ int main() {
     AppLog::infoF( "Decrypted ticket as:  %s", plaintextTicket );
     
     SettingsManager::setSetting( "email", email );
-    SettingsManager::setSetting( "downloadCode", plaintextTicket );
+    SettingsManager::setSetting( "accountKey", plaintextTicket );
     
     
     delete [] plaintextTicket;
@@ -538,7 +602,7 @@ int main() {
     
     SteamAPI_Shutdown();
 
-    showMessage( "The Castle Doctrine:  First Launch",
+    showMessage( "One Hour One Life:  First Launch",
                  "Your server account is set up.\n\n"
                  "The game will launch now." );
 
