@@ -729,7 +729,17 @@ function sg_doesSteamUserOwnApp( $inSteamID ) {
                            $result, $matches );
 
     if( $matched && $matches[1] == "true" ) {
-        return true;
+
+        // make sure they are the true owner (no family sharing)
+        $matchedB = preg_match( "#<ownersteamid>(\d+)</ownersteamid>#",
+                                $result, $matchesB );
+
+        if( $matchedB && $matchesB[1] == $inSteamID ) {
+            return true;
+            }
+        else {
+            return false;
+            }
         }
     else {
         return false;
