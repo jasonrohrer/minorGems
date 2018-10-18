@@ -119,6 +119,23 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
     
         return false;
         }
+
+
+    // make sure we're not being built from inside a working git
+    // checkout.  Don't want to download updates in this context
+    File gitFileA( NULL, ".git" );
+    File gitFileB( NULL, "../.git" );
+    File gitFileC( NULL, "../../.git" );
+    File gitFileD( NULL, "../../../.git" );
+
+
+    if( gitFileA.exists() ||
+        gitFileB.exists() ||
+        gitFileC.exists() ||
+        gitFileD.exists() ) {
+    
+        return false;
+        }
     
 
     File binaryFlagFile( NULL, "binary.txt" );
