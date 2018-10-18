@@ -734,6 +734,12 @@ function ts_checkTicketHash() {
 
     $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
 
+    if( ! ts_checkForSteamEmail( $email ) ) {
+        echo "INVALID";
+        return;        
+        }
+    
+    
     $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
         "WHERE email = '$email' AND blocked = '0';";
     $result = ts_queryDatabase( $query );
@@ -1010,6 +1016,14 @@ function ts_downloadAllowed() {
 
         $tag = $row[ "tag" ];
 
+        $email = $row[ "email" ];
+
+        if( ! ts_checkForSteamEmail( $email ) ) {
+            eval( $header );
+            echo "You no longer own the game on Steam";
+            eval( $footer );
+            return 0;
+            }
 
 
         date_default_timezone_set( "America/New_York" );
@@ -1420,6 +1434,68 @@ function ts_logout() {
     ts_clearPasswordCookie();
 
     echo "Logged out";
+    }
+
+
+
+
+// if email is a steamID alias, check if the user still owns the app
+// returns true on ownership, or if it's a non-steamID email
+// returns false for steamID emails that do not own the game
+function ts_checkForSteamEmail( $inEmail ) {
+    $matched = preg_match( "#(\d+)@steamgames.com#", $result, $matches );
+
+    if( $matched ) {
+        $resultID = ts_doesSteamUserOwnApp( $matches[1] );
+
+        if( $resultID == $matches[1] ) {
+            return true;
+            }
+        return false;
+        }
+    else {
+        // non-steam email
+        return true;
+        }
+    }
+
+
+
+// Checks ownership of $steamAppID (from settings.php)
+// returns the steamID of the true owner if they have access to it (may be
+// ID of family member)
+// returns 0 if they don't own it at all.
+function ts_doesSteamUserOwnApp( $inSteamID ) {
+    global $steamAppID, $steamWebAPIKey;
+    
+    $url = "https://api.steampowered.com/ISteamUser/CheckAppOwnership/V0001".
+        "?format=xml".
+        "&key=$steamWebAPIKey".
+        "&steamid=$inSteamID".
+        "&appid=$steamAppID";
+
+    $result = file_get_contents( $url );
+
+    
+    $matched = preg_match( "#<ownsapp>(\w+)</ownsapp>#",
+                           $result, $matches );
+
+    if( $matched && $matches[1] == "true" ) {
+
+        // make sure we return the true owner
+        $matchedB = preg_match( "#<ownersteamid>(\d+)</ownersteamid>#",
+                                $result, $matchesB );
+
+        if( $matchedB ) {
+            return $matchesB[1];
+            }
+        else {
+            return 0;
+            }
+        }
+    else {
+        return 0;
+        }
     }
 
 
