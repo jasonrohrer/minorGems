@@ -460,12 +460,12 @@ function sg_steamLoginReturn() {
 
         // verify game ownership with Steam API
         // and then DO NOT generate a key for them if they already own the game
-        $ownsGameAlready = sg_doesSteamUserOwnApp( $steam_id );
+        $trueOwner = sg_doesSteamUserOwnApp( $steam_id );
 
         
         
 
-        if( $ownsGameAlready ) {
+        if( $trueOwner != 0 ) {
             echo "You already own the game on Steam.<br><br>";
             }
         else {
@@ -518,9 +518,9 @@ function sg_steamLoginReturn() {
         }
     else if( $unlock ) {
 
-        $result = sg_grantPackage( $steam_id );
+        $resultID = sg_grantPackage( $steam_id );
 
-        if( $result ) {
+        if( $resultID != 0 ) {
             echo "<br><br>You now own the game on Steam<br><br>";
             }
         else {
@@ -713,6 +713,9 @@ function sg_countKeysInBank() {
 
 
 // Checks ownership of $steamAppID (from settings.php)
+// returns the steamID of the true owner if they have access to it (may be
+// ID of family member)
+// returns 0 if they don't own it at all.
 function sg_doesSteamUserOwnApp( $inSteamID ) {
     global $steamAppID, $steamWebAPIKey;
     
@@ -730,25 +733,26 @@ function sg_doesSteamUserOwnApp( $inSteamID ) {
 
     if( $matched && $matches[1] == "true" ) {
 
-        // make sure they are the true owner (no family sharing)
+        // make sure we return the true owner
         $matchedB = preg_match( "#<ownersteamid>(\d+)</ownersteamid>#",
                                 $result, $matchesB );
 
-        if( $matchedB && $matchesB[1] == $inSteamID ) {
-            return true;
+        if( $matchedB ) {
+            return $matchesB[1];
             }
         else {
-            return false;
+            return 0;
             }
         }
     else {
-        return false;
+        return 0;
         }
     }
 
 
 
-// Uses GrantPackage API to grant 
+// Uses GrantPackage API to grant
+// returns steamID of app owner on success, 0 on failure
 function sg_grantPackage( $inSteamID ) {
     global $steamAppID, $steamWebAPIKey, $packageID, $remoteIP;
 
@@ -854,7 +858,9 @@ function sg_getAccount() {
         return;
         }
 
-    if( ! sg_doesSteamUserOwnApp( $steam_id ) ) {
+    $steam_id = sg_doesSteamUserOwnApp( $steam_id );
+    
+    if( $steam_id == 0 ) {
 
         echo "FAILED: You don't own the Steam App";
         return;
