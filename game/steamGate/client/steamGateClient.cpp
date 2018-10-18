@@ -21,7 +21,7 @@
 /////////////////////
 // settings:
 static const char *steamGateServerURL = 
-"http://onehouronelife.com/sg/server.php";
+"http://onehouronelife.com/steamGate/server.php";
 
 #define linuxLaunchTarget "./OneLifeApp"
 #define macLaunchTarget "OneLife.app"
