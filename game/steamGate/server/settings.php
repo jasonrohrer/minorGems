@@ -44,6 +44,9 @@ $steamWebAPIKey = "REPLACE_ME";
 $steamAppID = "249570";
 
 
+// the package ID for GrantPackage calls
+$packageID = "155870";
+
 
 
 // End Basic settings

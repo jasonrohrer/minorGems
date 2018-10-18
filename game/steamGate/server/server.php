@@ -136,6 +136,9 @@ else if( $action == "steam_login_return" ) {
 else if( $action == "get_steam_key" ) {
     sg_getSteamKey();
     }
+else if( $action == "unlock_on_steam" ) {
+    sg_unlockOnSteam();
+    }
 else if( $action == "show_download_link" ) {
     sg_showDownloadLink();
     }
@@ -307,12 +310,17 @@ function sg_setupDatabase() {
 
 // $inTicketID can be blank, but no free steam key will be returned
 // instead, a download link will be shown
-function sg_showSteamLoginButton( $inTicketID ) {
+// if $inUnlock is 1, the game will be unlocked for them on Steam instead
+function sg_showSteamLoginButton( $inTicketID, $inUnlock=0 ) {
     global $steamLoginURL, $serverRootURL, $fullServerURL, $steamButtonURL;
 
     // Nonce needed here?  No, because Steam's response contains a nonce
     $returnURL = $fullServerURL .
         "?action=steam_login_return&ticket_id=$inTicketID";
+
+    if( $inUnlock ) {
+        $returnURL = $returnURL . "&unlock=1";
+        }
 
 
     $queryParams = array();
@@ -340,7 +348,7 @@ function sg_showSteamLoginButton( $inTicketID ) {
 
 
 // either generate/give a steam key to this user, OR show this
-// user their non-steam download link
+// user their non-steam download link, OR unlock the game for them on steam
 function sg_steamLoginReturn() {
     // php replaces all . with _ in URL parameter names!
 
@@ -413,6 +421,8 @@ function sg_steamLoginReturn() {
     
     // did user pass in ticket id?
     $ticket_id = sg_getQueryTicketID();
+    $unlock = sg_requestFilter( "unlock", "/[01]+/i", 0 );
+
     $steam_gift_key = "";
 
     if( ! $recordExists ) {
@@ -442,10 +452,10 @@ function sg_steamLoginReturn() {
         }
 
     
-    if( $steam_gift_key != "" ) {
+    if( !$unlock && $steam_gift_key != "" ) {
         sg_showSteamKey( $steam_gift_key );
         }
-    else {
+    else if( !$unlock ) {
         // no steam key present... should we generate one?
 
         // verify game ownership with Steam API
@@ -506,6 +516,17 @@ function sg_steamLoginReturn() {
             }
         
         }
+    else if( $unlock ) {
+
+        $result = sg_grantPackage( $steam_id );
+
+        if( $result ) {
+            echo "<br><br>You now own the game on Steam<br><br>";
+            }
+        else {
+            echo "<br><br>Unlocking the game for you on Steam failed.<br><br>";
+            }
+        }
     
     global $ticketServerURL;
         
@@ -561,6 +582,44 @@ function sg_getSteamKey() {
     echo "Log in with Steam to get your free Steam key:<br><br>";
 
     sg_showSteamLoginButton( $ticket_id );
+    
+    }
+
+
+
+
+function sg_unlockOnSteam() {
+    global $tableNamePrefix, $ticketServerURL;
+
+    $ticket_id = sg_getQueryTicketID();
+
+
+    if( ! sg_checkTicketID( $ticket_id ) ) {
+        echo "Invalid download ticket.<br><br>";
+        return;
+        }
+
+
+    // have they already unlocked the game on steam?
+    $query = "SELECT steam_id from $tableNamePrefix"."mapping ".
+        "WHERE ticket_id = '$ticket_id';";
+
+    $result = sg_queryDatabase( $query );
+    
+    $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+        
+    $steam_id = $row[ "steam_id" ];
+
+    if( $steam_id != "" ) {        
+        echo "You have already unlocked the game on Steam.<br><br>";
+        return;
+        }
+
+    // else need to unlock one for them
+
+    echo "Log in with Steam to unlock the game:<br><br>";
+
+    sg_showSteamLoginButton( $ticket_id, 1 );
     
     }
 
@@ -675,6 +734,54 @@ function sg_doesSteamUserOwnApp( $inSteamID ) {
     else {
         return false;
         }
+    }
+
+
+
+// Uses GrantPackage API to grant 
+function sg_grantPackage( $inSteamID ) {
+    global $steamAppID, $steamWebAPIKey, $packageID, $remoteIP;
+
+    /*
+      $url = "https://api.steampowered.com/ISteamUser/GrantPackage/v1".
+      "?format=xml".
+      "&key=$steamWebAPIKey".
+      "&steamid=$inSteamID".
+      "&packageid=$packageID".
+      "&ipaddress=$remoteIP";
+      
+      $result = file_get_contents( $url );
+    */
+
+    
+    // GrantPackage requires POST
+
+    $postData = http_build_query(
+        array(
+            'format' => 'xml',
+            'key' => '$steamWebAPIKey',
+            'steamid' => '$inSteamID',
+            'packageid' => '$packageID',
+            'ipaddress' => '$remoteIP' ) );
+
+    $opts = array(
+        'http' =>
+        array(
+            'method'  => 'POST',
+            'header'  => 'Content-type: application/x-www-form-urlencoded',
+            'content' => $postdata ) );
+
+    $context  = stream_context_create( $opts );
+
+    $result = file_get_contents(
+        'https://api.steampowered.com/ISteamUser/GrantPackage/v1',
+        false, $context );
+
+    // not sure about format of results from GrantPackage
+
+    
+    // instead, just turn around immediately and check for ownership
+    return sg_doesSteamUserOwnApp( $inSteamID )
     }
 
 
