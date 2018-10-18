@@ -795,7 +795,7 @@ function sg_grantPackage( $inSteamID ) {
 
     
     // instead, just turn around immediately and check for ownership
-    return sg_doesSteamUserOwnApp( $inSteamID )
+    return sg_doesSteamUserOwnApp( $inSteamID );
     }
 
 
