@@ -1443,7 +1443,7 @@ function ts_logout() {
 // returns true on ownership, or if it's a non-steamID email
 // returns false for steamID emails that do not own the game
 function ts_checkForSteamEmail( $inEmail ) {
-    $matched = preg_match( "#(\d+)@steamgames.com#", $result, $matches );
+    $matched = preg_match( "#(\d+)@steamgames.com#", $inEmail, $matches );
 
     if( $matched ) {
         $resultID = ts_doesSteamUserOwnApp( $matches[1] );
