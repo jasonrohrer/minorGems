@@ -247,4 +247,15 @@ $bulkEmailerPath = "../bulkEmailer/bulkEmailerAPI.php";
 $bulkEmailBatchSize = 10000;
 
 
+
+// key to prove our publisher identity to Steam API
+// this key must be kept secret.
+$steamWebAPIKey = "REPLACE_ME";
+
+
+// the app ID that we check ownership for
+// example ID is for The Castle Doctrine
+$steamAppID = "249570";
+
+
 ?>
