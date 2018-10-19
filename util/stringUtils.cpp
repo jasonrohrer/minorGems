@@ -512,6 +512,15 @@ char *autoSprintf( const char* inFormatString, ... ) {
 
 
 
+// visual studio doesn't have va_copy
+// suggested fix here:
+// https://stackoverflow.com/questions/558223/va-copy-porting-to-visual-c
+#ifndef va_copy
+    #define va_copy( dest, src ) ( dest = src )
+#endif
+
+
+
 char *vautoSprintf( const char* inFormatString, va_list inArgList ) {
     
     va_list argListCopyA;
