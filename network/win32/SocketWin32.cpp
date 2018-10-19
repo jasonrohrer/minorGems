@@ -517,7 +517,7 @@ int timed_read( int inSock, unsigned char *inBuf,
         }
 
     if( ret == -1 && 
-        ( WSAGetLastError() == EINTR || 
+        ( WSAGetLastError() == WSAEINTR || 
           WSAGetLastError() == WSAEWOULDBLOCK ) ) {
         
         // select came back 1, but then our recv operation was interrupted
