@@ -426,6 +426,9 @@ function sg_steamLoginReturn() {
 
     $steam_gift_key = "";
 
+    $passed_in_ticket_id = $ticket_id;
+    
+    
     if( ! $recordExists ) {
 
         if( $ticket_id == "" ) {
@@ -453,10 +456,17 @@ function sg_steamLoginReturn() {
         }
 
     
+    if( $passed_in_ticket_id != "" &&
+        $passed_in_ticket_id != $ticket_id ) {
+        echo "Supplied ticket ID does not match existing ID.<br><br>";
+        return;
+        }    
+    
+    
     if( !$unlock && $steam_gift_key != "" ) {
         sg_showSteamKey( $steam_gift_key );
         }
-    else if( !$unlock ) {
+    else if( !$unlock && $passed_in_ticket_id != "" ) {
         // no steam key present... should we generate one?
 
         // verify game ownership with Steam API
