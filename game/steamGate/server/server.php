@@ -794,7 +794,7 @@ function sg_grantPackage( $inSteamID ) {
         array(
             'method'  => 'POST',
             'header'  => 'Content-type: application/x-www-form-urlencoded',
-            'content' => $postdata ) );
+            'content' => $postData ) );
 
     $context  = stream_context_create( $opts );
 
@@ -811,7 +811,9 @@ function sg_grantPackage( $inSteamID ) {
     if( $ownsAppNow == 0 ) {
         // granting failed
         echo "Unlocking attempt response:<br>".
-            "<pre>$result</pre><br><br>";
+            "<pre>$result</pre><br><pre>";
+        var_dump( $http_response_header );
+        echo "</pre><br>";
         }
     
     return $ownsAppNow;
