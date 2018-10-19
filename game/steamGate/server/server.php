@@ -806,7 +806,15 @@ function sg_grantPackage( $inSteamID ) {
 
     
     // instead, just turn around immediately and check for ownership
-    return sg_doesSteamUserOwnApp( $inSteamID );
+    $ownsAppNow = sg_doesSteamUserOwnApp( $inSteamID );
+
+    if( $ownsAppNow == 0 ) {
+        // granting failed
+        echo "Unlocking attempt response:<br>".
+            "<pre>$result</pre><br><br>";
+        }
+    
+    return $ownsAppNow;
     }
 
 
