@@ -113,6 +113,7 @@ $showHeaderAndFooter = false;
 
 // pages that are shown to end user have header and footer
 if( $action == "steam_login_return" ||
+    $action == "unlock_on_steam" ||
     $action == "get_steam_key" ||
     $action == "show_download_link" ) {
 
