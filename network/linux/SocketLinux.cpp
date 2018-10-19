@@ -428,6 +428,11 @@ int timed_read( int inSock, unsigned char *inBuf,
         // try again
         ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
         }
+
+    if( ret == 0 ) {
+        // time out after at least one EINTR
+        return -2;
+        }
     
 
 	if( ret<0 ) {
@@ -437,7 +442,7 @@ int timed_read( int inSock, unsigned char *inBuf,
 
     // do not use MSG_WAITALL flag here, since we just want to return
     // data that is available
-	ret = recv( inSock, inBuf, inLen, 0 );
+	ret = recv( inSock, inBuf, inLen, MSG_DONTWAIT );
 	
 
     if( ret == 0  ) {
@@ -446,6 +451,16 @@ int timed_read( int inSock, unsigned char *inBuf,
         return -1;
         }
     
+    if( ret == -1 && 
+        ( errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK ) ) {
+        // select came back 1, but then our recv operation was interrupted
+        // or would block
+        
+        // treat like a timeout
+        return -2;
+        }
+        
+
 	//fcntl( inSock, F_SETFL, 0 );
 	
 	return ret;

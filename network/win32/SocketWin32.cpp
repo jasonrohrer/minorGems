@@ -323,9 +323,22 @@ int Socket::receive( unsigned char *inBuffer, int inNumBytes,
 				recv( socketID, (char*)remainingBuffer, numRemaining, 0 );
 			}
 		else {		
+            // do this around timed_read so we can set mode back to
+            // normal regardless of return values
+            // windows doesn't have MSG_DONTWAIT
+
+            // 1 for non-blocking, 0 for blocking
+            u_long socketMode = 1;
+            ioctlsocket( socketID, FIONBIO, &socketMode );
+
 			numReceivedIn = 
 				timed_read( socketID, remainingBuffer,
                             numRemaining, inTimeout );
+
+            // back to blocking
+            socketMode = 0;
+            ioctlsocket( socketID, FIONBIO, &socketMode );
+
 
             // stop looping after one timed read
             stopLooping = true;
@@ -482,6 +495,11 @@ int timed_read( int inSock, unsigned char *inBuf,
         ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
         }
     
+    if( ret == 0 ) {
+        // time out after at least one EINTR
+        return -2;
+        }
+
 
 	if( ret<0 ) {
         perror( "Selecting socket during receive failed" );
@@ -497,6 +515,18 @@ int timed_read( int inSock, unsigned char *inBuf,
         // connection closed on remote end
         return -1;
         }
+
+    if( ret == -1 && 
+        ( WSAGetLastError() == EINTR || 
+          WSAGetLastError() == WSAEWOULDBLOCK ) ) {
+        
+        // select came back 1, but then our recv operation was interrupted
+        // or would block
+        
+        // treat like a timeout
+        return -2;
+        }
+
 
 	return ret;
 	}
