@@ -359,7 +359,7 @@ function sg_steamLoginReturn() {
     $ns = sg_requestFilter( "openid_ns", "/.*/" );
     $claimed_id = sg_requestFilter( "openid_claimed_id", "/.*/" );
 
-    preg_match( "#http://steamcommunity.com/openid/id/(\d+)#",
+    preg_match( "#https://steamcommunity.com/openid/id/(\d+)#",
                 $claimed_id, $matches );
     
     $steam_id = $matches[1];
