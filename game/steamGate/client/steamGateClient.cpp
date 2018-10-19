@@ -148,7 +148,7 @@ static void launchGame() {
 
 static void showMessage( const char *inTitle, const char *inMessage,
                          char inError = false ) {
-    UINT uType = MB_OK;
+    UINT uType = MB_OK | MB_TOPMOST;
     
     if( inError ) {
         uType |= MB_ICONERROR;
