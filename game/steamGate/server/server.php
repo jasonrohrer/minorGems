@@ -812,7 +812,7 @@ function sg_grantPackage( $inSteamID ) {
         // granting failed
         echo "Unlocking attempt response:<br>".
             "<pre>$result</pre><br><pre>";
-        var_dump( $http_response_header );
+        echo $http_response_header[0];
         echo "</pre><br>";
         }
     
