@@ -5138,6 +5138,8 @@ char *getClipboardText() {
 #define macLaunchExtension ".app"
 #define winLaunchExtension ".exe"
 
+#define steamGateClientName "steamGateClient"
+
 
 #ifdef LINUX
 
@@ -5167,6 +5169,31 @@ char relaunchGame() {
     delete [] launchTarget;
     printf( "Returning from relaunching game, exiting this process\n" );
     exit( 0 );
+    return true;
+    }
+
+char runSteamGateClient() {
+    char *launchTarget = 
+        autoSprintf( "./%s", steamGateClientName );
+
+    AppLog::infoF( "Running steamGateClient: %s", launchTarget );
+
+    int forkValue = fork();
+
+    if( forkValue == 0 ) {
+        // we're in child process, so exec command
+        char *arguments[2] = { launchTarget, NULL };
+        
+        execvp( launchTarget, arguments );
+
+        // we'll never return from this call
+                
+        // small memory leak here, but okay
+        delete [] launchTarget;
+        }
+    
+    delete [] launchTarget;
+    printf( "Returning from launching steamGateClient\n" );
     return true;
     }
     
@@ -5211,6 +5238,13 @@ char relaunchGame() {
     }
 
 
+char runSteamGateClient() {
+    // have never tested this on Mac, who knows?
+    return false;
+    }
+
+
+
 #elif defined(WIN_32)
 
 #include <windows.h>
@@ -5233,9 +5267,32 @@ char relaunchGame() {
     return true;
     }
 
+
+
+char runSteamGateClient() {
+    char *launchTarget = 
+        autoSprintf( "%s%s", steamGateClientName, winLaunchExtension );
+    
+    AppLog::infoF( "Running steamGateClient: %s", launchTarget );
+
+    char *arguments[2] = { (char*)launchTarget, NULL };
+    
+    _spawnvp( _P_NOWAIT, launchTarget, arguments );
+
+    delete [] launchTarget;
+    
+    printf( "Returning from running steamGateClient\n" );
+    return true;
+    }
+
+
 #else
 // unsupported platform
 char relaunchGame() {
+    return false;
+    }
+
+char runSteamGateClient() {
     return false;
     }
 #endif

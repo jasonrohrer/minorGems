@@ -608,9 +608,17 @@ unsigned char *getAsyncFileData( int inHandle, int *outDataLength );
 
 
 
-// relaunches the game from scratch as a new process
+// relaunches the game from scratch as a new process, and triggers exit
 // returns false if relaunch not supported on this platform
 char relaunchGame();
+
+
+
+// runs the platform-specific steamGateClient as a new process
+// does NOT exit.
+// steamGateClient runs in parallel.
+// returns false if running steamGateClient is not supported on this platform
+char runSteamGateClient();
 
 
 

@@ -254,6 +254,52 @@ int main() {
     AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
+
+    // before we even check for login info, see if we've been tasked
+    // with marking the app as dirty
+    FILE *f = fopen( "steamGateForceUpdate.txt", "r" );
+    if( f != NULL ) {
+        AppLog::info( "steamGateForceUpdate.txt file exists." );
+
+        int val = 0;
+        
+        fscanf( f, "%d", &val );
+        fclose( f );
+
+
+        if( val == 1 ) {
+            AppLog::info( "steamGateForceUpdate.txt file contains '1' flag." );
+
+            // we've been signaled to mark app as dirty
+            
+            if( ! SteamAPI_Init() ) {
+                showMessage( gameName ":  Error",
+                             "Failed to connect to Steam.",
+                             true );
+                AppLog::error( "Could not init Steam API." );
+                return 0;
+                }
+
+            AppLog::info( "Calling MarkContentCorrupt." );
+
+            // only check for missing files
+            // not sure what this param does if a new depot is available
+            SteamApps()->MarkContentCorrupt( true );
+            
+            // done, mark so we skip this next time
+            f = fopen( "steamGateForceUpdate.txt", "w" );
+            if( f != NULL ) {
+                fprintf( f, "0" );
+                fclose( f );
+                }
+            
+            AppLog::info( "Done forcing update, exiting." );
+            SteamAPI_Shutdown();
+            return 0;
+            }
+        }
+
+
     char *accountKey = SettingsManager::getStringSetting( "accountKey" );
     char *email = SettingsManager::getStringSetting( "email" );
 
