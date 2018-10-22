@@ -784,10 +784,10 @@ function sg_grantPackage( $inSteamID ) {
     $postData = http_build_query(
         array(
             'format' => 'xml',
-            'key' => '$steamWebAPIKey',
-            'steamid' => '$inSteamID',
-            'packageid' => '$packageID',
-            'ipaddress' => '$remoteIP' ) );
+            'key' => $steamWebAPIKey,
+            'steamid' => $inSteamID,
+            'packageid' => $packageID,
+            'ipaddress' => $remoteIP ) );
 
     $opts = array(
         'http' =>
