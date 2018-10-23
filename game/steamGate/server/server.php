@@ -416,7 +416,7 @@ function sg_steamLoginReturn() {
 
     $result = sg_queryDatabase( $query );
     
-    $recordExists = ( mysql_numrows( $result ) == 1 );
+    $recordExists = ( mysqli_numrows( $result ) == 1 );
 
     
     
@@ -451,8 +451,8 @@ function sg_steamLoginReturn() {
             }
         }
     else {
-        $steam_gift_key = mysql_result( $result, 0, "steam_gift_key" );
-        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+        $steam_gift_key = sg_mysqli_result( $result, 0, "steam_gift_key" );
+        $ticket_id = sg_mysqli_result( $result, 0, "ticket_id" );
         }
 
     
@@ -490,7 +490,7 @@ function sg_steamLoginReturn() {
 
             $result = sg_queryDatabase( $query );
 
-            $numRows = mysql_numrows( $result );
+            $numRows = mysqli_numrows( $result );
 
             if( $numRows == 0 ) {
                 sg_queryDatabase( "COMMIT;" );
@@ -502,7 +502,7 @@ function sg_steamLoginReturn() {
                 return;
                 }
 
-            $steam_gift_key = mysql_result( $result, 0, 0 );
+            $steam_gift_key = sg_mysqli_result( $result, 0, 0 );
             
             $query = "DELETE FROM ".
                 "$tableNamePrefix"."steam_key_bank ".
@@ -570,7 +570,7 @@ function sg_getSteamKey() {
 
     $result = sg_queryDatabase( $query );
     
-    $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+    $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
         
     $steam_gift_key = $row[ "steam_gift_key" ];
 
@@ -617,7 +617,7 @@ function sg_unlockOnSteam() {
 
     $result = sg_queryDatabase( $query );
     
-    $row = mysql_fetch_array( $result, MYSQL_ASSOC );
+    $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
         
     $steam_id = $row[ "steam_id" ];
 
@@ -715,7 +715,7 @@ function sg_countKeysInBank() {
     
     $result = sg_queryDatabase( $query );
     
-    $keysLeftInBank = mysql_result( $result, 0, 0 );
+    $keysLeftInBank = sg_mysqli_result( $result, 0, 0 );
 
     return $keysLeftInBank;
     }
@@ -925,8 +925,8 @@ function sg_getAccount() {
 
     $result = sg_queryDatabase( $query );
     
-    if( mysql_numrows( $result ) == 1 ) {
-        $ticket_id = mysql_result( $result, 0, "ticket_id" );
+    if( mysqli_numrows( $result ) == 1 ) {
+        $ticket_id = sg_mysqli_result( $result, 0, "ticket_id" );
 
         $email = sg_getTicketEmail( $ticket_id );
         }
@@ -1053,7 +1053,7 @@ function sg_showData( $checkPassword = true ) {
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."mapping $keywordClause;";
 
     $result = sg_queryDatabase( $query );
-    $totalMappings = mysql_result( $result, 0, 0 );
+    $totalMappings = sg_mysqli_result( $result, 0, 0 );
 
 
     $orderDir = "ASC";
@@ -1068,7 +1068,7 @@ function sg_showData( $checkPassword = true ) {
         "LIMIT $skip, $recordsPerPage;";
     $result = sg_queryDatabase( $query );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
     $startSkip = $skip + 1;
     
@@ -1141,10 +1141,10 @@ function sg_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $steam_id = mysql_result( $result, $i, "steam_id" );
-        $ticket_id = mysql_result( $result, $i, "ticket_id" );
-        $steam_gift_key = mysql_result( $result, $i, "steam_gift_key" );
-        $creation_date = mysql_result( $result, $i, "creation_date" );
+        $steam_id = sg_mysqli_result( $result, $i, "steam_id" );
+        $ticket_id = sg_mysqli_result( $result, $i, "ticket_id" );
+        $steam_gift_key = sg_mysqli_result( $result, $i, "steam_gift_key" );
+        $creation_date = sg_mysqli_result( $result, $i, "creation_date" );
         
         echo "<tr>\n";
         
@@ -1262,7 +1262,8 @@ function sg_addSteamGiftKeys() {
 
     $result = sg_queryDatabase( $query );
 
-    $numInserted = mysql_affected_rows();
+    global $sg_mysqlLink;
+    $numInserted = mysqli_affected_rows( $sg_mysqlLink );
 
     echo "<br>Successfully added $numInserted keys.";
     }
@@ -1331,7 +1332,7 @@ function sg_showLog() {
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."log;";
 
     $result = sg_queryDatabase( $query );
-    $totalEntries = mysql_result( $result, 0, 0 );
+    $totalEntries = sg_mysqli_result( $result, 0, 0 );
 
 
     
@@ -1339,7 +1340,7 @@ function sg_showLog() {
         "ORDER BY log_id DESC LIMIT $skip, $entriesPerPage;";
     $result = sg_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
 
 
@@ -1383,8 +1384,8 @@ function sg_showLog() {
         
     
     for( $i=0; $i<$numRows; $i++ ) {
-        $time = mysql_result( $result, $i, "entry_time" );
-        $entry = htmlspecialchars( mysql_result( $result, $i, "entry" ) );
+        $time = sg_mysqli_result( $result, $i, "entry_time" );
+        $entry = htmlspecialchars( sg_mysqli_result( $result, $i, "entry" ) );
 
         echo "<b>$time</b>:<br><pre>$entry</pre><hr>\n";
         }
@@ -1435,13 +1436,13 @@ function sg_connectToDatabase() {
     
     
     $sg_mysqlLink =
-        mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
+        mysqli_connect( $databaseServer, $databaseUsername, $databasePassword )
         or sg_operationError( "Could not connect to database server: " .
-                              mysql_error() );
+                              mysqli_error( $sg_mysqlLink ) );
     
-    mysql_select_db( $databaseName )
+    mysqli_select_db( $sg_mysqlLink, $databaseName )
         or sg_operationError( "Could not select $databaseName database: " .
-                              mysql_error() );
+                              mysqli_error( $sg_mysqlLink ) );
     }
 
 
@@ -1452,7 +1453,7 @@ function sg_connectToDatabase() {
 function sg_closeDatabase() {
     global $sg_mysqlLink;
     
-    mysql_close( $sg_mysqlLink );
+    mysqli_close( $sg_mysqlLink );
     }
 
 
@@ -1472,11 +1473,11 @@ function sg_queryDatabase( $inQueryString ) {
         sg_connectToDatabase();
         }
     
-    $result = mysql_query( $inQueryString );
+    $result = mysqli_query( $sg_mysqlLink, $inQueryString );
     
     if( $result == FALSE ) {
 
-        $errorNumber = mysql_errno();
+        $errorNumber = mysqli_errno( $sg_mysqlLink );
         
         // server lost or gone?
         if( $errorNumber == 2006 ||
@@ -1491,22 +1492,32 @@ function sg_queryDatabase( $inQueryString ) {
             sg_closeDatabase();
             sg_connectToDatabase();
 
-            $result = mysql_query( $inQueryString, $sg_mysqlLink )
+            $result = mysqli_query( $sg_mysqlLink, $inQueryString )
                 or sg_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
-                    mysql_error() );
+                    mysqli_error( $sg_mysqlLink ) );
             }
         else {
             // some other error (we're still connected, so we can
             // add log messages to database
             sg_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                           mysql_error() );
+                           mysqli_error( $sg_mysqlLink ) );
             }
         }
 
     return $result;
     }
 
+
+
+/**
+ * Replacement for the old mysql_result function.
+ */
+function sg_mysqli_result( $result, $number, $field=0 ) {
+    mysqli_data_seek( $result, $number );
+    $row = mysqli_fetch_array( $result );
+    return $row[ $field ];
+    }
 
 
 /**
@@ -1523,12 +1534,12 @@ function sg_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = sg_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = mysql_result( $result, $i, 0 );
+        $tableName = sg_mysqli_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
@@ -1540,10 +1551,10 @@ function sg_doesTableExist( $inTableName ) {
 
 
 function sg_log( $message ) {
-    global $enableLog, $tableNamePrefix;
+    global $enableLog, $tableNamePrefix, $sg_mysqlLink;
 
     if( $enableLog ) {
-        $slashedMessage = mysql_real_escape_string( $message );
+        $slashedMessage = mysqli_real_escape_string( $sg_mysqlLink, $message );
     
         $query = "INSERT INTO $tableNamePrefix"."log( entry, entry_time ) ".
             "VALUES( '$slashedMessage', CURRENT_TIMESTAMP );";
