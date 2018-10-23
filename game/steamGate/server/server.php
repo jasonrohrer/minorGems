@@ -621,7 +621,7 @@ function sg_unlockOnSteam() {
         
     $steam_id = $row[ "steam_id" ];
 
-    if( $steam_id != "" ) {        
+    if( $steam_id != "" && sg_doesSteamUserOwnApp( $steam_id ) ) {        
         echo "You have already unlocked the game on Steam.<br><br>";
         return;
         }
