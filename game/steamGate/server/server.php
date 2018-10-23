@@ -416,7 +416,7 @@ function sg_steamLoginReturn() {
 
     $result = sg_queryDatabase( $query );
     
-    $recordExists = ( mysqli_numrows( $result ) == 1 );
+    $recordExists = ( mysqli_num_rows( $result ) == 1 );
 
     
     
@@ -490,7 +490,7 @@ function sg_steamLoginReturn() {
 
             $result = sg_queryDatabase( $query );
 
-            $numRows = mysqli_numrows( $result );
+            $numRows = mysqli_num_rows( $result );
 
             if( $numRows == 0 ) {
                 sg_queryDatabase( "COMMIT;" );
@@ -925,7 +925,7 @@ function sg_getAccount() {
 
     $result = sg_queryDatabase( $query );
     
-    if( mysqli_numrows( $result ) == 1 ) {
+    if( mysqli_num_rows( $result ) == 1 ) {
         $ticket_id = sg_mysqli_result( $result, 0, "ticket_id" );
 
         $email = sg_getTicketEmail( $ticket_id );
@@ -1068,7 +1068,7 @@ function sg_showData( $checkPassword = true ) {
         "LIMIT $skip, $recordsPerPage;";
     $result = sg_queryDatabase( $query );
     
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     $startSkip = $skip + 1;
     
@@ -1340,7 +1340,7 @@ function sg_showLog() {
         "ORDER BY log_id DESC LIMIT $skip, $entriesPerPage;";
     $result = sg_queryDatabase( $query );
 
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
 
@@ -1534,7 +1534,7 @@ function sg_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = sg_queryDatabase( $query );
 
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
