@@ -48,6 +48,10 @@ $steamAppID = "249570";
 $packageID = "155870";
 
 
+// client IP to supply to Valve if client IP unknown (or ipv6 only)
+$defaultClientIP = "72.14.184.149";
+
+
 
 // End Basic settings
 

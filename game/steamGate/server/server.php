@@ -778,6 +778,19 @@ function sg_grantPackage( $inSteamID ) {
       $result = file_get_contents( $url );
     */
 
+
+    $clientIP = $remoteIP;
+
+    // Valve requiers ipv4 address in GrantPackage
+
+    if( ! filter_var( $clientIP, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+        global $defaultClientIP;
+
+        sg_log( "Got non-ipv4 client address $clientIP, ".
+                "replacing with default $defaultClientIP" );
+        $clientIP = $defaultClientIP;
+        }
+    
     
     // GrantPackage requires POST
 
@@ -787,7 +800,7 @@ function sg_grantPackage( $inSteamID ) {
             'key' => $steamWebAPIKey,
             'steamid' => $inSteamID,
             'packageid' => $packageID,
-            'ipaddress' => $remoteIP ) );
+            'ipaddress' => $clientIP ) );
 
     $opts = array(
         'http' =>
@@ -822,7 +835,8 @@ function sg_grantPackage( $inSteamID ) {
                 "Result body:  '$result'" );
         }
     else {
-        sg_log( "GrantPackage success for $inSteamID from IP $remoteIP" );
+        sg_log( "GrantPackage success for $inSteamID from ".
+                "IP $clientIP ($remoteIP)" );
         }
     
     return $ownsAppNow;
