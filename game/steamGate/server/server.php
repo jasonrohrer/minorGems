@@ -821,6 +821,9 @@ function sg_grantPackage( $inSteamID ) {
                 "Result header:  '$header'  ".
                 "Result body:  '$result'" );
         }
+    else {
+        sg_log( "GrantPackage success for $inSteamID from IP $remoteIP" );
+        }
     
     return $ownsAppNow;
     }
