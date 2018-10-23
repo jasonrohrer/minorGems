@@ -814,6 +814,12 @@ function sg_grantPackage( $inSteamID ) {
             "<pre>$result</pre><br><pre>";
         echo $http_response_header[0];
         echo "</pre><br>";
+
+        $header = $http_response_header[0];
+        sg_log( "GrantPackage failed.  ".
+                "POST data: '$postData'  ".
+                "Result header:  '$header'  ".
+                "Result body:  '$result'" );
         }
     
     return $ownsAppNow;
