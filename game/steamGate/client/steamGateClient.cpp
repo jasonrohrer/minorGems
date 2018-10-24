@@ -167,7 +167,7 @@ static void launchGame() {
     AppLog::infoF( "Waiting for child game process to exit after launching." );
     double startTime = Time::getCurrentTime();
     
-    _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+    _spawnvp( _P_WAIT, winLaunchTarget, arguments );
     
     AppLog::infoF( "Child game process ran for %f minutes before exiting.",
                    ( Time::getCurrentTime() - startTime ) / 60 );
