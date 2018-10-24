@@ -38,6 +38,7 @@ static const char *steamGateServerURL =
 
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/wait.h>
 
 static void launchGame() {
     AppLog::info( "Launching game." );
@@ -50,6 +51,17 @@ static void launchGame() {
         execvp( "open", arguments );
 
         // we'll never return from this call
+        }
+    else {
+        // parent
+        AppLog::infoF( "Waiting for child game process %d to exit.",
+                       forkValue );
+        double startTime = Time::getCurrentTime();
+        int returnStatus;    
+        waitpid( forkValue, &returnStatus, 0 );
+
+        AppLog::infoF( "Child game process ran for %f minutes before exiting.",
+                       ( Time::getCurrentTime() - startTime ) / 60 );
         }
     }
 
@@ -90,6 +102,7 @@ static void showMessage( const char *inTitle, const char *inMessage,
 
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/wait.h>
 
 static void launchGame() {
     AppLog::info( "Launching game" );
@@ -102,6 +115,17 @@ static void launchGame() {
         execvp( linuxLaunchTarget, arguments );
 
         // we'll never return from this call
+        }
+    else {
+        // parent
+        AppLog::infoF( "Waiting for child game process %d to exit.",
+                       forkValue );
+        double startTime = Time::getCurrentTime();
+        int returnStatus;    
+        waitpid( forkValue, &returnStatus, 0 );
+
+        AppLog::infoF( "Child game process ran for %f minutes before exiting.",
+                       ( Time::getCurrentTime() - startTime ) / 60 );
         }
     }
 
@@ -140,7 +164,13 @@ static void launchGame() {
     AppLog::info( "Launching game" );
     char *arguments[2] = { (char*)winLaunchTarget, NULL };
     
+    AppLog::infoF( "Waiting for child game process to exit after launching." );
+    double startTime = Time::getCurrentTime();
+    
     _spawnvp( _P_NOWAIT, winLaunchTarget, arguments );
+    
+    AppLog::infoF( "Child game process ran for %f minutes before exiting.",
+                   ( Time::getCurrentTime() - startTime ) / 60 );
     }
 
 
@@ -309,8 +339,9 @@ int main() {
         delete [] accountKey;
         delete [] email;
         
-        AppLog::info( "We already have saved login info.  Exiting." );
+        AppLog::info( "We already have saved login info.  Launching game." );
         launchGame();
+        AppLog::info( "Exiting." );
         return 0;
         }
 
@@ -592,5 +623,6 @@ int main() {
 
     launchGame();
     
+    AppLog::info( "Exiting." );
     return 0;
     }
