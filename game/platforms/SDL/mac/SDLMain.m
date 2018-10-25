@@ -20,6 +20,18 @@
 }
 @end
 
+/* This patches a problem in how Mojave and SDL-1.2 interact which lead to a
+   blank screen. It should probably be removed if Mojave or SDL-1.2 are
+   patched instead. */
+@implementation NSView (UpdateLayer)
+- (BOOL)wantsUpdateLayer {
+  return YES;
+}
+- (void)updateLayer {
+  [[NSOpenGLContext currentContext] update];
+}
+@end
+
 /* For some reaon, Apple removed setAppleMenu from the headers in 10.4,
  but the method still is there and works. To avoid warnings, we declare
  it ourselves here. */
