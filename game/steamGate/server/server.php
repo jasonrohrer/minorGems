@@ -945,6 +945,7 @@ function sg_getAccount() {
             "?action=sell_ticket".
             "&security_data=$ticketServerForcedSecurityData".
             "&email=$email".
+            "&email_opt_in=0".
             "&name=$dummyName".
             "&reference=steam".
             "&tags=$ticketServerForcedSaleTag".

@@ -533,7 +533,7 @@ function ts_sellTicket() {
     
             if( ! $nameFromEmail ) {
                 
-                $name = ts_requestFilter( "name", "/[A-Z0-9.' -]+/i" );
+                $name = ts_requestFilter( "name", "/[A-Z0-9.' -_]+/i" );
                 
                 // some names have ' in them
                 // need to escape this for use in DB query
