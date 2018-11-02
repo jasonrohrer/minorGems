@@ -19,6 +19,8 @@
 #include "RandomSource32.h"
 
 
+#include <time.h>
+
 /**
  * Implementation of RandomSource that does not depend on platform or library.
  *
