@@ -2736,11 +2736,10 @@ static int mouseDownSteps = 1000;
 static char ignoreNextMouseEvent = false;
 static int xCoordToIgnore, yCoordToIgnore;
 
-void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
-    *outNewMouseX = screenWidth / 2;
-    *outNewMouseY = screenHeight / 2;
 
-    if( *outNewMouseX == lastMouseX && *outNewMouseY == lastMouseY ) {
+
+static void warpMouseToScreenPos( int inX, int inY ) {
+    if( inX == lastMouseX && inY == lastMouseY ) {
         // mouse already there, no need to warp
         // (and warping when already there may or may not generate
         //  an event on some platforms, which causes trouble when we
@@ -2754,13 +2753,30 @@ void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
             // not ignoring mouse events currently due to demo code panel
             // or loading message... frame drawer not inited yet
             ignoreNextMouseEvent = true;
-            xCoordToIgnore = *outNewMouseX;
-            yCoordToIgnore = *outNewMouseY;
+            xCoordToIgnore = inX;
+            yCoordToIgnore = inY;
             }    
 
-        SDL_WarpMouse( *outNewMouseX, *outNewMouseY );
+        SDL_WarpMouse( inX, inY );
         }
+    }
+
     
+
+
+void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY ) {
+    *outNewMouseX = screenWidth / 2;
+    *outNewMouseY = screenHeight / 2;
+
+    warpMouseToScreenPos( *outNewMouseX, *outNewMouseY );
+    }
+
+
+
+void warpMouseToWorldPos( float inX, float inY ) {
+    int worldX, worldY;
+    worldToScreen( inX, inY, &worldX, &worldY );
+    warpMouseToScreenPos( worldX, worldY );
     }
 
 
@@ -3360,6 +3376,37 @@ void screenToWorld( int inX, int inY, float *outX, float *outY ) {
         }
     
     }
+
+
+void worldToScreen( float inX, float inY, int *outX, int *outY ) {
+    if( mouseWorldCoordinates ) {
+        // inverse of screenToWorld
+        inX -= viewCenterX;
+        inX /= viewSize;
+        
+        inX *= screenWidth;
+        inX += screenWidth/2;
+        
+        *outX = round( inX );
+        
+
+        inY -= viewCenterY;
+        inY /= viewSize;
+        
+        inY *= -screenWidth;
+        inY += screenHeight/2;
+        
+        *outY = round( inY );
+        }
+    else {
+        // raw screen coordinates
+        *outX = inX;
+        *outY = inY;
+        }
+    }
+
+
+
 
 
 

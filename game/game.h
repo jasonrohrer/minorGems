@@ -480,9 +480,16 @@ void setMouseReportingMode( char inWorldCoordinates );
 void warpMouseToCenter( int *outNewMouseX, int *outNewMouseY );
 
 
+void warpMouseToWorldPos( float inX, float inY );
+
+
 // converts screen coordinates to current world coordinates
 // (will be screen coordinates if mouse reporting mode is not World)
 void screenToWorld( int inX, int inY, float *outX, float *outY );
+
+
+void worldToScreen( float inX, float inY, int *outX, int *outY );
+
 
 // gets the last raw screen position of the mouse (press, release, drag, move)
 void getLastMouseScreenPos( int *outX, int *outY );
