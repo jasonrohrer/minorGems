@@ -1005,8 +1005,7 @@ function sg_getAccount() {
 
 
 function sg_forceGrantPackage( $checkPassword = true ) {
-    // these are global so they work in embeded function call below
-    global $skip, $search, $order_by;
+    global $tableNamePrefix;
 
     if( $checkPassword ) {
         sg_checkPassword( "force_grant_package" );
