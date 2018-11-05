@@ -1048,7 +1048,7 @@ function sg_forceGrantPackage( $checkPassword = true ) {
         return;
         }
     
-    $result = sg_grantPackage( $inSteamID );
+    $result = sg_grantPackage( $steam_id );
 
     if( $result == 0 ) {
         echo "GrantPackage failed<br>";
