@@ -155,6 +155,9 @@ else if( $action == "add_steam_gift_keys" ) {
 else if( $action == "show_steam_key_link" ) {
     sg_showSteamKeyLink();
     }
+else if( $action == "force_grant_package" ) {
+    sg_forceGrantPackage();
+    }
 else if( $action == "show_log" ) {
     sg_showLog();
     }
@@ -1001,6 +1004,70 @@ function sg_getAccount() {
 
 
 
+function sg_forceGrantPackage( $checkPassword = true ) {
+    // these are global so they work in embeded function call below
+    global $skip, $search, $order_by;
+
+    if( $checkPassword ) {
+        sg_checkPassword( "force_grant_package" );
+        }
+
+    $ticket_id = sg_getQueryTicketID();
+    $steam_id = sg_requestFilter( "steam_id", "/[0-9]+/i" );
+
+
+    $query = "SELECT steam_id FROM ".
+        "$tableNamePrefix"."mapping ".
+        "WHERE ticket_id = '$ticket_id';";
+
+    $result = sg_queryDatabase( $query );
+    
+    $recordExists = ( mysqli_num_rows( $result ) == 1 );
+
+    if( $recordExists ) {
+        $old_steam_id = sg_mysqli_result( $result, 0, "steam_id" );
+        echo "Already have mapping for ticket_id $ticket_id:  $old_steam_id";
+        echo "<hr>";
+        sg_showData( false );
+        return;
+        }
+
+    
+    $query = "SELECT ticket_id FROM ".
+        "$tableNamePrefix"."mapping ".
+        "WHERE steam_id = '$steam_id';";
+
+    $result = sg_queryDatabase( $query );
+    
+    $recordExists = ( mysqli_num_rows( $result ) == 1 );
+
+    if( $recordExists ) {
+        $old_ticket_id = sg_mysqli_result( $result, 0, "ticket_id" );
+        echo "Already have mapping for steam_id $steam_id:  $old_ticket_id";
+        echo "<hr>";
+        sg_showData( false );
+        return;
+        }
+    
+    $result = sg_grantPackage( $inSteamID );
+
+    if( $result == 0 ) {
+        echo "GrantPackage failed<br>";
+        }
+    else {
+        echo "GrantPackage success<br>";
+
+        // make a new record for them
+        sg_newMappingRecord( $steam_id, $ticket_id );
+        }
+    
+    echo "<hr>";
+    
+    sg_showData( false );
+    }
+
+
+
 function sg_showData( $checkPassword = true ) {
     // these are global so they work in embeded function call below
     global $skip, $search, $order_by;
@@ -1189,6 +1256,19 @@ function sg_showData( $checkPassword = true ) {
     </FORM>
     <hr>
 
+
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="force_grant_package">
+         Grant package:<br>
+         ticket_id:
+    <INPUT TYPE="text" MAXLENGTH=40 SIZE=23 NAME="ticket_id"
+             VALUE=""><br>
+    steam_id:
+    <INPUT TYPE="text" MAXLENGTH=40 SIZE=23 NAME="steam_id"
+             VALUE="">
+    <INPUT TYPE="Submit" VALUE="Grant">
+    </FORM>
+    <hr>
 
 <?php
 
