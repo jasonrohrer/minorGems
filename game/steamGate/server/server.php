@@ -1023,12 +1023,20 @@ function sg_forceGrantPackage( $checkPassword = true ) {
     
     $recordExists = ( mysqli_num_rows( $result ) == 1 );
 
+    $recordMatch = false;
+    
     if( $recordExists ) {
         $old_steam_id = sg_mysqli_result( $result, 0, "steam_id" );
-        echo "Already have mapping for ticket_id $ticket_id:  $old_steam_id";
-        echo "<hr>";
-        sg_showData( false );
-        return;
+        if( $old_steam_id != $steam_id ) {
+            echo
+                "Already have mapping for ticket_id $ticket_id:  $old_steam_id";
+            echo "<hr>";
+            sg_showData( false );
+            return;
+            }
+        else {
+            $recordMatch = true;
+            }
         }
 
     
@@ -1042,10 +1050,15 @@ function sg_forceGrantPackage( $checkPassword = true ) {
 
     if( $recordExists ) {
         $old_ticket_id = sg_mysqli_result( $result, 0, "ticket_id" );
-        echo "Already have mapping for steam_id $steam_id:  $old_ticket_id";
-        echo "<hr>";
-        sg_showData( false );
-        return;
+        if( $old_ticket_id != $ticket_id ) {
+            echo "Already have mapping for steam_id $steam_id:  $old_ticket_id";
+            echo "<hr>";
+            sg_showData( false );
+            return;
+            }
+        else {
+            $recordMatch = true;
+            }
         }
     
     $result = sg_grantPackage( $steam_id );
@@ -1056,8 +1069,15 @@ function sg_forceGrantPackage( $checkPassword = true ) {
     else {
         echo "GrantPackage success<br>";
 
-        // make a new record for them
-        sg_newMappingRecord( $steam_id, $ticket_id );
+        if( ! $recordMatch ) {
+            // make a new record for them
+            echo "Saving a mapping record from $steam_id to $ticket_id<br>";
+            sg_newMappingRecord( $steam_id, $ticket_id );
+            }
+        else {
+            echo "Already have a mapping record from".
+                " $steam_id to $ticket_id<br>";
+            }
         }
     
     echo "<hr>";
