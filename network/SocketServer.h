@@ -9,6 +9,10 @@
  *
  * 2014-January-3		Jason Rohrer
  * Made native object pointer public for SocketPoll implementations.
+ *
+ * 2018-November-8  Jason Rohrer
+ * Keeping socketID allocated on heap is a 17-year-old idea that was never
+ * necessary, and is asking for trouble.  Make it an int on all platforms.
  */
 
 #include "minorGems/common.h"
@@ -74,7 +78,7 @@ class SocketServer {
 		/**
 		 * Used by platform-specific implementations.
 		 */		
-		void *mNativeObjectPointer;
+		int mNativeSocketID;
 		
 	};		
 	

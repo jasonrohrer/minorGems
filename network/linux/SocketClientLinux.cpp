@@ -203,9 +203,7 @@ Socket *SocketClient::connectToServer( HostAddress *inAddress,
 	// package into a Socket and return it
 	Socket *returnSocket = new Socket();
 
-	int *idSpace = new int[1];
-	idSpace[0] = socketID;
-	returnSocket->mNativeObjectPointer = (void *)idSpace;
+	returnSocket->mNativeSocketID = socketID;
 	
     if( outTimedOut != NULL &&
         *outTimedOut ) {

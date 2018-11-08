@@ -63,9 +63,7 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
     	}
 	
 	// store socket id in native object pointer
-	unsigned int *idStorage = new unsigned int[1];
-	idStorage[0] = sockID;
-	mNativeObjectPointer = (void *)idStorage;
+	mNativeObjectPointer = sockID;
 	
 	
 	// bind socket to the port
@@ -96,12 +94,7 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
 
 SocketServer::~SocketServer() {
 	
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
-	
-    closesocket( socketID );
-	
-	delete [] socketIDptr;
+    closesocket( mNativeSocketID );
 	}
 	
 	
@@ -114,9 +107,7 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
     
 
     // printf( "Waiting for a connection.\n" );
-	// extract socket id from native object pointer
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
+	unsigned int socketID = mNativeObjectPointer;
 
 
     // same timeout code as in linux version
@@ -167,9 +158,7 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
 		}
 	
 	Socket *acceptedSocket = new Socket();
-	unsigned int *idStorage = new unsigned int[1];
-	idStorage[0] = acceptedID;
-	acceptedSocket->mNativeObjectPointer = (void *)idStorage;
+	acceptedSocket->mNativeSocketID = acceptedID;
 	
 	//printf( "Connection received.\n" );
 	

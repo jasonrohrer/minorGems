@@ -105,18 +105,15 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
 		}
 	
 	// create the socket
-	int sockID = socket( AF_INET, SOCK_STREAM, 0 );
+	mNativeSocketID = socket( AF_INET, SOCK_STREAM, 0 );
+	
+	int sockID = mNativeSocketID;
 	
 	if( sockID == -1 ) {
 		printf( "Failed to construct a socket\n" );
 		exit( 1 );
     	}
 	
-	// store socket id in native object pointer
-	int *idStorage = new int[1];
-	idStorage[0] = sockID;
-	mNativeObjectPointer = (void *)idStorage;
-
 
     // this setsockopt code partially copied from gnut
     
@@ -165,14 +162,8 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
 
 
 SocketServer::~SocketServer() {
-	
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
-	
-    close( socketID );
-    
-	delete [] socketIDptr;
-	}
+    close( mNativeSocketID );
+    }
 	
 	
 	
@@ -180,9 +171,8 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
                                         char *outTimedOut ) {
     
 	// printf( "Waiting for a connection.\n" );
-	// extract socket id from native object pointer
-	int *socketIDptr = (int *)( mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	
+    int socketID = mNativeSocketID;
 
     if( outTimedOut != NULL ) {
         *outTimedOut = false;
@@ -230,9 +220,7 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
     else {
 
         Socket *acceptedSocket = new Socket();
-        int *idStorage = new int[1];
-        idStorage[0] = acceptedID;
-        acceptedSocket->mNativeObjectPointer = (void *)idStorage;
+        acceptedSocket->mNativeSocketID = acceptedID;
 	
         //printf( "Connection received.\n" );
         

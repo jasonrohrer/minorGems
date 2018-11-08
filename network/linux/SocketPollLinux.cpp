@@ -48,8 +48,7 @@ char SocketPoll::addSocket( Socket *inSock, void *inOtherData ) {
         }
     
 
-    int *socketIDptr = (int *)( inSock->mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	int socketID = inSock->mNativeSocketID;
 
 
 
@@ -93,8 +92,7 @@ char SocketPoll::addSocketServer( SocketServer *inServer, void *inOtherData ) {
         }
     
 
-    int *socketIDptr = (int *)( inServer->mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	int socketID = inServer->mNativeSocketID;
 
 
 
@@ -135,8 +133,7 @@ void SocketPoll::removeSocket( Socket *inSock ) {
         return;
         }
 
-    int *socketIDptr = (int *)( inSock->mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	int socketID = inSock->mNativeSocketID;
 
 
 
@@ -162,8 +159,7 @@ void SocketPoll::removeSocketServer( SocketServer *inServer ) {
         return;
         }
 
-    int *socketIDptr = (int *)( inServer->mNativeObjectPointer );
-	int socketID = socketIDptr[0];
+	int socketID = inServer->mNativeSocketID;
 
 
 

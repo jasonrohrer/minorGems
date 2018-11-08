@@ -82,6 +82,9 @@
  * 2013-December-12  Jason Rohrer
  * Fixed bug in handling partial receive with no timeout when socket is
  * gracefully closed.
+ *
+ * 2018-November-8  Jason Rohrer
+ * Be careful that value passed into FD_SET is in range.
  */
 
 
@@ -139,19 +142,15 @@ int Socket::initSocketFramework() {
 
 
 Socket::~Socket() {
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
 
     if( !mIsConnectionBroken ) {
         
         // 2 specifies shutting down both sends and receives
-        shutdown( socketID, 2 );
+        shutdown( mNativeSocketID, 2 );
         mIsConnectionBroken = true;
         }
     
-	closesocket( socketID );
-	
-	delete [] socketIDptr;
+	closesocket( mNativeSocketID );
 	}
 
 
@@ -162,8 +161,7 @@ int Socket::isConnected() {
         return 1;
         }
     
-    unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
+	unsigned int socketID = mNativeSocketID;
 
     int ret;
 	fd_set fsr;
@@ -211,11 +209,9 @@ int Socket::isConnected() {
 
 
 void Socket::setNoDelay( int inValue ) {
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
 
     int flag = inValue;
-    setsockopt( socketID,
+    setsockopt( mNativeSocketID,
                 IPPROTO_TCP,
                 TCP_NODELAY,
                 (char *) &flag,
@@ -229,8 +225,7 @@ int Socket::send( unsigned char *inBuffer, int inNumBytes,
                   char inAllowedToBlock,
                   char inAllowDelay ) {
 	
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
+	unsigned int socketID = mNativeSocketID;
 
     if( inAllowedToBlock ) {
         if( ! inAllowDelay ) {
@@ -286,8 +281,7 @@ int Socket::send( unsigned char *inBuffer, int inNumBytes,
 int Socket::receive( unsigned char *inBuffer, int inNumBytes,
 	long inTimeout ) {
 	
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
+	unsigned int socketID = mNativeSocketID;
 	
 	int numReceived = 0;
 	
@@ -386,24 +380,19 @@ int Socket::receive( unsigned char *inBuffer, int inNumBytes,
 
 
 void Socket::breakConnection() {
-	unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
 
     if( !mIsConnectionBroken ) {
 
-        shutdown( socketID, 2 );
+        shutdown( mNativeSocketID, 2 );
         mIsConnectionBroken = true;
         }
     
-	closesocket( socketID );
+	closesocket( mNativeSocketID );
     }
 
 
 
 HostAddress *Socket::getRemoteHostAddress() {
-
-    unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
 
     // adapted from Unix Socket FAQ
     
@@ -411,7 +400,7 @@ HostAddress *Socket::getRemoteHostAddress() {
     struct sockaddr_in sin;
     
     len = sizeof sin;
-    int error = getpeername( socketID, (struct sockaddr *) &sin, &len );
+    int error = getpeername( mNativeSocketID, (struct sockaddr *) &sin, &len );
 
     if( error ) {
         return NULL;
@@ -438,15 +427,14 @@ HostAddress *Socket::getRemoteHostAddress() {
 
 
 HostAddress *Socket::getLocalHostAddress() {
-    unsigned int *socketIDptr = (unsigned int *)( mNativeObjectPointer );
-	unsigned int socketID = socketIDptr[0];
 
     // adapted from GTK-gnutalla code, and elsewhere
 
     struct sockaddr_in addr;
 	int len = sizeof( struct sockaddr_in );
 
-    int result = getsockname( socketID, (struct sockaddr*)( &addr ), &len );
+    int result = getsockname( mNativeSocketID, 
+                              (struct sockaddr*)( &addr ), &len );
 
     if( result == -1 ) {
         return NULL;
@@ -463,6 +451,16 @@ HostAddress *Socket::getLocalHostAddress() {
 
 
 
+
+char Socket::isSocketInFDRange() {    
+    if( mNativeSocketID >= FD_SETSIZE || mNativeSocketID < 0 ) {
+        return false;
+        }
+    return true;
+    }
+
+
+
 /* timed_read adapted from gnut, by Josh Pieper */
 /* Josh Pieper, (c) 2000 */
 /* This file is distributed under the GPL, see file COPYING for details */
@@ -474,7 +472,16 @@ int timed_read( int inSock, unsigned char *inBuf,
 	fd_set fsr;
 	struct timeval tv;
 	int ret;
-	
+
+
+    if( inSock >= FD_SETSIZE || inSock < 0 ) {
+        printf( "Socket ID %d out of range (FD_SETSIZE=%d) in timed_read, "
+                "treating it like a socket error.\n",
+                inSock, FD_SETSIZE );
+        return -1;
+        }
+    
+    
 	FD_ZERO( &fsr );
 	FD_SET( inSock, &fsr );
  

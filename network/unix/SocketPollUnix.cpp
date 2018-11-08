@@ -178,16 +178,14 @@ SocketOrServer *SocketPoll::wait( int inTimeoutMS ) {
             
             checkList.push_back( s );
             
-            int *socketIDptr;
+            int socketID;
 	
             if( s->isSocket ) {
-                socketIDptr = (int *)( s->sock->mNativeObjectPointer );
+                socketID = s->sock->mNativeSocketID;
                 }
             else {
-                socketIDptr = (int *)( s->server->mNativeObjectPointer );
+                socketID = s->server->mNativeSocketID;
                 }
-            
-            int socketID = socketIDptr[0];
 
             checkIDList.push_back( socketID );
 

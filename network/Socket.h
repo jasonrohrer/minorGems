@@ -44,6 +44,10 @@
  *
  * 2011-March-9    Jason Rohrer
  * Removed Fortify inclusion.
+ *
+ * 2018-November-8  Jason Rohrer
+ * Keeping socketID allocated on heap is a 17-year-old idea that was never
+ * necessary, and is asking for trouble.  Make it an int on all platforms.
  */
 
 
@@ -122,6 +126,16 @@ class Socket {
          * @return 1 on success, 0 on still waiting, -1 on error.
          */
         int isConnected();
+        
+
+
+        /**
+         * For platforms that use FD_SET for non-blocking reads
+         * is this socket's internal ID in range for FD_SET calls?
+         *
+         * Returns true on platforms that aren't using FD_SET.
+         */
+        char isSocketInFDRange();
         
 
 		
@@ -252,7 +266,7 @@ class Socket {
 		/**
 		 * Used by platform-specific implementations.
 		 */		
-		void *mNativeObjectPointer;
+		int mNativeSocketID;
 
 		
         // called by socket client to set connected status
