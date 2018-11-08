@@ -334,7 +334,10 @@ int main() {
     char *email = SettingsManager::getStringSetting( "email" );
 
 
-    if( accountKey != NULL && email != NULL ) {
+    if( accountKey != NULL && 
+        email != NULL &&
+        strcmp( accountKey, "" ) != 0 &&
+        strcmp( email, "" ) != 0 ) {
 
         delete [] accountKey;
         delete [] email;
