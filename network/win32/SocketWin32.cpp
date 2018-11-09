@@ -452,10 +452,8 @@ HostAddress *Socket::getLocalHostAddress() {
 
 
 
-char Socket::isSocketInFDRange() {    
-    if( mNativeSocketID >= FD_SETSIZE || mNativeSocketID < 0 ) {
-        return false;
-        }
+char Socket::isSocketInFDRange() {
+    // FD_SETSIZE is NOT max socket ID on Windows
     return true;
     }
 
@@ -474,12 +472,7 @@ int timed_read( int inSock, unsigned char *inBuf,
 	int ret;
 
 
-    if( inSock >= FD_SETSIZE || inSock < 0 ) {
-        printf( "Socket ID %d out of range (FD_SETSIZE=%d) in timed_read, "
-                "treating it like a socket error.\n",
-                inSock, FD_SETSIZE );
-        return -1;
-        }
+    // FD_SETSIZE is NOT max socket ID on Windows
     
     
 	FD_ZERO( &fsr );
