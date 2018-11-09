@@ -63,7 +63,7 @@ SocketServer::SocketServer( int inPort, int inMaxQueuedConnections ) {
     	}
 	
 	// store socket id in native object pointer
-	mNativeObjectPointer = sockID;
+	mNativeSocketID = sockID;
 	
 	
 	// bind socket to the port
@@ -107,7 +107,7 @@ Socket *SocketServer::acceptConnection( long inTimeoutInMilliseconds,
     
 
     // printf( "Waiting for a connection.\n" );
-	unsigned int socketID = mNativeObjectPointer;
+	unsigned int socketID = mNativeSocketID;
 
 
     // same timeout code as in linux version
