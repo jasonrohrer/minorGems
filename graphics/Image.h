@@ -814,7 +814,7 @@ inline int Image::deserialize( InputStream *inInputStream ) {
 
 
 
-static double max( double inA, double inB, double inC ) {
+static double maxVal( double inA, double inB, double inC ) {
     if( inA >= inB &&
         inA >= inC ) {
         return inA;
@@ -826,7 +826,7 @@ static double max( double inA, double inB, double inC ) {
     return inC;
     }
 
-static double min( double inA, double inB, double inC ) {
+static double minVal( double inA, double inB, double inC ) {
     if( inA <= inB &&
         inA <= inC ) {
         return inA;
@@ -849,8 +849,8 @@ static double min( double inA, double inB, double inC ) {
 static void rgbToHSL( double inR, double inG, double inB,
                       double *outH, double *outS, double *outL ) {
 
-    double maxC = max( inR, inG, inB );
-    double minC = min( inR, inG, inB );
+    double maxC = maxVal( inR, inG, inB );
+    double minC = minVal( inR, inG, inB );
 
     double h, s, l;
     
