@@ -268,13 +268,16 @@ function rs_setupDatabase() {
             "last_game_seconds INT NOT NULL," .
             "game_count INT NOT NULL," .
             "game_total_seconds INT NOT NULL," .
+            "INDEX( game_total_seconds )," .
             // -1 if not submitted yet
             "review_score TINYINT NOT NULL," .
+            "INDEX( review_score )," .
             "review_name VARCHAR(20) NOT NULL," .
             "review_text TEXT NOT NULL," .
             // stats about player's state when they posted the review
             // they may have played more games since the review
             "review_date DATETIME NOT NULL," .
+            "INDEX( review_date )," .
             "review_game_seconds INT NOT NULL," .
             "review_game_count INT NOT NULL," .
             // in future, we may allow users to upvote/downvote reviews

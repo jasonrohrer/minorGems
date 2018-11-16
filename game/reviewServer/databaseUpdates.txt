@@ -1,0 +1,5 @@
+// add indices to columns that we search and sort by constantly
+
+ALTER TABLE reviewServer_user_stats ADD INDEX review_score ( review_score );
+ALTER TABLE reviewServer_user_stats ADD INDEX review_date ( review_date );
+ALTER TABLE reviewServer_user_stats ADD INDEX game_total_seconds ( game_total_seconds );
