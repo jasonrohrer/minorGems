@@ -305,6 +305,13 @@ void setClipboardText( const char *inText );
 
 
 
+char isURLLaunchSupported();
+
+
+void launchURL( char *inURL );
+
+
+
 
 // sample rate shared by game engine and sound rendering platform
 //#define gameSoundSampleRate 22050

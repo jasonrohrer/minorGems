@@ -5211,6 +5211,22 @@ char isClipboardSupported() {
     }
 
 
+char isURLLaunchSupported() {
+#ifdef LINUX
+    return true;
+#elif defined(__mac__)
+    return true;
+#elif defined(WIN_32)
+    return true;
+#else
+    return false;
+#endif
+    }
+
+
+
+
+
 
 
 
@@ -5273,6 +5289,14 @@ void setClipboardText( const char *inText  ) {
     }
 
 
+void launchURL( char *inURL ) {
+    char *call = autoSprintf( "xdg-open \"%s\"", inURL );    
+    system( call );
+    delete [] call;
+    }
+
+
+
 
 #elif defined(__mac__)
 
@@ -5314,6 +5338,15 @@ void setClipboardText( const char *inText  ) {
     
     pclose( pipe );
     }
+
+
+
+void launchURL( char *inURL ) {
+    char *call = autoSprintf( "open \"%s\"", inURL );    
+    system( call );
+    delete [] call;
+    }
+
 
 
 
@@ -5359,11 +5392,25 @@ void setClipboardText( const char *inText  ) {
     }
 
 
+void launchURL( char *inURL ) {
+    // for some reason, on Windows, need extra set of "" before quoted URL
+    // found here:
+    // https://stackoverflow.com/questions/3037088/
+    //         how-to-open-the-default-web-browser-in-windows-in-c
+    char *call = autoSprintf( "cmd /c start \"\" \"%s\"", inURL );    
+    system( call );
+    delete [] call;
+    }
+
+
 
 #else
 // unsupported platform
 char *getClipboardText() {
     return stringDuplicate( "" );
+    }
+
+void launchURL( char *inURL ) {
     }
 #endif
 
