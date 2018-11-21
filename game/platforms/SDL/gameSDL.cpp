@@ -244,6 +244,10 @@ static AsyncFileThread fileReadThread;
 
 // some settings
 
+static int cursorMode = 0;
+static double emulatedCursorScale = 1.0;
+
+
 // size of game image
 int gameWidth = 320;
 int gameHeight = 240;
@@ -2705,6 +2709,42 @@ void setCursorVisible( char inIsVisible ) {
 
 
 
+void setCursorMode( int inMode ) {
+    SettingsManager::setSetting( "cursorMode", inMode );
+    cursorMode = inMode;
+    
+    switch( cursorMode ) {
+        case 0:
+        case 2:
+            setCursorVisible( true );
+            break;
+        case 1:
+            setCursorVisible( false );
+            break;
+        }
+    }
+
+
+int getCursorMode() {
+    return cursorMode;
+    }
+
+
+
+void setEmulatedCursorScale( double inScale ) {
+    SettingsManager::setSetting( "emulatedCursorScale", inScale );
+    emulatedCursorScale = inScale;
+    }
+
+
+    
+double getEmulatedCursorScale() {
+    return emulatedCursorScale;
+    }
+
+
+
+
 void grabInput( char inGrabOn ) {
     if( inGrabOn ) {
         SDL_WM_GrabInput( SDL_GRAB_ON );
@@ -3047,6 +3087,59 @@ void GameSceneHandler::drawScene() {
                          targetFrameRate,
                          screen->getCustomRecordedGameData(),
                          screen->isPlayingBack() );
+        
+        int readCursorMode = SettingsManager::getIntSetting( "cursorMode", -1 );
+        
+
+        if( readCursorMode == -1 ) {
+            // never set before
+
+            // check if we are ultrawidescreen
+            char ultraWide = false;
+            
+            const SDL_VideoInfo* currentScreenInfo = SDL_GetVideoInfo();
+        
+            int currentW = currentScreenInfo->current_w;
+            int currentH = currentScreenInfo->current_h;
+
+            double aspectRatio = (double)currentW / (double)currentH;
+            
+            // give a little wiggle room above 16:9
+            // ultrawide starts at 21:9
+            if( aspectRatio > 18.0 / 9.0 ) {
+                ultraWide = true;
+                }
+
+            if( ultraWide ) {
+                // drawn cursor, because system native cursor
+                // is off-target on ultrawide displays
+                
+                setCursorMode( 1 );
+                
+                double startingScale = 1.0;
+                
+                int forceBigPointer = 
+                    SettingsManager::getIntSetting( "forceBigPointer", 0 );
+                if( forceBigPointer ||
+                    screenWidth > 1920 || screenHeight > 1080 ) {
+                    
+                    startingScale *= 2;
+                    }
+                setEmulatedCursorScale( startingScale );
+                }
+            }
+        else {
+            setCursorMode( readCursorMode );
+
+            double readCursorScale = 
+                SettingsManager::getIntSetting( "emulatedCursorScale", -1 );
+            
+            if( readCursorScale != -1 ) {
+                setEmulatedCursorScale( readCursorScale );
+                }
+            }
+        
+
 
         frameDrawerInited = true;
         
@@ -3071,6 +3164,102 @@ void GameSceneHandler::drawScene() {
         
         drawFrame( update );
         
+        if( cursorMode > 0 ) {
+            // draw emulated cursor
+            
+            // mouse coordinates in screen space
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            
+            
+            // viewport is square of largest dimension, centered on screen
+
+            int bigDimension = screenWidth;
+            
+            if( screenHeight > bigDimension ) {
+                bigDimension = screenHeight;
+                }
+
+            float excessX = ( bigDimension - screenWidth ) / 2;
+            float excessY = ( bigDimension - screenHeight ) / 2;
+
+            glOrtho( -excessX, -excessX + bigDimension, 
+                     -excessY + bigDimension, -excessY, 
+                     -1.0f, 1.0f );
+            
+            glViewport( -excessX,
+                        -excessY, 
+                        bigDimension,
+                        bigDimension );
+
+            glMatrixMode(GL_MODELVIEW);
+
+            double sizeFactor = 25 * emulatedCursorScale;
+
+            double x = lastMouseX;
+            double y = lastMouseY;
+            
+            
+            // white border of pointer 
+
+            setDrawColor( 1, 1, 1, 1 );
+
+            double vertsA[18] = 
+                { // body of pointer
+                    x, y,
+                    x, y + sizeFactor * 0.8918,
+                    x + sizeFactor * 0.6306, y + sizeFactor * 0.6306,
+                    // left collar of pointer
+                    x, y,
+                    x, y + sizeFactor * 1.0,
+                    x + sizeFactor * 0.2229, y + sizeFactor * 0.7994,
+                    // right collar of pointer
+                    x + sizeFactor * 0.4077, y + sizeFactor * 0.7229,
+                    x + sizeFactor * 0.7071, y + sizeFactor * 0.7071,
+                    x, y };
+
+            drawTriangles( 3, vertsA );
+            
+            // neck of pointer
+            double vertsB[8] = { 
+                x + sizeFactor * 0.2076, y + sizeFactor * 0.7625,
+                x + sizeFactor * 0.376, y + sizeFactor * 1.169,
+                x + sizeFactor * 0.5607, y + sizeFactor * 1.0924,
+                x + sizeFactor * 0.3924, y + sizeFactor * 0.6859 };
+                                
+            drawQuads( 1, vertsB );
+
+           
+            // black fill of pointer
+            setDrawColor( 0, 0, 0, 1 );
+            
+            double vertsC[18] = 
+                { // body of pointer
+                    x + sizeFactor * 0.04, y + sizeFactor * 0.0966,
+                    x + sizeFactor * 0.04, y + sizeFactor * 0.814,
+                    x + sizeFactor * 0.5473, y + sizeFactor * 0.6038,
+                    // left collar of pointer
+                    x + sizeFactor * 0.04, y + sizeFactor * 0.0966,
+                    x + sizeFactor * 0.04, y + sizeFactor * 0.9102,
+                    x + sizeFactor * 0.2382, y + sizeFactor * 0.7319,
+                    // right collar of pointer
+                    x + sizeFactor * 0.3491, y + sizeFactor * 0.6859,
+                    x + sizeFactor * 0.6153, y + sizeFactor * 0.6719,
+                    x + sizeFactor * 0.04, y + sizeFactor * 0.0966 };
+
+            drawTriangles( 3, vertsC );
+            
+            // neck of pointer
+            double vertsD[8] = { 
+                x + sizeFactor * 0.2229, y + sizeFactor * 0.6949,
+                x + sizeFactor * 0.3976, y + sizeFactor * 1.1167,
+                x + sizeFactor * 0.5086, y + sizeFactor * 1.0708,
+                x + sizeFactor * 0.3338, y + sizeFactor * 0.649 };
+                                
+            drawQuads( 1, vertsD );
+            }
+        
+
         if( recordAudio ) {
             // frame-accurate audio recording
             int samplesPerFrame = soundSampleRate / targetFrameRate;

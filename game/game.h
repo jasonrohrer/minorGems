@@ -459,6 +459,31 @@ void setLetterbox( float inVisibleWidth, float inVisibleHeight );
 void setCursorVisible( char inIsVisible );
 
 
+
+
+// cursorMode and emulatedCursorSize are remembered in settings folder
+// for future runs
+
+// these override behavior of setCursorVisible
+
+// 0 (default) is system cursor
+// 1 is emulated cursor drawn at current mouse location
+// 2 is both (system cursor shown and emulated cursor
+void setCursorMode( int inMode );
+
+
+int getCursorMode();
+
+
+// scale multiple from default size
+void setEmulatedCursorScale( double inScale );
+
+
+double getEmulatedCursorScale();
+
+
+
+
 // confines mouse pointer to window and prevents window manager
 // from intercepting key presses
 // default off
