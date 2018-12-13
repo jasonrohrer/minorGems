@@ -5290,7 +5290,7 @@ void setClipboardText( const char *inText  ) {
 
 
 void launchURL( char *inURL ) {
-    char *call = autoSprintf( "xdg-open \"%s\"", inURL );    
+    char *call = autoSprintf( "xdg-open \"%s\" &", inURL );    
     system( call );
     delete [] call;
     }
