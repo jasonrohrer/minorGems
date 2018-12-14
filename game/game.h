@@ -8,6 +8,7 @@
 // and the underlying platform
 
 #include "doublePair.h"
+#include "minorGems/graphics/Image.h"
 
 
 
@@ -566,7 +567,14 @@ char isGamePlayingBack();
 
 // save a screenshot to the "screenShots" folder
 // screenshot may be delayed until the end of the next redraw.
-void saveScreenShot( const char *inPrefix );
+// outImage is a pointer to where a newly-constructed image should be returned
+// when screenshot is finally done
+// If returned this way, resulting image destroyed by caller
+//
+// if outImage is NOT NULL, then screen shot is NOT automatically saved to
+// screenShots folder (and inPrefix is ignored).
+void saveScreenShot( const char *inPrefix, 
+                     Image **outImage = NULL );
 
 
 // equivalent to the outputAllFrames.ini setting, but
