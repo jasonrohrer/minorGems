@@ -3166,40 +3166,18 @@ void GameSceneHandler::drawScene() {
         
         if( cursorMode > 0 ) {
             // draw emulated cursor
-            
-            // mouse coordinates in screen space
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            
-            
-            // viewport is square of largest dimension, centered on screen
 
-            int bigDimension = screenWidth;
+            // draw using same projection used to drawFrame
+            // so that emulated cursor lines up with screen position of buttons
             
-            if( screenHeight > bigDimension ) {
-                bigDimension = screenHeight;
-                }
-
-            float excessX = ( bigDimension - screenWidth ) / 2;
-            float excessY = ( bigDimension - screenHeight ) / 2;
-
-            glOrtho( -excessX, -excessX + bigDimension, 
-                     -excessY + bigDimension, -excessY, 
-                     -1.0f, 1.0f );
+            float xf, yf;
+            screenToWorld( lastMouseX, lastMouseY, &xf, &yf );
             
-            glViewport( -excessX,
-                        -excessY, 
-                        bigDimension,
-                        bigDimension );
-
-            glMatrixMode(GL_MODELVIEW);
-
+            double x = xf;
+            double y = yf;
+            
             double sizeFactor = 25 * emulatedCursorScale;
 
-            double x = lastMouseX;
-            double y = lastMouseY;
-            
-            
             // white border of pointer 
 
             setDrawColor( 1, 1, 1, 1 );
@@ -3207,25 +3185,25 @@ void GameSceneHandler::drawScene() {
             double vertsA[18] = 
                 { // body of pointer
                     x, y,
-                    x, y + sizeFactor * 0.8918,
-                    x + sizeFactor * 0.6306, y + sizeFactor * 0.6306,
+                    x, y - sizeFactor * 0.8918,
+                    x + sizeFactor * 0.6306, y - sizeFactor * 0.6306,
                     // left collar of pointer
                     x, y,
-                    x, y + sizeFactor * 1.0,
-                    x + sizeFactor * 0.2229, y + sizeFactor * 0.7994,
+                    x, y - sizeFactor * 1.0,
+                    x + sizeFactor * 0.2229, y - sizeFactor * 0.7994,
                     // right collar of pointer
-                    x + sizeFactor * 0.4077, y + sizeFactor * 0.7229,
-                    x + sizeFactor * 0.7071, y + sizeFactor * 0.7071,
+                    x + sizeFactor * 0.4077, y - sizeFactor * 0.7229,
+                    x + sizeFactor * 0.7071, y - sizeFactor * 0.7071,
                     x, y };
 
             drawTriangles( 3, vertsA );
             
             // neck of pointer
             double vertsB[8] = { 
-                x + sizeFactor * 0.2076, y + sizeFactor * 0.7625,
-                x + sizeFactor * 0.376, y + sizeFactor * 1.169,
-                x + sizeFactor * 0.5607, y + sizeFactor * 1.0924,
-                x + sizeFactor * 0.3924, y + sizeFactor * 0.6859 };
+                x + sizeFactor * 0.2076, y - sizeFactor * 0.7625,
+                x + sizeFactor * 0.376, y - sizeFactor * 1.169,
+                x + sizeFactor * 0.5607, y - sizeFactor * 1.0924,
+                x + sizeFactor * 0.3924, y - sizeFactor * 0.6859 };
                                 
             drawQuads( 1, vertsB );
 
@@ -3235,26 +3213,26 @@ void GameSceneHandler::drawScene() {
             
             double vertsC[18] = 
                 { // body of pointer
-                    x + sizeFactor * 0.04, y + sizeFactor * 0.0966,
-                    x + sizeFactor * 0.04, y + sizeFactor * 0.814,
-                    x + sizeFactor * 0.5473, y + sizeFactor * 0.6038,
+                    x + sizeFactor * 0.04, y - sizeFactor * 0.0966,
+                    x + sizeFactor * 0.04, y - sizeFactor * 0.814,
+                    x + sizeFactor * 0.5473, y - sizeFactor * 0.6038,
                     // left collar of pointer
-                    x + sizeFactor * 0.04, y + sizeFactor * 0.0966,
-                    x + sizeFactor * 0.04, y + sizeFactor * 0.9102,
-                    x + sizeFactor * 0.2382, y + sizeFactor * 0.7319,
+                    x + sizeFactor * 0.04, y - sizeFactor * 0.0966,
+                    x + sizeFactor * 0.04, y - sizeFactor * 0.9102,
+                    x + sizeFactor * 0.2382, y - sizeFactor * 0.7319,
                     // right collar of pointer
-                    x + sizeFactor * 0.3491, y + sizeFactor * 0.6859,
-                    x + sizeFactor * 0.6153, y + sizeFactor * 0.6719,
-                    x + sizeFactor * 0.04, y + sizeFactor * 0.0966 };
+                    x + sizeFactor * 0.3491, y - sizeFactor * 0.6859,
+                    x + sizeFactor * 0.6153, y - sizeFactor * 0.6719,
+                    x + sizeFactor * 0.04, y - sizeFactor * 0.0966 };
 
             drawTriangles( 3, vertsC );
             
             // neck of pointer
             double vertsD[8] = { 
-                x + sizeFactor * 0.2229, y + sizeFactor * 0.6949,
-                x + sizeFactor * 0.3976, y + sizeFactor * 1.1167,
-                x + sizeFactor * 0.5086, y + sizeFactor * 1.0708,
-                x + sizeFactor * 0.3338, y + sizeFactor * 0.649 };
+                x + sizeFactor * 0.2229, y - sizeFactor * 0.6949,
+                x + sizeFactor * 0.3976, y - sizeFactor * 1.1167,
+                x + sizeFactor * 0.5086, y - sizeFactor * 1.0708,
+                x + sizeFactor * 0.3338, y - sizeFactor * 0.649 };
                                 
             drawQuads( 1, vertsD );
             }
