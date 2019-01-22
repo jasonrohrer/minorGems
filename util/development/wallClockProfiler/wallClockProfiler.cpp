@@ -3,7 +3,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
-#include<sys/prctl.h>
+#include <sys/prctl.h>
+
+#include <time.h>
 
 
 #include "minorGems/util/stringUtils.h"
@@ -11,8 +13,14 @@
 
 
 static void usage() {
-    printf( "Usage:\n\n"
-            "wallClockProfiler samples_per_sec ./myProgram\n\n" );
+    printf( "\nDirect call usage:\n\n"
+            "    wallClockProfiler samples_per_sec ./myProgram\n\n" );
+    printf( "Attach to existing process (may require root):\n\n"
+            "    wallClockProfiler samples_per_sec ./myProgram pid "
+            "[detatch_sec]\n\n" );
+    printf( "detatch_sec is the (optional) number of seconds before detatching and\n"
+            "ending profiling (or -1 to stay attached forever, default)\n\n" );
+    
     exit( 1 );
     }
 
@@ -87,10 +95,13 @@ static void printGDBResponseToFile( FILE *inFile ) {
     }
 
 
+
 static void skipGDBResponse() {
     int numRead = fillBufferWithResponse();
     checkProgramExited();
     }
+
+
 
 
 typedef struct StackFrame{
@@ -294,9 +305,8 @@ static void logGDBStackResponse() {
 
 
 int main( int inNumArgs, char **inArgs ) {
-    printf( "%d args\n", inNumArgs );
     
-    if( inNumArgs != 3 ) {
+    if( inNumArgs != 3 && inNumArgs != 4 && inNumArgs != 5 ) {
         usage();
         }
     
@@ -332,9 +342,15 @@ int main( int inNumArgs, char **inArgs ) {
         
         //ask kernel to deliver SIGTERM in case the parent dies
         prctl( PR_SET_PDEATHSIG, SIGTERM );
-
-        execlp( "gdb", "gdb", "-nx", "--interpreter=mi", inArgs[2], NULL );
-
+        
+        if( inNumArgs == 4 || inNumArgs == 5 ) {
+            // attatch to PID
+            execlp( "gdb", "gdb", "-nx", "--interpreter=mi", 
+                    inArgs[2], inArgs[3], NULL );
+            }
+        else {
+            execlp( "gdb", "gdb", "-nx", "--interpreter=mi", inArgs[2], NULL );
+            }
         exit( 0 );
         }
     
@@ -354,11 +370,18 @@ int main( int inNumArgs, char **inArgs ) {
     skipGDBResponse();
     
 
-    printf( "\n\nStarting gdb program with 'run', "
-            "redirecting program output to wcOut.tx\n" );
-
-    sendCommand( "run > wcOut.txt" );
-
+    if( inNumArgs == 3 ) {
+        printf( "\n\nStarting gdb program with 'run', "
+                "redirecting program output to wcOut.tx\n" );
+        
+        sendCommand( "run > wcOut.txt" );
+        }
+    else {
+        printf( "\n\nResuming attached gdb program with '-exec-continue'\n" );
+        
+        sendCommand( "-exec-continue" );
+        }
+    
     usleep( 100000 );
 
     skipGDBResponse();
@@ -414,8 +437,22 @@ int main( int inNumArgs, char **inArgs ) {
     printf( "Sampling %d times per second, for %d usec between samples\n",
             samplesPerSecond, usPerSample );
     
+    time_t startTime = time( NULL );
+    
+    int detatchSeconds = -1;
+    
+    if( inNumArgs == 5 ) {
+        sscanf( inArgs[4], "%d", &detatchSeconds );
+        }
+    if( detatchSeconds != -1 ) {
+        printf( "Will detatch automatically after %d seconds\n",
+                detatchSeconds );
+        }
+    
 
-    while( !programExited ) {
+    while( !programExited &&
+           ( detatchSeconds == -1 ||
+             time( NULL ) < startTime + detatchSeconds ) ) {
         usleep( usPerSample );
     
         // interrupt
@@ -436,8 +473,15 @@ int main( int inNumArgs, char **inArgs ) {
         sendCommand( "-exec-continue" );
         skipGDBResponse();
         }
-    
-    printf( "Program exited normally\n" );
+
+    if( programExited ) {
+        printf( "Program exited normally\n" );
+        }
+    else {
+        printf( "Detatching from program\n" );
+        kill( pid, SIGINT );
+        sendCommand( "-gdb-exit" );
+        }
     
     printf( "%d stack samples taken\n", numSamples );
 
