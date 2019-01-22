@@ -311,9 +311,10 @@ int main( int inNumArgs, char **inArgs ) {
     skipGDBResponse();
     
 
-    printf( "\n\nStarting gdb program with 'run'\n" );
+    printf( "\n\nStarting gdb program with 'run', "
+            "redirecting program output to wcOut.tx\n" );
 
-    sendCommand( "-exec-run" );
+    sendCommand( "run > wcOut.txt" );
 
     usleep( 100000 );
 
@@ -356,8 +357,6 @@ int main( int inNumArgs, char **inArgs ) {
     printf( "PID of debugged process = %d\n", pid );
     
 
-    FILE *profFile = fopen( "wcProf.out", "w" );
-
     printf( "Sampling stack while program runs...\n" );
 
     
@@ -384,7 +383,6 @@ int main( int inNumArgs, char **inArgs ) {
         // sample stack
         sendCommand( "-stack-list-frames" );
         //skipGDBResponse();
-        //printGDBResponseToFile( profFile );
         logGDBStackResponse();
         
         
