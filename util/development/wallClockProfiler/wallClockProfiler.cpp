@@ -7,6 +7,7 @@
 
 
 #include "minorGems/util/stringUtils.h"
+#include "minorGems/util/SimpleVector.h"
 
 
 static void usage() {
@@ -92,6 +93,162 @@ static void skipGDBResponse() {
     }
 
 
+typedef struct StackFrame{
+        void *address;
+        char *funcName;
+        char *fileName;
+        int lineNum;
+        int sampleCount;
+    } StackFrame;
+
+SimpleVector<StackFrame> frameLog;
+
+    
+
+static void logFrame( char *inFrameString ) {
+    
+    char *openPos = strstr( inFrameString, "{" );
+    
+    if( openPos == NULL ) {
+        return;
+        }
+    openPos = &( openPos[1] );
+    
+    char *closePos = strstr( openPos, "}" );
+    
+    if( closePos == NULL ) {
+        return;
+        }
+    closePos[0] ='\0';
+    
+    int numVals;
+    char **vals = split( openPos, ",", &numVals );
+    
+    void *address = NULL;
+    
+    for( int i=0; i<numVals; i++ ) {
+        if( strstr( vals[i], "addr=" ) == vals[i] ) {
+            sscanf( vals[i], "addr=\"%p\"", &address );
+            break;
+            }
+        }
+    
+    StackFrame *f = NULL;
+    
+    for( int i=0; i<frameLog.size(); i++ ) {
+        f = frameLog.getElement( i );
+        
+        if( f->address == address ) {
+            break;
+            }
+        f = NULL;
+        }
+
+    if( f == NULL ) {
+        StackFrame newF;
+        newF.address = address;
+        newF.sampleCount = 1;
+        newF.lineNum = -1;
+        newF.funcName = NULL;
+        newF.fileName = NULL;
+
+        for( int i=0; i<numVals; i++ ) {
+            if( strstr( vals[i], "func=" ) == vals[i] ) {
+                newF.funcName = new char[ 500 ];
+                sscanf( vals[i], "func=\"%499s\"", newF.funcName );
+                }
+            else if( strstr( vals[i], "file=" ) == vals[i] ) {
+                newF.fileName = new char[ 500 ];
+                sscanf( vals[i], "file=\"%499s\"", newF.fileName );
+                }
+            else if( strstr( vals[i], "line=" ) == vals[i] ) {
+                sscanf( vals[i], "line=\"%d\"", &newF.lineNum );
+                }
+            }
+
+        if( newF.fileName == NULL ) {
+            newF.fileName = stringDuplicate( "" );
+            }
+        if( newF.funcName == NULL ) {
+            newF.funcName = stringDuplicate( "" );
+            }
+        
+        char *quotePos = strstr( newF.fileName, "\"" );
+        if( quotePos != NULL ) {
+            quotePos[0] ='\0';
+            }
+        quotePos = strstr( newF.funcName, "\"" );
+        if( quotePos != NULL ) {
+            quotePos[0] ='\0';
+            }
+        
+        
+        frameLog.push_back( newF );
+        }
+    else {
+        f->sampleCount++;
+        }
+    }
+
+
+
+static void logGDBStackResponse() {
+    int numRead = fillBufferWithResponse();
+    
+    if( numRead == 0 ) {
+        return;
+        }
+    
+
+    checkProgramExited();
+        
+    if( programExited ) {
+        return;
+        }
+    
+    const char *stackStartMarker = ",stack=[";
+    
+    char *stackStartPos = strstr( readBuff, ",stack=[" );
+        
+    if( stackStartPos == NULL ) {
+        return;
+        }
+    
+    char *stackStart = &( stackStartPos[ strlen( stackStartMarker ) ] );
+    
+    char *closeBracket = strstr( stackStart, "]" );
+    
+    if( closeBracket == NULL ) {
+        return;
+        }
+    
+    // terminate at close
+    closeBracket[0] = '\0';
+    
+    const char *frameMarker = "frame=";
+    
+    if( strstr( stackStart, frameMarker ) != stackStart ) {
+        return;
+        }
+    
+    // skip first
+    stackStart = &( stackStart[ strlen( frameMarker ) ] );
+    
+    int numFrames;
+    char **frames = split( stackStart, frameMarker, &numFrames );
+    
+    for( int i=0; i<numFrames; i++ ) {
+        logFrame( frames[i] );
+        
+        delete [] frames[i];
+        }
+    delete [] frames;
+    
+    }
+
+
+
+
 
 int main( int inNumArgs, char **inArgs ) {
     printf( "%d args\n", inNumArgs );
@@ -154,7 +311,7 @@ int main( int inNumArgs, char **inArgs ) {
     skipGDBResponse();
     
 
-    printf( "\n\nStarting gdb program with run\n" );
+    printf( "\n\nStarting gdb program with 'run'\n" );
 
     sendCommand( "-exec-run" );
 
@@ -226,7 +383,9 @@ int main( int inNumArgs, char **inArgs ) {
 
         // sample stack
         sendCommand( "-stack-list-frames" );
-        printGDBResponseToFile( profFile );
+        //skipGDBResponse();
+        //printGDBResponseToFile( profFile );
+        logGDBStackResponse();
         
         
         // continue running
@@ -238,6 +397,43 @@ int main( int inNumArgs, char **inArgs ) {
     printf( "Program exited normally\n" );
     
     printf( "%d stack samples taken\n", numSamples );
+
+    printf( "%d unique stack frames sampled\n", frameLog.size() );
+    
+    
+    // simple insertion sort
+    SimpleVector<StackFrame> sortedFrames;
+    
+    while( frameLog.size() > 0 ) {
+        int max = 0;
+        StackFrame maxFrame;
+        int maxInd = -1;
+        for( int i=0; i<frameLog.size(); i++ ) {
+            StackFrame f = frameLog.getElementDirect( i );
+            
+            if( f.sampleCount > max ) {
+                maxFrame = f;
+                max = f.sampleCount;
+                maxInd = i;
+                }
+            }  
+        sortedFrames.push_back( maxFrame );
+        frameLog.deleteElement( maxInd );
+        }
+    
+    printf( "\n\n\nReport:\n\n" );
+    
+    for( int i=0; i<sortedFrames.size(); i++ ) {
+        StackFrame f = sortedFrames.getElementDirect( i );
+        printf( "%f%%: \t%s \t(%s:%d)\n\n", 
+                100 * f.sampleCount / (float )numSamples,
+                f.funcName, f.fileName, f.lineNum );
+        
+        delete [] f.funcName;
+        delete [] f.fileName;
+        }
+    
+
 
     
     return 0;
