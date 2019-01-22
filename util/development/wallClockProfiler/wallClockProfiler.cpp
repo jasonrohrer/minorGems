@@ -98,26 +98,63 @@ typedef struct StackFrame{
         char *funcName;
         char *fileName;
         int lineNum;
-        int sampleCount;
     } StackFrame;
 
-SimpleVector<StackFrame> frameLog;
+
+typedef struct Stack {
+        SimpleVector<StackFrame> frames;
+        int sampleCount;
+    } Stack;
 
     
 
-static void logFrame( char *inFrameString ) {
+
+SimpleVector<Stack> stackLog;
+
+
+
+static char stackCompare( Stack *inA, Stack *inB ) {
+    if( inA->frames.size() != inB->frames.size() ) {
+        return false;
+        }
+    for( int i=0; i<inA->frames.size(); i++ ) {
+        if( inA->frames.getElementDirect( i ).address !=
+            inB->frames.getElementDirect( i ).address ) {
+            return false;
+            }    
+        }
+    return true;
+    }
+
+
+static void freeStack( Stack *inStack ) {
+    for( int i=0; i<inStack->frames.size(); i++ ) {
+        StackFrame f = inStack->frames.getElementDirect( i );
+        delete [] f.funcName;
+        delete [] f.fileName;
+        }
+    inStack->frames.deleteAll();
+    }
+
+
+    
+
+static StackFrame parseFrame( char *inFrameString ) {
+    StackFrame newF;
     
     char *openPos = strstr( inFrameString, "{" );
     
     if( openPos == NULL ) {
-        return;
+        printf( "Error parsing stack frame:  %s\n", inFrameString );
+        exit( 1 );
         }
     openPos = &( openPos[1] );
     
     char *closePos = strstr( openPos, "}" );
     
     if( closePos == NULL ) {
-        return;
+        printf( "Error parsing stack frame:  %s\n", inFrameString );
+        exit( 1 );
         }
     closePos[0] ='\0';
     
@@ -132,67 +169,49 @@ static void logFrame( char *inFrameString ) {
             break;
             }
         }
+
+    newF.address = address;
+    newF.lineNum = -1;
+    newF.funcName = NULL;
+    newF.fileName = NULL;
     
-    StackFrame *f = NULL;
-    
-    for( int i=0; i<frameLog.size(); i++ ) {
-        f = frameLog.getElement( i );
-        
-        if( f->address == address ) {
-            break;
+    for( int i=0; i<numVals; i++ ) {
+        if( strstr( vals[i], "func=" ) == vals[i] ) {
+            newF.funcName = new char[ 500 ];
+            sscanf( vals[i], "func=\"%499s\"", newF.funcName );
             }
-        f = NULL;
-        }
-
-    if( f == NULL ) {
-        StackFrame newF;
-        newF.address = address;
-        newF.sampleCount = 1;
-        newF.lineNum = -1;
-        newF.funcName = NULL;
-        newF.fileName = NULL;
-
-        for( int i=0; i<numVals; i++ ) {
-            if( strstr( vals[i], "func=" ) == vals[i] ) {
-                newF.funcName = new char[ 500 ];
-                sscanf( vals[i], "func=\"%499s\"", newF.funcName );
-                }
-            else if( strstr( vals[i], "file=" ) == vals[i] ) {
-                newF.fileName = new char[ 500 ];
-                sscanf( vals[i], "file=\"%499s\"", newF.fileName );
-                }
-            else if( strstr( vals[i], "line=" ) == vals[i] ) {
-                sscanf( vals[i], "line=\"%d\"", &newF.lineNum );
-                }
+        else if( strstr( vals[i], "file=" ) == vals[i] ) {
+            newF.fileName = new char[ 500 ];
+            sscanf( vals[i], "file=\"%499s\"", newF.fileName );
             }
-
-        if( newF.fileName == NULL ) {
-            newF.fileName = stringDuplicate( "" );
+        else if( strstr( vals[i], "line=" ) == vals[i] ) {
+            sscanf( vals[i], "line=\"%d\"", &newF.lineNum );
             }
-        if( newF.funcName == NULL ) {
-            newF.funcName = stringDuplicate( "" );
-            }
-        
-        char *quotePos = strstr( newF.fileName, "\"" );
-        if( quotePos != NULL ) {
-            quotePos[0] ='\0';
-            }
-        quotePos = strstr( newF.funcName, "\"" );
-        if( quotePos != NULL ) {
-            quotePos[0] ='\0';
-            }
-        
-        
-        frameLog.push_back( newF );
-        }
-    else {
-        f->sampleCount++;
         }
     
+    if( newF.fileName == NULL ) {
+        newF.fileName = stringDuplicate( "" );
+        }
+    if( newF.funcName == NULL ) {
+        newF.funcName = stringDuplicate( "" );
+        }
+    
+    char *quotePos = strstr( newF.fileName, "\"" );
+    if( quotePos != NULL ) {
+        quotePos[0] ='\0';
+        }
+    quotePos = strstr( newF.funcName, "\"" );
+    if( quotePos != NULL ) {
+        quotePos[0] ='\0';
+        }
+
+
     for( int i=0; i<numVals; i++ ) {
         delete [] vals[i];
         }
     delete [] vals;
+
+    return newF;
     }
 
 
@@ -241,14 +260,33 @@ static void logGDBStackResponse() {
     
     int numFrames;
     char **frames = split( stackStart, frameMarker, &numFrames );
-    
+
+    Stack thisStack;
+    thisStack.sampleCount = 1;
     for( int i=0; i<numFrames; i++ ) {
-        logFrame( frames[i] );
-        
+        thisStack.frames.push_back( parseFrame( frames[i] ) );
         delete [] frames[i];
         }
     delete [] frames;
+
     
+    char match = false;
+    for( int i=0; i<stackLog.size(); i++ ) {
+        Stack *inOld = stackLog.getElement( i );
+        
+        if( stackCompare( inOld, &thisStack ) ) {
+            match = true;
+            inOld->sampleCount++;
+            break;
+            }
+        }
+    
+    if( match ) {
+        freeStack( &thisStack );
+        }
+    else {
+        stackLog.push_back( thisStack );
+        }
     }
 
 
@@ -403,39 +441,49 @@ int main( int inNumArgs, char **inArgs ) {
     
     printf( "%d stack samples taken\n", numSamples );
 
-    printf( "%d unique stack frames sampled\n", frameLog.size() );
+    printf( "%d unique stacks sampled\n", stackLog.size() );
     
     
     // simple insertion sort
-    SimpleVector<StackFrame> sortedFrames;
+    SimpleVector<Stack> sortedStacks;
     
-    while( frameLog.size() > 0 ) {
+    while( stackLog.size() > 0 ) {
         int max = 0;
-        StackFrame maxFrame;
+        Stack maxStack;
         int maxInd = -1;
-        for( int i=0; i<frameLog.size(); i++ ) {
-            StackFrame f = frameLog.getElementDirect( i );
+        for( int i=0; i<stackLog.size(); i++ ) {
+            Stack s = stackLog.getElementDirect( i );
             
-            if( f.sampleCount > max ) {
-                maxFrame = f;
-                max = f.sampleCount;
+            if( s.sampleCount > max ) {
+                maxStack = s;
+                max = s.sampleCount;
                 maxInd = i;
                 }
             }  
-        sortedFrames.push_back( maxFrame );
-        frameLog.deleteElement( maxInd );
+        sortedStacks.push_back( maxStack );
+        stackLog.deleteElement( maxInd );
         }
     
     printf( "\n\n\nReport:\n\n" );
     
-    for( int i=0; i<sortedFrames.size(); i++ ) {
-        StackFrame f = sortedFrames.getElementDirect( i );
-        printf( "%f%%: \t%s \t(%s:%d)\n\n", 
-                100 * f.sampleCount / (float )numSamples,
-                f.funcName, f.fileName, f.lineNum );
-        
-        delete [] f.funcName;
-        delete [] f.fileName;
+    for( int i=0; i<sortedStacks.size(); i++ ) {
+        Stack s = sortedStacks.getElementDirect( i );
+        printf( "%f%%: \t%s \t(%s:%d)\n", 
+                100 * s.sampleCount / (float )numSamples,
+                s.frames.getElement( 0 )->funcName, 
+                s.frames.getElement( 0 )->fileName, 
+                s.frames.getElement( 0 )->lineNum );
+        // print stack for context below
+        for( int j=1; j<s.frames.size(); j++ ) {
+            StackFrame f = s.frames.getElementDirect( j );
+            printf( "\t\t%s \t(%s:%d)\n", 
+                    f.funcName, 
+                    f.fileName, 
+                    f.lineNum );
+            }
+        printf( "\n\n" );
+
+        freeStack( &s );
         }
     
 
