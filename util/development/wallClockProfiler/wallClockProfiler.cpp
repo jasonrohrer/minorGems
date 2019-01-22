@@ -11,7 +11,7 @@
 
 static void usage() {
     printf( "Usage:\n\n"
-            "wallClockProfiler ./myProgram\n\n" );
+            "wallClockProfiler samples_per_sec ./myProgram\n\n" );
     exit( 1 );
     }
 
@@ -94,10 +94,15 @@ static void skipGDBResponse() {
 
 
 int main( int inNumArgs, char **inArgs ) {
-
-    if( inNumArgs != 2 ) {
+    printf( "%d args\n", inNumArgs );
+    
+    if( inNumArgs != 3 ) {
         usage();
         }
+    
+    int samplesPerSecond = 100;
+    
+    sscanf( inArgs[1], "%d", &samplesPerSecond );
     
 
 
@@ -128,7 +133,7 @@ int main( int inNumArgs, char **inArgs ) {
         //ask kernel to deliver SIGTERM in case the parent dies
         prctl( PR_SET_PDEATHSIG, SIGTERM );
 
-        execlp( "gdb", "gdb", "-nx", "--interpreter=mi", inArgs[1], NULL );
+        execlp( "gdb", "gdb", "-nx", "--interpreter=mi", inArgs[2], NULL );
 
         exit( 0 );
         }
@@ -153,16 +158,17 @@ int main( int inNumArgs, char **inArgs ) {
 
     sendCommand( "-exec-run" );
 
-    usleep( 10000 );
+    usleep( 100000 );
 
     skipGDBResponse();
     
+    printf( "Debugging program '%s'\n", inArgs[2] );
 
     char rawProgramName[100];
     
-    char *endOfPath = strrchr( inArgs[1], '/' );
+    char *endOfPath = strrchr( inArgs[2], '/' );
 
-    char *progName = inArgs[1];
+    char *progName = inArgs[2];
     
     if( endOfPath != NULL ) {
         progName = &( endOfPath[1] );
@@ -200,8 +206,7 @@ int main( int inNumArgs, char **inArgs ) {
     
     int numSamples = 0;
     
-    int samplesPerSecond = 100;
-    
+
     int usPerSample = 1000000 / samplesPerSecond;
     
 
