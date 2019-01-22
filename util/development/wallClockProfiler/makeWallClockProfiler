@@ -1,0 +1,1 @@
+g++ -g -I ../../../..  -o wallClockProfiler wallClockProfiler.cpp ../../../../minorGems/util/stringUtils.cpp
