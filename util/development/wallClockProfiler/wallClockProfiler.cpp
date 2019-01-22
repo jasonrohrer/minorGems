@@ -188,6 +188,11 @@ static void logFrame( char *inFrameString ) {
     else {
         f->sampleCount++;
         }
+    
+    for( int i=0; i<numVals; i++ ) {
+        delete [] vals[i];
+        }
+    delete [] vals;
     }
 
 
@@ -335,7 +340,9 @@ int main( int inNumArgs, char **inArgs ) {
     char *pidCall = autoSprintf( "pidof %s", progName );\
 
     FILE *pidPipe = popen( pidCall, "r" );
-
+    
+    delete [] pidCall;
+    
     if( pidPipe == NULL ) {
         printf( "Failed to open pipe to pidof to get debugged app pid\n" );
         return 1;
