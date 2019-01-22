@@ -240,7 +240,7 @@ static void logGDBStackResponse() {
     
     char *stackStart = &( stackStartPos[ strlen( stackStartMarker ) ] );
     
-    char *closeBracket = strstr( stackStart, "]" );
+    char *closeBracket = strstr( stackStart, "]\n" );
     
     if( closeBracket == NULL ) {
         return;
@@ -468,15 +468,18 @@ int main( int inNumArgs, char **inArgs ) {
     
     for( int i=0; i<sortedStacks.size(); i++ ) {
         Stack s = sortedStacks.getElementDirect( i );
-        printf( "%f%%: \t%s \t(%s:%d)\n", 
+        printf( "%6.3f%% =====================================\n"
+                "      %3d: %s   (at %s:%d)\n", 
                 100 * s.sampleCount / (float )numSamples,
+                1,
                 s.frames.getElement( 0 )->funcName, 
                 s.frames.getElement( 0 )->fileName, 
                 s.frames.getElement( 0 )->lineNum );
         // print stack for context below
         for( int j=1; j<s.frames.size(); j++ ) {
             StackFrame f = s.frames.getElementDirect( j );
-            printf( "\t\t%s \t(%s:%d)\n", 
+            printf( "      %3d: %s   (at %s:%d)\n", 
+                    j + 1,
                     f.funcName, 
                     f.fileName, 
                     f.lineNum );
