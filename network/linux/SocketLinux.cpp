@@ -79,6 +79,10 @@
  *
  * 2018-November-8  Jason Rohrer
  * Be careful that value passed into FD_SET is in range.
+ *
+ * 2019-January-24  Jason Rohrer
+ * Don't need to do select at all on receive if timeout 0 (using MSG_DONTWAIT
+ * anyway).  select was found to be a hotspot with profiler.
  */
 
 
@@ -397,47 +401,55 @@ int timed_read( int inSock, unsigned char *inBuf,
 	fd_set fsr;
 	struct timeval tv;
 	int ret;
+
+    // only need to do select stuff, which consumes substantial resources
+    // if we need a non-zero timeout
+    if( inMilliseconds > 0 ) {
+        
 	
-	//ret = fcntl( inSock, F_SETFL, O_NONBLOCK );
+        //ret = fcntl( inSock, F_SETFL, O_NONBLOCK );
 	
-    if( inSock >= FD_SETSIZE || inSock < 0 ) {
-        printf( "Socket ID %d out of range (FD_SETSIZE=%d) in timed_read, "
-                "treating it like a socket error.\n",
-                inSock, FD_SETSIZE );
-        return -1;
-        }
+        if( inSock >= FD_SETSIZE || inSock < 0 ) {
+            printf( "Socket ID %d out of range (FD_SETSIZE=%d) in timed_read, "
+                    "treating it like a socket error.\n",
+                    inSock, FD_SETSIZE );
+            return -1;
+            }
     
 
-	FD_ZERO( &fsr );
-	FD_SET( inSock, &fsr );
- 
-	tv.tv_sec = inMilliseconds / 1000;
-	int remainder = inMilliseconds % 1000;
-	tv.tv_usec = remainder * 1000;
-	
-	ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
-	
-	if( ret==0 ) {
-		// printf( "Timed out waiting for data on socket receive.\n" );
-		return -2;
-		}
-	
-    while( ret<0 && errno == EINTR ) {
-        // interrupted
-        // try again
+        FD_ZERO( &fsr );
+        FD_SET( inSock, &fsr );
+        
+        tv.tv_sec = inMilliseconds / 1000;
+        int remainder = inMilliseconds % 1000;
+        tv.tv_usec = remainder * 1000;
+        
         ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
-        }
+        
+        if( ret==0 ) {
+            // printf( "Timed out waiting for data on socket receive.\n" );
+            return -2;
+            }
+	
+        while( ret<0 && errno == EINTR ) {
+            // interrupted
+            // try again
+            ret = select( inSock + 1, &fsr, NULL, NULL, &tv );
+            }
 
-    if( ret == 0 ) {
-        // time out after at least one EINTR
-        return -2;
+        if( ret == 0 ) {
+            // time out after at least one EINTR
+            return -2;
+            }
+    
+
+        if( ret<0 ) {
+            perror( "Selecting socket during receive failed" );
+            return ret;
+            }
         }
     
 
-	if( ret<0 ) {
-        perror( "Selecting socket during receive failed" );
-        return ret;
-        }
 
     // do not use MSG_WAITALL flag here, since we just want to return
     // data that is available
@@ -445,7 +457,8 @@ int timed_read( int inSock, unsigned char *inBuf,
 	
 
     if( ret == 0  ) {
-        // select came back as 1, but no data there
+        // select came back as 1 (or MSG_DONTWAIT specified, if we
+        // have 0-timeout) but no data there
         // connection closed on remote end
         return -1;
         }
