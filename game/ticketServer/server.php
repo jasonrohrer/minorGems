@@ -195,6 +195,12 @@ else if( $action == "send_all_file_note" ) {
 else if( $action == "email_opt_in" ) {
     ts_emailOptIn();
     }
+else if( $action == "edit_email" ) {
+    ts_editEmail();
+    }
+else if( $action == "change_email" ) {
+    ts_changeEmail();
+    }
 else if( $action == "logout" ) {
     ts_logout();
     }
@@ -1271,6 +1277,9 @@ function ts_showDownloads() {
                 echo "[<a href=\"server.php?action=email_opt_in&in=1&".
                     "ticket_id=$ticket_id\">Opt In</a>] to email updates.";
                 }
+            echo " -- [<a href=\"server.php?action=edit_email&".
+                    "ticket_id=$ticket_id\">Change</a>] your email address.";
+               
             }
         
         
@@ -1423,6 +1432,80 @@ function ts_emailOptIn() {
             "ticket_id=$ticket_id\">Return</a>] to your download page.";
         
         eval( $footer );
+        }
+    }
+
+
+
+function ts_editEmail() {
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
+    
+    $ticket_id = strtoupper( $ticket_id );    
+    
+    global $tableNamePrefix, $remoteIP;
+
+    
+    if( ts_downloadAllowed() ) {
+        global $header, $footer;
+
+
+        $query = "SELECT email from $tableNamePrefix"."tickets ".
+            "WHERE ticket_id = '$ticket_id';";
+
+        $result = ts_queryDatabase( $query );
+    
+        $row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
+        
+        $email = $row[ "email" ];
+
+        
+        eval( $header );
+
+?>
+        <center><br>
+        <font size=6>Edit Email:</font><br><br>
+        <FORM ACTION="server.php" METHOD="post">
+        <INPUT TYPE="hidden" NAME="action" VALUE="change_email">
+        <INPUT TYPE="hidden" NAME="ticket_id" VALUE="<?php echo $ticket_id;?>">
+        <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="email"
+             VALUE="<?php echo $email;?>">
+        <INPUT TYPE="Submit" VALUE="Update">
+        </FORM>
+        </center>
+<?php
+
+        echo "<br><br>";
+        
+        echo "[<a href=\"server.php?action=show_downloads&".
+            "ticket_id=$ticket_id\">Return</a>] to your download page.";
+        
+        eval( $footer );
+        }
+    }
+
+
+
+
+function ts_changeEmail() {
+    $ticket_id = ts_requestFilter( "ticket_id", "/[A-HJ-NP-Z2-9\-]+/i" );
+    $email = ts_requestFilter( "email", "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i" );
+
+    $ticket_id = strtoupper( $ticket_id );    
+
+    global $tableNamePrefix;
+
+    
+    if( ts_downloadAllowed() ) {
+
+
+        $query = "UPDATE $tableNamePrefix"."tickets ".
+            "SET email='$email' WHERE ticket_id = '$ticket_id';";
+
+        $result = ts_queryDatabase( $query );
+
+        ts_log( "Email changed to $email for ticket $ticket_id" );
+        
+        ts_showDownloads();
         }
     }
 
