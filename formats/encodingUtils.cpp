@@ -471,8 +471,8 @@ unsigned char *zipCompress( unsigned char *inData, int inDataLength,
         return NULL;
         }
     
-    printf( "Compressed %d bytes down to %d\n", 
-            inDataLength, (int)compLength );
+    //printf( "Compressed %d bytes down to %d\n", 
+    //        inDataLength, (int)compLength );
     
     unsigned char *shortBuffer = new unsigned char[ compLength ];
     
