@@ -194,6 +194,9 @@ $extraEmailMessage =
 $ticketsPerPage = 6;
 
 
+// can users edit their own email?
+$canEditEmail = false;
+
 
 
 // SMTP settings

@@ -1277,9 +1277,14 @@ function ts_showDownloads() {
                 echo "[<a href=\"server.php?action=email_opt_in&in=1&".
                     "ticket_id=$ticket_id\">Opt In</a>] to email updates.";
                 }
-            echo " -- [<a href=\"server.php?action=edit_email&".
+
+            global $canEditEmail;
+            
+            if( $canEditEmail ) {
+
+                echo " -- [<a href=\"server.php?action=edit_email&".
                     "ticket_id=$ticket_id\">Change</a>] your email address.";
-               
+                }
             }
         
         
@@ -1449,6 +1454,21 @@ function ts_editEmail() {
         global $header, $footer;
 
 
+        global $canEditEmail;
+
+        if( ! $canEditEmail ) {
+            
+            eval( $header );
+            
+            echo "Operation disabled.";
+            
+            eval( $footer );
+            
+            return;
+            }
+        
+        
+
         $query = "SELECT email from $tableNamePrefix"."tickets ".
             "WHERE ticket_id = '$ticket_id';";
 
@@ -1497,6 +1517,20 @@ function ts_changeEmail() {
     
     if( ts_downloadAllowed() ) {
 
+        global $canEditEmail;
+
+        if( ! $canEditEmail ) {
+            global $header, $footer;
+            
+            eval( $header );
+            
+            echo "Operation disabled.";
+            
+            eval( $footer );
+
+            return;
+            }
+        
 
         $query = "UPDATE $tableNamePrefix"."tickets ".
             "SET email='$email' WHERE ticket_id = '$ticket_id';";
