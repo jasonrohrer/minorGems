@@ -117,6 +117,34 @@ SimpleVector<char *> *SettingsManager::getSetting(
 
 
 
+SimpleVector<int> *SettingsManager::getIntSettingMulti( 
+    const char *inSettingName ) {
+
+    SimpleVector<char*> *settingStrings = getSetting( inSettingName );
+    
+
+    SimpleVector<int> *settingInts = 
+        new SimpleVector<int>( settingStrings->size() );
+    
+
+    for( int i=0; i< settingStrings->size(); i++ ) {
+        int value;
+        
+        int numRead = sscanf( settingStrings->getElementDirect( i ), "%d",
+                              &value );
+
+        if( numRead == 1 ) {
+            settingInts->push_back( value );
+            }
+        }
+    
+    settingStrings->deallocateStringElements();
+    
+    delete settingStrings;
+    
+    return settingInts;
+    }
+
 
 
 char *SettingsManager::getSettingContents( const char *inSettingName ) {

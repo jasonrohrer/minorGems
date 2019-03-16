@@ -41,6 +41,9 @@
  * 2017-November-17    Jason Rohrer
  * getStringSetting back to returning first token, with new getSettingContents
  * function for getting entire file contents.
+ *
+ * 2019-March-15    Jason Rohrer
+ * Support for returning list of ints from setting.
  */
 
 #include "minorGems/common.h"
@@ -142,6 +145,9 @@ class SettingsManager {
          *   by the caller.
          */
         static SimpleVector<char *> *getSetting( const char *inSettingName );
+
+        static SimpleVector<int> *getIntSettingMulti(
+            const char *inSettingName );
 
 
 
