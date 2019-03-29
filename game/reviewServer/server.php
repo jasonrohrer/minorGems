@@ -1179,8 +1179,6 @@ function rs_getSequenceNumber() {
     $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
 
     if( $email == "" ) {
-        rs_log( "getSequenceNumber denied for bad email" );
-
         echo "DENIED";
         return;
         }
