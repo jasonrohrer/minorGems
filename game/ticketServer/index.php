@@ -34,11 +34,6 @@ global $enableYubikey, $passwordHashingPepper;
 
 <body onload="calcHMAC()">
 
-<FORM>
-    <INPUT TYPE="password" MAXLENGTH=20 SIZE=20 NAME="password" autofocus id="hmacInputText" onkeyup="calcHMAC()">
-</FORM>
-
-
 
 <FORM ACTION="server.php" METHOD="post">
 <?php
@@ -50,11 +45,15 @@ if( $enableYubikey ) {
     <INPUT TYPE="password" MAXLENGTH=48 SIZE=48 NAME="yubikey">
 
 <?php
+    } else {
+?>
+    <INPUT TYPE="password" MAXLENGTH=20 SIZE=20 NAME="password" autofocus id="hmacInputText" onkeyup="calcHMAC()">
+<?php
     }
 ?>
 
     <INPUT TYPE="hidden" NAME="action" VALUE="show_data">
-	        <INPUT TYPE="Submit" VALUE="login">
+    <INPUT TYPE="Submit" VALUE="login">
 
 <br>
 <br>
