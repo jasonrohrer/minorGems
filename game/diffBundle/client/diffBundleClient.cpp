@@ -68,7 +68,7 @@ static int oldVersionNumber;
 
 static char batchMirrorUpdate = false;
 
-static char batchStepsDone = 0;
+static int batchStepsDone = 0;
 
 // true if this update is via a mirror url with "all" for the platform name
 // on windows, this means we need to do line end conversion on text files
