@@ -18,6 +18,9 @@
  *
  * 2011-February-16    Jason Rohrer
  * Flag to print next log message to std out.
+ *
+ * 2019-April-29    Jason Rohrer
+ * Backup logs moved instead of copied, which was slow for large files.
  */
 
 
@@ -126,21 +129,25 @@ void FileLog::logStringV( const char *inLoggerName,
 void FileLog::makeBackup() {
     fclose( mLogFile );
 
-    File *currentLogFile = new File( NULL, mLogFileName );
-
     char *backupFileName = new char[ strlen( mLogFileName ) + 10 ];
     sprintf( backupFileName, "%s.backup", mLogFileName );
 
-
     File *backupLogFile = new File( NULL, backupFileName );
+    
+    // don't copy
+    // this can be a big file, and that will be slow
+
+    // move instead
+
+    // remove old one first 
+    // (to avoid implementation-dependent behavior if destination exists)
+    backupLogFile->remove();
+    
+    rename( mLogFileName, backupFileName );
+    
+
     delete [] backupFileName;
     
-    
-    // copy into backup log file, which will overwrite it
-    currentLogFile->copy( backupLogFile );
-    
-
-    delete currentLogFile;
     delete backupLogFile;
 
 
