@@ -1585,7 +1585,7 @@ function ts_checkForSteamEmail( $inEmail ) {
 function ts_doesSteamUserOwnApp( $inSteamID ) {
     global $steamAppID, $steamWebAPIKey;
     
-    $url = "https://api.steampowered.com/ISteamUser/CheckAppOwnership/V0001".
+    $url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/V0001".
         "?format=xml".
         "&key=$steamWebAPIKey".
         "&steamid=$inSteamID".

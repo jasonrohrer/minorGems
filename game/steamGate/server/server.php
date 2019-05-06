@@ -733,7 +733,7 @@ function sg_countKeysInBank() {
 function sg_doesSteamUserOwnApp( $inSteamID ) {
     global $steamAppID, $steamWebAPIKey;
     
-    $url = "https://api.steampowered.com/ISteamUser/CheckAppOwnership/V0001".
+    $url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/V0001".
         "?format=xml".
         "&key=$steamWebAPIKey".
         "&steamid=$inSteamID".
@@ -771,7 +771,7 @@ function sg_grantPackage( $inSteamID ) {
     global $steamAppID, $steamWebAPIKey, $packageID, $remoteIP;
 
     /*
-      $url = "https://api.steampowered.com/ISteamUser/GrantPackage/v1".
+      $url = "https://partner.steam-api.com/ISteamUser/GrantPackage/v1".
       "?format=xml".
       "&key=$steamWebAPIKey".
       "&steamid=$inSteamID".
@@ -815,7 +815,7 @@ function sg_grantPackage( $inSteamID ) {
     $context  = stream_context_create( $opts );
 
     $result = file_get_contents(
-        'https://api.steampowered.com/ISteamUser/GrantPackage/v1',
+        'https://partner.steam-api.com/ISteamUser/GrantPackage/v1',
         false, $context );
 
     // not sure about format of results from GrantPackage
@@ -856,7 +856,7 @@ function sg_getSteamIDFromUserTicket( $inTicket ) {
     global $steamAppID, $steamWebAPIKey;
     
     $url =
-        "https://api.steampowered.com/ISteamUserAuth/".
+        "https://partner.steam-api.com/ISteamUserAuth/".
         "AuthenticateUserTicket/V0001".
         "?format=xml".
         "&key=$steamWebAPIKey".
