@@ -49,6 +49,7 @@
 *		Jason Rohrer	12-26-2017	deleteLastElement, push_back other vector.
 *		Jason Rohrer	1-4-2018	deleteStartElements for efficiency.
 *		Jason Rohrer	7-12-2018	push_middle function.
+*		Jason Rohrer	5-10-2019	getElementDirectFast function.
 */
 
 #include "minorGems/common.h"
@@ -109,6 +110,8 @@ class SimpleVector {
         //  vector)
         // This is useful when the vector is storing pointers anyway.
 		Type getElementDirect(int index);
+
+        Type getElementDirectFast(int index);  // no bounds checking
 
 
         Type *getLastElement() {
@@ -397,6 +400,14 @@ inline Type SimpleVector<Type>::getElementDirect(int index) {
         }
 	}
 	
+
+
+template <class Type>
+inline Type SimpleVector<Type>::getElementDirectFast(int index) {
+    return elements[index];
+	}
+
+
 
 template <class Type>
 inline bool SimpleVector<Type>::deleteElement(int index) {
