@@ -3,3 +3,7 @@
 ALTER TABLE reviewServer_user_stats ADD INDEX review_score ( review_score );
 ALTER TABLE reviewServer_user_stats ADD INDEX review_date ( review_date );
 ALTER TABLE reviewServer_user_stats ADD INDEX game_total_seconds ( game_total_seconds );
+
+
+
+ALTER TABLE reviewServer_user_stats ADD lives_since_recent_poll INT NOT NULL AFTER review_votes;

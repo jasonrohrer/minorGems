@@ -95,6 +95,18 @@ rs_connectToDatabase();
 //sleep( 5 );
 
 
+$maxNumAnswers = 10;
+
+$answerNames = array();
+$answerLetters = array( "A", "B", "C",
+                        "D", "E", "F",
+                        "G", "H", "I",
+                        "J" );
+for( $i=0; $i<$maxNumAnswers; $i++ ) {
+    $answerNames[$i] = "answer" . $answerLetters[$i];
+    }
+
+
 // general processing whenver server.php is accessed directly
 
 
@@ -147,6 +159,12 @@ else if( $action == "regen_static_html" ) {
 else if( $action == "show_detail" ) {
     rs_showDetail();
     }
+else if( $action == "create_poll" ) {
+    rs_createPoll();
+    }
+else if( $action == "delete_poll" ) {
+    rs_deletePoll();
+    }
 else if( $action == "view_review" ) {
     rs_viewReview();
     }
@@ -189,6 +207,7 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
     
     // check if our tables exist
     $exists = rs_doesTableExist( $tableNamePrefix . "user_stats" ) &&
+        rs_doesTableExist( $tableNamePrefix . "polls" ) &&
         rs_doesTableExist( $tableNamePrefix . "log" );
     
         
@@ -281,7 +300,53 @@ function rs_setupDatabase() {
             "review_game_seconds INT NOT NULL," .
             "review_game_count INT NOT NULL," .
             // in future, we may allow users to upvote/downvote reviews
-            "review_votes INT NOT NULL );";
+            "review_votes INT NOT NULL,".
+            "lives_since_recent_poll INT NOT NULL );";
+
+        $result = rs_queryDatabase( $query );
+
+        echo "<B>$tableName</B> table created<BR>";
+        }
+    else {
+        echo "<B>$tableName</B> table already exists<BR>";
+        }
+
+
+
+    $tableName = $tableNamePrefix . "polls";
+    if( ! rs_doesTableExist( $tableName ) ) {
+
+        // this table contains general info about each ticket
+        $query =
+            "CREATE TABLE $tableName(" .
+            "id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT," .
+            "post_date DATETIME NOT NULL," .
+            "start_date DATETIME NOT NULL," .
+            "end_date DATETIME NOT NULL," .
+            "min_lives INT NOT NULL,".
+            "min_lives_since_post_date INT NOT NULL,".
+            "question TEXT NOT NULL," .
+            // up to 10 answers
+            // later answers are "" if there are fewer answers
+            "answerA TEXT NOT NULL," .
+            "answerB TEXT NOT NULL," .
+            "answerC TEXT NOT NULL," .
+            "answerD TEXT NOT NULL," .
+            "answerE TEXT NOT NULL," .
+            "answerF TEXT NOT NULL," .
+            "answerG TEXT NOT NULL," .
+            "answerH TEXT NOT NULL," .
+            "answerI TEXT NOT NULL," .
+            "answerJ TEXT NOT NULL," .
+            "answerA_count int NOT NULL," .
+            "answerB_count int NOT NULL," .
+            "answerC_count int NOT NULL," .
+            "answerD_count int NOT NULL," .
+            "answerE_count int NOT NULL," .
+            "answerF_count int NOT NULL," .
+            "answerG_count int NOT NULL," .
+            "answerH_count int NOT NULL," .
+            "answerI_count int NOT NULL );";
 
         $result = rs_queryDatabase( $query );
 
@@ -659,6 +724,158 @@ function rs_showData( $checkPassword = true ) {
     echo "</table>";
 
 
+
+    echo "<br><br><hr><br><br>";
+
+    
+
+    // now show polls
+
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix".
+        "polls;";
+
+    $result = rs_queryDatabase( $query );
+    $totalRecords = rs_mysqli_result( $result, 0, 0 );
+
+
+    $poll_skip = rs_requestFilter( "poll_skip", "/[0-9]+/", 0 );
+
+    $startSkip = $poll_skip + 1;
+    
+    $endSkip = $startSkip + $usersPerPage - 1;
+
+    if( $endSkip > $totalRecords ) {
+        $endSkip = $totalRecords;
+        }
+
+    echo "$totalRecords poll records". $searchDisplay .
+        " (showing $startSkip - $endSkip):<br>\n";
+    
+    
+    $nextSkip = $poll_skip + $usersPerPage;
+
+    $prevSkip = $poll_skip - $usersPerPage;
+    
+    if( $prevSkip >= 0 ) {
+        echo "[<a href=\"server.php?action=show_data" .
+            "&poll_skip=$prevSkip\">".
+            "Previous Page</a>] ";
+        }
+    if( $nextSkip < $totalRecords ) {
+        echo "[<a href=\"server.php?action=show_data" .
+            "&poll_skip=$nextSkip\">".
+            "Next Page</a>]";
+        }
+
+    echo "<br><br>";
+    
+    
+
+    $query = "SELECT * FROM $tableNamePrefix"."polls $keywordClause".
+        "ORDER BY post_date desc ".
+        "LIMIT $poll_skip, $usersPerPage;";
+    $result = rs_queryDatabase( $query );
+    
+    $numRows = mysqli_num_rows( $result );
+    
+    echo "<table border=1 cellpadding=5>\n";
+    
+    echo "<tr>\n";    
+    echo "<td>Post Date</td>\n";
+    echo "<td>Start</td>\n";
+    echo "<td>End</td>\n";
+    echo "<td>Question</td>\n";
+    echo "<td>Answers</td>\n";
+    echo "<td></td>\n";
+    echo "</tr>\n";
+
+
+    global $maxNumAnswers, $answerNames;
+    
+    for( $i=0; $i<$numRows; $i++ ) {
+        $id = rs_mysqli_result( $result, $i, "id" );
+
+        $post_date = rs_mysqli_result( $result, $i, "post_date" );
+        $start_date = rs_mysqli_result( $result, $i, "start_date" );
+        $end_date = rs_mysqli_result( $result, $i, "end_date" );
+
+        $question = rs_mysqli_result( $result, $i, "question" );
+
+        $answers = array();
+
+        $answerCounts = array();
+
+        for( $a=0; $a < $maxNumAnswers; $a++ ) {
+            $ans = rs_mysqli_result( $result, $i, $answerNames[$a] );
+
+            if( $ans != "" ) {
+                $answers[] = $ans;
+                $num = rs_mysqli_result( $result, $i,
+                                         $answerNames[$a] . "_count" );
+                $answerCounts[] = $num;
+                }
+            }
+        
+        echo "<tr>\n";
+        
+        echo "<td>$post_date</td>\n";
+        echo "<td>$start_date</td>\n";
+        echo "<td>$end_date</td>\n";
+        echo "<td>$question</td>\n";
+
+        echo "<td>";
+
+        $a = 0;
+        foreach( $answers as $ans ) {
+            echo "$ans : <b>" . $answerCounts[$a] . "</b><br>";
+            $a ++;
+            }
+        echo "</td>";
+
+        echo "<td><FORM ACTION=server.php METHOD=post>".
+            "<INPUT TYPE=hidden NAME=action VALUE=delete_poll>".
+            "<INPUT TYPE=hidden NAME=id VALUE=$id>".
+            "<INPUT TYPE=checkbox NAME=confirm VALUE=1>".      
+            "<INPUT TYPE=Submit VALUE=Delete>".
+            "</FORM></td>";
+        
+        echo "</tr>\n";
+        }
+    echo "</table>";
+
+
+    echo "<br><br><hr><br><br>";
+
+    // form for adding a new poll
+
+    echo "Create new Poll:<br><br>"
+?>
+    <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="create_poll">
+         Start in:
+    <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="start_hours"
+          value="2"> hours<br>
+         Run for:
+    <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="run_days"
+          value="2"> days<br>
+         
+         Question:<br>
+     <TEXTAREA NAME="question" COLS=60 ROWS=10></TEXTAREA><br>
+               Answers:<br>
+<?php
+    for( $a=0; $a < $maxNumAnswers; $a++ ) {
+        $name = $answerNames[$a];
+        
+        echo "<INPUT TYPE=text MAXLENGTH=80 SIZE=40 NAME=$name ".
+        "value='' ><br>";
+        }
+    ?>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="Send">
+    </FORM>
+<?php
+    
+
     echo "<hr>";
     
     echo "<a href=\"server.php?action=show_log\">".
@@ -723,6 +940,122 @@ function rs_showDetail( $checkPassword = true ) {
     
     }
 
+
+
+
+function rs_createPoll() {
+    rs_checkPassword( "create_poll" );
+    
+    echo "[<a href=\"server.php?action=show_data" .
+         "\">Main</a>]<br><br><br>";
+    
+    global $tableNamePrefix;
+
+    $confirm = rs_requestFilter( "confirm", "/[01]/" );
+
+
+    if( $confirm != 1 ) {
+        echo "You must check the Confirm box to create a poll\n";
+        return;
+        }
+    
+
+    $question = "";
+    if( isset( $_REQUEST[ "question" ] ) ) {
+        $question = $_REQUEST[ "question" ];
+        }
+
+    $start_hours = rs_requestFilter( "start_hours", "/[0-9]+/", 1 );
+    
+    $run_days = rs_requestFilter( "run_days", "/[0-9]+/", 1 );
+
+    $min_lives = rs_requestFilter( "min_lives", "/[0-9]+/", 10 );
+
+    $min_lives_since_post_date =
+        rs_requestFilter( "min_lives_since_post_date", "/[0-9]+/", 2 );
+
+    $answers = array();
+
+    global $maxNumAnswers, $answerNames;
+    
+    for( $i=0; $i<$maxNumAnswers; $i++ ) {
+        $answers[$i] = "";
+
+        if( isset( $_REQUEST[ $answerNames[$i] ] ) ) {
+            $answers[$i] = $_REQUEST[ $answerNames[$i] ];
+            }
+        
+        rs_log( $answerNames[$i] );
+        rs_log( $answers[$i] );
+        }
+
+    global $maxNumAnswers, $answerNames;
+    
+    $answerClause = "";
+    for( $i=0; $i<$maxNumAnswers; $i++ ) {
+        $answerClause =
+            $answerClause .
+            $answerNames[$i] .
+            " = '" . $answers[$i] . "' ";
+        if( $i < $maxNumAnswers - 1 ) {
+            $answerClause = $answerClause . " , ";
+            }
+        }
+
+    global $tableNamePrefix;
+    
+    $query = "INSERT INTO $tableNamePrefix". "polls SET " .
+        "post_date = CURRENT_TIMESTAMP, ".
+        "start_date = DATE_ADD( CURRENT_TIMESTAMP, ".
+        "  INTERVAL $start_hours HOUR ), ".
+        "end_date = DATE_ADD( DATE_ADD( CURRENT_TIMESTAMP, ".
+        "  INTERVAL $start_hours HOUR ), INTERVAL $run_days DAY ), ".
+        "min_lives = $min_lives, ".
+        "min_lives_since_post_date = $min_lives_since_post_date, ".
+        "question = '$question', ".
+        $answerClause .
+        ";";
+
+    rs_log( $query );
+    
+    rs_queryDatabase( $query );
+
+
+    // reset lives for all users
+    $query = "UPDATE $tableNamePrefix". "user_stats SET " .
+        "lives_since_recent_poll = 0;";
+
+    rs_queryDatabase( $query );
+    }
+
+
+
+function rs_deletePoll() {
+    rs_checkPassword( "delete_poll" );
+
+    
+    global $tableNamePrefix;
+
+    $confirm = rs_requestFilter( "confirm", "/[01]/" );
+    
+    if( $confirm != 1 ) {
+        echo "[<a href=\"server.php?action=show_data" .
+            "\">Main</a>]<br><br><br>";
+        echo "You must check the Confirm box to delete a poll\n";
+        return;
+        }
+
+    
+    $id = rs_requestFilter( "id", "/[0-9]+/", -1 );
+    
+    global $tableNamePrefix;
+    
+    rs_queryDatabase( "DELETE FROM $tableNamePrefix"."polls " .
+                      "WHERE id = $id;" );
+    
+    
+    rs_showData( false );
+    }
 
 
 // called from web UI
