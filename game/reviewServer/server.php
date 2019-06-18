@@ -165,6 +165,9 @@ else if( $action == "create_poll" ) {
 else if( $action == "delete_poll" ) {
     rs_deletePoll();
     }
+else if( $action == "check_for_poll" ) {
+    rs_checkForPoll();
+    }
 else if( $action == "view_review" ) {
     rs_viewReview();
     }
@@ -302,7 +305,8 @@ function rs_setupDatabase() {
             // in future, we may allow users to upvote/downvote reviews
             "review_votes INT NOT NULL,".
             "lives_since_recent_poll INT NOT NULL,".
-            "seconds_lived_since_recent_poll INT NOT NULL );";
+            "seconds_lived_since_recent_poll INT NOT NULL, ".
+            "recent_poll_answered TINYINT NOT NULL );";
 
         $result = rs_queryDatabase( $query );
 
@@ -1017,7 +1021,7 @@ function rs_createPoll() {
     echo "[<a href=\"server.php?action=show_data" .
          "\">Main</a>]<br><br><br>";
     
-    global $tableNamePrefix;
+    global $tableNamePrefix, $rs_mysqlLink;
 
     $confirm = rs_requestFilter( "confirm", "/[01]/" );
 
@@ -1033,6 +1037,8 @@ function rs_createPoll() {
         $question = $_REQUEST[ "question" ];
         }
 
+    $question = mysqli_real_escape_string( $rs_mysqlLink, $question );
+    
     $start_hours = rs_requestFilter( "start_hours", "/[0-9]+/", 1 );
     
     $run_days = rs_requestFilter( "run_days", "/[0-9]+/", 1 );
@@ -1061,9 +1067,8 @@ function rs_createPoll() {
         if( isset( $_REQUEST[ $answerNames[$i] ] ) ) {
             $answers[$i] = $_REQUEST[ $answerNames[$i] ];
             }
-        
-        rs_log( $answerNames[$i] );
-        rs_log( $answers[$i] );
+
+        $answers[$i] = mysqli_real_escape_string( $rs_mysqlLink, $answers[$i] );
         }
 
     global $maxNumAnswers, $answerNames;
@@ -1103,7 +1108,8 @@ function rs_createPoll() {
 
     // reset lives for all users
     $query = "UPDATE $tableNamePrefix". "user_stats SET " .
-        "lives_since_recent_poll = 0;";
+        "lives_since_recent_poll = 0, seconds_lived_since_recent_poll = 0, ".
+        "recent_poll_answered = 0;";
 
     rs_queryDatabase( $query );
     }
@@ -1136,6 +1142,103 @@ function rs_deletePoll() {
     
     rs_showData( false );
     }
+
+
+
+
+
+function rs_checkForPoll() {
+
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
+
+    if( $email == "" ) {
+        echo "DENIED";
+        return;
+        }
+    
+    
+    global $tableNamePrefix;
+
+
+    $query = "SELECT * FROM $tableNamePrefix"."user_stats ".
+            "WHERE email = '$email';";
+    $result = rs_queryDatabase( $query );
+
+    $numRows = mysqli_num_rows( $result );
+
+    if( $numRows == 0 ) {
+        echo "DENIED";
+        return;
+        }
+    
+
+    $game_count =
+        rs_mysqli_result( $result, 0, "game_count" );
+    $game_total_seconds =
+        rs_mysqli_result( $result, 0, "game_total_seconds" );
+
+
+    $seconds_lived_since_recent_poll =
+        rs_mysqli_result( $result, 0, "seconds_lived_since_recent_poll" );
+
+    $lives_since_recent_poll =
+        rs_mysqli_result( $result, 0, "lives_since_recent_poll" );
+    
+    $recent_poll_answered =
+        rs_mysqli_result( $result, 0, "recent_poll_answered" );
+
+    if( $recent_poll_answered ) {
+        echo "DENIED";
+        return;
+        }
+
+
+    $query = "SELECT * FROM $tableNamePrefix"."polls ".
+        "WHERE start_date <= CURRENT_TIMESTAMP AND ".
+        "end_date > CURRENT_TIMESTAMP AND ".
+        "min_lives <= $game_count AND ".
+        "min_lives_since_post_date <= $lives_since_recent_poll AND ".
+        "min_lived_seconds <= $game_total_seconds AND ".
+        "min_lived_seconds_since_post_date <= ".
+        "    $seconds_lived_since_recent_poll;";
+
+
+    $result = rs_queryDatabase( $query );
+
+    $numRows = mysqli_num_rows( $result );
+
+    if( $numRows == 0 ) {
+        echo "DENIED";
+        return;
+        }
+
+
+    $poll_id = rs_mysqli_result( $result, 0, "id" );
+
+    echo "$poll_id\n";
+
+
+    $question = rs_mysqli_result( $result, 0, "question" );
+
+    echo "$question\n";
+
+
+    global $maxNumAnswers, $answerNames;
+    
+    for( $i=0; $i<$maxNumAnswers; $i++ ) {
+        $answers[$i] = "";
+
+        $ans = rs_mysqli_result( $result, 0, $answerNames[$i] );
+
+        if( $ans != "" ) {
+            echo "$ans\n";
+            }
+        }
+
+    echo "OK";
+    }
+
+
 
 
 // called from web UI

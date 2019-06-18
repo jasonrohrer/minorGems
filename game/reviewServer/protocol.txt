@@ -104,3 +104,53 @@ Return:
 OK
 
 Used by cron job to trigger regeneration of static html
+
+
+
+
+
+
+
+
+
+server.php
+?action=check_for_poll
+&email=[email address]
+
+
+Return:
+DENIED
+-or-
+poll_id
+question
+answerA
+answerB
+answerC
+...
+OK
+
+
+DENIED if no poll available for this email address
+
+
+
+
+server.php
+?action=poll_vote
+&email=[email address]
+&vote_number=number
+&poll_id=id
+&hash_value=[hash value]
+
+Return:
+OK
+-or-
+DENIED
+
+
+Vote for answer number for a given poll.
+
+
+Hash computed by:
+
+HMAC_SHA1( $ticket_id, $poll_id )
