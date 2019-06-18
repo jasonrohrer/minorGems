@@ -301,7 +301,8 @@ function rs_setupDatabase() {
             "review_game_count INT NOT NULL," .
             // in future, we may allow users to upvote/downvote reviews
             "review_votes INT NOT NULL,".
-            "lives_since_recent_poll INT NOT NULL );";
+            "lives_since_recent_poll INT NOT NULL,".
+            "seconds_lived_since_recent_poll INT NOT NULL );";
 
         $result = rs_queryDatabase( $query );
 
@@ -325,6 +326,8 @@ function rs_setupDatabase() {
             "end_date DATETIME NOT NULL," .
             "min_lives INT NOT NULL,".
             "min_lives_since_post_date INT NOT NULL,".
+            "min_lived_seconds INT NOT NULL,".
+            "min_lived_seconds_since_post_date INT NOT NULL,".
             "question TEXT NOT NULL," .
             // up to 10 answers
             // later answers are "" if there are fewer answers
@@ -782,8 +785,9 @@ function rs_showData( $checkPassword = true ) {
     
     echo "<tr>\n";    
     echo "<td>Post Date</td>\n";
-    echo "<td>Start</td>\n";
-    echo "<td>End</td>\n";
+    echo "<td>Start/End</td>\n";
+    echo "<td>Min Lives</td>\n";
+    echo "<td>Min Lived Time</td>\n";
     echo "<td>Question</td>\n";
     echo "<td>Answers</td>\n";
     echo "<td></td>\n";
@@ -799,6 +803,17 @@ function rs_showData( $checkPassword = true ) {
         $start_date = rs_mysqli_result( $result, $i, "start_date" );
         $end_date = rs_mysqli_result( $result, $i, "end_date" );
 
+        $min_lives = rs_mysqli_result( $result, $i, "min_lives" );
+        $min_lives_since_post_date =
+            rs_mysqli_result( $result, $i, "min_lives_since_post_date" );
+
+        $min_lived_seconds =
+            rs_mysqli_result( $result, $i, "min_lived_seconds" );
+        $min_lived_seconds_since_post_date =
+            rs_mysqli_result( $result, $i,
+                              "min_lived_seconds_since_post_date" );
+
+        
         $question = rs_mysqli_result( $result, $i, "question" );
 
         $answers = array();
@@ -817,10 +832,50 @@ function rs_showData( $checkPassword = true ) {
             }
         
         echo "<tr>\n";
+
+        $postAgo = rs_secondsToAgeSummary( strtotime( "now" ) -
+                                           strtotime( $post_date ) );
         
-        echo "<td>$post_date</td>\n";
-        echo "<td>$start_date</td>\n";
-        echo "<td>$end_date</td>\n";
+        echo "<td>$post_date<br>($postAgo ago)</td>\n";
+
+        $startAgoSec = strtotime( "now" ) - strtotime( $start_date );
+
+        $startAgo;
+
+        if( $startAgoSec > 0 ) {
+            $startAgo = rs_secondsToAgeSummary( $startAgoSec ) . " ago";
+            }
+        else {
+            $startAgo = "in " . rs_secondsToAgeSummary( -$startAgoSec );
+            }
+
+
+        $endAgoSec = strtotime( "now" ) - strtotime( $end_date );
+
+        $endAgo;
+
+        if( $endAgoSec > 0 ) {
+            $endAgo = rs_secondsToAgeSummary( $endAgoSec ) . " ago";
+            }
+        else {
+            $endAgo = "in " . rs_secondsToAgeSummary( -$endAgoSec );
+            }
+
+        $runTime = rs_secondsToTimeSummary( strtotime( $end_date ) -
+                                            strtotime( $start_date ) );
+        
+        
+        echo "<td>$start_date<br>($startAgo)<br><br>".
+            "to<br><br>$end_date<br>($endAgo)<br><br>".
+            "Run time:  $runTime</td>\n";
+        
+        echo "<td>$min_lives<br>($min_lives_since_post_date new)</td>\n";
+        $livedTime = rs_secondsToTimeSummary( $min_lived_seconds );
+        $livedTimeSince =
+            rs_secondsToTimeSummary( $min_lived_seconds_since_post_date );
+
+        echo "<td>$livedTime<br>($livedTimeSince new)</td>\n";
+        
         echo "<td>$question</td>\n";
 
         echo "<td>";
@@ -858,6 +913,19 @@ function rs_showData( $checkPassword = true ) {
          Run for:
     <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="run_days"
           value="2"> days<br>
+          Min Lives:
+    <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="min_lives"
+          value="10"><br>
+         Min Lives Since Poll Posted:
+    <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="min_lives_since_post_date"
+          value="3"><br>
+
+         Min Lived Hours:
+    <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="min_lived_hours"
+          value="2"><br>
+         Min Lived Minutes Since Poll Posted:
+    <INPUT TYPE="text" MAXLENGTH=10 SIZE=10 NAME="min_lived_minutes_since_post_date"
+          value="60"><br>
          
          Question:<br>
      <TEXTAREA NAME="question" COLS=60 ROWS=10></TEXTAREA><br>
@@ -974,6 +1042,15 @@ function rs_createPoll() {
     $min_lives_since_post_date =
         rs_requestFilter( "min_lives_since_post_date", "/[0-9]+/", 2 );
 
+        $min_lives = rs_requestFilter( "min_lives", "/[0-9]+/", 10 );
+
+    $min_lived_hours =
+        rs_requestFilter( "min_lived_hours", "/[0-9]+/", 2 );
+
+    $min_lived_minutes_since_post_date =
+        rs_requestFilter( "min_lived_minutes_since_post_date", "/[0-9]+/", 2 );
+
+    
     $answers = array();
 
     global $maxNumAnswers, $answerNames;
@@ -1012,6 +1089,9 @@ function rs_createPoll() {
         "  INTERVAL $start_hours HOUR ), INTERVAL $run_days DAY ), ".
         "min_lives = $min_lives, ".
         "min_lives_since_post_date = $min_lives_since_post_date, ".
+        "min_lived_seconds = $min_lived_hours * 3600, ".
+        "min_lived_seconds_since_post_date = ".
+        "    $min_lived_minutes_since_post_date * 60, ".
         "question = '$question', ".
         $answerClause .
         ";";
@@ -1611,7 +1691,10 @@ function rs_logGame() {
             "game_count = game_count + 1, " .
             "game_total_seconds = game_total_seconds + $game_seconds, " .
             "last_game_date = CURRENT_TIMESTAMP, " .
-            "last_game_seconds = $game_seconds " .
+            "last_game_seconds = $game_seconds, " .
+            "lives_since_recent_poll = lives_since_recent_poll + 1, " .
+            "seconds_lived_since_recent_poll = ".
+            "    seconds_lived_since_recent_poll + $game_seconds " .
             "WHERE email = '$email'; ";
         
         }
@@ -1853,14 +1936,27 @@ function rs_closeDatabase() {
  */
 function rs_secondsToTimeSummary( $inSeconds ) {
     if( $inSeconds < 120 ) {
+        if( $inSeconds == 1 ) {
+            return "$inSeconds second";
+            }
         return "$inSeconds seconds";
         }
     else if( $inSeconds < 3600 ) {
         $min = number_format( $inSeconds / 60, 0 );
+
+        if( $min == 1 ) {
+            return "$min minute";
+            }
+        
         return "$min minutes";
         }
     else {
         $hours = number_format( $inSeconds / 3600, 1 );
+
+        if( $hours == 1 ) {
+            return "$hours hour";
+            }
+        
         return "$hours hours";
         }
     }

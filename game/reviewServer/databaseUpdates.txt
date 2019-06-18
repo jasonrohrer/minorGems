@@ -7,3 +7,5 @@ ALTER TABLE reviewServer_user_stats ADD INDEX game_total_seconds ( game_total_se
 
 
 ALTER TABLE reviewServer_user_stats ADD lives_since_recent_poll INT NOT NULL AFTER review_votes;
+
+ALTER TABLE reviewServer_user_stats ADD seconds_lived_since_recent_poll INT NOT NULL AFTER lives_since_recent_poll;
