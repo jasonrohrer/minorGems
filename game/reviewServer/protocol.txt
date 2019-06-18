@@ -138,8 +138,8 @@ DENIED if no poll available for this email address
 server.php
 ?action=poll_vote
 &email=[email address]
-&vote_number=number
 &poll_id=id
+&vote_number=number
 &hash_value=[hash value]
 
 Return:
@@ -153,4 +153,4 @@ Vote for answer number for a given poll.
 
 Hash computed by:
 
-HMAC_SHA1( $ticket_id, $poll_id )
+HMAC_SHA1( $ticket_id, $poll_id . "#" . $vote_number )

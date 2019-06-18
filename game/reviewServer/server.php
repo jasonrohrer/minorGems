@@ -168,6 +168,9 @@ else if( $action == "delete_poll" ) {
 else if( $action == "check_for_poll" ) {
     rs_checkForPoll();
     }
+else if( $action == "poll_vote" ) {
+    rs_pollVote();
+    }
 else if( $action == "view_review" ) {
     rs_viewReview();
     }
@@ -823,7 +826,8 @@ function rs_showData( $checkPassword = true ) {
         $answers = array();
 
         $answerCounts = array();
-
+        $totalCounts = 0;
+        
         for( $a=0; $a < $maxNumAnswers; $a++ ) {
             $ans = rs_mysqli_result( $result, $i, $answerNames[$a] );
 
@@ -832,6 +836,8 @@ function rs_showData( $checkPassword = true ) {
                 $num = rs_mysqli_result( $result, $i,
                                          $answerNames[$a] . "_count" );
                 $answerCounts[] = $num;
+                $totalCounts += $num;
+                
                 }
             }
         
@@ -886,7 +892,9 @@ function rs_showData( $checkPassword = true ) {
 
         $a = 0;
         foreach( $answers as $ans ) {
-            echo "$ans : <b>" . $answerCounts[$a] . "</b><br>";
+            $percent =  ( 100 * $answerCounts[$a] / $totalCounts );
+            
+            echo "$ans : <b>" . $answerCounts[$a] . "</b> ($percent%)<br>";
             $a ++;
             }
         echo "</td>";
@@ -1146,12 +1154,16 @@ function rs_deletePoll() {
 
 
 
-
-function rs_checkForPoll() {
+// if $doNotPrint is true, returns active poll ID or -1
+function rs_checkForPoll( $doNotPrint = false ) {
 
     $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
 
     if( $email == "" ) {
+        if( $doNotPrint ) {
+            return -1;
+            }
+        
         echo "DENIED";
         return;
         }
@@ -1167,6 +1179,9 @@ function rs_checkForPoll() {
     $numRows = mysqli_num_rows( $result );
 
     if( $numRows == 0 ) {
+        if( $doNotPrint ) {
+            return -1;
+            }
         echo "DENIED";
         return;
         }
@@ -1188,6 +1203,9 @@ function rs_checkForPoll() {
         rs_mysqli_result( $result, 0, "recent_poll_answered" );
 
     if( $recent_poll_answered ) {
+        if( $doNotPrint ) {
+            return -1;
+            }
         echo "DENIED";
         return;
         }
@@ -1208,12 +1226,21 @@ function rs_checkForPoll() {
     $numRows = mysqli_num_rows( $result );
 
     if( $numRows == 0 ) {
+        if( $doNotPrint ) {
+            return -1;
+            }
         echo "DENIED";
         return;
         }
 
-
     $poll_id = rs_mysqli_result( $result, 0, "id" );
+
+    // one exists
+    if( $doNotPrint ) {
+        return $poll_id;
+        }
+        
+
 
     echo "$poll_id\n";
 
@@ -1235,6 +1262,109 @@ function rs_checkForPoll() {
             }
         }
 
+    echo "OK";
+    }
+
+
+
+
+function rs_pollVote() {
+    global $tableNamePrefix, $sharedGameServerSecret, $rs_mysqlLink;
+    
+
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
+    $poll_id = rs_requestFilter( "poll_id", "/[0-9]+/i", "0" );
+    $vote_number = rs_requestFilter( "vote_number", "/[0-9]+/i", "0" );
+
+    $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+
+    $hash_value = strtoupper( $hash_value );
+
+    
+    
+
+    if( $email == "" ) {
+        rs_log( "poll_vote denied for bad email" );
+
+        echo "DENIED";
+        return;
+        }
+
+
+    $stringToHash = $poll_id . "#" . $vote_number;
+
+
+    $encodedString = urlencode( $stringToHash );
+    $encodedEmail = urlencode( $email );
+
+    global $ticketServerURL;
+
+    $request = "$ticketServerURL".
+        "?action=check_ticket_hash".
+        "&email=$encodedEmail" .
+        "&hash_value=$hash_value" .
+        "&string_to_hash=$encodedString";
+    
+    $result = file_get_contents( $request );
+
+    if( $result != "VALID" ) {
+        rs_log( "poll_vote denied for failed hash check " );
+
+        echo "DENIED";
+        return;
+        }
+
+    // lock table to prevent double-voiting
+    rs_queryDatabase( "lock tables $tableNamePrefix"."user_stats write;" );
+
+
+    $poll_id = rs_checkForPoll( true );
+
+    if( $poll_id == -1 ) {
+        rs_log( "poll_vote denied, no poll exists" );
+
+        rs_queryDatabase( "unlock tables;" );
+
+        echo "DENIED";
+        return;
+        }
+
+    
+    $query = "UPDATE $tableNamePrefix".
+        "user_stats SET recent_poll_answered = 1 WHERE  email = '$email';";
+
+    $result = rs_queryDatabase( $query );
+
+    rs_queryDatabase( "unlock tables;" );
+
+    global $maxNumAnswers, $answerNames;
+
+    $thisAnswerName = "";
+    
+    for( $i=0; $i<$maxNumAnswers; $i++ ) {
+
+        if( $i == $vote_number ) {
+            $thisAnswerName = $answerNames[$i];
+            break;
+            }
+        }
+
+
+    if( $thisAnswerName == "" ) {
+        rs_log( "poll_vote denied, bad answer index $vote_number" );
+        
+        echo "DENIED";
+        return;
+        }
+    
+
+    $query = "UPDATE $tableNamePrefix".
+        "polls SET $thisAnswerName" . "_count = ".
+        "$thisAnswerName" . "_count + 1 WHERE id = $poll_id;";
+
+    $result = rs_queryDatabase( $query );
+
+    
     echo "OK";
     }
 
