@@ -359,7 +359,8 @@ function rs_setupDatabase() {
             "answerF_count int NOT NULL," .
             "answerG_count int NOT NULL," .
             "answerH_count int NOT NULL," .
-            "answerI_count int NOT NULL );";
+            "answerI_count int NOT NULL," .
+            "answerJ_count int NOT NULL );";
 
         $result = rs_queryDatabase( $query );
 
@@ -1092,11 +1093,15 @@ function rs_createPoll() {
     global $maxNumAnswers, $answerNames;
     
     $answerClause = "";
+    $countClause = "";
     for( $i=0; $i<$maxNumAnswers; $i++ ) {
         $answerClause =
             $answerClause .
             $answerNames[$i] .
             " = '" . $answers[$i] . "' ";
+
+        $countClause = $countClause . $answerNames[$i] . "_count = 0, ";
+        
         if( $i < $maxNumAnswers - 1 ) {
             $answerClause = $answerClause . " , ";
             }
@@ -1117,6 +1122,7 @@ function rs_createPoll() {
         "min_lived_seconds_since_post_date = ".
         "    $min_lived_minutes_since_post_date * 60, ".
         "question = '$question', ".
+        $countClause .
         $answerClause .
         ";";
 
