@@ -1029,8 +1029,7 @@ function rs_showDetail( $checkPassword = true ) {
 function rs_createPoll() {
     rs_checkPassword( "create_poll" );
     
-    echo "[<a href=\"server.php?action=show_data" .
-         "\">Main</a>]<br><br><br>";
+
     
     global $tableNamePrefix, $rs_mysqlLink;
 
@@ -1038,6 +1037,9 @@ function rs_createPoll() {
 
 
     if( $confirm != 1 ) {
+        echo "[<a href=\"server.php?action=show_data" .
+            "\">Main</a>]<br><br><br>";
+
         echo "You must check the Confirm box to create a poll\n";
         return;
         }
@@ -1055,9 +1057,9 @@ function rs_createPoll() {
     
     $question = mysqli_real_escape_string( $rs_mysqlLink, $question );
     
-    $start_hours = rs_requestFilter( "start_hours", "/[0-9]+/", 1 );
+    $start_hours = rs_requestFilter( "start_hours", "/[0-9.]+/", 1 );
     
-    $run_days = rs_requestFilter( "run_days", "/[0-9]+/", 1 );
+    $run_days = rs_requestFilter( "run_days", "/[0-9.]+/", 1 );
 
     $min_lives = rs_requestFilter( "min_lives", "/[0-9]+/", 10 );
 
@@ -1105,9 +1107,10 @@ function rs_createPoll() {
     $query = "INSERT INTO $tableNamePrefix". "polls SET " .
         "post_date = CURRENT_TIMESTAMP, ".
         "start_date = DATE_ADD( CURRENT_TIMESTAMP, ".
-        "  INTERVAL $start_hours HOUR ), ".
+        "  INTERVAL $start_hours * 3600 SECOND ), ".
         "end_date = DATE_ADD( DATE_ADD( CURRENT_TIMESTAMP, ".
-        "  INTERVAL $start_hours HOUR ), INTERVAL $run_days DAY ), ".
+        "  INTERVAL $start_hours * 3600 SECOND ), ".
+        "  INTERVAL $run_days * 3600 * 24 SECOND ), ".
         "min_lives = $min_lives, ".
         "min_lives_since_post_date = $min_lives_since_post_date, ".
         "min_lived_seconds = $min_lived_hours * 3600, ".
@@ -1128,6 +1131,9 @@ function rs_createPoll() {
         "recent_poll_answered = 0;";
 
     rs_queryDatabase( $query );
+
+
+    rs_showData( false );
     }
 
 
