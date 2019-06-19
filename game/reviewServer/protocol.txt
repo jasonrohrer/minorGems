@@ -153,4 +153,4 @@ Vote for answer number for a given poll.
 
 Hash computed by:
 
-HMAC_SHA1( $ticket_id, $poll_id . "#" . $vote_number )
+HMAC_SHA1( $ticket_id, $poll_id . "v" . $vote_number )

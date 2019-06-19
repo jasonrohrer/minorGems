@@ -1291,7 +1291,7 @@ function rs_pollVote() {
         }
 
 
-    $stringToHash = $poll_id . "#" . $vote_number;
+    $stringToHash = $poll_id . "v" . $vote_number;
 
 
     $encodedString = urlencode( $stringToHash );
