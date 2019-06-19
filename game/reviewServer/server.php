@@ -1044,7 +1044,12 @@ function rs_createPoll() {
     if( isset( $_REQUEST[ "question" ] ) ) {
         $question = $_REQUEST[ "question" ];
         }
+    
+    $question = preg_replace( '/\r\n/', "  ", $question );
 
+    $question = preg_replace( '/    /', "  ", $question );
+
+    
     $question = mysqli_real_escape_string( $rs_mysqlLink, $question );
     
     $start_hours = rs_requestFilter( "start_hours", "/[0-9]+/", 1 );
