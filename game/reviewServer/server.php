@@ -171,6 +171,9 @@ else if( $action == "check_for_poll" ) {
 else if( $action == "poll_vote" ) {
     rs_pollVote();
     }
+else if( $action == "list_polls" ) {
+    rs_listPolls();
+    }
 else if( $action == "view_review" ) {
     rs_viewReview();
     }
@@ -781,7 +784,7 @@ function rs_showData( $checkPassword = true ) {
     
     
 
-    $query = "SELECT * FROM $tableNamePrefix"."polls $keywordClause".
+    $query = "SELECT * FROM $tableNamePrefix"."polls ".
         "ORDER BY post_date desc ".
         "LIMIT $poll_skip, $usersPerPage;";
     $result = rs_queryDatabase( $query );
@@ -1373,6 +1376,153 @@ function rs_pollVote() {
     echo "OK";
     }
 
+
+
+function rs_listPolls() {
+    global $header, $footer;
+
+    eval( $header );
+    
+    $posNeg = rs_requestFilter( "pos_neg", "/[\-01]+/i", -1 );
+    $skip = rs_requestFilter( "skip", "/[0-9]+/i", 0 );
+
+    global $reviewPageWidth;
+    echo "<center><table border=0 width=$reviewPageWidth><tr><td>";
+
+    global $tableNamePrefix;
+    
+    $query = "SELECT * FROM $tableNamePrefix"."polls ".
+        "ORDER BY post_date desc;";
+    $result = rs_queryDatabase( $query );
+
+    $numRows = mysqli_num_rows( $result );
+
+    
+    for( $i=0; $i<$numRows; $i++ ) {
+        $id = rs_mysqli_result( $result, $i, "id" );
+
+        $post_date = rs_mysqli_result( $result, $i, "post_date" );
+        $start_date = rs_mysqli_result( $result, $i, "start_date" );
+        $end_date = rs_mysqli_result( $result, $i, "end_date" );
+
+        $min_lives = rs_mysqli_result( $result, $i, "min_lives" );
+        $min_lives_since_post_date =
+            rs_mysqli_result( $result, $i, "min_lives_since_post_date" );
+
+        $min_lived_seconds =
+            rs_mysqli_result( $result, $i, "min_lived_seconds" );
+        $min_lived_seconds_since_post_date =
+            rs_mysqli_result( $result, $i,
+                              "min_lived_seconds_since_post_date" );
+
+        
+        $question = rs_mysqli_result( $result, $i, "question" );
+
+        $answers = array();
+
+        $answerCounts = array();
+        $totalCounts = 0;
+
+        global $answerNames, $maxNumAnswers;
+        
+        for( $a=0; $a < $maxNumAnswers; $a++ ) {
+            $ans = rs_mysqli_result( $result, $i, $answerNames[$a] );
+
+            if( $ans != "" ) {
+                $answers[] = $ans;
+                $num = rs_mysqli_result( $result, $i,
+                                         $answerNames[$a] . "_count" );
+                $answerCounts[] = $num;
+                $totalCounts += $num;
+                
+                }
+            }
+
+        echo "<table border=0 width=100% cellpadding=20>".
+            "<tr><td BGCOLOR=#444444>";
+
+        $startAgoSec = strtotime( "now" ) - strtotime( $start_date );
+
+        $startAgo;
+
+        if( $startAgoSec > 0 ) {
+            $startAgo = rs_secondsToAgeSummary( $startAgoSec ) . " ago";
+            }
+        else {
+            $startAgo = "in " . rs_secondsToAgeSummary( -$startAgoSec );
+            }
+
+        $startString = date('l F j, Y g:i:s A', strtotime( $start_date ) );
+
+                
+        $runTime = rs_secondsToTimeSummary( strtotime( $end_date ) -
+                                            strtotime( $start_date ) );
+
+
+        echo "<table border=0 cellspacing=0 cellpadding=0 width=100%>";
+        
+        echo "<tr><td>$startString</td><td align=right>$startAgo</td></tr>";
+        echo "<tr><td colspan=2 align=left>Run time: $runTime</td></tr>";
+        echo "</table>";
+
+        echo "<hr><br>";
+        
+
+        echo "Question:<br><br>";
+
+        echo "<center><table border=0 width=90% cellpadding=15 cellspacing=0>";
+        echo "<tr><td BGCOLOR=#333333>$question</td></tr>";
+
+        echo "</table></center>";
+        
+        echo "<br>";
+
+        
+        echo "Answers:<br><br>";
+
+        echo "<center><table border=0 width=90% cellpadding=15 cellspacing=0>";
+
+        $bgColor = "BGCOLOR=#555555";
+
+        $bgColorAlt = "BGCOLOR=#333333";
+        
+        $a = 0;
+
+        $answerCountMap = array();
+
+        foreach( $answers as $answer ) {
+            $num = $answerCounts[$a];
+
+            $answerCountMap[ $answer ] = $num;
+            $a++;
+            }
+        
+        arsort( $answerCountMap );
+        
+        
+        foreach( $answerCountMap as $answer => $num ) {
+            $percent = 100 * $num / $totalCounts;
+            $percent = number_format( $percent, 1 );
+            
+            echo "<tr><td $bgColor>$answer</td>".
+                "<td $bgColor align=right>$num</td>".
+                "<td $bgColor align=right>$percent %</td></tr>";
+
+            $temp = $bgColor;
+            $bgColor = $bgColorAlt;
+            $bgColorAlt = $temp;
+            }
+        echo "</td></tr></table>";
+        
+        
+        echo "</td></tr></table><br><br><br><br>";
+        }
+    
+    
+    echo "</td></tr></table></center>";
+    
+    eval( $footer );
+    }
 
 
 
