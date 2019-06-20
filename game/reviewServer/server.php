@@ -1528,7 +1528,7 @@ function rs_listPolls() {
             
             echo "<tr><td $bgColor>$answer</td>".
                 "<td $bgColor align=right>$num</td>".
-                "<td $bgColor align=right>$percent %</td></tr>";
+                "<td $bgColor align=right nowrap>$percent %</td></tr>";
 
             $temp = $bgColor;
             $bgColor = $bgColorAlt;
