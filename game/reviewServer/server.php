@@ -950,7 +950,7 @@ function rs_showData( $checkPassword = true ) {
     for( $a=0; $a < $maxNumAnswers; $a++ ) {
         $name = $answerNames[$a];
         
-        echo "<INPUT TYPE=text MAXLENGTH=80 SIZE=40 NAME=$name ".
+        echo "<INPUT TYPE=text MAXLENGTH=43 SIZE=43 NAME=$name ".
         "value='' ><br>";
         }
     ?>
