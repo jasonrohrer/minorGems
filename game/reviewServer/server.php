@@ -1470,11 +1470,21 @@ function rs_listPolls() {
         $runTime = rs_secondsToTimeSummary( strtotime( $end_date ) -
                                             strtotime( $start_date ) );
 
+        $endHint = "";
+
+        $endAgoSec = strtotime( "now" ) - strtotime( $end_date );
+
+        if( $endAgoSec < 0 ) {
+            $endHint =
+                " (ends in " . rs_secondsToAgeSummary( -$endAgoSec ) . ")";
+            }
+        
 
         echo "<table border=0 cellspacing=0 cellpadding=0 width=100%>";
         
         echo "<tr><td>$startString</td><td align=right>$startAgo</td></tr>";
-        echo "<tr><td colspan=2 align=left>Run time: $runTime</td></tr>";
+        echo "<tr><td colspan=2 align=left>Run time: $runTime".
+            "$endHint</td></tr>";
         echo "</table>";
 
         echo "<hr><br>";
