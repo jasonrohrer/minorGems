@@ -9,5 +9,5 @@ class MyTemplate {
 
 template <class Type>
 void MyTemplate<Type>::myFunction() {
-    printf( "Size of Type as seen by MyTemplate = %d\n", sizeof( Type ) );
+    printf( "Size of Type as seen by MyTemplate = %d\n", (int)sizeof( Type ) );
     }

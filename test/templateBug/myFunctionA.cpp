@@ -7,7 +7,7 @@ typedef struct TestStruct {
 
 void myFunctionA() {
     printf( "myFunctionA called, internal TestStruct size = %d\n",
-            sizeof( TestStruct ) );
+            (int)sizeof( TestStruct ) );
 
     MyTemplate<TestStruct> t;
     
