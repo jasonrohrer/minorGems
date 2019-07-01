@@ -80,8 +80,9 @@ void WebServer::run() {
         
         char timedOut = true;
         
-        // 5 seconds
-        long timeout = 5000;
+        // 100 ms
+        // responsive quit without burning CPU waiting
+        long timeout = 100;
     
         Socket *sock;
 
