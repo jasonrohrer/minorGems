@@ -68,7 +68,7 @@ char RequestHandlingThread::isDone() {
     tempDone = mDone;
     mDoneLock->unlock();
 
-    return mDone;
+    return tempDone;
     }
 
 
