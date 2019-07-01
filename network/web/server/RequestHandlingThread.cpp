@@ -266,6 +266,23 @@ void RequestHandlingThread::run() {
             sockStream->writeString(
                 "HTTP/1.0 200 OK\r\n" );
 
+            
+            int cacheSeconds = mGenerator->getCacheMaxAge( filePathBuffer );
+            
+            if( cacheSeconds == 0 ) {
+                sockStream->writeString( "cache-control: no-cache\r\n" );
+                }
+            else {
+                char *cacheString = autoSprintf( 
+                    "cache-control: private, max-age=%d\r\n",
+                    cacheSeconds );
+                
+                sockStream->writeString( cacheString );
+                
+                delete [] cacheString;
+                }
+            
+
             char *mimeType = mGenerator->getMimeType( filePathBuffer );
 
             sockStream->writeString( "Content-Type: " );

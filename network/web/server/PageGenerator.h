@@ -80,6 +80,15 @@ class PageGenerator {
         virtual char *getMimeType( char *inGetRequestPath ) = 0;
         
 
+        /**
+         * Gets max age in seconds that a given path should be cached
+         * by the browser
+         * Defaults to 0 (no caching).
+         */
+        virtual int getCacheMaxAge( char *inGetRequestPath ) {
+            return 0;
+            }
+        
         
     };
 
