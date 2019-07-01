@@ -15,6 +15,9 @@
  * 2011-June-21   Jason Rohrer
  * Added flag for forcing input to read until end.  Some JPG files
  * contain more than one image and thus have FFD9 in the middle.   
+ *
+ * 2019-July-1   Jason Rohrer
+ * Fixed memory leaks and uninitialized value issue.
  */
 
  
@@ -104,7 +107,7 @@ void JPEGImageConverter::formatImage( Image *inImage,
 
 	// use a temp file with a random name to make this more
 	// thread-safe
-	char *fileName = new char[99];
+	char fileName[99];
 	sprintf( fileName, "temp%d.dat", rand() );
 	
 	// Here we use the library-supplied code to send compressed data to a
@@ -254,9 +257,6 @@ void JPEGImageConverter::formatImage( Image *inImage,
 	// delete this temporary file
 	remove( fileName );
 	
-	delete [] fileName;
-
-	
 	// And we're done!
 	
 	}
@@ -326,7 +326,7 @@ Image *JPEGImageConverter::deformatImage( InputStream *inStream ) {
 
 	// use a temp file with a random name to make this more
 	// thread-safe
-	char *fileName = new char[99];
+	char fileName[99];
 	sprintf( fileName, "temp%d.dat", rand() );
 
 	FILE *tempFile = fopen( fileName, "wb" );
@@ -338,6 +338,7 @@ Image *JPEGImageConverter::deformatImage( InputStream *inStream ) {
 
 	// buffer for dumping stream to temp file
 	unsigned char *tempBuffer = new unsigned char[1]; 
+    tempBuffer[0] = 0;
 	unsigned char previousByte = 0;
 
 	// dump the JPEG stream from the input stream into tempFile
@@ -576,7 +577,6 @@ Image *JPEGImageConverter::deformatImage( InputStream *inStream ) {
 	// delete this temporary file
 	remove( fileName );
 	
-	delete [] fileName;
 	
 	/* And we're done! */
 	return returnImage;
