@@ -5599,7 +5599,7 @@ char isSoundRecordingSupported() {
 #elif defined(__mac__)
     return false;
 #elif defined(WIN_32)
-    return false;
+    return true;
 #else
     return false;
 #endif
@@ -5691,15 +5691,55 @@ int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
 
 #elif defined(WIN_32)
 
+#include <mmsystem.h>
+
 const char *arecordFileName = "inputSound.wav";
 
 // windows implementation does nothing for now
 char startRecording16BitMonoSound( int inSampleRate ) {
+
+    arecordSampleRate = inSampleRate;
+    
+    if( mciExecute( "open new type waveaudio alias my_sound" ) ) { 
+	    char *setSampleRateString = 
+            autoSprintf( "set my_sound samplespersec %d", inSampleRate );
+        
+        mciExecute( setSampleRateString );
+        
+        delete [] setSampleRateString;
+
+        mciExecute( "record my_sound" );
+        return true;
+        }
+
     return false;
     }
 
 int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
-    return NULL;
+    mciExecute( "stop my_sound" );
+    
+    char *saveCommand = autoSprintf( "save my_sound %s", arecordFileName );
+    
+    mciExecute( saveCommand );
+    delete [] saveCommand;
+    
+    mciExecute( "close my_sound" );
+    
+    int rate = -1;
+
+    int16_t *data = load16BitMonoSound( outNumSamples, &rate );
+
+    if( rate != arecordSampleRate ) {
+        *outNumSamples = 0;
+        
+        if( data != NULL ) {
+            delete [] data;
+            }
+        return NULL;
+        }
+    else {
+        return data;
+        }
     }
 
 #else
