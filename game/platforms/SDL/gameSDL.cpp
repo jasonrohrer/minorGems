@@ -5703,12 +5703,19 @@ char startRecording16BitMonoSound( int inSampleRate ) {
     
     if( mciSendString( "open new type waveaudio alias my_sound", 
                        NULL, 0, 0 ) ) { 
-	    char *setSampleRateString = 
-            autoSprintf( "set my_sound samplespersec %d", inSampleRate );
+
+        char *settingsString = 
+            autoSprintf( "set my_sound alignment 4 bitspersample 16"
+                         " samplespersec %d"
+                         " channels 1"
+                         " bytespersec %d"
+                         " time format milliseconds format tag pcm",
+                         inSampleRate,
+                         ( 16 * inSampleRate ) / 8 );
         
-        mciSendString( setSampleRateString, NULL, 0, 0 );
+        mciSendString( settingsString, NULL, 0, 0 );
         
-        delete [] setSampleRateString;
+        delete [] settingsString;
 
         mciSendString( "record my_sound", NULL, 0, 0 );
         return true;
