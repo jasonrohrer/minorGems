@@ -5694,6 +5694,7 @@ int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
 #include <mmsystem.h>
 
 const char *arecordFileName = "inputSound.wav";
+static int arecordSampleRate = 0;
 
 // windows implementation does nothing for now
 char startRecording16BitMonoSound( int inSampleRate ) {
