@@ -5702,7 +5702,7 @@ char startRecording16BitMonoSound( int inSampleRate ) {
     arecordSampleRate = inSampleRate;
     
     if( mciSendString( "open new type waveaudio alias my_sound", 
-                       NULL, 0, 0 ) ) { 
+                       NULL, 0, 0 ) == 0 ) { 
 
         char *settingsString = 
             autoSprintf( "set my_sound alignment 4 bitspersample 16"
