@@ -5701,15 +5701,16 @@ char startRecording16BitMonoSound( int inSampleRate ) {
 
     arecordSampleRate = inSampleRate;
     
-    if( mciExecute( "open new type waveaudio alias my_sound" ) ) { 
+    if( mciSendString( "open new type waveaudio alias my_sound", 
+                       NULL, 0, 0 ) ) { 
 	    char *setSampleRateString = 
             autoSprintf( "set my_sound samplespersec %d", inSampleRate );
         
-        mciExecute( setSampleRateString );
+        mciSendString( setSampleRateString, NULL, 0, 0 );
         
         delete [] setSampleRateString;
 
-        mciExecute( "record my_sound" );
+        mciSendString( "record my_sound", NULL, 0, 0 );
         return true;
         }
 
@@ -5717,14 +5718,14 @@ char startRecording16BitMonoSound( int inSampleRate ) {
     }
 
 int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
-    mciExecute( "stop my_sound" );
+    mciSendString( "stop my_sound", NULL, 0, 0 );
     
     char *saveCommand = autoSprintf( "save my_sound %s", arecordFileName );
     
-    mciExecute( saveCommand );
+    mciSendString( saveCommand, NULL, 0, 0 );
     delete [] saveCommand;
     
-    mciExecute( "close my_sound" );
+    mciSendString( "close my_sound", NULL, 0, 0 );
     
     int rate = -1;
 
