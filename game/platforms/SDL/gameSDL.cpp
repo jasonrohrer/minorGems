@@ -5705,7 +5705,7 @@ char startRecording16BitMonoSound( int inSampleRate ) {
                        NULL, 0, 0 ) == 0 ) { 
 
         char *settingsString = 
-            autoSprintf( "set my_sound alignment 4 bitspersample 16"
+            autoSprintf( "set my_sound alignment 2 bitspersample 16"
                          " samplespersec %d"
                          " channels 1"
                          " bytespersec %d"
