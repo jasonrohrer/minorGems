@@ -149,6 +149,9 @@ class SettingsManager {
         static SimpleVector<int> *getIntSettingMulti(
             const char *inSettingName );
 
+        static SimpleVector<float> *getFloatSettingMulti(
+            const char *inSettingName );
+
 
 
         /**

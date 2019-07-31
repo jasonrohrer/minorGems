@@ -147,6 +147,36 @@ SimpleVector<int> *SettingsManager::getIntSettingMulti(
 
 
 
+SimpleVector<float> *SettingsManager::getFloatSettingMulti( 
+    const char *inSettingName ) {
+
+    SimpleVector<char*> *settingStrings = getSetting( inSettingName );
+    
+
+    SimpleVector<float> *settingFloats = 
+        new SimpleVector<float>( settingStrings->size() );
+    
+
+    for( int i=0; i< settingStrings->size(); i++ ) {
+        float value;
+        
+        int numRead = sscanf( settingStrings->getElementDirect( i ), "%f",
+                              &value );
+
+        if( numRead == 1 ) {
+            settingFloats->push_back( value );
+            }
+        }
+    
+    settingStrings->deallocateStringElements();
+    
+    delete settingStrings;
+    
+    return settingFloats;
+    }
+
+
+
 char *SettingsManager::getSettingContents( const char *inSettingName ) {
 
     char *fileName = getSettingsFileName( inSettingName );
