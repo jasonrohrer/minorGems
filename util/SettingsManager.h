@@ -152,6 +152,9 @@ class SettingsManager {
         static SimpleVector<float> *getFloatSettingMulti(
             const char *inSettingName );
 
+        static SimpleVector<double> *getDoubleSettingMulti(
+            const char *inSettingName );
+
 
 
         /**
@@ -214,6 +217,29 @@ class SettingsManager {
                                       float inDefaultValue );
 
 
+
+        /**
+         * Gets a double setting.
+         *
+         * @param inSettingName the name of the setting to get.
+         *   Must be destroyed by caller if non-const.
+         * @param outValueFound pointer to where flag should be returned
+         *   indicating whether or not the value was found.
+         *   Set to true if the value was found, false otherwise.
+         *         
+         * @return the setting value.
+         */
+        static double getDoubleSetting( const char *inSettingName,
+                                        char *outValueFound );
+
+
+        /**
+         * Returns default value if setting not found.
+         */
+        static double getDoubleSetting( const char *inSettingName,
+                                        double inDefaultValue );
+
+
         
         /**
          * Gets an integer setting.
@@ -270,6 +296,19 @@ class SettingsManager {
          */
         static void setSetting( const char *inSettingName,
                                 float inSettingValue );
+
+
+        /**
+         * Sets a setting to a single double value.
+         *
+         * Specialized name to differentiate from timesec_t version
+         *
+         * @param inSettingName the name of the setting to set.
+         *   Must be destroyed by caller if non-const.
+         * @param inSettingValue the value to set.
+         */
+        static void setDoubleSetting( const char *inSettingName,
+                                      double inSettingValue );
 
 
         

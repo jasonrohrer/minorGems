@@ -177,6 +177,38 @@ SimpleVector<float> *SettingsManager::getFloatSettingMulti(
 
 
 
+
+SimpleVector<double> *SettingsManager::getDoubleSettingMulti( 
+    const char *inSettingName ) {
+
+    SimpleVector<char*> *settingStrings = getSetting( inSettingName );
+    
+
+    SimpleVector<double> *settingDoubles = 
+        new SimpleVector<double>( settingStrings->size() );
+    
+
+    for( int i=0; i< settingStrings->size(); i++ ) {
+        double value;
+        
+        int numRead = sscanf( settingStrings->getElementDirect( i ), "%lf",
+                              &value );
+
+        if( numRead == 1 ) {
+            settingDoubles->push_back( value );
+            }
+        }
+    
+    settingStrings->deallocateStringElements();
+    
+    delete settingStrings;
+    
+    return settingDoubles;
+    }
+
+
+
+
 char *SettingsManager::getSettingContents( const char *inSettingName ) {
 
     char *fileName = getSettingsFileName( inSettingName );
@@ -334,6 +366,49 @@ float SettingsManager::getFloatSetting( const char *inSettingName,
 
 
 
+
+double SettingsManager::getDoubleSetting( const char *inSettingName,
+                                          char *outValueFound ) {
+
+    char valueFound = false;
+    double value = 0;
+
+
+    char *stringValue = getStringSetting( inSettingName );
+
+    if( stringValue != NULL ) {
+
+        int numRead = sscanf( stringValue, "%lf",
+                              &value );
+
+        if( numRead == 1 ) {
+            valueFound = true;
+            }
+
+        delete [] stringValue;
+        }
+
+    *outValueFound = valueFound;
+
+    return value;
+    }
+
+
+
+double SettingsManager::getDoubleSetting( const char *inSettingName,
+                                          double inDefaultValue ) {
+    char found;
+    double value = getDoubleSetting( inSettingName, &found );
+    if( !found ) {
+        value = inDefaultValue;
+        }
+    return value;
+    }
+
+
+
+
+
 int SettingsManager::getIntSetting( const char *inSettingName,
                                     char *outValueFound ) {
 
@@ -461,25 +536,36 @@ void SettingsManager::setSetting( const char *inSettingName,
 void SettingsManager::setSetting( const char *inSettingName,
                                   float inSettingValue ) {
 
-    char *valueString = new char[ 15 ];
-    sprintf( valueString, "%f", inSettingValue );
+    char *stringVal = autoSprintf( "%f", inSettingValue );
 
-    setSetting( inSettingName, valueString );
+    setSetting( inSettingName, stringVal );
     
-    delete [] valueString;
+    delete [] stringVal;
     }
+
+
+
+void SettingsManager::setDoubleSetting( const char *inSettingName,
+                                        double inSettingValue ) {
+
+    char *stringVal = autoSprintf( "%lf", inSettingValue );
+
+    setSetting( inSettingName, stringVal );
+    
+    delete [] stringVal;
+    }
+
 
 
 
 void SettingsManager::setSetting( const char *inSettingName,
                                   int inSettingValue ) {
 
-    char *valueString = new char[ 15 ];
-    sprintf( valueString, "%d", inSettingValue );
+    char *stringVal = autoSprintf( "%d", inSettingValue );
 
-    setSetting( inSettingName, valueString );
+    setSetting( inSettingName, stringVal );
     
-    delete [] valueString;
+    delete [] stringVal;
     }
 
 
@@ -488,7 +574,7 @@ void SettingsManager::setSetting( const char *inSettingName,
                                   timeSec_t inSettingValue ) {
 
     // don't want a fixed buffer for printing doubles
-    char *stringVal = autoSprintf( "%f", inSettingValue );
+    char *stringVal = autoSprintf( "%lf", inSettingValue );
     
     setSetting( inSettingName, stringVal );
     
