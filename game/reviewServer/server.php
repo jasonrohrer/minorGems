@@ -2092,7 +2092,10 @@ function rs_logGame() {
             "review_date = CURRENT_TIMESTAMP,".
             "review_game_seconds = 0,".
             "review_game_count=0,".
-            "review_votes = 0;";
+            "review_votes = 0,".
+            "lives_since_recent_poll = 1,".
+            "seconds_lived_since_recent_poll = $game_seconds,".
+            "recent_poll_answered = 0;";
         }
     else {
         // update the existing one
@@ -2204,7 +2207,10 @@ function rs_submitReview() {
             "review_date = CURRENT_TIMESTAMP,".
             "review_game_seconds = 0,".
             "review_game_count=0,".
-            "review_votes = 0;";
+            "review_votes = 0,"
+            "lives_since_recent_poll = 0,".
+            "seconds_lived_since_recent_poll = 0,".
+            "recent_poll_answered = 0;";
         }
     else {
         // update the existing one
