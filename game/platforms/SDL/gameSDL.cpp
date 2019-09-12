@@ -2721,6 +2721,9 @@ void setCursorMode( int inMode ) {
         case 1:
             setCursorVisible( false );
             break;
+        default:
+            setCursorVisible( true );
+            break;
         }
     }
 
@@ -2732,7 +2735,7 @@ int getCursorMode() {
 
 
 void setEmulatedCursorScale( double inScale ) {
-    SettingsManager::setSetting( "emulatedCursorScale", inScale );
+    SettingsManager::setDoubleSetting( "emulatedCursorScale", inScale );
     emulatedCursorScale = inScale;
     }
 
@@ -3091,7 +3094,7 @@ void GameSceneHandler::drawScene() {
         int readCursorMode = SettingsManager::getIntSetting( "cursorMode", -1 );
         
 
-        if( readCursorMode == -1 ) {
+        if( readCursorMode < 0 ) {
             // never set before
 
             // check if we are ultrawidescreen
@@ -3132,9 +3135,10 @@ void GameSceneHandler::drawScene() {
             setCursorMode( readCursorMode );
 
             double readCursorScale = 
-                SettingsManager::getIntSetting( "emulatedCursorScale", -1 );
+                SettingsManager::
+                getDoubleSetting( "emulatedCursorScale", -1.0 );
             
-            if( readCursorScale != -1 ) {
+            if( readCursorScale >= 1 ) {
                 setEmulatedCursorScale( readCursorScale );
                 }
             }
