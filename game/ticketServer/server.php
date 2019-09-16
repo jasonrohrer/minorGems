@@ -2397,6 +2397,17 @@ function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
     Tag:
     <SELECT NAME="tag">
 <?php
+    
+
+
+
+    
+    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
+         "WHERE blocked = '0' AND email_opt_in = '1';";
+    $result = ts_queryDatabase( $query );
+    
+
+    
     global $useBulkEmailerForNotes;
 
     if( $useBulkEmailerForNotes ) {
@@ -2417,11 +2428,7 @@ function ts_printSendAllNoteForm( $inSetMessageSubject, $inSetMessageBody ) {
 
     // auto-gen ALL tags for batches
 
-    $query = "SELECT COUNT(*) FROM $tableNamePrefix"."tickets ".
-         "WHERE blocked = '0' AND email_opt_in = '1';";
-    $result = ts_queryDatabase( $query );
     $totalTickets = ts_mysqli_result( $result, 0, 0 );
-
     $numToSkip = 0;
     global $emailMaxBatchSize;
     
