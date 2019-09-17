@@ -132,6 +132,9 @@ if( $action == "version" ) {
 else if( $action == "get_sequence_number" ) {
     rs_getSequenceNumber();
     }
+else if( $action == "get_stats" ) {
+    rs_getStats();
+    }
 else if( $action == "log_game" ) {
     rs_logGame();
     }
@@ -2122,6 +2125,86 @@ function rs_logGame() {
     rs_generateTopPlaytimeStatic();
     rs_generateReviewCountStatic();
     
+    echo "OK";
+    }
+
+
+
+function rs_getStats() {
+    global $tableNamePrefix, $sharedGameServerSecret;
+    
+
+    $email = rs_requestFilter( "email", "/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+/i", "" );
+    $sequence_number = rs_requestFilter( "sequence_number", "/[0-9]+/i", "0" );
+
+    $hash_value = rs_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+
+    $hash_value = strtoupper( $hash_value );
+
+
+    if( $email == "" ) {
+
+        rs_log( "getStats denied for bad email" );
+        
+        echo "DENIED";
+        return;
+        }
+    
+    $trueSeq = rs_getSequenceNumberForEmail( $email );
+
+    if( $trueSeq > $sequence_number ) {
+        rs_log( "getStats denied for stale sequence number" );
+
+        echo "DENIED";
+        return;
+        }
+
+    $computedHashValue =
+        strtoupper( rs_hmac_sha1( $sharedGameServerSecret, $sequence_number ) );
+
+    if( $computedHashValue != $hash_value ) {
+        rs_log( "getStats denied for bad hash value" );
+
+        echo "DENIED";
+        return;
+        }
+
+    $game_count = 0;
+    $game_total_seconds = 0;
+    
+    
+    if( $trueSeq == 0 ) {
+        // no record exists....
+        // don't add one for now
+
+        // when user doesn't exist, it's fine to keep returning
+        // 0 sequence number for them
+        }
+    else {
+        // update the existing seq #
+        $query = "UPDATE $tableNamePrefix"."user_stats SET " .
+            "sequence_number = $sequence_number + 1 ".
+            "WHERE email = '$email'; ";
+        rs_queryDatabase( $query );
+
+        $query = "SELECT game_count, game_total_seconds ".
+            "FROM $tableNamePrefix"."user_stats ".
+            "WHERE email = '$email'; ";
+
+        $result = rs_queryDatabase( $query );
+        $numRows = mysqli_num_rows( $result );
+
+        
+        if( $numRows == 1 ) {
+
+            $game_count = rs_mysqli_result( $result, 0, "game_count" );
+            $game_total_seconds =
+                rs_mysqli_result( $result, 0, "game_total_seconds" );
+            }
+        }
+    
+
+    echo "$game_count\n$game_total_seconds\n";
     echo "OK";
     }
 
