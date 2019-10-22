@@ -209,14 +209,14 @@ void startCountingSpritePixelsDrawn();
 
 
 // returns the number of pixels drawn since we started counting
-unsigned int endCountingSpritePixelsDrawn();
+double endCountingSpritePixelsDrawn();
 
 
 
 void startCountingSpritesDrawn();
 
 // returns the number of sprites drawn since we started counting
-unsigned int endCountingSpritesDrawn();
+double endCountingSpritesDrawn();
 
 
 

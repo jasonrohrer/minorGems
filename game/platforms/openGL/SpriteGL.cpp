@@ -14,7 +14,7 @@ char SpriteGL::sStateSet = false;
 char SpriteGL::sGenerateMipMaps = false;
 
 char SpriteGL::sCountingPixels = false;
-unsigned int SpriteGL::sPixelsDrawn = 0;
+double SpriteGL::sPixelsDrawn = 0;
 
 
 

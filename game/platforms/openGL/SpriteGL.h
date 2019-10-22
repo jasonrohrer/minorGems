@@ -149,7 +149,7 @@ class SpriteGL{
             }
         
         
-        static unsigned int endCountingPixelsDrawn() {
+        static double endCountingPixelsDrawn() {
             sCountingPixels = false;
             return sPixelsDrawn;
             }
@@ -169,7 +169,7 @@ class SpriteGL{
         static char sGenerateMipMaps;
         
         static char sCountingPixels;
-        static unsigned int sPixelsDrawn;
+        static double sPixelsDrawn;
 
         // -1 for unset, 0 for nearest, 1 for linear, 2 for mipmap
         int mLastSetMinFilter;
