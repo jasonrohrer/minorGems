@@ -20,6 +20,8 @@
 ;; Added count-words function (nice!)
 ;;
 
+(setq frame-title-format "emacs: %b")
+
 
 (custom-set-variables
   ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
