@@ -5174,8 +5174,10 @@ char isHardToQuitMode() {
 
 
 
+#ifdef LINUX
 static char clipboardSupportKnown = false;
 static char clipboardSupport = false;
+#endif
 
 
 char isClipboardSupported() {
