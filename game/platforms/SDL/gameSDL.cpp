@@ -5390,7 +5390,13 @@ void launchURL( char *inURL ) {
     // found here:
     // https://stackoverflow.com/questions/3037088/
     //         how-to-open-the-default-web-browser-in-windows-in-c
-    char *call = autoSprintf( "cmd /c start \"\" \"%s\"", inURL );    
+    
+    // the wmic method allows spawning a browser without it lingering as
+    // a child process
+    // https://steamcommunity.com/groups/steamworks/
+    //         discussions/0/154645427521397803/
+    char *call = autoSprintf( 
+        "wmic process call create 'cmd /c start \"\" \"%s\"'", inURL );    
     system( call );
     delete [] call;
     }
