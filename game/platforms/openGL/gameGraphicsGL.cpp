@@ -132,6 +132,24 @@ void setDrawFade( float inA ) {
 
 
 
+FloatColor getFloatColor( const char *inHexString ) {
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    sscanf( inHexString, "#%02x%02x%02x", &r, &g, &b );
+
+    FloatColor f = { r / 255.0f, 
+                     g / 255.0f, 
+                     b / 255.0f, 
+                     1.0f };
+    
+    return f;
+    }
+
+
+
+
+
 static void setNormalBlend() {
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     }
