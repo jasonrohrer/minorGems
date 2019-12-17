@@ -22,6 +22,9 @@
 
 (setq frame-title-format "emacs: %b")
 
+;; Stop forcing newlines at the end of every file, please
+(setq mode-require-final-newline nil)
+
 
 (custom-set-variables
   ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
