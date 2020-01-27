@@ -4594,6 +4594,12 @@ int stepWebRequest( int inHandle ) {
         if( nextType == 2 ) {
             return 1;
             }
+        else if( nextType == 1 ) {
+            // recording said our result was ready
+            // but it may not be the actual next result, due to timing
+            // keep processing results until we see an actual 2 in the recording
+            return 0;
+            }
         else {        
             return nextType;
             }
