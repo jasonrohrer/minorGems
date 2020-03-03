@@ -41,6 +41,10 @@
  * 2017-November-17    Jason Rohrer
  * getStringSetting back to returning first token, with new getSettingContents
  * function for getting entire file contents.
+ *
+ * 2020-March-3    Jason Rohrer
+ * Setting double settings (printing them to file) now uses %f format specifier,
+ * since %lf doesn't seem to work on mingw, and %f is correct.
  */
 
 
@@ -548,7 +552,7 @@ void SettingsManager::setSetting( const char *inSettingName,
 void SettingsManager::setDoubleSetting( const char *inSettingName,
                                         double inSettingValue ) {
 
-    char *stringVal = autoSprintf( "%lf", inSettingValue );
+    char *stringVal = autoSprintf( "%f", inSettingValue );
 
     setSetting( inSettingName, stringVal );
     
@@ -574,7 +578,7 @@ void SettingsManager::setSetting( const char *inSettingName,
                                   timeSec_t inSettingValue ) {
 
     // don't want a fixed buffer for printing doubles
-    char *stringVal = autoSprintf( "%lf", inSettingValue );
+    char *stringVal = autoSprintf( "%f", inSettingValue );
     
     setSetting( inSettingName, stringVal );
     
