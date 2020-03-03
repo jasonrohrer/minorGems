@@ -29,7 +29,7 @@ static void launchGame( char *launchName ) {
 
 int main() {
 
-    AppLog::setLog( new FileLog( "log_steamGate.txt" ) );
+    AppLog::setLog( new FileLog( "log_resSetter.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
 
     
