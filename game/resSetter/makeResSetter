@@ -2,9 +2,14 @@
 
 PLATFORM_FILES_LINUX="../../io/file/linux/PathLinux.cpp ../../system/unix/TimeUnix.cpp ../../system/linux/MutexLockLinux.cpp"
 
-PLATFORM_FILES_WINDOWS="../../io/file/windows/PathWindows.cpp ../../system/windows/TimeWindows.cpp ../../system/windows/MutexLockWindows.cpp"
+PLATFORM_FILES_WINDOWS="../../io/file/win32/PathWin32.cpp ../../system/win32/TimeWin32.cpp ../../system/win32/MutexLockWin32.cpp"
+
+
+PLATFORM_LINK_FLAGS_WINDOWS="-static-libstdc++ -static-libgcc"
 
 PLATFORM_FILES=$PLATFORM_FILES_WINDOWS
+PLATFORM_LINK_FLAGS=$PLATFORM_LINK_FLAGS_WINDOWS
 
 
-g++ -o resSetter -I../../.. resSetter.cpp ../../util/log/AppLog.cpp ../../util/log/Log.cpp ../../util/log/FileLog.cpp ../../util/log/PrintLog.cpp ../../util/stringUtils.cpp ../../util/SettingsManager.cpp  ../../crypto/hashes/sha1.cpp ../../formats/encodingUtils.cpp ../../util/printUtils.cpp $PLATFORM_FILES
+
+g++ -o resSetter -I../../.. resSetter.cpp ../../util/log/AppLog.cpp ../../util/log/Log.cpp ../../util/log/FileLog.cpp ../../util/log/PrintLog.cpp ../../util/stringUtils.cpp ../../util/SettingsManager.cpp  ../../crypto/hashes/sha1.cpp ../../formats/encodingUtils.cpp ../../util/printUtils.cpp $PLATFORM_FILES $PLATFORM_LINK_FLAGS

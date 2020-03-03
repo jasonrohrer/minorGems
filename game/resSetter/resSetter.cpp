@@ -35,7 +35,7 @@ int main() {
     
     File launchFile( NULL, "resSetterLaunch.txt" );
     
-    if( launchFile.exists() || launchFile.isDirectory() ) {
+    if( ! launchFile.exists() || launchFile.isDirectory() ) {
         AppLog::error( "resSetterLaunch.txt not found, quitting." );
         return 1;
         }
