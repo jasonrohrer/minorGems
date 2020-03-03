@@ -113,7 +113,8 @@ int main() {
                 AppLog::infoF( "Setting new mouse speed based on "
                                "screen width to %f", newMouseSpeed );
                 
-                SettingsManager::setSetting( "mouseSpeed", newMouseSpeed );
+                SettingsManager::setDoubleSetting( "mouseSpeed", 
+                                                   newMouseSpeed );
                 }
             else {
                 AppLog::infoF( "Non-default mouse speed of %f found, "
