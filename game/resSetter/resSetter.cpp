@@ -40,6 +40,19 @@ int main() {
         return 1;
         }
 
+    int defaultWidth = 640;
+    
+    File defaultWidthFile( NULL, "resSetterDefaultWidth.txt" );
+    
+    if( defaultWidthFile.exists() ) {
+        defaultWidth = defaultWidthFile.readFileIntContents( 640 );
+        AppLog::infoF( "Read %d from resSetterDefaultWidth.txt", defaultWidth );
+        }
+    else {
+        AppLog::errorF( "resSetterDefaultWidth.txt does not exist, "
+                        "using %d as defaultWidth", defaultWidth );
+        }
+
     
     char *launchName = launchFile.readFileContents();
     
@@ -82,11 +95,35 @@ int main() {
             SettingsManager::setSetting( "screenHeight", nativeY );
             
             SettingsManager::setSetting( "fullscreen", 1 );
+
+            
+            double mouseSpeed = 
+                SettingsManager::getDoubleSetting( "mouseSpeed", &found );
+
+            if( !found ) {
+                AppLog::info( "No mouseSpeed settings file, leaving it unset",
+                              mouseSpeed );
+                }
+            else if( mouseSpeed == 1.0 ) {
+                AppLog::info( "Default mouseSpeed of 1.0 found" );
+                
+                double newMouseSpeed = 
+                    (double) defaultWidth / (double) nativeX;
+                
+                AppLog::infoF( "Setting new mouse speed based on "
+                               "screen width to %f", newMouseSpeed );
+                
+                SettingsManager::setSetting( "mouseSpeed", newMouseSpeed );
+                }
+            else {
+                AppLog::infoF( "Non-default mouse speed of %f found, "
+                               "leaving it alone", mouseSpeed );
+                }
             }
         }
     else {
         AppLog::error( "settings directory not found, "
-                       "launching without setting resoluton." );
+                       "launching without setting resoluton or mouse speed." );
         }
     
     launchGame( launchName );
