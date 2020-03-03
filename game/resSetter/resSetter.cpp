@@ -101,8 +101,8 @@ int main() {
                 SettingsManager::getDoubleSetting( "mouseSpeed", &found );
 
             if( !found ) {
-                AppLog::info( "No mouseSpeed settings file, leaving it unset",
-                              mouseSpeed );
+                AppLog::infoF( "No mouseSpeed settings file, leaving it unset",
+                               mouseSpeed );
                 }
             else if( mouseSpeed == 1.0 ) {
                 AppLog::info( "Default mouseSpeed of 1.0 found" );
