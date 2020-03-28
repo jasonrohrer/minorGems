@@ -35,7 +35,15 @@ class MinPriorityQueue {
             mPriority.deleteAll();
             }
         
+
+
+        // gets an element directly (NOT in priority order)
+        // useful for walking through all elements
+        Type *getElement( int inIndex ) {
+            return mStorage.getElement( inIndex );
+            }
         
+
 
         void insert( Type inValue, double inPriority ) {
             
