@@ -4846,6 +4846,15 @@ int sendToSocket( int inHandle, unsigned char *inData, int inDataLength ) {
         screen->getSocketEventTypeAndSize( inHandle, 
                                            &nextType, &nextNumBodyBytes );
         
+        while( nextType == 2 && nextNumBodyBytes == 0 ) {
+            // skip over any lingering waiting-for-read events
+            // sometimes there are extra in recording that aren't needed
+            // on playback for some reason
+            screen->getSocketEventTypeAndSize( inHandle, 
+                                           &nextType, &nextNumBodyBytes );
+            }
+        
+            
         if( nextType == 0 ) {
             return nextNumBodyBytes;
             }
