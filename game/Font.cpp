@@ -221,105 +221,136 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         
 
         // now that we've read in all characters, we can do real kerning
-        if( !mFixedWidth )
-        for( int i=0; i<256; i++ ) {
-            if( savedCharacterRGBA[i] != NULL ) {
+        if( !mFixedWidth ) {
+            
+            // first, compute left and right extremes for each pixel
+            // row of each character
+            int *rightExtremes[256];
+            int *leftExtremes[256];
+            
+            for( int i=0; i<256; i++ ) {
+                rightExtremes[i] = new int[ mSpriteHeight ];
+                leftExtremes[i] = new int[ mSpriteHeight ];
                 
-                mKerningTable[i] = new KerningTable;
-
-
-                // for each character that could come after this character
-                for( int j=0; j<256; j++ ) {
-
-                    mKerningTable[i]->offset[j] = 0;
-
-                    // not a blank character
-                    if( savedCharacterRGBA[j] != NULL ) {
+                if( savedCharacterRGBA[i] != NULL ) {
+                    for( int y=0; y<mSpriteHeight; y++ ) {
                         
-                        short minDistance = 2 * mSpriteWidth;
-
-                        // for each pixel row, find distance
-                        // between the right extreme of the first character
-                        // and the left extreme of the second
-                        for( int y=0; y<mSpriteHeight; y++ ) {
+                        int rightExtreme = 0;
+                        int leftExtreme = mSpriteWidth;
                             
-                            int rightExtreme = 0;
-                            int leftExtreme = mSpriteWidth;
-                            
-                            for( int x=0; x<mSpriteWidth; x++ ) {
-                                int p = y * mSpriteWidth + x;
+                        for( int x=0; x<mSpriteWidth; x++ ) {
+                            int p = y * mSpriteWidth + x;
                                 
-                                if( savedCharacterRGBA[i][p].comp.a > inkA ) {
-                                    rightExtreme = x;
-                                    }
-                                if( x < leftExtreme &&
-                                    savedCharacterRGBA[j][p].comp.a > inkA ) {
+                            if( savedCharacterRGBA[i][p].comp.a > inkA ) {
+                                rightExtreme = x;
+                                }
+                            if( x < leftExtreme &&
+                                savedCharacterRGBA[i][p].comp.a > inkA ) {
+                                
+                                leftExtreme = x;
+                                }
+                            // also check pixel rows above and below
+                            // for left character, to look for
+                            // diagonal collisions (perfect nesting
+                            // with no vertical gap)
+                            if( y > 0 && x < leftExtreme ) {
+                                int pp = (y-1) * mSpriteWidth + x;
+                                if( savedCharacterRGBA[i][pp].comp.a 
+                                    > inkA ) {
                                     
                                     leftExtreme = x;
                                     }
-                                // also check pixel rows above and below
-                                // for left character, to look for
-                                // diagonal collisions (perfect nesting
-                                // with no vertical gap)
-                                if( y > 0 && x < leftExtreme ) {
-                                    int pp = (y-1) * mSpriteWidth + x;
-                                    if( savedCharacterRGBA[j][pp].comp.a 
-                                        > inkA ) {
-                                    
-                                        leftExtreme = x;
-                                        }
-                                    }
-                                if( y < mSpriteHeight - 1 
-                                    && x < leftExtreme ) {
-                                    
-                                    int pp = (y+1) * mSpriteWidth + x;
-                                    if( savedCharacterRGBA[j][pp].comp.a 
-                                        > inkA ) {
-                                    
-                                        leftExtreme = x;
-                                        }
-                                    }
                                 }
-                            
-                            int rowDistance =
-                                ( mSpriteWidth - rightExtreme - 1 ) 
-                                + leftExtreme;
-
-                            if( rowDistance < minDistance ) {
-                                minDistance = rowDistance;
+                            if( y < mSpriteHeight - 1 
+                                && x < leftExtreme ) {
+                                
+                                int pp = (y+1) * mSpriteWidth + x;
+                                if( savedCharacterRGBA[i][pp].comp.a 
+                                    > inkA ) {
+                                    
+                                    leftExtreme = x;
+                                    }
                                 }
                             }
                         
-                        // have min distance across all rows for 
-                        // this character pair
-
-                        // of course, we've already done pseudo-kerning
-                        // based on character width, so take that into account
-                        // true kerning is a tweak to that
-                        
-                        // pseudo-kerning already accounts for
-                        // gap to left of second character
-                        minDistance -= mCharLeftEdgeOffset[j];
-                        // pseudo-kerning already accounts for gap to right
-                        // of first character
-                        minDistance -= 
-                            mSpriteWidth - 
-                            ( mCharLeftEdgeOffset[i] + mCharWidth[i] );
-                        
-                        if( minDistance > 0 
-                            // make sure we don't have a full overhang
-                            // for characters that don't collide horizontally
-                            // at all
-                            && minDistance < mCharWidth[i] ) {
-                            
-                            mKerningTable[i]->offset[j] = - minDistance;
-                            }
+                        rightExtremes[i][y] = rightExtreme;
+                        leftExtremes[i][y] = leftExtreme;
                         }
                     }
+                }
+            
+
+
+            for( int i=0; i<256; i++ ) {
+                if( savedCharacterRGBA[i] != NULL ) {
                 
+                    mKerningTable[i] = new KerningTable;
+
+
+                    // for each character that could come after this character
+                    for( int j=0; j<256; j++ ) {
+
+                        mKerningTable[i]->offset[j] = 0;
+
+                        // not a blank character
+                        if( savedCharacterRGBA[j] != NULL ) {
+                        
+                            short minDistance = 2 * mSpriteWidth;
+
+                            // for each pixel row, find distance
+                            // between the right extreme of the first character
+                            // and the left extreme of the second
+                            for( int y=0; y<mSpriteHeight; y++ ) {
+                            
+                                int rightExtreme = rightExtremes[i][y];
+                                int leftExtreme = leftExtremes[j][y];
+                            
+                                int rowDistance =
+                                    ( mSpriteWidth - rightExtreme - 1 ) 
+                                    + leftExtreme;
+
+                                if( rowDistance < minDistance ) {
+                                    minDistance = rowDistance;
+                                    }
+                                }
+                        
+                            // have min distance across all rows for 
+                            // this character pair
+
+                            // of course, we've already done pseudo-kerning
+                            // based on character width, so take that into 
+                            // account
+                            // 
+                            // true kerning is a tweak to that
+                        
+                            // pseudo-kerning already accounts for
+                            // gap to left of second character
+                            minDistance -= mCharLeftEdgeOffset[j];
+                            // pseudo-kerning already accounts for gap to right
+                            // of first character
+                            minDistance -= 
+                                mSpriteWidth - 
+                                ( mCharLeftEdgeOffset[i] + mCharWidth[i] );
+                        
+                            if( minDistance > 0 
+                                // make sure we don't have a full overhang
+                                // for characters that don't collide
+                                // horizontally at all
+                                && minDistance < mCharWidth[i] ) {
+                            
+                                mKerningTable[i]->offset[j] = - minDistance;
+                                }
+                            }
+                        }
+                
+                    }
+                }
+
+            for( int i=0; i<256; i++ ) {
+                delete [] rightExtremes[i];
+                delete [] leftExtremes[i];
                 }
             }
-        
 
         for( int i=0; i<256; i++ ) {
             if( savedCharacterRGBA[i] != NULL ) {
