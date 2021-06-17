@@ -5,14 +5,18 @@
 
 #include "minorGems/network/SocketClient.h"
 
+#include "minorGems/system/Time.h"
+
 
 
 WebRequest::WebRequest( const char *inMethod, const char *inURL,
-                        const char *inBody, const char *inProxy )
+                        const char *inBody, const char *inProxy,
+                        double inTimeoutSeconds )
         : mError( false ), mURL( stringDuplicate( inURL ) ),
           mRequest( NULL ), mRequestPosition( -1 ),
           mResultReady( false ), mResult( NULL ),
-          mSock( NULL ) {
+          mSock( NULL ), mRequestStartTime( Time::getCurrentTime() ),
+          mRequestTimeoutSeconds( inTimeoutSeconds ) {
         
     
     
@@ -190,6 +194,19 @@ int WebRequest::step() {
     if( mError ) {
         return -1;
         }
+
+    if( mRequestTimeoutSeconds != -1 &&
+        Time::getCurrentTime() - mRequestStartTime >= mRequestTimeoutSeconds ) {
+        // timed out
+
+        printf( "Error:  "
+                "WebRequest ran longer than %f seconds (timeout)\n",
+                mRequestTimeoutSeconds );
+        
+        return -1;
+        }
+    
+        
 
     if( mSock == NULL ) {
         

@@ -21,8 +21,14 @@ class WebRequest {
         // inProxy is the address of a proxy in address:port format, 
         //         or NULL to not use a proxy
         //         defaults to NULL
+        // inTimeoutSeconds specifies the overall timeout for the request
+        //   if this much time passes before the request result is ready
+        //   step() will return -1.
+        //   Set to -1 for no timeout (will wait forever for request to 
+        //   complete).  Defaults to -1
         WebRequest( const char *inMethod, const char *inURL,
-                    const char *inBody, const char *inProxy = NULL );
+                    const char *inBody, const char *inProxy = NULL,
+                    double inTimeoutSeconds = -1 );
         
 
         // if request is not complete, destruction cancels it
@@ -71,7 +77,9 @@ class WebRequest {
         LookupThread *mLookupThread;
         
         Socket *mSock;
-        
+
+        double mRequestStartTime;
+        double mRequestTimeoutSeconds;
     };
 
 
