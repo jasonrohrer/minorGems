@@ -911,6 +911,25 @@ static void playSoundSpriteInternal(
     
     SoundSprite *s = (SoundSprite*)inHandle;
     
+
+    if( s->numSamples / soundSampleRate > 5 ) {
+        // a long sound, longer than 5 seconds total
+        // perhaps a bit of music or some other structured sound
+        // instead of an instant "hit" type sound
+        // Don't ever play more than one instance of a longer sound
+        // simultaneously.
+        
+        for( int i=0; i<playingSoundSprites.size(); i++ ) {
+            if( playingSoundSprites.getElement(i)->handle ==
+                s->handle ) {
+                // already playing this sound sprite
+                return;
+                }
+            }
+        }
+    
+
+
     if( ! s->noVariance ) {
         
         if( inForceVolume == -1 ) {
