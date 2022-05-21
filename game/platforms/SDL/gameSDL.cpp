@@ -256,6 +256,8 @@ int gameHeight = 240;
 int screenWidth = 640;
 int screenHeight = 480;
 
+// Width of pillarbox on ultrawide monitor
+int leftMargin = 0;
 
 int idealTargetFrameRate = 60;
 int targetFrameRate = idealTargetFrameRate;
@@ -2166,6 +2168,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             // screen too wide
             
             imageW = (int)( targetAspectRatio * imageH );
+            leftMargin = (screenWidth - imageW) / 2;
             }
         else if( screenAspectRatio < targetAspectRatio ) {
             // too tall
@@ -3550,11 +3553,15 @@ void GameSceneHandler::drawScene() {
 void screenToWorld( int inX, int inY, float *outX, float *outY ) {
 
     if( mouseWorldCoordinates ) {
-        
+
+        // Constrain logical mouse to width of game area on an ultrawide monitor
+        if (inX < leftMargin) inX = leftMargin;
+        if (inX > screenWidth - leftMargin) inX = screenWidth - leftMargin;
+
         // relative to center,
         // viewSize spreads out across screenWidth only (a square on screen)
-        float x = (float)( inX - (screenWidth/2) ) / (float)screenWidth;
-        float y = -(float)( inY - (screenHeight/2) ) / (float)screenWidth;
+        float x = (float)( inX - (screenWidth/2) ) / (float)(screenWidth - 2 * leftMargin);
+        float y = -(float)( inY - (screenHeight/2) ) / (float)(screenWidth - 2 * leftMargin);
         
         *outX = x * viewSize + viewCenterX;
         *outY = y * viewSize + viewCenterY;
