@@ -632,7 +632,7 @@ function ml_confirm() {
         "SET confirmed = 1 WHERE confirmation_code = '$code';";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysqli_affected_rows();
+    $hitCount = mysqli_affected_rows( $ml_mysqlLink );
 
 
     eval( $header );
@@ -679,7 +679,7 @@ function ml_remove() {
     
     $result = ml_queryDatabase( $query );
     $email = "";
-    if( mysqli_affected_rows() > 0 ) {
+    if( mysqli_affected_rows( $ml_mysqlLink ) > 0 ) {
         $email = ml_mysqli_result( $result, 0, "email" );
         }
     
@@ -688,7 +688,7 @@ function ml_remove() {
         "WHERE confirmation_code = '$code';";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysqli_affected_rows();
+    $hitCount = mysqli_affected_rows( $ml_mysqlLink );
 
     if( $hitCount == 1 ) {
         ml_log( "subscription for $email [$code] ".
@@ -763,7 +763,7 @@ function ml_massRemove() {
                 "WHERE email = '$email';";
     
             $result = ml_queryDatabase( $query );
-            $hitCount = mysqli_affected_rows();
+            $hitCount = mysqli_affected_rows( $ml_mysqlLink );
 
             if( $hitCount == 1 ) {
                 ml_log( "subscription for $email ".
