@@ -1234,7 +1234,7 @@ function ml_queryDatabase( $inQueryString ) {
 /**
  * Replacement for the old mysql_result function.
  */
-function ml_ml_mysqli_result( $result, $number, $field=0 ) {
+function ml_mysqli_result( $result, $number, $field=0 ) {
     mysqli_data_seek( $result, $number );
     $row = mysqli_fetch_array( $result );
     return $row[ $field ];
