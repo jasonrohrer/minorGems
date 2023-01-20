@@ -284,8 +284,8 @@ function ml_showLog() {
         
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $time = mysqli_result( $result, $i, "entry_time" );
-        $entry = mysqli_result( $result, $i, "entry" );
+        $time = ml_mysqli_result( $result, $i, "entry_time" );
+        $entry = ml_mysqli_result( $result, $i, "entry" );
 
         echo "<b>$time</b>:<br>$entry<hr>\n";
         }
@@ -498,7 +498,7 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
         "WHERE email='$email';";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysqli_result( $result, 0, 0 );
+    $hitCount = ml_mysqli_result( $result, 0, 0 );
 
 
     if( $hitCount > 0 ) {
@@ -619,7 +619,7 @@ function ml_confirm() {
         "WHERE confirmation_code='$code' AND confirmed = 1;";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysqli_result( $result, 0, 0 );
+    $hitCount = ml_mysqli_result( $result, 0, 0 );
 
     $alreadyConfirmed = false;
     
@@ -680,7 +680,7 @@ function ml_remove() {
     $result = ml_queryDatabase( $query );
     $email = "";
     if( mysqli_affected_rows() > 0 ) {
-        $email = mysqli_result( $result, 0, "email" );
+        $email = ml_mysqli_result( $result, 0, "email" );
         }
     
     
@@ -859,7 +859,7 @@ function ml_showData( $checkPassword = true ) {
         "$keywordClause;";
 
     $result = ml_queryDatabase( $query );
-    $totalRecipients = mysqli_result( $result, 0, 0 );
+    $totalRecipients = ml_mysqli_result( $result, 0, 0 );
 
 
     $orderDir = "DESC";
@@ -950,12 +950,13 @@ function ml_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $email = mysqli_result( $result, $i, "email" );
-        $confirmation_code = mysqli_result( $result, $i, "confirmation_code" );
-        $confirmed = mysqli_result( $result, $i, "confirmed" );
-        $creation_date = mysqli_result( $result, $i, "creation_date" );
-        $last_sent_date = mysqli_result( $result, $i, "last_sent_date" );
-        $sent_count = mysqli_result( $result, $i, "sent_count" );
+        $email = ml_mysqli_result( $result, $i, "email" );
+        $confirmation_code =
+            ml_mysqli_result( $result, $i, "confirmation_code" );
+        $confirmed = ml_mysqli_result( $result, $i, "confirmed" );
+        $creation_date = ml_mysqli_result( $result, $i, "creation_date" );
+        $last_sent_date = ml_mysqli_result( $result, $i, "last_sent_date" );
+        $sent_count = ml_mysqli_result( $result, $i, "sent_count" );
 
         
         $confirmed_toggle = "";
@@ -1107,8 +1108,8 @@ function ml_sendMessage() {
     $allCustom2 = array();
     
     for( $i=0; $i<$numRows; $i++ ) {
-        $email = mysqli_result( $result, $i, "email" );
-        $code = mysqli_result( $result, $i, "confirmation_code" );
+        $email = ml_mysqli_result( $result, $i, "email" );
+        $code = ml_mysqli_result( $result, $i, "confirmation_code" );
         
         $allEmails[] = $email;
         $allCodes[] = $code;
@@ -1231,6 +1232,17 @@ function ml_queryDatabase( $inQueryString ) {
 
 
 /**
+ * Replacement for the old mysql_result function.
+ */
+function ml_ml_mysqli_result( $result, $number, $field=0 ) {
+    mysqli_data_seek( $result, $number );
+    $row = mysqli_fetch_array( $result );
+    return $row[ $field ];
+    }
+
+
+
+/**
  * Checks whether a table exists in the currently-connected database.
  *
  * @param $inTableName the name of the table to look for.
@@ -1249,7 +1261,7 @@ function ml_doesTableExist( $inTableName ) {
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = mysqli_result( $result, $i, 0 );
+        $tableName = ml_mysqli_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
