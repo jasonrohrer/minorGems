@@ -1193,7 +1193,7 @@ function ml_queryDatabase( $inQueryString ) {
         ml_connectToDatabase();
         }
     
-    $result = mysqli_query( $inQueryString, $ml_mysqlLink );
+    $result = mysqli_query( $ml_mysqlLink, $inQueryString );
     
     if( $result == FALSE ) {
 
@@ -1212,7 +1212,7 @@ function ml_queryDatabase( $inQueryString ) {
             ml_closeDatabase();
             ml_connectToDatabase();
 
-            $result = mysqli_query( $inQueryString, $ml_mysqlLink )
+            $result = mysqli_query( $ml_mysqlLink, $inQueryString )
                 or ml_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
                     mysqli_error() );
