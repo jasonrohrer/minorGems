@@ -271,7 +271,7 @@ function ml_showLog() {
         "ORDER BY entry_time DESC;";
     $result = ml_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
 
 
@@ -284,8 +284,8 @@ function ml_showLog() {
         
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $time = mysql_result( $result, $i, "entry_time" );
-        $entry = mysql_result( $result, $i, "entry" );
+        $time = mysqli_result( $result, $i, "entry_time" );
+        $entry = mysqli_result( $result, $i, "entry" );
 
         echo "<b>$time</b>:<br>$entry<hr>\n";
         }
@@ -498,7 +498,7 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
         "WHERE email='$email';";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysql_result( $result, 0, 0 );
+    $hitCount = mysqli_result( $result, 0, 0 );
 
 
     if( $hitCount > 0 ) {
@@ -595,7 +595,7 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
         else {
             global $debug;
             if( $debug == 1 ) {
-                echo "Duplicate ids?  Error:  " . mysql_error() ."<br>";
+                echo "Duplicate ids?  Error:  " . mysqli_error() ."<br>";
                 }
             // try again
             $salt += 1;
@@ -619,7 +619,7 @@ function ml_confirm() {
         "WHERE confirmation_code='$code' AND confirmed = 1;";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysql_result( $result, 0, 0 );
+    $hitCount = mysqli_result( $result, 0, 0 );
 
     $alreadyConfirmed = false;
     
@@ -632,7 +632,7 @@ function ml_confirm() {
         "SET confirmed = 1 WHERE confirmation_code = '$code';";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysql_affected_rows();
+    $hitCount = mysqli_affected_rows();
 
 
     eval( $header );
@@ -679,8 +679,8 @@ function ml_remove() {
     
     $result = ml_queryDatabase( $query );
     $email = "";
-    if( mysql_affected_rows() > 0 ) {
-        $email = mysql_result( $result, 0, "email" );
+    if( mysqli_affected_rows() > 0 ) {
+        $email = mysqli_result( $result, 0, "email" );
         }
     
     
@@ -688,7 +688,7 @@ function ml_remove() {
         "WHERE confirmation_code = '$code';";
     
     $result = ml_queryDatabase( $query );
-    $hitCount = mysql_affected_rows();
+    $hitCount = mysqli_affected_rows();
 
     if( $hitCount == 1 ) {
         ml_log( "subscription for $email [$code] ".
@@ -763,7 +763,7 @@ function ml_massRemove() {
                 "WHERE email = '$email';";
     
             $result = ml_queryDatabase( $query );
-            $hitCount = mysql_affected_rows();
+            $hitCount = mysqli_affected_rows();
 
             if( $hitCount == 1 ) {
                 ml_log( "subscription for $email ".
@@ -859,7 +859,7 @@ function ml_showData( $checkPassword = true ) {
         "$keywordClause;";
 
     $result = ml_queryDatabase( $query );
-    $totalRecipients = mysql_result( $result, 0, 0 );
+    $totalRecipients = mysqli_result( $result, 0, 0 );
 
 
     $orderDir = "DESC";
@@ -874,7 +874,7 @@ function ml_showData( $checkPassword = true ) {
         "LIMIT $skip, $recordsPerPage;";
     $result = ml_queryDatabase( $query );
     
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
     $startSkip = $skip + 1;
     
@@ -950,12 +950,12 @@ function ml_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $email = mysql_result( $result, $i, "email" );
-        $confirmation_code = mysql_result( $result, $i, "confirmation_code" );
-        $confirmed = mysql_result( $result, $i, "confirmed" );
-        $creation_date = mysql_result( $result, $i, "creation_date" );
-        $last_sent_date = mysql_result( $result, $i, "last_sent_date" );
-        $sent_count = mysql_result( $result, $i, "sent_count" );
+        $email = mysqli_result( $result, $i, "email" );
+        $confirmation_code = mysqli_result( $result, $i, "confirmation_code" );
+        $confirmed = mysqli_result( $result, $i, "confirmed" );
+        $creation_date = mysqli_result( $result, $i, "creation_date" );
+        $last_sent_date = mysqli_result( $result, $i, "last_sent_date" );
+        $sent_count = mysqli_result( $result, $i, "sent_count" );
 
         
         $confirmed_toggle = "";
@@ -1094,7 +1094,7 @@ function ml_sendMessage() {
 
     $result = ml_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
     echo "Adding $numRows emails to the bulkEmailer queue...<br><br><br>\n";
 
@@ -1107,8 +1107,8 @@ function ml_sendMessage() {
     $allCustom2 = array();
     
     for( $i=0; $i<$numRows; $i++ ) {
-        $email = mysql_result( $result, $i, "email" );
-        $code = mysql_result( $result, $i, "confirmation_code" );
+        $email = mysqli_result( $result, $i, "email" );
+        $code = mysqli_result( $result, $i, "confirmation_code" );
         
         $allEmails[] = $email;
         $allCodes[] = $code;
@@ -1156,13 +1156,13 @@ function ml_connectToDatabase() {
     
     
     $ml_mysqlLink =
-        mysql_connect( $databaseServer, $databaseUsername, $databasePassword )
+        mysqli_connect( $databaseServer, $databaseUsername, $databasePassword )
         or ml_operationError( "Could not connect to database server: " .
-                              mysql_error() );
+                              mysqli_error() );
     
-	mysql_select_db( $databaseName )
+	mysqli_select_db( $databaseName )
         or ml_operationError( "Could not select $databaseName database: " .
-                              mysql_error() );
+                              mysqli_error() );
     }
 
 
@@ -1173,7 +1173,7 @@ function ml_connectToDatabase() {
 function ml_closeDatabase() {
     global $ml_mysqlLink;
     
-    mysql_close( $ml_mysqlLink );
+    mysqli_close( $ml_mysqlLink );
     }
 
 
@@ -1193,11 +1193,11 @@ function ml_queryDatabase( $inQueryString ) {
         ml_connectToDatabase();
         }
     
-    $result = mysql_query( $inQueryString, $ml_mysqlLink );
+    $result = mysqli_query( $inQueryString, $ml_mysqlLink );
     
     if( $result == FALSE ) {
 
-        $errorNumber = mysql_errno();
+        $errorNumber = mysqli_errno();
         
         // server lost or gone?
         if( $errorNumber == 2006 ||
@@ -1212,16 +1212,16 @@ function ml_queryDatabase( $inQueryString ) {
             ml_closeDatabase();
             ml_connectToDatabase();
 
-            $result = mysql_query( $inQueryString, $ml_mysqlLink )
+            $result = mysqli_query( $inQueryString, $ml_mysqlLink )
                 or ml_operationError(
                     "Database query failed:<BR>$inQueryString<BR><BR>" .
-                    mysql_error() );
+                    mysqli_error() );
             }
         else {
             // some other error (we're still connected, so we can
             // add log messages to database
             ml_fatalError( "Database query failed:<BR>$inQueryString<BR><BR>" .
-                           mysql_error() );
+                           mysqli_error() );
             }
         }    
 
@@ -1244,12 +1244,12 @@ function ml_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = ml_queryDatabase( $query );
 
-    $numRows = mysql_numrows( $result );
+    $numRows = mysqli_numrows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
 
-        $tableName = mysql_result( $result, $i, 0 );
+        $tableName = mysqli_result( $result, $i, 0 );
         
         if( $tableName == $inTableName ) {
             $tableExists = 1;
@@ -1264,7 +1264,7 @@ function ml_log( $message ) {
     global $enableLog, $tableNamePrefix, $ml_mysqlLink;
 
     if( $enableLog ) {
-        $slashedMessage = mysql_real_escape_string( $message, $ml_mysqlLink );
+        $slashedMessage = mysqli_real_escape_string( $message, $ml_mysqlLink );
     
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";
