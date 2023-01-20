@@ -1276,7 +1276,7 @@ function ml_log( $message ) {
     global $enableLog, $tableNamePrefix, $ml_mysqlLink;
 
     if( $enableLog ) {
-        $slashedMessage = mysqli_real_escape_string( $message, $ml_mysqlLink );
+        $slashedMessage = mysqli_real_escape_string( $ml_mysqlLink, $message );
     
         $query = "INSERT INTO $tableNamePrefix"."log VALUES ( " .
             "'$slashedMessage', CURRENT_TIMESTAMP );";
