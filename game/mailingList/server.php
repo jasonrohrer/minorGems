@@ -612,7 +612,7 @@ function ml_createSubscription( $email, $confirmed, $manual ) {
 
 
 function ml_confirm() {
-    global $tableNamePrefix, $remoteIP, $header, $footer;
+    global $tableNamePrefix, $remoteIP, $header, $footer, $ml_mysqlLink;
     $code = ml_requestFilter( "code", "/[A-Z]+/" );
 
     $query = "SELECT COUNT(*) FROM $tableNamePrefix"."recipients ".
@@ -657,7 +657,7 @@ function ml_confirm() {
 
 
 function ml_remove() {
-    global $tableNamePrefix, $remoteIP, $header, $footer;
+    global $tableNamePrefix, $remoteIP, $header, $footer, $ml_mysqlLink;
     $code = ml_requestFilter( "code", "/[A-Z]+/" );
     $manual = ml_requestFilter( "manual", "/1/" );
     $confirm = ml_requestFilter( "confirm", "/1/" );
@@ -725,7 +725,7 @@ function ml_remove() {
 
 
 function ml_massRemove() {
-    global $tableNamePrefix, $remoteIP, $header, $footer;
+    global $tableNamePrefix, $remoteIP, $header, $footer, $ml_mysqlLink;
 
     ml_checkPassword( "mass remove" );
 
