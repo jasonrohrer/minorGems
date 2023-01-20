@@ -271,7 +271,7 @@ function ml_showLog() {
         "ORDER BY entry_time DESC;";
     $result = ml_queryDatabase( $query );
 
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
 
@@ -874,7 +874,7 @@ function ml_showData( $checkPassword = true ) {
         "LIMIT $skip, $recordsPerPage;";
     $result = ml_queryDatabase( $query );
     
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     $startSkip = $skip + 1;
     
@@ -1094,7 +1094,7 @@ function ml_sendMessage() {
 
     $result = ml_queryDatabase( $query );
 
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
     echo "Adding $numRows emails to the bulkEmailer queue...<br><br><br>\n";
 
@@ -1244,7 +1244,7 @@ function ml_doesTableExist( $inTableName ) {
     $query = "SHOW TABLES";
     $result = ml_queryDatabase( $query );
 
-    $numRows = mysqli_numrows( $result );
+    $numRows = mysqli_num_rows( $result );
 
 
     for( $i=0; $i<$numRows && ! $tableExists; $i++ ) {
