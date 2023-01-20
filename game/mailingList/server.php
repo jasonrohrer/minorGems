@@ -1160,7 +1160,7 @@ function ml_connectToDatabase() {
         or ml_operationError( "Could not connect to database server: " .
                               mysqli_error() );
     
-	mysqli_select_db( $databaseName )
+	mysqli_select_db( $ml_mysqlLink, $databaseName )
         or ml_operationError( "Could not select $databaseName database: " .
                               mysqli_error() );
     }
