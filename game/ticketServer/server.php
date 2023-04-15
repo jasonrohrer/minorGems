@@ -3188,7 +3188,9 @@ function ts_stripslashes_deep( $inValue ) {
 /**
  * Filters a $_REQUEST variable using a regex match.
  *
- * Returns "" (or specified default value) if there is no match.
+ * Returns "" (or specified default value) if there is no EXACT match.
+ * Entire variable value must match regex, with no extra characters before
+ * or after part matched by regex.
  */
 function ts_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
     if( ! isset( $_REQUEST[ $inRequestVariable ] ) ) {
@@ -3202,7 +3204,9 @@ function ts_requestFilter( $inRequestVariable, $inRegex, $inDefault = "" ) {
 /**
  * Filters a value  using a regex match.
  *
- * Returns "" (or specified default value) if there is no match.
+ * Returns "" (or specified default value) if there is no EXACT match.
+ * Entire value must match regex, with no extra characters before
+ * or after part matched by regex.
  */
 function ts_filter( $inValue, $inRegex, $inDefault = "" ) {
     
@@ -3212,8 +3216,13 @@ function ts_filter( $inValue, $inRegex, $inDefault = "" ) {
     if( $numMatches != 1 ) {
         return $inDefault;
         }
-        
-    return $matches[0];
+
+    if( $matches[0] == $inValue ) {
+        return $matches[0];
+        }
+    else {
+        return $inDefault;
+        }
     }
 
 
