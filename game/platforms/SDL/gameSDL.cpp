@@ -1323,6 +1323,33 @@ char isSoundRunning() {
 
 
 
+void handleTooWide() {
+    if( isNonIntegerScalingAllowed() ) {
+        
+        double screenRatio = (double)screenWidth / (double)screenHeight;
+        double gameRatio = (double)gameWidth / (double)gameHeight;
+        
+        if( screenRatio > gameRatio ) {
+            // screen too wide
+
+            // tell game about this by making game image wider than requested}
+            
+            int newGameWidth = (int)( screenRatio * gameHeight );
+            
+            AppLog::infoF( 
+                "Screen has wider aspect ratio than desired game image, " 
+                "fixing by making game image wider (old %dx%d, new %dx%d)",
+                gameWidth, gameHeight, newGameWidth, gameHeight );
+
+            gameWidth = newGameWidth;
+
+            // if screen too narrow, this is already handled elsewhere
+            }
+        }
+    }
+
+
+
 #ifdef __mac__
 
 #include <unistd.h>
@@ -1710,25 +1737,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
     
 
-    if( isNonIntegerScalingAllowed() ) {
-        
-        double screenRatio = (double)screenWidth / (double)screenHeight;
-        double gameRatio = (double)gameWidth / (double)gameHeight;
-        
-        if( screenRatio > gameRatio ) {
-            // screen too wide
-
-            // tell game about this by making game image wider than requested}
-
-            AppLog::info( 
-                "Screen has wider aspect ratio than desired game image, " 
-                "fixing by makign game image wider" );
-            
-            gameWidth = (int)( screenRatio * gameHeight );
-
-            // if screen too narrow, this is already handled elsewhere
-            }
-        }
+    handleTooWide();
     
 
     char fullscreenFound = false;
@@ -1863,6 +1872,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 
                 screenWidth = lrint( screenHeight / aspectRatio );
                 }
+
+            AppLog::infoF( "Requested window too large for screen, "
+                           "non-integer scaling it to %dx%d",
+                           screenWidth, screenHeight );
             }
         else {
             
@@ -1879,6 +1892,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
                 screenWidth /= blowDownFactor;
                 screenHeight /= blowDownFactor;
                 }
+
+            AppLog::infoF( "Requested window too large for screen, "
+                           "integer scaling it to %dx%d",
+                           screenWidth, screenHeight );
             }
         }
     
@@ -2015,6 +2032,11 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
     char *hashSalt = getHashSalt();
 
+
+    AppLog::infoF( "Constructing ScreenGL with requested %dx%d, %d fps, "
+                   "fullscreen(%d)",
+                   screenWidth, screenHeight, targetFrameRate, fullscreen );
+
     screen =
         new ScreenGL( screenWidth, screenHeight, fullscreen, 
                       shouldNativeScreenResolutionBeUsed(),
@@ -2033,6 +2055,19 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     screenWidth = screen->getWidth();
     screenHeight = screen->getHeight();
     targetFrameRate = screen->getMaxFramerate();
+
+    AppLog::infoF( "ScreenGL gave us %dx%d, %d fps",
+                   screenWidth, screenHeight, targetFrameRate );
+
+
+    // call this again here, because screenWidth or screenHeight might
+    // have changed from what we requested
+    handleTooWide();
+    
+    
+    
+
+
 
 
 
@@ -2150,6 +2185,10 @@ int mainFunction( int inNumArgs, char **inArgs ) {
     
         screen->setImageSize( pixelZoomFactor * gameWidth,
                               pixelZoomFactor * gameHeight );
+
+        AppLog::infoF( "Setting integer-scaled screen image size of %dx%d",
+                       pixelZoomFactor * gameWidth,
+                       pixelZoomFactor * gameHeight );
         }
     else {
         
@@ -2175,6 +2214,9 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
         screen->setImageSize( imageH,
                               imageW );
+
+        AppLog::infoF( "Setting non-integer-scaled screen image size of %dx%d",
+                       imageW, imageH );
         }
     
 
@@ -2706,14 +2748,19 @@ doublePair getViewCenterPosition() {
 
 
 void setViewSize( float inSize ) {
+    AppLog::infoF( "setViewSize called with %f", inSize );
+    
     viewSize = inSize;
-    redoDrawMatrix();
     }
 
 
 void setLetterbox( float inVisibleWidth, float inVisibleHeight ) {
     visibleWidth = inVisibleWidth;
     visibleHeight = inVisibleHeight;
+
+    AppLog::infoF( "setLetterbox called with %fx%f", 
+                   inVisibleWidth, inVisibleHeight );
+    redoDrawMatrix();
     }
 
 
