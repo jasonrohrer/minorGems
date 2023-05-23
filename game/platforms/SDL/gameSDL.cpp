@@ -1475,7 +1475,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
             PROCESS_PER_MONITOR_DPI_AWARE  = 2
             } PROCESS_DPI_AWARENESS;
         
-        typedef HRESULT (*SetProcessDpiAwarenessFunc)( PROCESS_DPI_AWARENESS );
+        typedef HRESULT (WINAPI *SetProcessDpiAwarenessFunc)( PROCESS_DPI_AWARENESS );
         
         SetProcessDpiAwarenessFunc setAwareness = 
             (SetProcessDpiAwarenessFunc)GetProcAddress(
@@ -1508,7 +1508,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         
         if( hUser32 != NULL ) {
             
-            typedef BOOL (*SetProcessDPIAwareFunc)();
+            typedef BOOL (WINAPI *SetProcessDPIAwareFunc)();
             
             SetProcessDPIAwareFunc setDPIAware = 
                 (SetProcessDPIAwareFunc)GetProcAddress( hUser32, 
