@@ -3179,7 +3179,10 @@ void GameSceneHandler::drawScene() {
                 ultraWide = true;
                 }
 
-            if( ultraWide ) {
+            // we no longer do this, because ultrawide cursor placement
+            // issues have been fixed, allowing ultrawide monitors to use
+            // native cursor by default
+            if( false && ultraWide ) {
                 // drawn cursor, because system native cursor
                 // is off-target on ultrawide displays
                 
