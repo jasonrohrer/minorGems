@@ -29,6 +29,9 @@
  * 2011-April-5     Jason Rohrer
  * Fixed float-to-int conversion.
  * See:  http://www.mega-nerd.com/FPcast/  
+ *
+ * 2023-June-8     Jason Rohrer
+ * Added a function for producing an Image from an 8-bit color byte array.
  */
  
  
@@ -86,6 +89,16 @@ class RGBAImage : public Image {
         //
         // MUST be a 3- or 4-channel image
         static unsigned char *getRGBABytes( Image *inImage );
+        
+        
+        // contstructs an image from 8-bit color data
+        // channels must be interleaved in inBytes
+        // for example, RGBRGBRGB...
+        // Works with any number of channels, but code is optimized
+        // for 3- or 4-channel images.
+        static Image *getImageFromBytes( unsigned char *inBytes,
+                                         int inWidth, int inHeight,
+                                         int inNumChannels );
         
 
 		
@@ -258,5 +271,118 @@ inline RGBAImage *RGBAImage::copy() {
 	return copiedImage;
 	}
 	
+
+
+inline Image *RGBAImage::getImageFromBytes( unsigned char *inBytes,
+                                            int inWidth, int inHeight,
+                                            int inNumChannels ) {
+
+    Image *im = new Image( inWidth, inHeight, inNumChannels, false );
+
+    if( inNumChannels == 3 ) {
+        // optimized code for 3 channels
+
+        // code roughly duplicated from gameSDL.cpp getScreenRegionInternal
+
+        double *channelOne = im->getChannel( 0 );
+        double *channelTwo = im->getChannel( 1 );
+        double *channelThree = im->getChannel( 2 );
+        
+        int outputRow = 0;
+        for( int y=0; y<inHeight; y++ ) {
+            for( int x=0; x<inWidth; x++ ) {
+                
+                int outputPixelIndex = outputRow * inWidth + x;
+                
+                
+                int regionPixelIndex = y * inWidth + x;
+                int byteIndex = regionPixelIndex * 3;
+                
+                // optimization found:  should unroll this loop over 3 channels
+                // divide by 255, with a multiply
+                channelOne[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                channelTwo[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                channelThree[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                }
+            outputRow++;
+            }
+        }
+    else if( inNumChannels == 4 ) {
+        // optimized code for 3 channels
+
+        // code roughly duplicated from gameSDL.cpp getScreenRegionInternal
+
+        double *channelOne = im->getChannel( 0 );
+        double *channelTwo = im->getChannel( 1 );
+        double *channelThree = im->getChannel( 2 );
+        double *channelFour = im->getChannel( 3 );
+        
+        int outputRow = 0;
+        for( int y=0; y<inHeight; y++ ) {
+            for( int x=0; x<inWidth; x++ ) {
+                
+                int outputPixelIndex = outputRow * inWidth + x;
+                
+                
+                int regionPixelIndex = y * inWidth + x;
+                int byteIndex = regionPixelIndex * 4;
+                
+                // optimization found:  should unroll this loop over 4 channels
+                // divide by 255, with a multiply
+                channelOne[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                channelTwo[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                channelThree[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                channelFour[outputPixelIndex] = 
+                    inBytes[ byteIndex++ ] * 0.003921569;
+                }
+            outputRow++;
+            }
+        }
+    else {
+        // for other numbers of channels
+        // dynamic code
+
+        double **channels = new double*[inNumChannels];
+
+        for( int i=0; i<inNumChannels; i++ ) {
+            channels[i] = im->getChannel( i );
+            }
+        
+        int outputRow = 0;
+        
+        for( int y=0; y<inHeight; y++ ) {
+            for( int x=0; x<inWidth; x++ ) {
+                
+                int outputPixelIndex = outputRow * inWidth + x;
+                
+                
+                int regionPixelIndex = y * inWidth + x;
+                int byteIndex = regionPixelIndex * inNumChannels;
+                
+                // this is less-optimized than 3-channel code
+                // because we don't unroll inner loop
+                for( int i=0; i<inNumChannels; i++ ) {
+                    channels[i][outputPixelIndex] = 
+                        inBytes[ byteIndex++ ] * 0.003921569;
+                    }
+                }
+            outputRow++;
+            }
+        
+        delete [] channels;
+        }
+    
+
+    
+    return im;
+    }
+
+
 		
 #endif
