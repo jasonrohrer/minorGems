@@ -3,6 +3,11 @@
  *
  * 2004-May-9   Jason Rohrer
  * Created.
+ *
+ * 2023-June-27   Jason Rohrer
+ * Fixed to correctly skip other chunks, like optional Text chunks, that might
+ * come before SSND chunk.  Before, we were incorrectly reading data in these
+ * chunks as audio.
  */
 
 
@@ -97,8 +102,9 @@ unsigned char *getAIFFHeader( int inNumChannels, int inSampleSizeInBits,
 
 int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
                              int *outNumSamples, int *outSampleRate ) {
-    
-    if( inNumBytes < 34 ) {
+
+    // at least 54 bytes if both COMM and SSND chunks are present
+    if( inNumBytes < 54 ) {
         printf( "AIFF not long enough for header\n" );
         return NULL;
         }
@@ -132,7 +138,30 @@ int16_t *readMono16AIFFData( unsigned char *inData, int inNumBytes,
         }
 
 
-    int sampleStartByte = 54;
+    int lookForSSNDByte = 38;
+
+    // there may be other chunks before SSND chunk
+    // walk forward until SSND is encountered
+
+    while( lookForSSNDByte < inNumBytes &&
+           ( inData[lookForSSNDByte] != 'S' ||
+             inData[lookForSSNDByte + 1] != 'S' ||
+             inData[lookForSSNDByte + 2] != 'N' ||
+             inData[lookForSSNDByte + 3] != 'D' ) ) {
+        lookForSSNDByte++;
+        }
+
+
+    if( lookForSSNDByte >= inNumBytes ) {
+        printf( "SSND chunk not found in AIFF inData\n" );
+        return NULL;
+        }
+
+    // else lookForSSNDByte is at start of SSND
+
+    // skip to data part of SSND chunk (skip header)
+    
+    int sampleStartByte = lookForSSNDByte + 16;
                         
     
     int numBytes = numSamples * 2;
