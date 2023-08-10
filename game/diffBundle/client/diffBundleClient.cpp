@@ -110,12 +110,17 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
     File hgFileB( NULL, "../.hg" );
     File hgFileC( NULL, "../../.hg" );
     File hgFileD( NULL, "../../../.hg" );
+    
+    // also if we're building where a working mercurial checkout of minorGems
+    // is present
+    File hgFileE( NULL, "minorGems/.hg" );
 
 
     if( hgFileA.exists() ||
         hgFileB.exists() ||
         hgFileC.exists() ||
-        hgFileD.exists() ) {
+        hgFileD.exists() ||
+        hgFileE.exists() ) {
     
         return false;
         }
@@ -128,11 +133,16 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
     File gitFileC( NULL, "../../.git" );
     File gitFileD( NULL, "../../../.git" );
 
+    // also if we're building where a working git checkout of minorGems
+    // is present
+    File gitFileE( NULL, "minorGems/.git" );
+
 
     if( gitFileA.exists() ||
         gitFileB.exists() ||
         gitFileC.exists() ||
-        gitFileD.exists() ) {
+        gitFileD.exists() ||
+        gitFileE.exists() ) {
     
         return false;
         }
