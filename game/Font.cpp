@@ -28,7 +28,72 @@ typedef union rgbaColor {
 // glyphs don't cause the glyph to be logically wider than it looks visually 
 const unsigned char inkA = 127;
 
+int utf8_to_codepoint(const unsigned char *&p)
+{
+    int codepoint = 0;
+    if ((*p & 0x80) == 0)
+    {
+        codepoint = *p;
+        p++;
+    }
+    else if ((*p & 0xE0) == 0xC0)
+    {
+        codepoint = (*p & 0x1F) << 6;
+        p++;
+        codepoint |= (*p & 0x3F);
+        p++;
+    }
+    else if ((*p & 0xF0) == 0xE0)
+    {
+        codepoint = (*p & 0x0F) << 12;
+        p++;
+        codepoint |= (*p & 0x3F) << 6;
+        p++;
+        codepoint |= (*p & 0x3F);
+        p++;
+    }
+    else if ((*p & 0xF8) == 0xF0)
+    {
+        codepoint = (*p & 0x07) << 18;
+        p++;
+        codepoint |= (*p & 0x3F) << 12;
+        p++;
+        codepoint |= (*p & 0x3F) << 6;
+        p++;
+        codepoint |= (*p & 0x3F);
+        p++;
+    }
+    return codepoint;
+}
 
+int *utf8_to_int_array(const char *utf8_string)
+{
+    const unsigned char *p = (const unsigned char *)utf8_string;
+    int output[strlen(utf8_string)];
+    int len = 0;
+
+    while (*p)
+    {
+        output[len] = utf8_to_codepoint(p);
+        ++len;
+    }
+
+    int *result = new int[len + 1];
+    for (int i = 0; i < len; ++i)
+    {
+        result[i] = output[i];
+    }
+    result[len] = 0;
+    return result;
+}
+
+size_t strlen(const int *utf8)
+{
+    int i = 0;
+    while (utf8[i])
+        ++i;
+    return i;
+}
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -434,7 +499,7 @@ double Font::getCharSpacing() {
 
 
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
-                         const char *inString, doublePair inPosition,
+                         const int *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
 
     double scale = scaleFactor * mScaleFactor;
@@ -489,7 +554,7 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         doublePair drawPos;
         
-        double charWidth = positionCharacter( (unsigned char)( inString[i] ), 
+        double charWidth = positionCharacter( (unsigned int)( inString[i] ), 
                                               charPos, &drawPos );
         outPositions->push_back( drawPos );
         
@@ -497,11 +562,11 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         if( !mFixedWidth && mEnableKerning 
             && i < numChars - 1 
-            && mKerningTable[(unsigned char)( inString[i] )] != NULL ) {
+            && mKerningTable[(unsigned int)( inString[i] )] != NULL ) {
             // there's another character after this
             // apply true kerning adjustment to the pair
-            int offset = mKerningTable[ (unsigned char)( inString[i] ) ]->
-                offset[ (unsigned char)( inString[i+1] ) ];
+            int offset = mKerningTable[ (unsigned int)( inString[i] ) ]->
+                offset[ (unsigned int)( inString[i+1] ) ];
             x += offset * scale;
             }
         }
@@ -516,14 +581,15 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    SimpleVector<doublePair> pos( strlen( inString ) );
+    int* utf8String = utf8_to_int_array(inString);
+    SimpleVector<doublePair> pos( strlen( utf8String ) );
 
-    double returnVal = getCharPos( &pos, inString, inPosition, inAlign );
+    double returnVal = getCharPos( &pos, utf8String, inPosition, inAlign );
 
     double scale = scaleFactor * mScaleFactor;
     
     for( int i=0; i<pos.size(); i++ ) {
-        SpriteHandle spriteID = mSpriteMap[ (unsigned char)( inString[i] ) ];
+        SpriteHandle spriteID = mSpriteMap[ (unsigned int)( utf8String[i] ) ];
     
         if( spriteID != NULL ) {
             drawSprite( spriteID, pos.getElementDirect(i), scale );
@@ -531,6 +597,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
     
         }
     
+    delete[] utf8String;
     return returnVal;
     }
 
@@ -594,7 +661,7 @@ void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
 
 
 
-double Font::measureString( const char *inString, int inCharLimit ) {
+double Font::measureString( const int *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
 
     int numChars = inCharLimit;
@@ -607,7 +674,7 @@ double Font::measureString( const char *inString, int inCharLimit ) {
     double width = 0;
     
     for( int i=0; i<numChars; i++ ) {
-        unsigned char c = inString[i];
+        unsigned int c = inString[i];
         
         if( c == ' ' ) {
             width += mSpaceWidth * scale;
@@ -620,11 +687,11 @@ double Font::measureString( const char *inString, int inCharLimit ) {
 
             if( mEnableKerning
                 && i < numChars - 1 
-                && mKerningTable[(unsigned char)( inString[i] )] != NULL ) {
+                && mKerningTable[(unsigned int)( inString[i] )] != NULL ) {
                 // there's another character after this
                 // apply true kerning adjustment to the pair
-                int offset = mKerningTable[ (unsigned char)( inString[i] ) ]->
-                    offset[ (unsigned char)( inString[i+1] ) ];
+                int offset = mKerningTable[ (unsigned int)( inString[i] ) ]->
+                    offset[ (unsigned int)( inString[i+1] ) ];
                 width += offset * scale;
                 }
             }
