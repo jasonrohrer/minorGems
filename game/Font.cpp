@@ -3,6 +3,8 @@
 #include "minorGems/graphics/RGBAImage.h"
 
 #include <string.h>
+#include <assert.h>
+#include <iostream>
 
 
 typedef union rgbaColor {
@@ -28,9 +30,9 @@ typedef union rgbaColor {
 // glyphs don't cause the glyph to be logically wider than it looks visually 
 const unsigned char inkA = 127;
 
-int utf8_to_codepoint(const unsigned char *&p)
+unicode utf8ToCodepoint(const unsigned char *&p)
 {
-    int codepoint = 0;
+    unicode codepoint = 0;
     if ((*p & 0x80) == 0)
     {
         codepoint = *p;
@@ -63,22 +65,25 @@ int utf8_to_codepoint(const unsigned char *&p)
         codepoint |= (*p & 0x3F);
         p++;
     }
+    // assert(codepoint < 128 );
+    // std::cout << (char)*p << ',' << (int)*p << ',' << codepoint << std::endl;
+    // assert(codepoint > 0);
     return codepoint;
 }
 
-int *utf8_to_int_array(const char *utf8_string)
+unicode *utf8ToUnicode(const char *utf8String)
 {
-    const unsigned char *p = (const unsigned char *)utf8_string;
-    int output[strlen(utf8_string)];
+    const unsigned char *p = (const unsigned char *)utf8String;
+    unicode output[strlen(utf8String)];
     int len = 0;
 
     while (*p)
     {
-        output[len] = utf8_to_codepoint(p);
+        output[len] = utf8ToCodepoint(p);
         ++len;
     }
 
-    int *result = new int[len + 1];
+    unicode *result = new unicode[len + 1];
     for (int i = 0; i < len; ++i)
     {
         result[i] = output[i];
@@ -87,10 +92,10 @@ int *utf8_to_int_array(const char *utf8_string)
     return result;
 }
 
-size_t strlen(const int *utf8)
+size_t strlen(const unicode *u)
 {
     int i = 0;
-    while (utf8[i])
+    while (u[i])
         ++i;
     return i;
 }
@@ -500,12 +505,12 @@ double Font::getCharSpacing() {
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    int *utf8String = utf8_to_int_array(inString);
-    getCharPos(outPositions, utf8String, inPosition, inAlign);
-    delete[] utf8String;
+    unicode *unicodeString = utf8ToUnicode(inString);
+    getCharPos(outPositions, unicodeString, inPosition, inAlign);
+    delete[] unicodeString;
 }
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
-                         const int *inString, doublePair inPosition,
+                         const unicode *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
 
     double scale = scaleFactor * mScaleFactor;
@@ -560,7 +565,7 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         doublePair drawPos;
         
-        double charWidth = positionCharacter( (unsigned int)( inString[i] ), 
+        double charWidth = positionCharacter( inString[i], 
                                               charPos, &drawPos );
         outPositions->push_back( drawPos );
         
@@ -568,11 +573,11 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         if( !mFixedWidth && mEnableKerning 
             && i < numChars - 1 
-            && mKerningTable[(unsigned int)( inString[i] )] != NULL ) {
+            && mKerningTable[ inString[i] ] != NULL ) {
             // there's another character after this
             // apply true kerning adjustment to the pair
-            int offset = mKerningTable[ (unsigned int)( inString[i] ) ]->
-                offset[ (unsigned int)( inString[i+1] ) ];
+            int offset = mKerningTable[ inString[i] ]->
+                offset[ inString[i+1] ];
             x += offset * scale;
             }
         }
@@ -587,15 +592,15 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    int* utf8String = utf8_to_int_array(inString);
-    SimpleVector<doublePair> pos( strlen( utf8String ) );
+    unicode* unicodeString = utf8ToUnicode(inString);
+    SimpleVector<doublePair> pos( strlen( unicodeString ) );
 
-    double returnVal = getCharPos( &pos, utf8String, inPosition, inAlign );
+    double returnVal = getCharPos( &pos, unicodeString, inPosition, inAlign );
 
     double scale = scaleFactor * mScaleFactor;
     
     for( int i=0; i<pos.size(); i++ ) {
-        SpriteHandle spriteID = mSpriteMap[ (unsigned int)( utf8String[i] ) ];
+        SpriteHandle spriteID = mSpriteMap[ unicodeString[i] ];
     
         if( spriteID != NULL ) {
             drawSprite( spriteID, pos.getElementDirect(i), scale );
@@ -603,7 +608,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
     
         }
     
-    delete[] utf8String;
+    delete[] unicodeString;
     return returnVal;
     }
 
@@ -666,11 +671,11 @@ void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
     }
 
 double Font::measureString( const char *inString, int inCharLimit ) {
-    int* utf8String = utf8_to_int_array(inString);
-    measureString(utf8String, inCharLimit);
-    delete[] utf8String;
+    unicode* unicodeString = utf8ToUnicode(inString);
+    measureString(unicodeString, inCharLimit);
+    delete[] unicodeString;
 }
-double Font::measureString( const int *inString, int inCharLimit ) {
+double Font::measureString( const unicode *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
 
     int numChars = inCharLimit;
@@ -683,7 +688,7 @@ double Font::measureString( const int *inString, int inCharLimit ) {
     double width = 0;
     
     for( int i=0; i<numChars; i++ ) {
-        unsigned int c = inString[i];
+        unicode c = inString[i];
         
         if( c == ' ' ) {
             width += mSpaceWidth * scale;
@@ -696,11 +701,11 @@ double Font::measureString( const int *inString, int inCharLimit ) {
 
             if( mEnableKerning
                 && i < numChars - 1 
-                && mKerningTable[(unsigned int)( inString[i] )] != NULL ) {
+                && mKerningTable[ inString[i] ] != NULL ) {
                 // there's another character after this
                 // apply true kerning adjustment to the pair
-                int offset = mKerningTable[ (unsigned int)( inString[i] ) ]->
-                    offset[ (unsigned int)( inString[i+1] ) ];
+                int offset = mKerningTable[ inString[i] ]->
+                    offset[ inString[i+1] ];
                 width += offset * scale;
                 }
             }
