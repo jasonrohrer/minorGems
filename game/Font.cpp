@@ -65,9 +65,10 @@ unicode utf8ToCodepoint(const unsigned char *&p)
         codepoint |= (*p & 0x3F);
         p++;
     }
-    // assert(codepoint < 128 );
-    // std::cout << (char)*p << ',' << (int)*p << ',' << codepoint << std::endl;
-    // assert(codepoint > 0);
+    else
+    {
+        std::cout << "Not UTF-8: " << (char)*p << ',' << (int)*p << ',' << std::endl;
+    }
     return codepoint;
 }
 
@@ -506,8 +507,9 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
     unicode *unicodeString = utf8ToUnicode(inString);
-    getCharPos(outPositions, unicodeString, inPosition, inAlign);
+    double result = getCharPos(outPositions, unicodeString, inPosition, inAlign);
     delete[] unicodeString;
+    return result;
 }
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const unicode *inString, doublePair inPosition,
@@ -672,8 +674,9 @@ void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
 
 double Font::measureString( const char *inString, int inCharLimit ) {
     unicode* unicodeString = utf8ToUnicode(inString);
-    measureString(unicodeString, inCharLimit);
+    double result =  measureString(unicodeString, inCharLimit);
     delete[] unicodeString;
+    return result;
 }
 double Font::measureString( const unicode *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
@@ -718,7 +721,7 @@ double Font::measureString( const unicode *inString, int inCharLimit ) {
         // (added in last step of loop)
         width -= mCharSpacing * scale;
         }
-    
+
     return width;
     }
 
