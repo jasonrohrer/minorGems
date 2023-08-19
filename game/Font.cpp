@@ -497,7 +497,13 @@ double Font::getCharSpacing() {
     }
 
 
-
+double Font::getCharPos( SimpleVector<doublePair> *outPositions,
+                         const char *inString, doublePair inPosition,
+                         TextAlignment inAlign ) {
+    int *utf8String = utf8_to_int_array(inString);
+    getCharPos(outPositions, utf8String, inPosition, inAlign);
+    delete[] utf8String;
+}
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const int *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
@@ -659,8 +665,11 @@ void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
         }
     }
 
-
-
+double Font::measureString( const char *inString, int inCharLimit ) {
+    int* utf8String = utf8_to_int_array(inString);
+    measureString(utf8String, inCharLimit);
+    delete[] utf8String;
+}
 double Font::measureString( const int *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
 

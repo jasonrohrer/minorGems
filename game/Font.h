@@ -50,9 +50,13 @@ class Font {
                            TextAlignment inAlign = alignCenter );
 
 
+        double measureString( const char *inString, int inCharLimit = -1 );
         double measureString( const int *inString, int inCharLimit = -1 );
         
         // gets per-character position of string without drawing it
+        double getCharPos( SimpleVector<doublePair> *outPositions,
+            const char *inString, doublePair inPosition,
+            TextAlignment inAlign = alignCenter );
         double getCharPos( SimpleVector<doublePair> *outPositions,
             const int *inString, doublePair inPosition,
             TextAlignment inAlign = alignCenter );
