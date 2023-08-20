@@ -23,6 +23,7 @@ typedef struct KerningTable {
 
 
 typedef unsigned short unicode;
+const double UNICODE_SCALE = 0.75;
 
 
 class Font {

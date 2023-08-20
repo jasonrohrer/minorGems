@@ -112,9 +112,10 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
           mFixedWidth( inFixedWidth ), mEnableKerning( true ),
           mMinimumPositionPrecision( 0 ) {
 
-    for( int i=0; i<256; i++ ) {
+    for( int i=0; i<65536; i++ ) {
         mSpriteMap[i] = NULL;
-        mKerningTable[i] = NULL;
+        if(i<256)
+            mKerningTable[i] = NULL;
     }
 
 
@@ -325,7 +326,9 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         
         // unicode has setup
         if(unicodeSpriteMap[65] != NULL) {
-            memcpy( mSpriteMap+256, unicodeSpriteMap, 65280 * sizeof( SpriteHandle ) );
+            // erased font can't be shown
+            if(strcmp(inFileName, "font_pencil_erased_32_32.tga") != 0)
+                memcpy( mSpriteMap+256, unicodeSpriteMap, 65280 * sizeof( SpriteHandle ) );
             memcpy( mCharLeftEdgeOffset+256, unicodeCharLeftEdgeOffset, 65280 * sizeof( int ) );
             memcpy( mCharWidth+256, unicodeCharWidth, 65280 * sizeof( int ) );
         }
@@ -647,9 +650,12 @@ double Font::drawString( const char *inString, doublePair inPosition,
     
     for( int i=0; i<pos.size(); i++ ) {
         SpriteHandle spriteID = mSpriteMap[ unicodeString[i] ];
+        double charScale = scale;
+        if(unicodeString[i] >= 256)
+            charScale *= UNICODE_SCALE;
     
         if( spriteID != NULL ) {
-            drawSprite( spriteID, pos.getElementDirect(i), scale );
+            drawSprite( spriteID, pos.getElementDirect(i), charScale );
             }
     
         }
