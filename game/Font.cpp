@@ -143,25 +143,44 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 }
                 char filename[28];
                 sprintf(filename, "unicode/unicode_page_%02x.tga", f);
-                // spriteImage = readTGAFile( filename );
-                spriteImage = readTGAFile( inFileName );
+                spriteImage = readTGAFile( filename );
+                // spriteImage = readTGAFile( inFileName );
                 if(spriteImage == NULL)
                     continue;
             }
+            mSpriteWidth = width / 16;
+            mSpriteHeight = height / 16;
+
+            int realWidth = spriteImage->getWidth();
+            int realHeight = spriteImage->getHeight();
+            int realSpriteWidth = realWidth / 16;
+            int realSpriteHeight = realHeight / 16;
 
             rgbaColor *spriteRGBA = new rgbaColor[ numPixels ];
             unsigned char *spriteBytes = 
                 RGBAImage::getRGBABytes( spriteImage );
             
             delete spriteImage;
+            int index = 0;
 
             for( int i=0; i<numPixels; i++ ) {
-                
+                // x, y in a char sprite
+                int x = i % mSpriteWidth;
+                int y = (i / width) % mSpriteHeight;
+
                 for( int b=0; b<4; b++ ) {
+                    if(x >= realSpriteWidth || y < mSpriteHeight - realSpriteHeight)
+                        // padding with black
+                        spriteRGBA[i].bytes[b] = 0;
+                    else {
+                        spriteRGBA[i].bytes[b] = spriteBytes[ index ];
+                        ++index;
+                    }
                     
                     spriteRGBA[i].bytes[b] = spriteBytes[ i*4 + b ];
                     }
                 }
+            assert(index == realWidth*realHeight*4);
             
             delete [] spriteBytes;
             
@@ -178,11 +197,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 spriteRGBA[i].comp.g = 255;
                 spriteRGBA[i].comp.b = 255;
                 }
-                
-                            
-                    
-            mSpriteWidth = width / 16;
-            mSpriteHeight = height / 16;
             
             if( mSpriteHeight == mSpriteWidth ) {
                 mAccentsPresent = false;
