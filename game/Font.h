@@ -89,15 +89,15 @@ class Font {
         double getCharSpacing();
         
         // returns x coordinate to right of drawn character
-        double drawCharacter( unsigned char inC, doublePair inPosition );
+        double drawCharacter( unicode inC, doublePair inPosition );
 
         // draws sprite centered on inPosition with no spacing adjustments
-        void drawCharacterSprite( unsigned char inC, doublePair inPosition );
+        void drawCharacterSprite( unicode inC, doublePair inPosition );
 
     private:        
         
         // returns x coordinate to right of drawn character
-        double positionCharacter( unsigned char inC, doublePair inTargetPos,
+        double positionCharacter( unicode inC, doublePair inTargetPos,
                                   doublePair *outActualPos );
 
         
@@ -118,12 +118,12 @@ class Font {
         int mCharBlockWidth;
         
 
-        // maps ascii chars to sprite IDs
-        SpriteHandle mSpriteMap[ 256 ];
+        // maps unicode to sprite IDs
+        SpriteHandle mSpriteMap[ 65536 ];
         
         // for kerning (ignored if fixed width flag on)
-        int mCharLeftEdgeOffset[ 256 ];
-        int mCharWidth[ 256 ];
+        int mCharLeftEdgeOffset[ 65536 ];
+        int mCharWidth[ 65536 ];
         
         
         // sparse

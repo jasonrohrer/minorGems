@@ -101,6 +101,10 @@ size_t strlen(const unicode *u)
     return i;
 }
 
+static SpriteHandle unicodeSpriteMap[65280] = {NULL};
+static int unicodeCharLeftEdgeOffset[65280];
+static int unicodeCharWidth[65280];
+
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
         : mScaleFactor( inScaleFactor ),
@@ -111,8 +115,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
     for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
         mKerningTable[i] = NULL;
-        }
-    
+    }
 
 
     Image *spriteImage = readTGAFile( inFileName );
@@ -125,173 +128,203 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         
         int numPixels = width * height;
         
-        rgbaColor *spriteRGBA = new rgbaColor[ numPixels ];
         
-        
-        unsigned char *spriteBytes = 
-            RGBAImage::getRGBABytes( spriteImage );
-        
-        delete spriteImage;
-
-        for( int i=0; i<numPixels; i++ ) {
-            
-            for( int b=0; b<4; b++ ) {
-                
-                spriteRGBA[i].bytes[b] = spriteBytes[ i*4 + b ];
-                }
-            }
-        
-        delete [] spriteBytes;
-        
-        
-
-        // use red channel intensity as transparency
-        // make entire image solid white and use transparency to 
-        // mask it
-
-        for( int i=0; i<numPixels; i++ ) {
-            spriteRGBA[i].comp.a = spriteRGBA[i].comp.r;
-            
-            spriteRGBA[i].comp.r = 255;
-            spriteRGBA[i].comp.g = 255;
-            spriteRGBA[i].comp.b = 255;
-            }
-            
-                        
-                
-        mSpriteWidth = width / 16;
-        mSpriteHeight = height / 16;
-        
-        if( mSpriteHeight == mSpriteWidth ) {
-            mAccentsPresent = false;
-            }
-        else {
-            mAccentsPresent = true;
-            }
-
-        if( inFixedCharWidth == 0 ) {
-            mCharBlockWidth = mSpriteWidth;
-            }
-        else {
-            mCharBlockWidth = inFixedCharWidth;
-            }
-
-
-        int pixelsPerChar = mSpriteWidth * mSpriteHeight;
             
         // hold onto these for true kerning after
         // we've read this data for all characters
         rgbaColor *savedCharacterRGBA[256];
         
+        for( int f=0; f<256; f++) {
+            // read unicode font
+            if(f > 0) {
+                // unicode has setup
+                if(unicodeSpriteMap[65] != NULL) {
+                    break;
+                }
+                char filename[28];
+                sprintf(filename, "unicode/unicode_page_%02x.tga", f);
+                // spriteImage = readTGAFile( filename );
+                spriteImage = readTGAFile( inFileName );
+                if(spriteImage == NULL)
+                    continue;
+            }
 
-        for( int i=0; i<256; i++ ) {
-            int yOffset = ( i / 16 ) * mSpriteHeight;
-            int xOffset = ( i % 16 ) * mSpriteWidth;
+            rgbaColor *spriteRGBA = new rgbaColor[ numPixels ];
+            unsigned char *spriteBytes = 
+                RGBAImage::getRGBABytes( spriteImage );
             
-            rgbaColor *charRGBA = new rgbaColor[ pixelsPerChar ];
-            
-            for( int y=0; y<mSpriteHeight; y++ ) {
-                for( int x=0; x<mSpriteWidth; x++ ) {
+            delete spriteImage;
+
+            for( int i=0; i<numPixels; i++ ) {
+                
+                for( int b=0; b<4; b++ ) {
                     
-                    int imageIndex = (y + yOffset) * width
-                        + x + xOffset;
-                    int charIndex = y * mSpriteWidth + x;
-                    
-                    charRGBA[ charIndex ] = spriteRGBA[ imageIndex ];
+                    spriteRGBA[i].bytes[b] = spriteBytes[ i*4 + b ];
                     }
                 }
-                
-            // don't bother consuming texture ram for blank sprites
-            char allTransparent = true;
             
-            for( int p=0; p<pixelsPerChar && allTransparent; p++ ) {
-                if( charRGBA[ p ].comp.a != 0 ) {
-                    allTransparent = false;
-                    }
+            delete [] spriteBytes;
+            
+            
+
+            // use red channel intensity as transparency
+            // make entire image solid white and use transparency to 
+            // mask it
+
+            for( int i=0; i<numPixels; i++ ) {
+                spriteRGBA[i].comp.a = spriteRGBA[i].comp.r;
+                
+                spriteRGBA[i].comp.r = 255;
+                spriteRGBA[i].comp.g = 255;
+                spriteRGBA[i].comp.b = 255;
                 }
                 
-            if( !allTransparent ) {
-                
-                // convert into an image
-                Image *charImage = new Image( mSpriteWidth, mSpriteHeight,
-                                              4, false );
-                
-                for( int c=0; c<4; c++ ) {
-                    double *chan = charImage->getChannel(c);
+                            
                     
-                    for( int p=0; p<pixelsPerChar; p++ ) {
-                        
-                        chan[p] = charRGBA[p].bytes[c] / 255.0;
-                        }
-                    }
-                
-
-                mSpriteMap[i] = 
-                    fillSprite( charImage );
-                delete charImage;
+            mSpriteWidth = width / 16;
+            mSpriteHeight = height / 16;
+            
+            if( mSpriteHeight == mSpriteWidth ) {
+                mAccentsPresent = false;
                 }
             else {
-                mSpriteMap[i] = NULL;
+                mAccentsPresent = true;
                 }
-            
 
-            if( mFixedWidth ) {
-                mCharLeftEdgeOffset[i] = 0;
-                mCharWidth[i] = mCharBlockWidth;
-                }
-            else if( allTransparent ) {
-                mCharLeftEdgeOffset[i] = 0;
-                mCharWidth[i] = mSpriteWidth;
+            if( inFixedCharWidth == 0 ) {
+                mCharBlockWidth = mSpriteWidth;
                 }
             else {
-                // implement pseudo-kerning
+                mCharBlockWidth = inFixedCharWidth;
+                }
+
+
+            int pixelsPerChar = mSpriteWidth * mSpriteHeight;
+
+            for( int i=0; i<256; i++ ) {
+                int yOffset = ( i / 16 ) * mSpriteHeight;
+                int xOffset = ( i % 16 ) * mSpriteWidth;
                 
-                int farthestLeft = mSpriteWidth;
-                int farthestRight = 0;
-                
-                char someInk = false;
+                rgbaColor *charRGBA = new rgbaColor[ pixelsPerChar ];
                 
                 for( int y=0; y<mSpriteHeight; y++ ) {
                     for( int x=0; x<mSpriteWidth; x++ ) {
                         
-                        unsigned char a = 
-                            charRGBA[ y * mSpriteWidth + x ].comp.a;
+                        int imageIndex = (y + yOffset) * width
+                            + x + xOffset;
+                        int charIndex = y * mSpriteWidth + x;
                         
-                        if( a > inkA ) {
-                            someInk = true;
+                        charRGBA[ charIndex ] = spriteRGBA[ imageIndex ];
+                        }
+                    }
+                    
+                // don't bother consuming texture ram for blank sprites
+                char allTransparent = true;
+                
+                for( int p=0; p<pixelsPerChar && allTransparent; p++ ) {
+                    if( charRGBA[ p ].comp.a != 0 ) {
+                        allTransparent = false;
+                        }
+                    }
+                    
+                if( !allTransparent ) {
+                    
+                    // convert into an image
+                    Image *charImage = new Image( mSpriteWidth, mSpriteHeight,
+                                                4, false );
+                    
+                    for( int c=0; c<4; c++ ) {
+                        double *chan = charImage->getChannel(c);
+                        
+                        for( int p=0; p<pixelsPerChar; p++ ) {
                             
-                            if( x < farthestLeft ) {
-                                farthestLeft = x;
-                                }
-                            if( x > farthestRight ) {
-                                farthestRight = x;
+                            chan[p] = charRGBA[p].bytes[c] / 255.0;
+                            }
+                        }
+                    
+
+                    mSpriteMap[256 * f + i] = 
+                        fillSprite( charImage );
+                    delete charImage;
+                    }
+                else {
+                    mSpriteMap[256 * f + i] = NULL;
+                    }
+                
+
+                if( mFixedWidth ) {
+                    mCharLeftEdgeOffset[256 * f + i] = 0;
+                    mCharWidth[256 * f + i] = mCharBlockWidth;
+                    }
+                else if( allTransparent ) {
+                    mCharLeftEdgeOffset[256 * f + i] = 0;
+                    mCharWidth[256 * f + i] = mSpriteWidth;
+                    }
+                else {
+                    // implement pseudo-kerning
+                    
+                    int farthestLeft = mSpriteWidth;
+                    int farthestRight = 0;
+                    
+                    char someInk = false;
+                    
+                    for( int y=0; y<mSpriteHeight; y++ ) {
+                        for( int x=0; x<mSpriteWidth; x++ ) {
+                            
+                            unsigned char a = 
+                                charRGBA[ y * mSpriteWidth + x ].comp.a;
+                            
+                            if( a > inkA ) {
+                                someInk = true;
+                                
+                                if( x < farthestLeft ) {
+                                    farthestLeft = x;
+                                    }
+                                if( x > farthestRight ) {
+                                    farthestRight = x;
+                                    }
                                 }
                             }
                         }
+                    
+                    if( ! someInk  ) {
+                        mCharLeftEdgeOffset[256 * f + i] = 0;
+                        mCharWidth[256 * f + i] = mSpriteWidth;
+                        }
+                    else {
+                        mCharLeftEdgeOffset[256 * f + i] = farthestLeft;
+                        mCharWidth[256 * f + i] = farthestRight - farthestLeft + 1;
+                        }
                     }
-                
-                if( ! someInk  ) {
-                    mCharLeftEdgeOffset[i] = 0;
-                    mCharWidth[i] = mSpriteWidth;
-                    }
-                else {
-                    mCharLeftEdgeOffset[i] = farthestLeft;
-                    mCharWidth[i] = farthestRight - farthestLeft + 1;
-                    }
-                }
-                
+                    
 
-            if( !allTransparent && ! mFixedWidth ) {
-                savedCharacterRGBA[i] = charRGBA;
-                }
-            else {
-                savedCharacterRGBA[i] = NULL;
-                delete [] charRGBA;
+                if(f == 0) {
+                    if( !allTransparent && ! mFixedWidth ) {
+                        savedCharacterRGBA[i] = charRGBA;
+                        }
+                    else {
+                        savedCharacterRGBA[i] = NULL;
+                        delete [] charRGBA;
+                        }
                 }
             }
+            delete [] spriteRGBA;
+        }
         
+        // unicode has setup
+        if(unicodeSpriteMap[65] != NULL) {
+            memcpy( mSpriteMap+256, unicodeSpriteMap, 65280 * sizeof( SpriteHandle ) );
+            memcpy( mCharLeftEdgeOffset+256, unicodeCharLeftEdgeOffset, 65280 * sizeof( int ) );
+            memcpy( mCharWidth+256, unicodeCharWidth, 65280 * sizeof( int ) );
+        }
+        else {
+            memcpy( unicodeSpriteMap, mSpriteMap+256, 65280 * sizeof( SpriteHandle ) );
+            memcpy( unicodeCharLeftEdgeOffset, mCharLeftEdgeOffset+256, 65280 * sizeof( int ) );
+            memcpy( unicodeCharWidth, mCharWidth+256, 65280 * sizeof( int ) );
+        }
 
         // now that we've read in all characters, we can do real kerning
+        // unicodes don't use kerning, because it takes time
         if( !mFixedWidth ) {
             
             // first, compute left and right extremes for each pixel
@@ -428,9 +461,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 delete [] savedCharacterRGBA[i];
                 }
             }
-        
-
-        delete [] spriteRGBA;
         }
     }
 
@@ -451,10 +481,10 @@ Font::~Font() {
 
 void Font::copySpacing( Font *inOtherFont ) {
     memcpy( mCharLeftEdgeOffset, inOtherFont->mCharLeftEdgeOffset,
-            256 * sizeof( int ) );
+            65536 * sizeof( int ) );
 
     memcpy( mCharWidth, inOtherFont->mCharWidth,
-            256 * sizeof( int ) );
+            65536 * sizeof( int ) );
     
 
     for( int i=0; i<256; i++ ) {
@@ -575,6 +605,8 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         if( !mFixedWidth && mEnableKerning 
             && i < numChars - 1 
+            && inString[i] < 256
+            && inString[i+1] < 256
             && mKerningTable[ inString[i] ] != NULL ) {
             // there's another character after this
             // apply true kerning adjustment to the pair
@@ -617,7 +649,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
 
 
 
-double Font::positionCharacter( unsigned char inC, doublePair inTargetPos,
+double Font::positionCharacter( unicode inC, doublePair inTargetPos,
                                 doublePair *outActualPos ) {
     *outActualPos = inTargetPos;
     
@@ -642,7 +674,7 @@ double Font::positionCharacter( unsigned char inC, doublePair inTargetPos,
     
 
 
-double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
+double Font::drawCharacter( unicode inC, doublePair inPosition ) {
     
     doublePair drawPos;
     double returnVal = positionCharacter( inC, inPosition, &drawPos );
@@ -663,7 +695,7 @@ double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
 
 
 
-void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
+void Font::drawCharacterSprite( unicode inC, doublePair inPosition ) {
     SpriteHandle spriteID = mSpriteMap[ inC ];
     
     if( spriteID != NULL ) {
@@ -703,7 +735,9 @@ double Font::measureString( const unicode *inString, int inCharLimit ) {
             width += mCharWidth[ c ] * scale;
 
             if( mEnableKerning
-                && i < numChars - 1 
+                && i < numChars - 1
+                && inString[i] < 256
+                && inString[i+1] < 256
                 && mKerningTable[ inString[i] ] != NULL ) {
                 // there's another character after this
                 // apply true kerning adjustment to the pair
