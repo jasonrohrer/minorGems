@@ -176,8 +176,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                         spriteRGBA[i].bytes[b] = spriteBytes[ index ];
                         ++index;
                     }
-                    
-                    spriteRGBA[i].bytes[b] = spriteBytes[ i*4 + b ];
                     }
                 }
             assert(index == realWidth*realHeight*4);
