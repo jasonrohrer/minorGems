@@ -96,8 +96,7 @@ size_t strlen(const unicode *u)
 }
 
 static SpriteHandle unicodeSpriteMap[65280] = {NULL};
-static int unicodeCharLeftEdgeOffset[65280];
-static int unicodeCharWidth[65280];
+static char isUnicodeInit = 0;
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -106,12 +105,12 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
           mFixedWidth( inFixedWidth ), mEnableKerning( true ),
           mMinimumPositionPrecision( 0 ) {
 
-    for( int i=0; i<65536; i++ ) {
+    for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
-        if(i<256)
-            mKerningTable[i] = NULL;
+        mKerningTable[i] = NULL;
     }
-
+    
+    strncpy(mName, inFileName, 50);
 
     Image *spriteImage = readTGAFile( inFileName );
     
@@ -133,7 +132,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             // read unicode font
             if(f > 0) {
                 // unicode has setup
-                if(unicodeSpriteMap[65] != NULL) {
+                if(isUnicodeInit) {
                     break;
                 }
                 char filename[28];
@@ -250,63 +249,62 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                             }
                         }
                     
-
-                    mSpriteMap[256 * f + i] = 
-                        fillSprite( charImage );
+                    if(f == 0)
+                        mSpriteMap[i] = 
+                            fillSprite( charImage );
+                    else
+                        unicodeSpriteMap[256 * f + i - 256] = 
+                            fillSprite( charImage );
                     delete charImage;
                     }
-                else {
-                    mSpriteMap[256 * f + i] = NULL;
-                    }
-                
-
-                if( mFixedWidth ) {
-                    mCharLeftEdgeOffset[256 * f + i] = 0;
-                    mCharWidth[256 * f + i] = mCharBlockWidth;
-                    }
-                else if( allTransparent ) {
-                    mCharLeftEdgeOffset[256 * f + i] = 0;
-                    mCharWidth[256 * f + i] = mSpriteWidth;
-                    }
-                else {
-                    // implement pseudo-kerning
                     
-                    int farthestLeft = mSpriteWidth;
-                    int farthestRight = 0;
-                    
-                    char someInk = false;
-                    
-                    for( int y=0; y<mSpriteHeight; y++ ) {
-                        for( int x=0; x<mSpriteWidth; x++ ) {
-                            
-                            unsigned char a = 
-                                charRGBA[ y * mSpriteWidth + x ].comp.a;
-                            
-                            if( a > inkA ) {
-                                someInk = true;
+                if(f == 0) {
+                    if( mFixedWidth ) {
+                        mCharLeftEdgeOffset[i] = 0;
+                        mCharWidth[i] = mCharBlockWidth;
+                        }
+                    else if( allTransparent ) {
+                        mCharLeftEdgeOffset[i] = 0;
+                        mCharWidth[i] = mSpriteWidth;
+                        }
+                    else {
+                        // implement pseudo-kerning
+                        
+                        int farthestLeft = mSpriteWidth;
+                        int farthestRight = 0;
+                        
+                        char someInk = false;
+                        
+                        for( int y=0; y<mSpriteHeight; y++ ) {
+                            for( int x=0; x<mSpriteWidth; x++ ) {
                                 
-                                if( x < farthestLeft ) {
-                                    farthestLeft = x;
-                                    }
-                                if( x > farthestRight ) {
-                                    farthestRight = x;
+                                unsigned char a = 
+                                    charRGBA[ y * mSpriteWidth + x ].comp.a;
+                                
+                                if( a > inkA ) {
+                                    someInk = true;
+                                    
+                                    if( x < farthestLeft ) {
+                                        farthestLeft = x;
+                                        }
+                                    if( x > farthestRight ) {
+                                        farthestRight = x;
+                                        }
                                     }
                                 }
                             }
-                        }
-                    
-                    if( ! someInk  ) {
-                        mCharLeftEdgeOffset[256 * f + i] = 0;
-                        mCharWidth[256 * f + i] = mSpriteWidth;
-                        }
-                    else {
-                        mCharLeftEdgeOffset[256 * f + i] = farthestLeft;
-                        mCharWidth[256 * f + i] = farthestRight - farthestLeft + 1;
-                        }
+                        
+                        if( ! someInk  ) {
+                            mCharLeftEdgeOffset[i] = 0;
+                            mCharWidth[i] = mSpriteWidth;
+                            }
+                        else {
+                            mCharLeftEdgeOffset[i] = farthestLeft;
+                            mCharWidth[i] = farthestRight - farthestLeft + 1;
+                            }
                     }
                     
 
-                if(f == 0) {
                     if( !allTransparent && ! mFixedWidth ) {
                         savedCharacterRGBA[i] = charRGBA;
                         }
@@ -317,20 +315,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 }
             }
             delete [] spriteRGBA;
-        }
-        
-        // unicode has setup
-        if(unicodeSpriteMap[65] != NULL) {
-            // erased font can't be shown
-            if(strcmp(inFileName, "font_pencil_erased_32_32.tga") != 0)
-                memcpy( mSpriteMap+256, unicodeSpriteMap, 65280 * sizeof( SpriteHandle ) );
-            memcpy( mCharLeftEdgeOffset+256, unicodeCharLeftEdgeOffset, 65280 * sizeof( int ) );
-            memcpy( mCharWidth+256, unicodeCharWidth, 65280 * sizeof( int ) );
-        }
-        else {
-            memcpy( unicodeSpriteMap, mSpriteMap+256, 65280 * sizeof( SpriteHandle ) );
-            memcpy( unicodeCharLeftEdgeOffset, mCharLeftEdgeOffset+256, 65280 * sizeof( int ) );
-            memcpy( unicodeCharWidth, mCharWidth+256, 65280 * sizeof( int ) );
         }
 
         // now that we've read in all characters, we can do real kerning
@@ -460,17 +444,19 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                     }
                 }
 
-            for( int i=0; i<256; i++ ) {
-                delete [] rightExtremes[i];
-                delete [] leftExtremes[i];
-                }
+                for( int i=0; i<256; i++ ) {
+                    delete [] rightExtremes[i];
+                    delete [] leftExtremes[i];
+                    }
             }
 
-        for( int i=0; i<256; i++ ) {
-            if( savedCharacterRGBA[i] != NULL ) {
-                delete [] savedCharacterRGBA[i];
+            for( int i=0; i<256; i++ ) {
+                if( savedCharacterRGBA[i] != NULL ) {
+                    delete [] savedCharacterRGBA[i];
+                    }
                 }
-            }
+
+            isUnicodeInit = 1;
         }
     }
 
@@ -491,10 +477,10 @@ Font::~Font() {
 
 void Font::copySpacing( Font *inOtherFont ) {
     memcpy( mCharLeftEdgeOffset, inOtherFont->mCharLeftEdgeOffset,
-            65536 * sizeof( int ) );
+            256 * sizeof( int ) );
 
     memcpy( mCharWidth, inOtherFont->mCharWidth,
-            65536 * sizeof( int ) );
+            256 * sizeof( int ) );
     
 
     for( int i=0; i<256; i++ ) {
@@ -631,6 +617,11 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
     }
 
 
+SpriteHandle Font::getSprite(unicode u) {
+    if(strcmp(mName, "font_pencil_erased_32_32.tga") == 0)
+        return NULL;
+    return u < 256 ? mSpriteMap[ u ] : unicodeSpriteMap[ u - 256 ];
+}
 
 
 double Font::drawString( const char *inString, doublePair inPosition,
@@ -644,7 +635,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
     double scale = scaleFactor * mScaleFactor;
     
     for( int i=0; i<pos.size(); i++ ) {
-        SpriteHandle spriteID = mSpriteMap[ unicodeString[i] ];
+        SpriteHandle spriteID = getSprite( unicodeString[i] );
         double charScale = scale;
         if(unicodeString[i] >= 256)
             charScale *= UNICODE_SCALE;
@@ -672,14 +663,14 @@ double Font::positionCharacter( unicode inC, doublePair inTargetPos,
         }
 
     if( !mFixedWidth ) {
-        outActualPos->x -= mCharLeftEdgeOffset[ inC ] * scale;
+        outActualPos->x -= ( inC < 256 ? mCharLeftEdgeOffset[ inC ] : 0 ) * scale;
         }
     
     if( mFixedWidth ) {
         return mCharBlockWidth * scale;
         }
     else {
-        return mCharWidth[ inC ] * scale;
+        return ( inC < 256 ? mCharWidth[ inC ] : UNICODE_WIDE ) * scale;
         }
     }
 
@@ -695,7 +686,7 @@ double Font::drawCharacter( unicode inC, doublePair inPosition ) {
         return returnVal;
         }
 
-    SpriteHandle spriteID = mSpriteMap[ inC ];
+    SpriteHandle spriteID = getSprite( inC );
     
     if( spriteID != NULL ) {
         double scale = scaleFactor * mScaleFactor;
@@ -708,7 +699,7 @@ double Font::drawCharacter( unicode inC, doublePair inPosition ) {
 
 
 void Font::drawCharacterSprite( unicode inC, doublePair inPosition ) {
-    SpriteHandle spriteID = mSpriteMap[ inC ];
+    SpriteHandle spriteID = getSprite( inC );
     
     if( spriteID != NULL ) {
         double scale = scaleFactor * mScaleFactor;
@@ -743,7 +734,7 @@ double Font::measureString( const unicode *inString, int inCharLimit ) {
             width += mCharBlockWidth * scale;
             }
         else {
-            width += mCharWidth[ c ] * scale;
+            width += ( c < 256 ? mCharWidth[ c ] : UNICODE_WIDE ) * scale;
 
             if( mEnableKerning
                 && i < numChars - 1

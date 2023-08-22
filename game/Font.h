@@ -24,6 +24,7 @@ typedef struct KerningTable {
 
 typedef unsigned short unicode;
 const double UNICODE_SCALE = 1;
+const int UNICODE_WIDE = 22;
 
 
 class Font {
@@ -95,6 +96,8 @@ class Font {
         // draws sprite centered on inPosition with no spacing adjustments
         void drawCharacterSprite( unicode inC, doublePair inPosition );
 
+        SpriteHandle getSprite(unicode u);
+
     private:        
         
         // returns x coordinate to right of drawn character
@@ -120,11 +123,11 @@ class Font {
         
 
         // maps unicode to sprite IDs
-        SpriteHandle mSpriteMap[ 65536 ];
+        SpriteHandle mSpriteMap[ 256 ];
         
         // for kerning (ignored if fixed width flag on)
-        int mCharLeftEdgeOffset[ 65536 ];
-        int mCharWidth[ 65536 ];
+        int mCharLeftEdgeOffset[ 256 ];
+        int mCharWidth[ 256 ];
         
         
         // sparse
@@ -135,6 +138,8 @@ class Font {
         char mEnableKerning;
 
         double mMinimumPositionPrecision;
+
+        char mName[50];
     };
 
 
