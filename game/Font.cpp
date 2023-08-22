@@ -138,6 +138,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 }
                 char filename[28];
                 sprintf(filename, "unicode_page_%02x.tga", f);
+                std::cout << "loading: " << filename << std::endl;
                 spriteImage = readTGAFile( filename );
                 // spriteImage = readTGAFile( inFileName );
                 if(spriteImage == NULL)
