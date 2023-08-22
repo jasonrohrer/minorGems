@@ -57,7 +57,7 @@ targetMakefile="$targetPath/Makefile"
 
 
 if [ "$#" -gt "0" ] ; then
-  if [ "$1" -lt "4" ] ; then
+  if [ "$1" -lt "6" ] ; then
     if [ "$1" -gt "0" ] ; then
       platformSelection="$1"
     fi
@@ -82,6 +82,7 @@ do
     echo "  2 --  MacOSX"
     echo "  3 --  Win32 using MinGW"
     echo "  4 --  Raspbian on Raspberry Pi (experimental)"
+    echo "  5 --  Crosscompile for Windows on Linux"
     echo "  q --  quit"
 
     echo ""
@@ -98,7 +99,7 @@ do
 
     # use ASCII comparison.
 
-	if [ "$platformSelection" -gt "4" ]
+	if [ "$platformSelection" -gt "5" ]
     then
         platformSelection=""
     fi
@@ -136,20 +137,24 @@ case "$platformSelection" in
         platformMakefile="$makefilePath/Makefile.GnuLinux"
     ;;
 
-
     "2" )
         platformName="MacOSX"
         platformMakefile="$makefilePath/Makefile.MacOSX"
     ;;
 
-
     "3" )
         platformName="Win32 MinGW"
         platformMakefile="$makefilePath/Makefile.MinGW"
     ;;
+
     "4" )
         platformName="Raspbian"
         platformMakefile="$makefilePath/Makefile.Raspbian"
+    ;;
+
+    "5" )
+        platformName="Win32 MinGW on Linux"
+        platformMakefile="$makefilePath/Makefile.MinGWCross"
     ;;
 
 
