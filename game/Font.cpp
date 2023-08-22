@@ -313,6 +313,9 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                         delete [] charRGBA;
                         }
                 }
+                else {
+                    delete [] charRGBA;
+                }
             }
             delete [] spriteRGBA;
         }
