@@ -143,7 +143,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                     break;
                 }
                 char filename[28];
-                sprintf(filename, "unicode/unicode_page_%02x.tga", f);
+                sprintf(filename, "unicode_page_%02x.tga", f);
                 spriteImage = readTGAFile( filename );
                 // spriteImage = readTGAFile( inFileName );
                 if(spriteImage == NULL)
