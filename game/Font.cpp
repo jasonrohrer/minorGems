@@ -72,10 +72,10 @@ unicode utf8ToCodepoint(const unsigned char *&p)
     return codepoint;
 }
 
-unicode *utf8ToUnicode(const char *utf8String)
+// output should have the size of utf8String
+void utf8ToUnicode(const char *utf8String, unicode* const output)
 {
     const unsigned char *p = (const unsigned char *)utf8String;
-    unicode output[strlen(utf8String)];
     int len = 0;
 
     while (*p)
@@ -84,13 +84,7 @@ unicode *utf8ToUnicode(const char *utf8String)
         ++len;
     }
 
-    unicode *result = new unicode[len + 1];
-    for (int i = 0; i < len; ++i)
-    {
-        result[i] = output[i];
-    }
-    result[len] = 0;
-    return result;
+    output[len] = 0;
 }
 
 size_t strlen(const unicode *u)
@@ -551,10 +545,9 @@ double Font::getCharSpacing() {
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    unicode *unicodeString = utf8ToUnicode(inString);
-    double result = getCharPos(outPositions, unicodeString, inPosition, inAlign);
-    delete[] unicodeString;
-    return result;
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
+    return getCharPos(outPositions, unicodeString, inPosition, inAlign);
 }
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const unicode *inString, doublePair inPosition,
@@ -641,7 +634,8 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    unicode* unicodeString = utf8ToUnicode(inString);
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
     SimpleVector<doublePair> pos( strlen( unicodeString ) );
 
     double returnVal = getCharPos( &pos, unicodeString, inPosition, inAlign );
@@ -660,7 +654,6 @@ double Font::drawString( const char *inString, doublePair inPosition,
     
         }
     
-    delete[] unicodeString;
     return returnVal;
     }
 
@@ -723,10 +716,9 @@ void Font::drawCharacterSprite( unicode inC, doublePair inPosition ) {
     }
 
 double Font::measureString( const char *inString, int inCharLimit ) {
-    unicode* unicodeString = utf8ToUnicode(inString);
-    double result =  measureString(unicodeString, inCharLimit);
-    delete[] unicodeString;
-    return result;
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
+    return measureString(unicodeString, inCharLimit);
 }
 double Font::measureString( const unicode *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
