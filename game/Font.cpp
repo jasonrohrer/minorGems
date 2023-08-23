@@ -103,7 +103,6 @@ void initUnicode() {
         // read unicode font
         char filename[28];
         sprintf(filename, "unicode_page_%02x.tga", f);
-        std::cout << "loading: " << filename << std::endl;
         Image *spriteImage = readTGAFile( filename );
         if(spriteImage == NULL)
         {
