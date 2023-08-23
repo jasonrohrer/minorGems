@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <iostream>
+#include "minorGems/util/SettingsManager.h"
 
 
 typedef union rgbaColor {
@@ -97,8 +98,13 @@ size_t strlen(const unicode *u)
 
 static SpriteHandle unicodeSpriteMap[65280] = {NULL};
 static char isUnicodeInit = 0;
+double unicodeScale = 1.4;
+int unicodeWide = 22;
 
 void initUnicode() {
+    unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
+    unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
+
     for( int f=1; f<256; f++) {
         // read unicode font
         char filename[28];
@@ -712,7 +718,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
         SpriteHandle spriteID = getSprite( unicodeString[i] );
         double charScale = scale;
         if(unicodeString[i] >= 256)
-            charScale *= UNICODE_SCALE;
+            charScale *= unicodeScale;
     
         if( spriteID != NULL ) {
             drawSprite( spriteID, pos.getElementDirect(i), charScale );
@@ -744,7 +750,7 @@ double Font::positionCharacter( unicode inC, doublePair inTargetPos,
         return mCharBlockWidth * scale;
         }
     else {
-        return ( inC < 256 ? mCharWidth[ inC ] : UNICODE_WIDE ) * scale;
+        return ( inC < 256 ? mCharWidth[ inC ] : unicodeWide ) * scale;
         }
     }
 
@@ -808,7 +814,7 @@ double Font::measureString( const unicode *inString, int inCharLimit ) {
             width += mCharBlockWidth * scale;
             }
         else {
-            width += ( c < 256 ? mCharWidth[ c ] : UNICODE_WIDE ) * scale;
+            width += ( c < 256 ? mCharWidth[ c ] : unicodeWide ) * scale;
 
             if( mEnableKerning
                 && i < numChars - 1
