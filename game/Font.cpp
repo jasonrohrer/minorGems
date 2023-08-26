@@ -98,8 +98,8 @@ size_t strlen(const unicode *u)
 
 static SpriteHandle unicodeSpriteMap[65280] = {NULL};
 static char isUnicodeInit = 0;
-double unicodeScale = 1.4;
-int unicodeWide = 22;
+static double unicodeScale = 1.4;
+static int unicodeWide = 22;
 
 void initUnicode() {
     unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
@@ -243,11 +243,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         mSpriteWidth = width / 16;
         mSpriteHeight = height / 16;
 
-        int realWidth = spriteImage->getWidth();
-        int realHeight = spriteImage->getHeight();
-        int realSpriteWidth = realWidth / 16;
-        int realSpriteHeight = realHeight / 16;
-
         rgbaColor *spriteRGBA = new rgbaColor[ numPixels ];
         unsigned char *spriteBytes = 
             RGBAImage::getRGBABytes( spriteImage );
@@ -255,10 +250,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         delete spriteImage;
 
         for( int i=0; i<numPixels; i++ ) {
-            // x, y in a char sprite
-            int x = i % mSpriteWidth;
-            int y = (i / width) % mSpriteHeight;
-
             for( int b=0; b<4; b++ ) {
                     spriteRGBA[i].bytes[b] = spriteBytes[ i * 4 + b ];
                 }

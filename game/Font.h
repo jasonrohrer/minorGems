@@ -120,7 +120,7 @@ class Font {
         int mCharBlockWidth;
         
 
-        // maps unicode to sprite IDs
+        // maps ascii chars to sprite IDs
         SpriteHandle mSpriteMap[ 256 ];
         
         // for kerning (ignored if fixed width flag on)
