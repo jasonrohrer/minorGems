@@ -97,7 +97,7 @@ size_t strlen(const unicode *u)
 }
 
 static SpriteHandle unicodeSpriteMap[65280] = {NULL};
-static char isUnicodeInit = 0;
+static int fontCount = 0;
 static double unicodeScale = 1.4;
 static int unicodeWide = 22;
 
@@ -222,10 +222,10 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
 
     Image *spriteImage = readTGAFile( inFileName );
 
-    if(!isUnicodeInit) {
+    if(fontCount == 0) {
         initUnicode();
-        isUnicodeInit = 1;
     }
+    ++fontCount;
     
     if( spriteImage != NULL ) {
         
@@ -334,64 +334,63 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 delete charImage;
                 }
                 
-                if( mFixedWidth ) {
-                    mCharLeftEdgeOffset[i] = 0;
-                    mCharWidth[i] = mCharBlockWidth;
+            if( mFixedWidth ) {
+                mCharLeftEdgeOffset[i] = 0;
+                mCharWidth[i] = mCharBlockWidth;
+                }
+            else if( allTransparent ) {
+                mCharLeftEdgeOffset[i] = 0;
+                mCharWidth[i] = mSpriteWidth;
+                }
+            else {
+                // implement pseudo-kerning
+                
+                int farthestLeft = mSpriteWidth;
+                int farthestRight = 0;
+                
+                char someInk = false;
+                
+                for( int y=0; y<mSpriteHeight; y++ ) {
+                    for( int x=0; x<mSpriteWidth; x++ ) {
+                        
+                        unsigned char a = 
+                            charRGBA[ y * mSpriteWidth + x ].comp.a;
+                        
+                        if( a > inkA ) {
+                            someInk = true;
+                            
+                            if( x < farthestLeft ) {
+                                farthestLeft = x;
+                                }
+                            if( x > farthestRight ) {
+                                farthestRight = x;
+                                }
+                            }
+                        }
                     }
-                else if( allTransparent ) {
+                
+                if( ! someInk  ) {
                     mCharLeftEdgeOffset[i] = 0;
                     mCharWidth[i] = mSpriteWidth;
                     }
                 else {
-                    // implement pseudo-kerning
-                    
-                    int farthestLeft = mSpriteWidth;
-                    int farthestRight = 0;
-                    
-                    char someInk = false;
-                    
-                    for( int y=0; y<mSpriteHeight; y++ ) {
-                        for( int x=0; x<mSpriteWidth; x++ ) {
-                            
-                            unsigned char a = 
-                                charRGBA[ y * mSpriteWidth + x ].comp.a;
-                            
-                            if( a > inkA ) {
-                                someInk = true;
-                                
-                                if( x < farthestLeft ) {
-                                    farthestLeft = x;
-                                    }
-                                if( x > farthestRight ) {
-                                    farthestRight = x;
-                                    }
-                                }
-                            }
-                        }
-                    
-                    if( ! someInk  ) {
-                        mCharLeftEdgeOffset[i] = 0;
-                        mCharWidth[i] = mSpriteWidth;
-                        }
-                    else {
-                        mCharLeftEdgeOffset[i] = farthestLeft;
-                        mCharWidth[i] = farthestRight - farthestLeft + 1;
-                        }
-                }
-                
+                    mCharLeftEdgeOffset[i] = farthestLeft;
+                    mCharWidth[i] = farthestRight - farthestLeft + 1;
+                    }
+            }
+            
 
-                if( !allTransparent && ! mFixedWidth ) {
-                    savedCharacterRGBA[i] = charRGBA;
-                    }
-                else {
-                    savedCharacterRGBA[i] = NULL;
-                    delete [] charRGBA;
-                    }
-        }
+            if( !allTransparent && ! mFixedWidth ) {
+                savedCharacterRGBA[i] = charRGBA;
+                }
+            else {
+                savedCharacterRGBA[i] = NULL;
+                delete [] charRGBA;
+                }
+            }
         delete [] spriteRGBA;
 
         // now that we've read in all characters, we can do real kerning
-        // unicodes don't use kerning, because it takes time
         if( !mFixedWidth ) {
             
             // first, compute left and right extremes for each pixel
@@ -517,17 +516,17 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                     }
                 }
 
-                for( int i=0; i<256; i++ ) {
-                    delete [] rightExtremes[i];
-                    delete [] leftExtremes[i];
-                    }
+            for( int i=0; i<256; i++ ) {
+                delete [] rightExtremes[i];
+                delete [] leftExtremes[i];
+                }
             }
 
-            for( int i=0; i<256; i++ ) {
-                if( savedCharacterRGBA[i] != NULL ) {
-                    delete [] savedCharacterRGBA[i];
-                    }
+        for( int i=0; i<256; i++ ) {
+            if( savedCharacterRGBA[i] != NULL ) {
+                delete [] savedCharacterRGBA[i];
                 }
+            }
         }
     }
 
@@ -542,6 +541,13 @@ Font::~Font() {
             delete mKerningTable[i];
             }
         }
+    --fontCount;
+    if(fontCount == 0) {
+        for( int i=0; i<65280; i++ ) {
+            if(unicodeSpriteMap[i] != NULL)
+                freeSprite( unicodeSpriteMap[i] );
+        }
+    }
     }
 
 
