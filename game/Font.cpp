@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <iostream>
 #include <codecvt>
+#include <locale>
+#include <string>
 #include "minorGems/util/SettingsManager.h"
 
 
@@ -97,110 +99,7 @@ size_t strlen(const unicode *u)
     return i;
 }
 
-static SpriteHandle unicodeSpriteMap[65280] = {NULL};
-static int fontCount = 0;
-static double unicodeScale = 1.4;
 static int unicodeWide = 22;
-
-void initUnicode() {
-    unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
-    unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
-
-    for( int f=1; f<256; f++) {
-        // read unicode font
-        char filename[28];
-        sprintf(filename, "unicode_page_%02x.tga", f);
-        Image *spriteImage = readTGAFile( filename );
-        if(spriteImage == NULL)
-        {
-            std::cout << "can't load: " << filename << std::endl;
-            continue;
-        }
-
-        int width = spriteImage->getWidth();
-        int height = spriteImage->getHeight();
-        int spriteWidth = width / 16;
-        int spriteHeight = height / 16;
-        int numPixels = width * height;
-
-        rgbaColor *spriteRGBA = new rgbaColor[ numPixels];
-        unsigned char *spriteBytes = 
-            RGBAImage::getRGBABytes( spriteImage );
-        
-        delete spriteImage;
-
-        for( int i=0; i<numPixels; i++ ) {
-            for( int b=0; b<4; b++ ) {
-                    spriteRGBA[i].bytes[b] = spriteBytes[ i * 4 + b ];
-                }
-            }
-        
-        delete [] spriteBytes;
-
-        // use red channel intensity as transparency
-        // make entire image solid white and use transparency to 
-        // mask it
-
-        for( int i=0; i<numPixels; i++ ) {
-            if(spriteRGBA[i].comp.a > spriteRGBA[i].comp.r)
-                spriteRGBA[i].comp.a = spriteRGBA[i].comp.r;
-            
-            spriteRGBA[i].comp.r = 255;
-            spriteRGBA[i].comp.g = 255;
-            spriteRGBA[i].comp.b = 255;
-            }
-
-        int pixelsPerChar = spriteWidth * spriteHeight;
-
-        for( int i=0; i<256; i++ ) {
-            int yOffset = ( i / 16 ) * spriteHeight;
-            int xOffset = ( i % 16 ) * spriteWidth;
-            
-            rgbaColor *charRGBA = new rgbaColor[ pixelsPerChar ];
-            
-            for( int y=0; y<spriteHeight; y++ ) {
-                for( int x=0; x<spriteWidth; x++ ) {
-                    
-                    int imageIndex = (y + yOffset) * width
-                        + x + xOffset;
-                    int charIndex = y * spriteWidth + x;
-                    
-                    charRGBA[ charIndex ] = spriteRGBA[ imageIndex ];
-                    }
-                }
-                
-            // don't bother consuming texture ram for blank sprites
-            char allTransparent = true;
-            
-            for( int p=0; p<pixelsPerChar && allTransparent; p++ ) {
-                if( charRGBA[ p ].comp.a != 0 ) {
-                    allTransparent = false;
-                    }
-                }
-                
-            if( !allTransparent ) {
-                
-                // convert into an image
-                Image *charImage = new Image( spriteWidth, spriteHeight,
-                                            4, false );
-                
-                for( int c=0; c<4; c++ ) {
-                    double *chan = charImage->getChannel(c);
-                    
-                    for( int p=0; p<pixelsPerChar; p++ ) {
-                        
-                        chan[p] = charRGBA[p].bytes[c] / 255.0;
-                        }
-                    }
-                
-                
-                unicodeSpriteMap[256 * f + i - 256] = 
-                    fillSprite( charImage );
-                delete charImage;
-                }
-        }
-    }
-}
 
 xCharTexture g_TexID[65536];
 
@@ -208,11 +107,17 @@ xCharTexture g_TexID[65536];
 void xFreeTypeLib::load(const char* font_file , int _w , int _h)  
 {  
     FT_Library library;  
-    if (FT_Init_FreeType( &library) )   
-        exit(0);  
+    if (FT_Init_FreeType( &library) )
+    {
+        std::cout << "Font library init error" << std::endl;
+        exit(0);
+    }
     //加载一个字体,取默认的Face,一般为Regualer  
     if (FT_New_Face( library, font_file, 0, &m_FT_Face ))   
-        exit(0);  
+    {
+        std::cout << "Can't read font.tff" << std::endl;
+        exit(0);
+    }
     //选择字符表  
     FT_Select_Charmap(m_FT_Face, FT_ENCODING_UNICODE);  
     m_w = _w ; m_h = _h;  
@@ -329,10 +234,6 @@ std::wstring AnsiToUnicode(const char* lpcstr)   //参数lpcstr类型也可是ch
     return myconv.from_bytes(lpcstr);
 }
   
-#include <locale>
-#include <codecvt>
-#include <string>
-  
           
 void drawText(const wchar_t* _strText,int x , int y, int maxW , int h, TextAlignment align)  
 {  
@@ -418,7 +319,8 @@ void init(int size)
     // g_FreeTypeLib.load("c://windows//fonts//simhei.ttf",14,14);  
     // size *= 1;
 
-    g_FreeTypeLib.load("font.ttf",size,size);  
+    size *= 1.5;
+    g_FreeTypeLib.load("font.ttf", size, size);  
 
     
     // system("/bin/pwd");
@@ -446,11 +348,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
     strncpy(mName, inFileName, 50);
 
     Image *spriteImage = readTGAFile( inFileName );
-
-    if(fontCount == 0) {
-        initUnicode();
-    }
-    ++fontCount;
     
     if( spriteImage != NULL ) {
         
@@ -766,13 +663,6 @@ Font::~Font() {
             delete mKerningTable[i];
             }
         }
-    --fontCount;
-    if(fontCount == 0) {
-        for( int i=0; i<65280; i++ ) {
-            if(unicodeSpriteMap[i] != NULL)
-                freeSprite( unicodeSpriteMap[i] );
-        }
-    }
     }
 
 
@@ -920,9 +810,7 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 
 SpriteHandle Font::getSprite(unicode u) {
-    if(strcmp(mName, "font_pencil_erased_32_32.tga") == 0)
-        return NULL;
-    return u < 256 ? mSpriteMap[ u ] : unicodeSpriteMap[ u - 256 ];
+    return mSpriteMap[ u % 256 ];
 }
 
 
