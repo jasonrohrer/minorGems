@@ -15,7 +15,7 @@
 # __mac__ to trigger certain mac-specific coping code
 # paths to GL and GLUT headers
 
-PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.framework/Headers -I/Users/phylla/Desktop/OneLife_skps2010/minorGems/frameworks -I/Users/phylla/Desktop/OneLife_skps2010/minorGems/frameworks/freetype
+PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.framework/Headers -I/usr/local/include/freetype2
 
 
 # various frameworks to support OpenGL and SDL
