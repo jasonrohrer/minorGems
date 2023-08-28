@@ -129,10 +129,6 @@ void initUnicode() {
         delete spriteImage;
 
         for( int i=0; i<numPixels; i++ ) {
-            // x, y in a char sprite
-            int x = i % spriteWidth;
-            int y = (i / width) % spriteHeight;
-
             for( int b=0; b<4; b++ ) {
                     spriteRGBA[i].bytes[b] = spriteBytes[ i * 4 + b ];
                 }

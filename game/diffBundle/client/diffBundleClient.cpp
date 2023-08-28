@@ -98,6 +98,8 @@ char wasUpdateWriteError() {
 
 
 char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
+    // don't auto update
+    return false;
     writeError = false;
     
     batchMirrorUpdate = false;
