@@ -336,32 +336,6 @@ char *replaceTargetListWithSubstituteList(
     }
 
 
-int getUtf8CharCount(const unsigned char p)
-{
-    if ((p & 0x80) == 0)
-    {
-        return 1;
-    }
-    else if ((p & 0xE0) == 0xC0)
-    {
-        return 2;
-    }
-    else if ((p & 0xF0) == 0xE0)
-    {
-        return 3;
-    }
-    else if ((p & 0xF8) == 0xF0)
-    {
-        return 4;
-    }
-    else
-    {
-        // not utf8
-        return 1;
-    }
-}
-
-
 SimpleVector<char *> *tokenizeString( const char *inString ) {
 
     int len = strlen( inString );
@@ -399,9 +373,8 @@ SimpleVector<char *> *tokenizeString( const char *inString ) {
         // in the ascii space
         // this provides a slight speedup
         while( nextChar > ' ' ) {
-            int count = getUtf8CharCount(nextChar);
-            i += count;
-            tokenLen += count;
+            i++;
+            tokenLen++;
             nextChar = tempString[i];
             }
         // found one of our token separators
@@ -460,9 +433,8 @@ SimpleVector<char *> *tokenizeStringInPlace( char *inString ) {
         // in the ascii space
         // this provides a slight speedup
         while( nextChar > ' ' ) {
-            int count = getUtf8CharCount(nextChar);
-            i += count;
-            tokenLen += count;
+            i++;
+            tokenLen++;
             nextChar = inString[i];
             }
         // found one of our token separators
