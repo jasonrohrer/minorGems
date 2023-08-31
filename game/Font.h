@@ -136,8 +136,6 @@ class Font {
         char mEnableKerning;
 
         double mMinimumPositionPrecision;
-
-        char mName[50];
     };
 
 
