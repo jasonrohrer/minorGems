@@ -97,7 +97,7 @@ size_t strlen(const unicode *u)
     return i;
 }
 
-static SpriteHandle unicodeSpriteMap[65280] = {NULL};
+static SpriteHandle unicodeSpriteMap[65536] = {NULL};
 static int fontCount = 0;
 static double unicodeScale = 1.4;
 static int unicodeWide = 22;
@@ -121,8 +121,6 @@ void initUnicode() {
 
         int f;
         sscanf( filename, "unicode_page_%02x.tga", &f );
-        if(f == 0)
-            continue;
 
         // char filename[28];
         // sprintf(filename, "unicode_page_%02x.tga", f);
@@ -178,7 +176,7 @@ void initUnicode() {
                 RawRGBAImage *charImage = new RawRGBAImage( charBytes, spriteWidth, spriteHeight,
                                             4 );
                 
-                unicodeSpriteMap[256 * f + i - 256] = 
+                unicodeSpriteMap[256 * f + i] = 
                     fillSprite( charImage );
                 delete charImage;
                 }
@@ -528,7 +526,7 @@ Font::~Font() {
         }
     --fontCount;
     if(fontCount == 0) {
-        for( int i=0; i<65280; i++ ) {
+        for( int i=0; i<65536; i++ ) {
             if(unicodeSpriteMap[i] != NULL)
                 freeSprite( unicodeSpriteMap[i] );
         }
@@ -680,7 +678,7 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 
 SpriteHandle Font::getSprite(unicode u) {
-    return u < 256 ? mSpriteMap[ u ] : unicodeSpriteMap[ u - 256 ];
+    return u < 128 ? mSpriteMap[ u ] : unicodeSpriteMap[ u ];
 }
 
 
