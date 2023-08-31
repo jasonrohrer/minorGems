@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <iostream>
 #include "minorGems/util/SettingsManager.h"
+#include "OneLife/gameSource/binFolderCache.h"
 
 
 typedef union rgbaColor {
@@ -105,11 +106,30 @@ void initUnicode() {
     unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
     unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
 
-    for( int f=1; f<256; f++) {
+    char rebuilding;
+    BinFolderCache binCache = initBinFolderCache( "graphics", "unicode_page", &rebuilding );
+    std::cout << "Unicode font image count: " << binCache.numFiles << std::endl;
+    std::cout << "Rebuilding: " << (rebuilding ? "true" : "false") << std::endl;
+
+    for( int k=0; k<binCache.numFiles; k++) {
         // read unicode font
-        char filename[28];
-        sprintf(filename, "unicode_page_%02x.tga", f);
-        const RawRGBAImage *spriteImage = readTGAFileRaw( filename );
+        char *filename = getFileName( binCache, k );
+        int contSize;
+        unsigned char *contents = getFileContents( binCache, k,
+                                                    filename, 
+                                                    &contSize );
+
+        int f;
+        sscanf( filename, "unicode_page_%02x.tga", &f );
+        if(f == 0)
+            continue;
+
+        // char filename[28];
+        // sprintf(filename, "unicode_page_%02x.tga", f);
+        // const RawRGBAImage *spriteImage = readTGAFileRaw( filename );
+        RawRGBAImage *spriteImage = readTGAFileRawFromBuffer( contents, 
+                                                          contSize);
+        delete [] contents;
         if(spriteImage == NULL)
         {
             std::cout << "can't load: " << filename << std::endl;
@@ -165,6 +185,8 @@ void initUnicode() {
         }
         delete spriteImage;
     }
+
+    freeBinFolderCache( binCache );
 }
 
 
