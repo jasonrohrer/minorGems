@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <iostream>
+#include <ctime>
 #include "minorGems/util/SettingsManager.h"
 #include "OneLife/gameSource/binFolderCache.h"
 
@@ -149,8 +150,8 @@ void initUnicode() {
             for( int y=0; y<spriteHeight && allTransparent; y++ ) {
                 for( int x=0; x<spriteWidth && allTransparent; x++ ) {
                     int imageIndex = ((y + yOffset) * width + x + xOffset) * 4;
-                    // if a > 0 or r > 0 
-                    if( spriteImage->mRGBABytes[imageIndex + 3] > 0 || spriteImage->mRGBABytes[imageIndex] > 0) {
+                    // if a > 0 and r > 0 
+                    if( spriteImage->mRGBABytes[imageIndex + 3] > 0 && spriteImage->mRGBABytes[imageIndex] > 0) {
                         allTransparent = false;
                     }
                 }
