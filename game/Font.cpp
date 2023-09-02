@@ -5,9 +5,11 @@
 #include <string.h>
 #include <assert.h>
 #include <iostream>
-#include <ctime>
+#include <codecvt>
+#include <locale>
+#include <string>
 #include "minorGems/util/SettingsManager.h"
-#include "OneLife/gameSource/binFolderCache.h"
+#include "minorGems/graphics/openGL/SingleTextureGL.h"
 
 
 typedef union rgbaColor {
@@ -98,96 +100,144 @@ size_t strlen(const unicode *u)
     return i;
 }
 
-static SpriteHandle unicodeSpriteMap[65536] = {NULL};
-static int fontCount = 0;
-static double unicodeScale = 1.4;
 static int unicodeWide = 22;
+static double unicodeScale = 1.4;
+static xCharTexture g_TexID[65536];
 
-void initUnicode() {
+ 
+void xFreeTypeLib::load(const char* font_file , int _w , int _h)  
+{  
+    FT_Library library;  
+    if (FT_Init_FreeType( &library) )
+    {
+        std::cout << "Font library init error" << std::endl;
+        exit(0);
+    }
+    //加载一个字体,取默认的Face,一般为Regualer  
+    if (FT_New_Face( library, font_file, 0, &m_FT_Face ))   
+    {
+        std::cout << "Can't read font.tff" << std::endl;
+        exit(0);
+    }
+    //选择字符表  
+    FT_Select_Charmap(m_FT_Face, FT_ENCODING_UNICODE);  
+    m_w = _w ; m_h = _h;
+    //大小要乘64.这是规定。照做就可以了。  
+    // FT_Set_Char_Size( m_FT_Face , 0 , m_w << 6, 96, 96);  
+    //用来存放指定字符宽度和高度的特定数据  
+    FT_Set_Pixel_Sizes(m_FT_Face, m_w, m_h);  
+}  
+  
+GLuint xFreeTypeLib::loadChar(unicode ch)  
+{  
+    if(g_TexID[ch].m_texID)  
+        return g_TexID[ch].m_texID;  
+    /* 装载字形图像到字形槽（将会抹掉先前的字形图像） */   
+    if(FT_Load_Char(m_FT_Face, ch, /*FT_LOAD_RENDER|*/FT_LOAD_FORCE_AUTOHINT|  
+        (true ? FT_LOAD_TARGET_NORMAL : FT_LOAD_MONOCHROME | FT_LOAD_TARGET_MONO) )   )  
+    {  
+        return 0;  
+    }  
+  
+ /*if(FT_Load_Glyph( m_FT_Face, FT_Get_Char_Index( m_FT_Face, ch ), FT_LOAD_FORCE_AUTOHINT )) 
+  throw std::runtime_error("FT_Load_Glyph failed");*/  
+  
+    xCharTexture& charTex = g_TexID[ch];  
+   
+    //得到字模  
+    FT_Glyph glyph;  
+    //把字形图像从字形槽复制到新的FT_Glyph对象glyph中。这个函数返回一个错误码并且设置glyph。   
+    if(FT_Get_Glyph( m_FT_Face->glyph, &glyph ))  
+        return 0;  
+  
+    //转化成位图  
+    FT_Render_Glyph( m_FT_Face->glyph, FT_RENDER_MODE_LCD );//FT_RENDER_MODE_NORMAL  );   
+    FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );  
+    FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;  
+  
+    //取道位图数据  
+    FT_Bitmap& bitmap = bitmap_glyph->bitmap;  
+  
+    //把位图数据拷贝自己定义的数据区里.这样旧可以画到需要的东西上面了。  
+    int width = bitmap.width;  
+    int height = bitmap.rows;  
+   
+    // m_FT_Face->size->metrics.y_ppem;      //伸缩距离到设备空间  
+    // m_FT_Face->glyph->metrics.horiAdvance;  //水平文本排列  
+    charTex.m_Width = width;
+    charTex.m_Height = height;
+    // charTex.m_adv_x = m_FT_Face->glyph->advance.x / 64.0f;  //步进宽度  
+    // charTex.m_adv_y = m_FT_Face->size->metrics.y_ppem;        //m_FT_Face->glyph->metrics.horiBearingY / 64.0f;  
+    // charTex.m_delta_x = (float)bitmap_glyph->left;           //left:字形原点(0,0)到字形位图最左边象素的水平距离.它以整数象素的形式表示。   
+    // charTex.m_delta_y = (float)bitmap_glyph->top - height;   //Top: 类似于字形槽的bitmap_top字段。  
+  
+    glGenTextures(1, &charTex.m_texID);  
+    SingleTextureGL::sLastBoundTextureID = charTex.m_texID;
+    glBindTexture(GL_TEXTURE_2D, charTex.m_texID);  
+    char* pBuf = new char[width * height * 4];  
+    for(int j=0; j < height; j++)  
+    {  
+        for(int i=0; i < width; i++)  
+        {  
+            unsigned char _vl = (i>=bitmap.width || j>=bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];  
+            pBuf[(4*i + (height - j - 1) * width * 4)  ] = 0xFF;  
+            pBuf[(4*i + (height - j - 1) * width * 4)+1] = 0xFF;  
+            pBuf[(4*i + (height - j - 1) * width * 4)+2] = 0xFF;  
+            pBuf[(4*i + (height - j - 1) * width * 4)+3] = _vl;  
+        }  
+     }  
+  
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pBuf);  //指定一个二维的纹理图片  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);                            //glTexParameteri():纹理过滤  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);                                //纹理进行混合  
+  
+    /*gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pBuf); 
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_CLAMP); 
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T, GL_CLAMP); 
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); 
+    glTexEnvi(GL_TEXTURE_2D,GL_TEXTURE_ENV_MODE,GL_REPLACE);*/  
+    delete[] pBuf;  
+    return charTex.m_chaID;  
+}  
+
+
+xFreeTypeLib g_FreeTypeLib;  
+
+
+xCharTexture* getTextChar(unicode ch)  
+{  
+    g_FreeTypeLib.loadChar(ch);  
+    return &g_TexID[ch];  
+}
+  
+void init(int size)  
+{  
     unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
     unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
+    // glShadeModel(GL_SMOOTH|GL_FLAT);                        //选择平直或平滑着色  
+    // glClearColor(0.0f, 0.0f, 0.0f, 0.5f);                   //清除色彩缓冲区  
+    // glEnable ( GL_COLOR_MATERIAL_FACE );  
+    // glColorMaterial ( GL_FRONT, GL_AMBIENT_AND_DIFFUSE );   // 使一个材质色彩指向当前的色彩  
+  
+    //g_FreeTypeLib.load("simhei.ttf",14,14);  
+    // g_FreeTypeLib.load("c://windows//fonts//simhei.ttf",14,14);  
+    // size *= 1;
 
-    char rebuilding;
-    BinFolderCache binCache = initBinFolderCache( "graphics", "unicode_page", &rebuilding );
-    std::cout << "Unicode font image count: " << binCache.numFiles << std::endl;
-    std::cout << "Rebuilding: " << (rebuilding ? "true" : "false") << std::endl;
+    size *= unicodeScale;
+    g_FreeTypeLib.load("graphics/font.ttf", size, size);  
 
-    for( int k=0; k<binCache.numFiles; k++) {
-        // read unicode font
-        char *filename = getFileName( binCache, k );
-        int contSize;
-        unsigned char *contents = getFileContents( binCache, k,
-                                                    filename, 
-                                                    &contSize );
-
-        int f;
-        sscanf( filename, "unicode_page_%02x.tga", &f );
-
-        // char filename[28];
-        // sprintf(filename, "unicode_page_%02x.tga", f);
-        // const RawRGBAImage *spriteImage = readTGAFileRaw( filename );
-        RawRGBAImage *spriteImage = readTGAFileRawFromBuffer( contents, 
-                                                          contSize);
-        delete [] contents;
-        if(spriteImage == NULL)
-        {
-            std::cout << "can't load: " << filename << std::endl;
-            continue;
-        }
-
-        int width = spriteImage->mWidth;
-        int height = spriteImage->mHeight;
-        int spriteWidth = width / 16;
-        int spriteHeight = height / 16;
-
-        for( int i=0; i<256; i++ ) {
-            int yOffset = ( i / 16 ) * spriteHeight;
-            int xOffset = ( i % 16 ) * spriteWidth;
-
-            //don't bother consuming texture ram for blank sprites
-            char allTransparent = true;
-
-            for( int y=0; y<spriteHeight && allTransparent; y++ ) {
-                for( int x=0; x<spriteWidth && allTransparent; x++ ) {
-                    int imageIndex = ((y + yOffset) * width + x + xOffset) * 4;
-                    // if a > 0 and r > 0 
-                    if( spriteImage->mRGBABytes[imageIndex + 3] > 0 && spriteImage->mRGBABytes[imageIndex] > 0) {
-                        allTransparent = false;
-                    }
-                }
-            }
-                
-            if( !allTransparent ) {
-                unsigned char *charBytes = new unsigned char[spriteWidth * spriteHeight * 4];
-                memset(charBytes, 255, spriteWidth * spriteHeight * 4);
-            
-                for( int y=0; y<spriteHeight; y++ ) {
-                    for( int x=0; x<spriteWidth; x++ ) {
-                        int imageIndex = ((y + yOffset) * width + x + xOffset) * 4;
-                        int charIndex = (y * spriteWidth + x) * 4;
-                        // a = a
-                        charBytes[charIndex + 3] = spriteImage->mRGBABytes[imageIndex + 3];
-                        // if a > r, a = r
-                        if(charBytes[charIndex + 3] > spriteImage->mRGBABytes[ imageIndex ])
-                            charBytes[charIndex + 3] = spriteImage->mRGBABytes[ imageIndex ];
-                    }
-                    }
-
-                // convert into an image
-                RawRGBAImage *charImage = new RawRGBAImage( charBytes, spriteWidth, spriteHeight,
-                                            4 );
-                
-                unicodeSpriteMap[256 * f + i] = 
-                    fillSprite( charImage );
-                delete charImage;
-                }
-        }
-        delete spriteImage;
-    }
-
-    freeBinFolderCache( binCache );
-}
-
+    
+    // system("/bin/pwd");
+    // glDisable ( GL_CULL_FACE );  
+  
+    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  
+}  
+  
+static char isInit = false;
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -196,20 +246,17 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
           mFixedWidth( inFixedWidth ), mEnableKerning( true ),
           mMinimumPositionPrecision( 0 ) {
 
+    if(!isInit) {
+        init((int)inScaleFactor);
+        isInit = true;
+    }
+
     for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
         mKerningTable[i] = NULL;
     }
 
     Image *spriteImage = readTGAFile( inFileName );
-
-    if(fontCount == 0) {
-        std::time_t t1 = std::time(0);
-        initUnicode();
-        std::time_t t2 = std::time(0);
-        std::cout << "Unicode init time: " << t2 - t1 << std::endl;
-    }
-    ++fontCount;
     
     if( spriteImage != NULL ) {
         
@@ -525,13 +572,6 @@ Font::~Font() {
             delete mKerningTable[i];
             }
         }
-    --fontCount;
-    if(fontCount == 0) {
-        for( int i=0; i<65536; i++ ) {
-            if(unicodeSpriteMap[i] != NULL)
-                freeSprite( unicodeSpriteMap[i] );
-        }
-    }
     }
 
 
@@ -582,6 +622,36 @@ static double scaleFactor = 1.0 / 16;
 //static double scaleFactor = 1.0 / 8;
 
 
+void Font::drawChar(unicode c, doublePair inCenter) {
+    double scale = scaleFactor * mScaleFactor;
+    if(c < 128)
+    {
+        if(mSpriteMap[c] != NULL)
+            drawSprite( mSpriteMap[c], inCenter, scale );
+        return;
+    }
+    
+
+    xCharTexture* pCharTex = getTextChar(c);  
+    SingleTextureGL::sLastBoundTextureID = pCharTex->m_texID;
+    glBindTexture(GL_TEXTURE_2D, pCharTex->m_texID);                          //绑定到目标纹理  
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );  
+    glEnable(GL_BLEND);                                                     //打开或关闭OpenGL的特殊功能  
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);                       //特殊的像素算法  
+    int w = pCharTex->m_Width;  
+    int h = pCharTex->m_Height;
+    int ch_x = inCenter.x - w / 2;
+    int ch_y = inCenter.y - h / 2;
+    glBegin ( GL_QUADS );                                                    // 定义一个或一组原始的顶点  
+    {  
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(ch_x, ch_y + h, 1.0f);  
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(ch_x + w, ch_y + h, 1.0f);  
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(ch_x + w, ch_y, 1.0f);  
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(ch_x, ch_y, 1.0f);  
+    }  
+    glEnd();  
+}
 
 double Font::getCharSpacing() {
     double scale = scaleFactor * mScaleFactor;
@@ -678,31 +748,20 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
     }
 
 
-SpriteHandle Font::getSprite(unicode u) {
-    return u < 128 ? mSpriteMap[ u ] : unicodeSpriteMap[ u ];
-}
-
-
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
+    glEnable ( GL_TEXTURE_2D );  
+    // std::wstring wstr = AnsiToUnicode(inString);  
+    // drawText(wstr.c_str(), inPosition.x, inPosition.y, 2048, mScaleFactor, inAlign); 
+
     unicode unicodeString[strlen(inString)];
     utf8ToUnicode(inString, unicodeString);
     SimpleVector<doublePair> pos( strlen( unicodeString ) );
 
     double returnVal = getCharPos( &pos, unicodeString, inPosition, inAlign );
-
-    double scale = scaleFactor * mScaleFactor;
     
     for( int i=0; i<pos.size(); i++ ) {
-        SpriteHandle spriteID = getSprite( unicodeString[i] );
-        double charScale = scale;
-        if(unicodeString[i] >= 256)
-            charScale *= unicodeScale;
-    
-        if( spriteID != NULL ) {
-            drawSprite( spriteID, pos.getElementDirect(i), charScale );
-            }
-    
+        drawChar(unicodeString[i], pos.getElementDirect(i));
         }
     
     return returnVal;
@@ -745,12 +804,7 @@ double Font::drawCharacter( unicode inC, doublePair inPosition ) {
         return returnVal;
         }
 
-    SpriteHandle spriteID = getSprite( inC );
-    
-    if( spriteID != NULL ) {
-        double scale = scaleFactor * mScaleFactor;
-        drawSprite( spriteID, drawPos, scale );
-        }
+    drawChar(inC, drawPos);
     
     return returnVal;
     }
@@ -758,12 +812,7 @@ double Font::drawCharacter( unicode inC, doublePair inPosition ) {
 
 
 void Font::drawCharacterSprite( unicode inC, doublePair inPosition ) {
-    SpriteHandle spriteID = getSprite( inC );
-    
-    if( spriteID != NULL ) {
-        double scale = scaleFactor * mScaleFactor;
-        drawSprite( spriteID, inPosition, scale );
-        }
+    drawChar(inC, inPosition);
     }
 
 double Font::measureString( const char *inString, int inCharLimit ) {

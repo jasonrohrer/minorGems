@@ -51,6 +51,7 @@
 class SingleTextureGL { 
 	
 	public:
+        static GLuint sLastBoundTextureID;
 
 
 		
@@ -206,7 +207,6 @@ class SingleTextureGL {
         
         static char sTexturingEnabled;
 
-        static GLuint sLastBoundTextureID;
 	};
 
 

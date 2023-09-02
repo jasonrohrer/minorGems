@@ -4,6 +4,9 @@
 
 #include "minorGems/game/gameGraphics.h"
 #include "minorGems/util/SimpleVector.h"
+#include "minorGems/graphics/openGL/glInclude.h"
+#include <ft2build.h>
+#include <freetype/ftglyph.h>
 
 
 enum TextAlignment {
@@ -24,6 +27,33 @@ typedef struct KerningTable {
 
 typedef unsigned short unicode;
 
+
+struct xCharTexture  
+{  
+    GLuint  m_texID;  
+    unicode m_chaID;  
+    int     m_Width;  
+    int     m_Height;  
+public:  
+    xCharTexture()  
+    {  
+        m_texID  = 0;  
+        m_chaID  = 0;  
+        m_Width  = 0;  
+        m_Height = 0;  
+    }  
+};  
+
+class xFreeTypeLib  
+{  
+    FT_Face    m_FT_Face;  
+  
+public:  
+    int   m_w;  
+    int   m_h;  
+    void load(const char* font_file , int _w , int _h);  
+    GLuint loadChar(unicode ch);  
+};  
 
 class Font {
         
@@ -94,7 +124,7 @@ class Font {
         // draws sprite centered on inPosition with no spacing adjustments
         void drawCharacterSprite( unicode inC, doublePair inPosition );
 
-        SpriteHandle getSprite(unicode u);
+        void drawChar(unicode c, doublePair inCenter);
 
     private:        
         
