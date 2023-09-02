@@ -9,6 +9,7 @@
 #include <locale>
 #include <string>
 #include "minorGems/util/SettingsManager.h"
+#include "minorGems/graphics/openGL/SingleTextureGL.h"
 
 
 typedef union rgbaColor {
@@ -173,6 +174,7 @@ GLuint xFreeTypeLib::loadChar(wchar_t ch)
     charTex.m_delta_x = (float)bitmap_glyph->left;           //left:字形原点(0,0)到字形位图最左边象素的水平距离.它以整数象素的形式表示。   
     charTex.m_delta_y = (float)bitmap_glyph->top - height;   //Top: 类似于字形槽的bitmap_top字段。  
     glGenTextures(1,&charTex.m_texID);  
+    SingleTextureGL::sLastBoundTextureID = -1;
     glBindTexture(GL_TEXTURE_2D,charTex.m_texID);  
     char* pBuf = new char[width * height * 4];  
     for(int j=0; j  < height ; j++)  
@@ -268,12 +270,13 @@ void drawText(const wchar_t* _strText,int x , int y, int maxW , int h, TextAlign
   
     for(i = 0 ; i <nLen ; i ++)  
     {  
-        if(_strText[i] =='/n')  
+        if(_strText[i] =='\n')  
         {  
             sx = x ; sy += maxH + 12;  
             continue;  
         }  
         xCharTexture* pCharTex = getTextChar(_strText[i]);  
+        SingleTextureGL::sLastBoundTextureID = -1;
         glBindTexture(GL_TEXTURE_2D,pCharTex->m_texID);                          //绑定到目标纹理  
         glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
         glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );  
