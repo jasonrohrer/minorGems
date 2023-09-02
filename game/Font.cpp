@@ -101,8 +101,8 @@ size_t strlen(const unicode *u)
 }
 
 static int unicodeWide = 22;
-
-xCharTexture g_TexID[65536];
+static double unicodeScale = 1.4;
+static xCharTexture g_TexID[65536];
 
  
 void xFreeTypeLib::load(const char* font_file , int _w , int _h)  
@@ -121,18 +121,17 @@ void xFreeTypeLib::load(const char* font_file , int _w , int _h)
     }
     //选择字符表  
     FT_Select_Charmap(m_FT_Face, FT_ENCODING_UNICODE);  
-    m_w = _w ; m_h = _h;  
-    m_FT_Face->num_fixed_sizes;  
+    m_w = _w ; m_h = _h;
     //大小要乘64.这是规定。照做就可以了。  
     // FT_Set_Char_Size( m_FT_Face , 0 , m_w << 6, 96, 96);  
     //用来存放指定字符宽度和高度的特定数据  
-    FT_Set_Pixel_Sizes(m_FT_Face,m_w, m_h);  
+    FT_Set_Pixel_Sizes(m_FT_Face, m_w, m_h);  
 }  
   
-GLuint xFreeTypeLib::loadChar(wchar_t ch)  
+GLuint xFreeTypeLib::loadChar(unicode ch)  
 {  
     if(g_TexID[ch].m_texID)  
-    return g_TexID[ch].m_texID;  
+        return g_TexID[ch].m_texID;  
     /* 装载字形图像到字形槽（将会抹掉先前的字形图像） */   
     if(FT_Load_Char(m_FT_Face, ch, /*FT_LOAD_RENDER|*/FT_LOAD_FORCE_AUTOHINT|  
         (true ? FT_LOAD_TARGET_NORMAL : FT_LOAD_MONOCHROME | FT_LOAD_TARGET_MONO) )   )  
@@ -152,36 +151,35 @@ GLuint xFreeTypeLib::loadChar(wchar_t ch)
         return 0;  
   
     //转化成位图  
-    FT_Render_Glyph( m_FT_Face->glyph,   FT_RENDER_MODE_LCD );//FT_RENDER_MODE_NORMAL  );   
+    FT_Render_Glyph( m_FT_Face->glyph, FT_RENDER_MODE_LCD );//FT_RENDER_MODE_NORMAL  );   
     FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );  
     FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;  
   
     //取道位图数据  
-    FT_Bitmap& bitmap=bitmap_glyph->bitmap;  
+    FT_Bitmap& bitmap = bitmap_glyph->bitmap;  
   
     //把位图数据拷贝自己定义的数据区里.这样旧可以画到需要的东西上面了。  
-    int width  =  bitmap.width;  
-    int height =  bitmap.rows;  
+    int width = bitmap.width;  
+    int height = bitmap.rows;  
    
-    m_FT_Face->size->metrics.y_ppem;      //伸缩距离到设备空间  
-    m_FT_Face->glyph->metrics.horiAdvance;  //水平文本排列  
+    // m_FT_Face->size->metrics.y_ppem;      //伸缩距离到设备空间  
+    // m_FT_Face->glyph->metrics.horiAdvance;  //水平文本排列  
+    charTex.m_Width = width;
+    charTex.m_Height = height;
+    // charTex.m_adv_x = m_FT_Face->glyph->advance.x / 64.0f;  //步进宽度  
+    // charTex.m_adv_y = m_FT_Face->size->metrics.y_ppem;        //m_FT_Face->glyph->metrics.horiBearingY / 64.0f;  
+    // charTex.m_delta_x = (float)bitmap_glyph->left;           //left:字形原点(0,0)到字形位图最左边象素的水平距离.它以整数象素的形式表示。   
+    // charTex.m_delta_y = (float)bitmap_glyph->top - height;   //Top: 类似于字形槽的bitmap_top字段。  
   
-  
-    charTex.m_Width = width;  
-    charTex.m_Height = height;  
-    charTex.m_adv_x = m_FT_Face->glyph->advance.x / 64.0f;  //步进宽度  
-    charTex.m_adv_y = m_FT_Face->size->metrics.y_ppem;        //m_FT_Face->glyph->metrics.horiBearingY / 64.0f;  
-    charTex.m_delta_x = (float)bitmap_glyph->left;           //left:字形原点(0,0)到字形位图最左边象素的水平距离.它以整数象素的形式表示。   
-    charTex.m_delta_y = (float)bitmap_glyph->top - height;   //Top: 类似于字形槽的bitmap_top字段。  
-    glGenTextures(1,&charTex.m_texID);  
-    SingleTextureGL::sLastBoundTextureID = -1;
-    glBindTexture(GL_TEXTURE_2D,charTex.m_texID);  
+    glGenTextures(1, &charTex.m_texID);  
+    SingleTextureGL::sLastBoundTextureID = charTex.m_texID;
+    glBindTexture(GL_TEXTURE_2D, charTex.m_texID);  
     char* pBuf = new char[width * height * 4];  
-    for(int j=0; j  < height ; j++)  
+    for(int j=0; j < height; j++)  
     {  
         for(int i=0; i < width; i++)  
         {  
-            unsigned char _vl =  (i>=bitmap.width || j>=bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];  
+            unsigned char _vl = (i>=bitmap.width || j>=bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];  
             pBuf[(4*i + (height - j - 1) * width * 4)  ] = 0xFF;  
             pBuf[(4*i + (height - j - 1) * width * 4)+1] = 0xFF;  
             pBuf[(4*i + (height - j - 1) * width * 4)+2] = 0xFF;  
@@ -189,12 +187,12 @@ GLuint xFreeTypeLib::loadChar(wchar_t ch)
         }  
      }  
   
-    glTexImage2D( GL_TEXTURE_2D,0,GL_RGBA,width, height,0,GL_RGBA,GL_UNSIGNED_BYTE,pBuf);  //指定一个二维的纹理图片  
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_CLAMP);                            //glTexParameteri():纹理过滤  
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T, GL_CLAMP);  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );  
-    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);                                //纹理进行混合  
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pBuf);  //指定一个二维的纹理图片  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);                            //glTexParameteri():纹理过滤  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);                                //纹理进行混合  
   
     /*gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pBuf); 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_CLAMP); 
@@ -208,111 +206,18 @@ GLuint xFreeTypeLib::loadChar(wchar_t ch)
 
 
 xFreeTypeLib g_FreeTypeLib;  
-float ratio;  
 
 
-xCharTexture* getTextChar(wchar_t ch)  
+xCharTexture* getTextChar(unicode ch)  
 {  
     g_FreeTypeLib.loadChar(ch);  
     return &g_TexID[ch];  
 }
-
-std::wstring utf8_to_wstring (const std::string& str)
-{
-    std::wstring_convert< std::codecvt_utf8<wchar_t> > myconv;
-    return myconv.from_bytes(str);
-}
-
-// convert wstring to UTF-8 string
-std::string wstring_to_utf8 (const std::wstring& str)
-{
-    std::wstring_convert< std::codecvt_utf8<wchar_t> > myconv;
-    return myconv.to_bytes(str);
-}
-
-std::wstring AnsiToUnicode(const char* lpcstr)   //参数lpcstr类型也可是char*  
-{   
-    std::wstring_convert< std::codecvt_utf8<wchar_t> > myconv;  
-    return myconv.from_bytes(lpcstr);
-}
-  
-          
-void drawText(const wchar_t* _strText,int x , int y, int maxW , int h, TextAlignment align)  
-{  
-    
-    int maxH = h;  
-    size_t nLen = wcslen(_strText);  
-
-    int i;
-    int tw = 0;
-    for(i = 0 ; i <nLen ; i ++)  
-    {
-        if(_strText[i] =='\n')  
-        {  
-            continue;  
-        }  
-        xCharTexture* pCharTex = getTextChar(_strText[i]);  
-        // tw += pCharTex->m_Width;
-        tw += pCharTex->m_delta_x;
-        tw += pCharTex->m_adv_x;
-    }
-
-    if(align == alignCenter)
-        x -= tw / 2;
-
-    if(align == alignRight)
-        x -= tw;
-
-    y += h / 2;
-
-    int sx = x;  
-    int sy = y;  
-  
-    for(i = 0 ; i <nLen ; i ++)  
-    {  
-        if(_strText[i] =='\n')  
-        {  
-            sx = x ; sy += maxH + 12;  
-            continue;  
-        }  
-        xCharTexture* pCharTex = getTextChar(_strText[i]);  
-        SingleTextureGL::sLastBoundTextureID = -1;
-        glBindTexture(GL_TEXTURE_2D,pCharTex->m_texID);                          //绑定到目标纹理  
-        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
-        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );  
-        glEnable(GL_BLEND);                                                     //打开或关闭OpenGL的特殊功能  
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);                       //特殊的像素算法  
-        //glDisable(GL_TEXTURE_2D);  
-        int w = pCharTex->m_Width;  
-        int h = pCharTex->m_Height;  
-  
-        int ch_x = sx + pCharTex->m_delta_x;  
-        int ch_y = sy - h - pCharTex->m_delta_y;  
-  
-        if(maxH < h) maxH = h;  
-        glBegin ( GL_QUADS );                                                    // 定义一个或一组原始的顶点  
-        {  
-            // glTexCoord2f(0.0f, 1.0f); glVertex3f(ch_x      , ch_y    ,  1.0f);  
-            // glTexCoord2f(1.0f, 1.0f); glVertex3f(ch_x +  w, ch_y    ,  1.0f);  
-            // glTexCoord2f(1.0f, 0.0f); glVertex3f(ch_x +  w, ch_y + h,  1.0f);  
-            // glTexCoord2f(0.0f, 0.0f); glVertex3f(ch_x     , ch_y + h,  1.0f);  
-
-            glTexCoord2f(0.0f, 1.0f); glVertex3f(ch_x      , ch_y + h    ,  1.0f);  
-            glTexCoord2f(1.0f, 1.0f); glVertex3f(ch_x +  w, ch_y + h   ,  1.0f);  
-            glTexCoord2f(1.0f, 0.0f); glVertex3f(ch_x +  w, ch_y,  1.0f);  
-            glTexCoord2f(0.0f, 0.0f); glVertex3f(ch_x     , ch_y,  1.0f);  
-        }  
-        glEnd();  
-        sx += pCharTex->m_adv_x;  
-        if(sx > x + maxW)  
-        {  
-            sx = x ; sy += maxH + 12;  
-        }  
-    }  
-}  
   
 void init(int size)  
 {  
+    unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
+    unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
     // glShadeModel(GL_SMOOTH|GL_FLAT);                        //选择平直或平滑着色  
     // glClearColor(0.0f, 0.0f, 0.0f, 0.5f);                   //清除色彩缓冲区  
     // glEnable ( GL_COLOR_MATERIAL_FACE );  
@@ -322,8 +227,8 @@ void init(int size)
     // g_FreeTypeLib.load("c://windows//fonts//simhei.ttf",14,14);  
     // size *= 1;
 
-    size *= 1.5;
-    g_FreeTypeLib.load("font.ttf", size, size);  
+    size *= unicodeScale;
+    g_FreeTypeLib.load("graphics/font.ttf", size, size);  
 
     
     // system("/bin/pwd");
@@ -332,7 +237,7 @@ void init(int size)
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  
 }  
   
-
+static char isInit = false;
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -341,14 +246,15 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
           mFixedWidth( inFixedWidth ), mEnableKerning( true ),
           mMinimumPositionPrecision( 0 ) {
 
-    init ((int)inScaleFactor);
+    if(!isInit) {
+        init((int)inScaleFactor);
+        isInit = true;
+    }
 
     for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
         mKerningTable[i] = NULL;
     }
-    
-    strncpy(mName, inFileName, 50);
 
     Image *spriteImage = readTGAFile( inFileName );
     
@@ -716,6 +622,36 @@ static double scaleFactor = 1.0 / 16;
 //static double scaleFactor = 1.0 / 8;
 
 
+void Font::drawChar(unicode c, doublePair inCenter) {
+    double scale = scaleFactor * mScaleFactor;
+    if(c < 128)
+    {
+        if(mSpriteMap[c] != NULL)
+            drawSprite( mSpriteMap[c], inCenter, scale );
+        return;
+    }
+    
+
+    xCharTexture* pCharTex = getTextChar(c);  
+    SingleTextureGL::sLastBoundTextureID = pCharTex->m_texID;
+    glBindTexture(GL_TEXTURE_2D, pCharTex->m_texID);                          //绑定到目标纹理  
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
+    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );  
+    glEnable(GL_BLEND);                                                     //打开或关闭OpenGL的特殊功能  
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);                       //特殊的像素算法  
+    int w = pCharTex->m_Width;  
+    int h = pCharTex->m_Height;
+    int ch_x = inCenter.x - w / 2;
+    int ch_y = inCenter.y - h / 2;
+    glBegin ( GL_QUADS );                                                    // 定义一个或一组原始的顶点  
+    {  
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(ch_x, ch_y + h, 1.0f);  
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(ch_x + w, ch_y + h, 1.0f);  
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(ch_x + w, ch_y, 1.0f);  
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(ch_x, ch_y, 1.0f);  
+    }  
+    glEnd();  
+}
 
 double Font::getCharSpacing() {
     double scale = scaleFactor * mScaleFactor;
@@ -812,16 +748,23 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
     }
 
 
-SpriteHandle Font::getSprite(unicode u) {
-    return mSpriteMap[ u % 256 ];
-}
-
-
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
     glEnable ( GL_TEXTURE_2D );  
-    std::wstring wstr = AnsiToUnicode(inString);  
-    drawText(wstr.c_str(), inPosition.x, inPosition.y, 2048, mScaleFactor, inAlign); 
+    // std::wstring wstr = AnsiToUnicode(inString);  
+    // drawText(wstr.c_str(), inPosition.x, inPosition.y, 2048, mScaleFactor, inAlign); 
+
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
+    SimpleVector<doublePair> pos( strlen( unicodeString ) );
+
+    double returnVal = getCharPos( &pos, unicodeString, inPosition, inAlign );
+    
+    for( int i=0; i<pos.size(); i++ ) {
+        drawChar(unicodeString[i], pos.getElementDirect(i));
+        }
+    
+    return returnVal;
     }
 
 
@@ -861,12 +804,7 @@ double Font::drawCharacter( unicode inC, doublePair inPosition ) {
         return returnVal;
         }
 
-    SpriteHandle spriteID = getSprite( inC );
-    
-    if( spriteID != NULL ) {
-        double scale = scaleFactor * mScaleFactor;
-        drawSprite( spriteID, drawPos, scale );
-        }
+    drawChar(inC, drawPos);
     
     return returnVal;
     }
@@ -874,12 +812,7 @@ double Font::drawCharacter( unicode inC, doublePair inPosition ) {
 
 
 void Font::drawCharacterSprite( unicode inC, doublePair inPosition ) {
-    SpriteHandle spriteID = getSprite( inC );
-    
-    if( spriteID != NULL ) {
-        double scale = scaleFactor * mScaleFactor;
-        drawSprite( spriteID, inPosition, scale );
-        }
+    drawChar(inC, inPosition);
     }
 
 double Font::measureString( const char *inString, int inCharLimit ) {

@@ -32,14 +32,9 @@ typedef unsigned short unicode;
 struct xCharTexture  
 {  
     GLuint  m_texID;  
-    wchar_t m_chaID;  
+    unicode m_chaID;  
     int     m_Width;  
     int     m_Height;  
-  
-    int     m_adv_x;  
-    int     m_adv_y;  
-    int     m_delta_x;  
-    int     m_delta_y;  
 public:  
     xCharTexture()  
     {  
@@ -52,14 +47,13 @@ public:
 
 class xFreeTypeLib  
 {  
-    FT_Library m_FT2Lib;  
     FT_Face    m_FT_Face;  
   
 public:  
     int   m_w;  
     int   m_h;  
     void load(const char* font_file , int _w , int _h);  
-    GLuint loadChar(wchar_t ch);  
+    GLuint loadChar(unicode ch);  
 };  
 
 class Font {
@@ -131,7 +125,7 @@ class Font {
         // draws sprite centered on inPosition with no spacing adjustments
         void drawCharacterSprite( unicode inC, doublePair inPosition );
 
-        SpriteHandle getSprite(unicode u);
+        void drawChar(unicode c, doublePair inCenter);
 
     private:        
         
@@ -173,8 +167,6 @@ class Font {
         char mEnableKerning;
 
         double mMinimumPositionPrecision;
-
-        char mName[50];
     };
 
 
