@@ -4,8 +4,7 @@
 
 #include "minorGems/game/gameGraphics.h"
 #include "minorGems/util/SimpleVector.h"
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
+#include "minorGems/graphics/openGL/glInclude.h"
 #include <ft2build.h>
 #include <freetype/ftglyph.h>
 
