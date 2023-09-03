@@ -129,15 +129,15 @@ void xFreeTypeLib::load(const char* font_file , int _w , int _h)
     FT_Set_Pixel_Sizes(m_FT_Face, m_w, m_h);  
 }  
   
-GLuint xFreeTypeLib::loadChar(unicode ch)  
+char xFreeTypeLib::loadChar(unicode ch)  
 {  
     if(g_TexID[ch].m_texID)  
-        return g_TexID[ch].m_texID;  
+        return true;  
     /* 装载字形图像到字形槽（将会抹掉先前的字形图像） */   
     if(FT_Load_Char(m_FT_Face, ch, /*FT_LOAD_RENDER|*/FT_LOAD_FORCE_AUTOHINT|  
         (true ? FT_LOAD_TARGET_NORMAL : FT_LOAD_MONOCHROME | FT_LOAD_TARGET_MONO) )   )  
     {  
-        return 0;  
+        return false;  
     }  
   
  /*if(FT_Load_Glyph( m_FT_Face, FT_Get_Char_Index( m_FT_Face, ch ), FT_LOAD_FORCE_AUTOHINT )) 
@@ -149,7 +149,7 @@ GLuint xFreeTypeLib::loadChar(unicode ch)
     FT_Glyph glyph;  
     //把字形图像从字形槽复制到新的FT_Glyph对象glyph中。这个函数返回一个错误码并且设置glyph。   
     if(FT_Get_Glyph( m_FT_Face->glyph, &glyph ))  
-        return 0;  
+        return false;  
   
     //转化成位图  
     FT_Render_Glyph( m_FT_Face->glyph, FT_RENDER_MODE_LCD );//FT_RENDER_MODE_NORMAL  );   
@@ -180,7 +180,7 @@ GLuint xFreeTypeLib::loadChar(unicode ch)
     {  
         for(int i=0; i < width; i++)  
         {  
-            unsigned char _vl = (i>=bitmap.width || j>=bitmap.rows) ? 0 : bitmap.buffer[i + bitmap.width*j];  
+            unsigned char _vl = bitmap.buffer[i + bitmap.width*j];  
             pBuf[(4*i + (height - j - 1) * width * 4)  ] = 0xFF;  
             pBuf[(4*i + (height - j - 1) * width * 4)+1] = 0xFF;  
             pBuf[(4*i + (height - j - 1) * width * 4)+2] = 0xFF;  
@@ -202,7 +202,7 @@ GLuint xFreeTypeLib::loadChar(unicode ch)
     glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); 
     glTexEnvi(GL_TEXTURE_2D,GL_TEXTURE_ENV_MODE,GL_REPLACE);*/  
     delete[] pBuf;  
-    return charTex.m_chaID;  
+    return true;  
 }  
 
 
@@ -211,8 +211,8 @@ xFreeTypeLib g_FreeTypeLib;
 
 xCharTexture* getTextChar(unicode ch)  
 {  
-    g_FreeTypeLib.loadChar(ch);  
-    return &g_TexID[ch];  
+    char result = g_FreeTypeLib.loadChar(ch);  
+    return result ? &g_TexID[ch] : NULL;  
 }
   
 void init(int size)  
@@ -268,23 +268,19 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         
         int numPixels = width * height;
         
-        
-            
-        // hold onto these for true kerning after
-        // we've read this data for all characters
-        rgbaColor *savedCharacterRGBA[256];
-        mSpriteWidth = width / 16;
-        mSpriteHeight = height / 16;
-
         rgbaColor *spriteRGBA = new rgbaColor[ numPixels ];
+        
+        
         unsigned char *spriteBytes = 
             RGBAImage::getRGBABytes( spriteImage );
         
         delete spriteImage;
 
         for( int i=0; i<numPixels; i++ ) {
+            
             for( int b=0; b<4; b++ ) {
-                    spriteRGBA[i].bytes[b] = spriteBytes[ i * 4 + b ];
+                
+                spriteRGBA[i].bytes[b] = spriteBytes[ i*4 + b ];
                 }
             }
         
@@ -303,6 +299,11 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             spriteRGBA[i].comp.g = 255;
             spriteRGBA[i].comp.b = 255;
             }
+            
+                        
+                
+        mSpriteWidth = width / 16;
+        mSpriteHeight = height / 16;
         
         if( mSpriteHeight == mSpriteWidth ) {
             mAccentsPresent = false;
@@ -320,6 +321,11 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
 
 
         int pixelsPerChar = mSpriteWidth * mSpriteHeight;
+            
+        // hold onto these for true kerning after
+        // we've read this data for all characters
+        rgbaColor *savedCharacterRGBA[256];
+        
 
         for( int i=0; i<256; i++ ) {
             int yOffset = ( i / 16 ) * mSpriteHeight;
@@ -351,7 +357,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 
                 // convert into an image
                 Image *charImage = new Image( mSpriteWidth, mSpriteHeight,
-                                            4, false );
+                                              4, false );
                 
                 for( int c=0; c<4; c++ ) {
                     double *chan = charImage->getChannel(c);
@@ -362,11 +368,13 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                         }
                     }
                 
+
                 mSpriteMap[i] = 
                     fillSprite( charImage );
                 delete charImage;
                 }
-                
+            
+
             if( mFixedWidth ) {
                 mCharLeftEdgeOffset[i] = 0;
                 mCharWidth[i] = mCharBlockWidth;
@@ -410,8 +418,8 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                     mCharLeftEdgeOffset[i] = farthestLeft;
                     mCharWidth[i] = farthestRight - farthestLeft + 1;
                     }
-            }
-            
+                }
+                
 
             if( !allTransparent && ! mFixedWidth ) {
                 savedCharacterRGBA[i] = charRGBA;
@@ -421,7 +429,7 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 delete [] charRGBA;
                 }
             }
-        delete [] spriteRGBA;
+        
 
         // now that we've read in all characters, we can do real kerning
         if( !mFixedWidth ) {
@@ -560,10 +568,11 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 delete [] savedCharacterRGBA[i];
                 }
             }
+        
+
+        delete [] spriteRGBA;
         }
     }
-
-
 
 Font::~Font() {
     for( int i=0; i<256; i++ ) {
@@ -634,6 +643,8 @@ void Font::drawChar(unicode c, doublePair inCenter) {
     
 
     xCharTexture* pCharTex = getTextChar(c);  
+    if(pCharTex == NULL)
+        return;
     SingleTextureGL::sLastBoundTextureID = pCharTex->m_texID;
     glBindTexture(GL_TEXTURE_2D, pCharTex->m_texID);                          //绑定到目标纹理  
     glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
@@ -732,8 +743,8 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         if( !mFixedWidth && mEnableKerning 
             && i < numChars - 1 
-            && inString[i] < 256
-            && inString[i+1] < 256
+            && inString[i] < 128
+            && inString[i+1] < 128
             && mKerningTable[ inString[i] ] != NULL ) {
             // there's another character after this
             // apply true kerning adjustment to the pair
@@ -785,14 +796,14 @@ double Font::positionCharacter( unicode inC, doublePair inTargetPos,
         }
 
     if( !mFixedWidth ) {
-        outActualPos->x -= ( inC < 256 ? mCharLeftEdgeOffset[ inC ] : 0 ) * scale;
+        outActualPos->x -= ( inC < 128 ? mCharLeftEdgeOffset[ inC ] : 0 ) * scale;
         }
     
     if( mFixedWidth ) {
         return mCharBlockWidth * scale;
         }
     else {
-        return ( inC < 256 ? mCharWidth[ inC ] : unicodeWide ) * scale;
+        return ( inC < 128 ? mCharWidth[ inC ] : unicodeWide ) * scale;
         }
     }
 
@@ -846,12 +857,12 @@ double Font::measureString( const unicode *inString, int inCharLimit ) {
             width += mCharBlockWidth * scale;
             }
         else {
-            width += ( c < 256 ? mCharWidth[ c ] : unicodeWide ) * scale;
+            width += ( c < 128 ? mCharWidth[ c ] : unicodeWide ) * scale;
 
             if( mEnableKerning
                 && i < numChars - 1
-                && inString[i] < 256
-                && inString[i+1] < 256
+                && inString[i] < 128
+                && inString[i+1] < 128
                 && mKerningTable[ inString[i] ] != NULL ) {
                 // there's another character after this
                 // apply true kerning adjustment to the pair

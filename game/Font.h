@@ -31,14 +31,12 @@ typedef unsigned short unicode;
 struct xCharTexture  
 {  
     GLuint  m_texID;  
-    unicode m_chaID;  
     int     m_Width;  
     int     m_Height;  
 public:  
     xCharTexture()  
     {  
         m_texID  = 0;  
-        m_chaID  = 0;  
         m_Width  = 0;  
         m_Height = 0;  
     }  
@@ -52,7 +50,7 @@ public:
     int   m_w;  
     int   m_h;  
     void load(const char* font_file , int _w , int _h);  
-    GLuint loadChar(unicode ch);  
+    char loadChar(unicode ch);  
 };  
 
 class Font {
