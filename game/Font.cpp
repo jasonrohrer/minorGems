@@ -102,6 +102,7 @@ size_t strlen(const unicode *u)
 
 static int unicodeWide = 22;
 static double unicodeScale = 1.4;
+static int unicodeOffset = -5;
 static xCharTexture g_TexID[65536];
 
  
@@ -187,7 +188,7 @@ GLuint xFreeTypeLib::loadChar(unicode ch)
         }  
      }  
   
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pBuf);  //指定一个二维的纹理图片  
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pBuf);  //指定一个二维的纹理图片
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);                            //glTexParameteri():纹理过滤  
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);  
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  
@@ -218,6 +219,7 @@ void init(int size)
 {  
     unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
     unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
+    unicodeOffset = SettingsManager::getIntSetting( "unicodeOffset", -5 );
     // glShadeModel(GL_SMOOTH|GL_FLAT);                        //选择平直或平滑着色  
     // glClearColor(0.0f, 0.0f, 0.0f, 0.5f);                   //清除色彩缓冲区  
     // glEnable ( GL_COLOR_MATERIAL_FACE );  
@@ -624,8 +626,7 @@ static double scaleFactor = 1.0 / 16;
 
 void Font::drawChar(unicode c, doublePair inCenter) {
     double scale = scaleFactor * mScaleFactor;
-    if(c < 128)
-    {
+    if(c < 128) {
         if(mSpriteMap[c] != NULL)
             drawSprite( mSpriteMap[c], inCenter, scale );
         return;
@@ -641,14 +642,14 @@ void Font::drawChar(unicode c, doublePair inCenter) {
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);                       //特殊的像素算法  
     int w = pCharTex->m_Width;  
     int h = pCharTex->m_Height;
-    int ch_x = inCenter.x - w / 2;
+    int ch_x = inCenter.x - w / 2 + unicodeOffset;
     int ch_y = inCenter.y - h / 2;
     glBegin ( GL_QUADS );                                                    // 定义一个或一组原始的顶点  
     {  
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(ch_x, ch_y + h, 1.0f);  
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(ch_x + w, ch_y + h, 1.0f);  
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(ch_x + w, ch_y, 1.0f);  
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(ch_x, ch_y, 1.0f);  
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(ch_x, ch_y + h);  
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(ch_x + w, ch_y + h);  
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(ch_x + w, ch_y);  
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(ch_x, ch_y);  
     }  
     glEnd();  
 }
@@ -750,7 +751,10 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    glEnable ( GL_TEXTURE_2D );  
+    if( !SingleTextureGL::sTexturingEnabled ) {    
+        glEnable( GL_TEXTURE_2D );
+        SingleTextureGL::sTexturingEnabled = true;
+        }
     // std::wstring wstr = AnsiToUnicode(inString);  
     // drawText(wstr.c_str(), inPosition.x, inPosition.y, 2048, mScaleFactor, inAlign); 
 
