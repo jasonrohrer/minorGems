@@ -3,11 +3,7 @@
 #include "minorGems/graphics/RGBAImage.h"
 
 #include <string.h>
-#include <assert.h>
 #include <iostream>
-#include <codecvt>
-#include <locale>
-#include <string>
 #include "minorGems/util/SettingsManager.h"
 #include "minorGems/graphics/openGL/SingleTextureGL.h"
 
@@ -257,6 +253,8 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         mSpriteMap[i] = NULL;
         mKerningTable[i] = NULL;
     }
+
+
 
     Image *spriteImage = readTGAFile( inFileName );
     
@@ -573,6 +571,8 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
         delete [] spriteRGBA;
         }
     }
+
+
 
 Font::~Font() {
     for( int i=0; i<256; i++ ) {
