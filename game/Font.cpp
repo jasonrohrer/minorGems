@@ -244,6 +244,9 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
           mFixedWidth( inFixedWidth ), mEnableKerning( true ),
           mMinimumPositionPrecision( 0 ) {
 
+    if(strcmp(inFileName, "font_pencil_erased_32_32.tga") == 0)
+        isErased = true;
+    
     if(!isInit) {
         init((int)inScaleFactor);
         isInit = true;
@@ -640,11 +643,14 @@ void Font::drawChar(unicode c, doublePair inCenter) {
             drawSprite( mSpriteMap[c], inCenter, scale );
         return;
     }
-    
 
     xCharTexture* pCharTex = getTextChar(c);  
     if(pCharTex == NULL)
         return;
+    float alpha = getDrawColor().a;
+    if(isErased)
+        setDrawFade(alpha * 0.2);
+    
     SingleTextureGL::sLastBoundTextureID = pCharTex->m_texID;
     glBindTexture(GL_TEXTURE_2D, pCharTex->m_texID);                          //绑定到目标纹理  
     glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
@@ -663,6 +669,9 @@ void Font::drawChar(unicode c, doublePair inCenter) {
         glTexCoord2f(0.0f, 0.0f); glVertex2f(ch_x, ch_y);  
     }  
     glEnd();  
+
+    if(isErased)
+        setDrawFade(alpha);
 }
 
 double Font::getCharSpacing() {

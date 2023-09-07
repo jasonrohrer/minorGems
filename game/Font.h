@@ -164,6 +164,8 @@ class Font {
         char mEnableKerning;
 
         double mMinimumPositionPrecision;
+
+        char isErased = false;
     };
 
 
