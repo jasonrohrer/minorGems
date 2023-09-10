@@ -32,7 +32,7 @@ PLATFORM_LINK_FLAGS_HEADLESS = ${CUSTOM_MACOSX_LINK_FLAGS}
 PLATFORM_LIBJPEG_FLAG = /usr/lib/libjpeg.a
 
 # not used for some builds
-PLATFORM_LIBPNG_FLAG = /usr/lib/libz.a /usr/lib/libpng.a
+PLATFORM_LIBPNG_FLAG = -lz -lpng
 
 
 # Nothing special for OS X here

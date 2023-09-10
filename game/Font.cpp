@@ -69,6 +69,7 @@ unicode utf8ToCodepoint(const unsigned char *&p)
     else
     {
         std::cout << "Not UTF-8: " << (char)*p << ',' << (int)*p << ',' << std::endl;
+        p++;
     }
     return codepoint;
 }
