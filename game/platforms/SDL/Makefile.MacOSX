@@ -18,9 +18,10 @@
 PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.framework/Headers -I/usr/local/include/freetype2
 
 
-# various frameworks to support OpenGL and SDL
+# various frameworks to support OpenGL
+# get SDL lib by using `brew install sdl12-compat`
 # static linking against zlib and libpng
-PLATFORM_LINK_FLAGS = -lfreetype -framework OpenGL -F/Library/Frameworks -framework SDL -framework Cocoa ../../minorGems/game/platforms/SDL/mac/SDLMain.m ${CUSTOM_MACOSX_LINK_FLAGS}
+PLATFORM_LINK_FLAGS = -lfreetype -framework OpenGL -lSDL -framework Cocoa ../../minorGems/game/platforms/SDL/mac/SDLMain.m ${CUSTOM_MACOSX_LINK_FLAGS}
 
 # for headless builds with no GL or SDL
 PLATFORM_LINK_FLAGS_HEADLESS = ${CUSTOM_MACOSX_LINK_FLAGS}
