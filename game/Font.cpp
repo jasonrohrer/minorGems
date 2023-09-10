@@ -188,9 +188,9 @@ char xFreeTypeLib::loadChar(unicode ch)
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pBuf);  //指定一个二维的纹理图片
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);                            //glTexParameteri():纹理过滤  
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);                                //纹理进行混合  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+    // glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);                                //纹理进行混合  
   
     /*gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pBuf); 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_CLAMP); 
@@ -650,14 +650,16 @@ void Font::drawChar(unicode c, doublePair inCenter) {
         return;
     float alpha = getDrawColor().a;
     if(isErased)
-        setDrawFade(alpha * 0.2);
+        setDrawFade(alpha * 0.1);
     
     SingleTextureGL::sLastBoundTextureID = pCharTex->m_texID;
     glBindTexture(GL_TEXTURE_2D, pCharTex->m_texID);                          //绑定到目标纹理  
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );  
-    glEnable(GL_BLEND);                                                     //打开或关闭OpenGL的特殊功能  
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);                       //特殊的像素算法  
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);                            //glTexParameteri():纹理过滤  
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    // glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );     
+    // glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );  
+    // glEnable(GL_BLEND);                                                     //打开或关闭OpenGL的特殊功能  
+    // glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);                       //特殊的像素算法  
     int w = pCharTex->m_Width;  
     int h = pCharTex->m_Height;
     int ch_x = inCenter.x - w / 2 + unicodeOffset;
