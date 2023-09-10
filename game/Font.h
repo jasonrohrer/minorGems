@@ -30,26 +30,24 @@ typedef unsigned short unicode;
 
 struct xCharTexture  
 {  
-    GLuint  m_texID;  
-    int     m_Width;  
-    int     m_Height;  
+    GLuint  mTexID;  
+    int     mWidth;  
+    int     mHeight;  
 public:  
     xCharTexture()  
     {  
-        m_texID  = 0;  
-        m_Width  = 0;  
-        m_Height = 0;  
+        mTexID  = 0;  
+        mWidth  = 0;  
+        mHeight = 0;  
     }  
 };  
 
 class xFreeTypeLib  
 {  
-    FT_Face    m_FT_Face;  
+    FT_Face    mFTFace;  
   
 public:  
-    int   m_w;  
-    int   m_h;  
-    void load(const char* font_file , int _w , int _h);  
+    void load(const char* fontFile , int _w , int _h);  
     char loadChar(unicode ch);  
 };  
 
