@@ -5,6 +5,7 @@
 #include "minorGems/game/gameGraphics.h"
 #include "minorGems/util/SimpleVector.h"
 #include "minorGems/graphics/openGL/glInclude.h"
+#include "minorGems/graphics/openGL/SingleTextureGL.h"
 #include <ft2build.h>
 #include <freetype/ftglyph.h>
 
@@ -30,13 +31,13 @@ typedef unsigned short unicode;
 
 struct xCharTexture  
 {  
-    GLuint  mTexID;  
+    SingleTextureGL  *mTex;  
     int     mWidth;  
     int     mHeight;  
 public:  
     xCharTexture()  
     {  
-        mTexID  = 0;  
+        mTex  = NULL;  
         mWidth  = 0;  
         mHeight = 0;  
     }  
