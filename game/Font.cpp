@@ -5,7 +5,6 @@
 #include <string.h>
 #include <iostream>
 #include "minorGems/util/SettingsManager.h"
-#include "minorGems/graphics/openGL/SingleTextureGL.h"
 
 
 typedef union rgbaColor {
@@ -100,7 +99,8 @@ size_t strlen(const unicode *u)
 static int unicodeWide = 22;
 static double unicodeScale = 1.4;
 static int unicodeOffset = -5;
-static xCharTexture g_TexID[65536];
+static xCharTexture unicodeTex[65536];
+static SimpleVector<unicode> loadedUnicode; 
 
  
 void xFreeTypeLib::load(const char* font_file , int _w , int _h)  
@@ -125,7 +125,7 @@ void xFreeTypeLib::load(const char* font_file , int _w , int _h)
   
 char xFreeTypeLib::loadChar(unicode ch)  
 {  
-    if(g_TexID[ch].mTexID)  
+    if(unicodeTex[ch].mTex)  
         return true;  
     // load char image(will replace old char image)
     if(FT_Load_Char(mFTFace, ch, FT_LOAD_DEFAULT))
@@ -133,7 +133,6 @@ char xFreeTypeLib::loadChar(unicode ch)
         return false;  
     }
   
-    xCharTexture& charTex = g_TexID[ch];  
    
     FT_Glyph glyph;  
     // copy from glyph slot to glyph, this function return error code and set glyph
@@ -148,14 +147,8 @@ char xFreeTypeLib::loadChar(unicode ch)
   
     int width = bitmap.width;  
     int height = bitmap.rows;  
-   
-    charTex.mWidth = width;
-    charTex.mHeight = height;  
-  
-    glGenTextures(1, &charTex.mTexID);  
-    SingleTextureGL::sLastBoundTextureID = charTex.mTexID;
-    glBindTexture(GL_TEXTURE_2D, charTex.mTexID);  
-    char* pBuf = new char[width * height * 4];  
+
+    unsigned char* pBuf = new unsigned char[width * height * 4];  
     for(int j=0; j < height; j++)  
     {  
         for(int i=0; i < width; i++)  
@@ -166,13 +159,12 @@ char xFreeTypeLib::loadChar(unicode ch)
             pBuf[(4*i + (height - j - 1) * width * 4)+2] = 0xFF;  
             pBuf[(4*i + (height - j - 1) * width * 4)+3] = _vl;  
         }  
-     }  
-  
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pBuf);  // map a 2D texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+    }  
+
+    unicodeTex[ch].mTex = new SingleTextureGL(pBuf, width, height, false, false);
+    unicodeTex[ch].mWidth = width;
+    unicodeTex[ch].mHeight = height;
+    loadedUnicode.push_back(ch);
     delete[] pBuf;  
     FT_Done_Glyph(glyph);
     return true;  
@@ -185,7 +177,7 @@ xFreeTypeLib g_FreeTypeLib;
 xCharTexture* getTextChar(unicode ch)  
 {  
     char result = g_FreeTypeLib.loadChar(ch);  
-    return result ? &g_TexID[ch] : NULL;  
+    return result ? &unicodeTex[ch] : NULL;  
 }
   
 void init(int size)  
@@ -198,7 +190,7 @@ void init(int size)
     g_FreeTypeLib.load("graphics/font.ttf", size, size);  
 }  
   
-static char isInit = false;
+static int fontCount = 0;
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -210,10 +202,10 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
     if(strcmp(inFileName, "font_pencil_erased_32_32.tga") == 0)
         isErased = true;
     
-    if(!isInit) {
+    if(fontCount == 0) {
         init((int)inScaleFactor);
-        isInit = true;
     }
+    ++fontCount;
 
     for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
@@ -549,6 +541,17 @@ Font::~Font() {
             delete mKerningTable[i];
             }
         }
+
+    fontCount--;
+    if(fontCount == 0) {
+        int numTextures = loadedUnicode.size();
+        for(int i = 0; i < numTextures; ++i) {
+            unicode u = loadedUnicode.getElementDirect(i);
+            delete unicodeTex[u].mTex;
+            unicodeTex[u].mTex = NULL;
+        }
+        loadedUnicode.deleteAll();
+    }
     }
 
 
@@ -614,9 +617,11 @@ void Font::drawChar(unicode c, doublePair inCenter) {
     if(isErased)
         setDrawFade(alpha * 0.1);
     
-    SingleTextureGL::sLastBoundTextureID = pCharTex->mTexID;
-    glBindTexture(GL_TEXTURE_2D, pCharTex->mTexID); // bind to target texture
-    int w = pCharTex->mWidth;  
+    pCharTex->mTex->enable();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+
+    int w = pCharTex->mWidth; 
     int h = pCharTex->mHeight;
     int ch_x = inCenter.x - w / 2 + unicodeOffset;
     int ch_y = inCenter.y - h / 2;
@@ -730,11 +735,6 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
 
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    if( !SingleTextureGL::sTexturingEnabled ) {    
-        glEnable( GL_TEXTURE_2D );
-        SingleTextureGL::sTexturingEnabled = true;
-        }
-
     unicode unicodeString[strlen(inString)];
     utf8ToUnicode(inString, unicodeString);
     SimpleVector<doublePair> pos( strlen( unicodeString ) );
