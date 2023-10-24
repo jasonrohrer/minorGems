@@ -182,6 +182,16 @@ void toggleMultiplicativeBlend( char inMultiplicative ) {
     }
 
 
+void toggleInvertedBlend( char inInverted ) {
+    if( inInverted ) {
+        glBlendFunc( GL_ONE_MINUS_DST_COLOR, GL_ZERO );
+        }
+    else {
+        setNormalBlend();
+        }
+    }
+
+
 
 void toggleAdditiveTextureColoring( char inAdditive ) {
     if( inAdditive ) {

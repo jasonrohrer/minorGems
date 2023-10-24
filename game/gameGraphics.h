@@ -62,6 +62,17 @@ void toggleAdditiveBlend( char inAdditive );
 void toggleMultiplicativeBlend( char inMultiplicative );
 
 
+
+// defaults to non-inverted (normal) blending
+// Turning on replaces current blend mode
+// Turning off goes back to normal blending
+// inverted blend means that new source colors invert underlying destination
+// colors.  Drawing a white rectangle would invert everything under the 
+// rectangle.
+void toggleInvertedBlend( char inInverted );
+
+
+
 // distinct from additive fragment blending (above)
 // turning on makes texture and vertex color combination additive
 // turning off goes back to multiplicative combination of texture and vertex
