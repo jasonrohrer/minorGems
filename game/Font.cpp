@@ -3,6 +3,8 @@
 #include "minorGems/graphics/RGBAImage.h"
 
 #include <string.h>
+#include <iostream>
+#include "minorGems/util/SettingsManager.h"
 
 
 typedef union rgbaColor {
@@ -28,7 +30,167 @@ typedef union rgbaColor {
 // glyphs don't cause the glyph to be logically wider than it looks visually 
 const unsigned char inkA = 127;
 
+unicode utf8ToCodepoint(const unsigned char *&p)
+{
+    unicode codepoint = 0;
+    if ((*p & 0x80) == 0)
+    {
+        codepoint = *p;
+        p++;
+    }
+    else if ((*p & 0xE0) == 0xC0)
+    {
+        codepoint = (*p & 0x1F) << 6;
+        p++;
+        codepoint |= (*p & 0x3F);
+        p++;
+    }
+    else if ((*p & 0xF0) == 0xE0)
+    {
+        codepoint = (*p & 0x0F) << 12;
+        p++;
+        codepoint |= (*p & 0x3F) << 6;
+        p++;
+        codepoint |= (*p & 0x3F);
+        p++;
+    }
+    else if ((*p & 0xF8) == 0xF0)
+    {
+        codepoint = (*p & 0x07) << 18;
+        p++;
+        codepoint |= (*p & 0x3F) << 12;
+        p++;
+        codepoint |= (*p & 0x3F) << 6;
+        p++;
+        codepoint |= (*p & 0x3F);
+        p++;
+    }
+    else
+    {
+        std::cout << "Not UTF-8: " << (char)*p << ',' << (int)*p << ',' << std::endl;
+        p++;
+    }
+    return codepoint;
+}
 
+// output should have the size of utf8String
+void utf8ToUnicode(const char *utf8String, unicode* const output)
+{
+    const unsigned char *p = (const unsigned char *)utf8String;
+    int len = 0;
+
+    while (*p)
+    {
+        output[len] = utf8ToCodepoint(p);
+        ++len;
+    }
+
+    output[len] = 0;
+}
+
+size_t strlen(const unicode *u)
+{
+    int i = 0;
+    while (u[i])
+        ++i;
+    return i;
+}
+
+static int unicodeWide = 22;
+static double unicodeScale = 1.4;
+static int unicodeOffset = -5;
+static xCharTexture unicodeTex[65536];
+static SimpleVector<unicode> loadedUnicode; 
+
+ 
+void xFreeTypeLib::load(const char* font_file , int _w , int _h)  
+{  
+    FT_Library library;  
+    if (FT_Init_FreeType( &library) )
+    {
+        std::cout << "Font library init error" << std::endl;
+        exit(0);
+    }
+    // load a font file, get the default face, should be Regualer  
+    if (FT_New_Face( library, font_file, 0, &mFTFace ))   
+    {
+        std::cout << "Can't read " << font_file << std::endl;
+        exit(0);
+    }
+    // select charmap  
+    FT_Select_Charmap(mFTFace, FT_ENCODING_UNICODE);  
+    // set font width and height 
+    FT_Set_Pixel_Sizes(mFTFace, _w, _h);  
+}  
+  
+char xFreeTypeLib::loadChar(unicode ch)  
+{  
+    if(unicodeTex[ch].mTex)  
+        return true;  
+    // load char image(will replace old char image)
+    if(FT_Load_Char(mFTFace, ch, FT_LOAD_DEFAULT))
+    {  
+        return false;  
+    }
+  
+   
+    FT_Glyph glyph;  
+    // copy from glyph slot to glyph, this function return error code and set glyph
+    if(FT_Get_Glyph( mFTFace->glyph, &glyph ))  
+        return false;  
+  
+    // change to bitmap
+    FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );  
+  
+    // get bitmap  
+    FT_Bitmap& bitmap = ((FT_BitmapGlyph)glyph)->bitmap;  
+  
+    int width = bitmap.width;  
+    int height = bitmap.rows;  
+
+    unsigned char* pBuf = new unsigned char[width * height * 4];  
+    for(int j=0; j < height; j++)  
+    {  
+        for(int i=0; i < width; i++)  
+        {  
+            unsigned char _vl = bitmap.buffer[i + bitmap.width*j];  
+            pBuf[(4*i + (height - j - 1) * width * 4)  ] = 0xFF;  
+            pBuf[(4*i + (height - j - 1) * width * 4)+1] = 0xFF;  
+            pBuf[(4*i + (height - j - 1) * width * 4)+2] = 0xFF;  
+            pBuf[(4*i + (height - j - 1) * width * 4)+3] = _vl;  
+        }  
+    }  
+
+    unicodeTex[ch].mTex = new SingleTextureGL(pBuf, width, height, false, false);
+    unicodeTex[ch].mWidth = width;
+    unicodeTex[ch].mHeight = height;
+    loadedUnicode.push_back(ch);
+    delete[] pBuf;  
+    FT_Done_Glyph(glyph);
+    return true;  
+}  
+
+
+xFreeTypeLib g_FreeTypeLib;  
+
+
+xCharTexture* getTextChar(unicode ch)  
+{  
+    char result = g_FreeTypeLib.loadChar(ch);  
+    return result ? &unicodeTex[ch] : NULL;  
+}
+  
+void init(int size)  
+{  
+    unicodeScale = SettingsManager::getFloatSetting( "unicodeScale", 1.4 );
+    unicodeWide = SettingsManager::getIntSetting( "unicodeWide", 22 );
+    unicodeOffset = SettingsManager::getIntSetting( "unicodeOffset", -5 );
+
+    size *= unicodeScale;
+    g_FreeTypeLib.load("graphics/font.ttf", size, size);  
+}  
+  
+static int fontCount = 0;
 
 Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
             char inFixedWidth, double inScaleFactor, int inFixedCharWidth )
@@ -37,11 +199,19 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
           mFixedWidth( inFixedWidth ), mEnableKerning( true ),
           mMinimumPositionPrecision( 0 ) {
 
+    if(strcmp(inFileName, "font_pencil_erased_32_32.tga") == 0)
+        isErased = true;
+    
+    if(fontCount == 0) {
+        init((int)inScaleFactor);
+    }
+    ++fontCount;
+
     for( int i=0; i<256; i++ ) {
         mSpriteMap[i] = NULL;
         mKerningTable[i] = NULL;
-        }
-    
+    }
+
 
 
     Image *spriteImage = readTGAFile( inFileName );
@@ -158,9 +328,6 @@ Font::Font( const char *inFileName, int inCharSpacing, int inSpaceWidth,
                 mSpriteMap[i] = 
                     fillSprite( charImage );
                 delete charImage;
-                }
-            else {
-                mSpriteMap[i] = NULL;
                 }
             
 
@@ -374,6 +541,17 @@ Font::~Font() {
             delete mKerningTable[i];
             }
         }
+
+    fontCount--;
+    if(fontCount == 0) {
+        int numTextures = loadedUnicode.size();
+        for(int i = 0; i < numTextures; ++i) {
+            unicode u = loadedUnicode.getElementDirect(i);
+            delete unicodeTex[u].mTex;
+            unicodeTex[u].mTex = NULL;
+        }
+        loadedUnicode.deleteAll();
+    }
     }
 
 
@@ -424,6 +602,41 @@ static double scaleFactor = 1.0 / 16;
 //static double scaleFactor = 1.0 / 8;
 
 
+void Font::drawChar(unicode c, doublePair inCenter) {
+    double scale = scaleFactor * mScaleFactor;
+    if(c < 128) {
+        if(mSpriteMap[c] != NULL)
+            drawSprite( mSpriteMap[c], inCenter, scale );
+        return;
+    }
+
+    xCharTexture* pCharTex = getTextChar(c);  
+    if(pCharTex == NULL)
+        return;
+    float alpha = getDrawColor().a;
+    if(isErased)
+        setDrawFade(alpha * 0.1);
+    
+    pCharTex->mTex->enable();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
+
+    int w = pCharTex->mWidth; 
+    int h = pCharTex->mHeight;
+    int ch_x = inCenter.x - w / 2 + unicodeOffset;
+    int ch_y = inCenter.y - h / 2;
+    glBegin ( GL_QUADS );
+    {  
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(ch_x, ch_y + h);  
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(ch_x + w, ch_y + h);  
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(ch_x + w, ch_y);  
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(ch_x, ch_y);  
+    }  
+    glEnd();  
+
+    if(isErased)
+        setDrawFade(alpha);
+}
 
 double Font::getCharSpacing() {
     double scale = scaleFactor * mScaleFactor;
@@ -432,9 +645,15 @@ double Font::getCharSpacing() {
     }
 
 
-
 double Font::getCharPos( SimpleVector<doublePair> *outPositions,
                          const char *inString, doublePair inPosition,
+                         TextAlignment inAlign ) {
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
+    return getCharPos(outPositions, unicodeString, inPosition, inAlign);
+}
+double Font::getCharPos( SimpleVector<doublePair> *outPositions,
+                         const unicode *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
 
     double scale = scaleFactor * mScaleFactor;
@@ -489,7 +708,7 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         doublePair drawPos;
         
-        double charWidth = positionCharacter( (unsigned char)( inString[i] ), 
+        double charWidth = positionCharacter( inString[i], 
                                               charPos, &drawPos );
         outPositions->push_back( drawPos );
         
@@ -497,11 +716,13 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
         
         if( !mFixedWidth && mEnableKerning 
             && i < numChars - 1 
-            && mKerningTable[(unsigned char)( inString[i] )] != NULL ) {
+            && inString[i] < 128
+            && inString[i+1] < 128
+            && mKerningTable[ inString[i] ] != NULL ) {
             // there's another character after this
             // apply true kerning adjustment to the pair
-            int offset = mKerningTable[ (unsigned char)( inString[i] ) ]->
-                offset[ (unsigned char)( inString[i+1] ) ];
+            int offset = mKerningTable[ inString[i] ]->
+                offset[ inString[i+1] ];
             x += offset * scale;
             }
         }
@@ -512,23 +733,16 @@ double Font::getCharPos( SimpleVector<doublePair> *outPositions,
     }
 
 
-
-
 double Font::drawString( const char *inString, doublePair inPosition,
                          TextAlignment inAlign ) {
-    SimpleVector<doublePair> pos( strlen( inString ) );
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
+    SimpleVector<doublePair> pos( strlen( unicodeString ) );
 
-    double returnVal = getCharPos( &pos, inString, inPosition, inAlign );
-
-    double scale = scaleFactor * mScaleFactor;
+    double returnVal = getCharPos( &pos, unicodeString, inPosition, inAlign );
     
     for( int i=0; i<pos.size(); i++ ) {
-        SpriteHandle spriteID = mSpriteMap[ (unsigned char)( inString[i] ) ];
-    
-        if( spriteID != NULL ) {
-            drawSprite( spriteID, pos.getElementDirect(i), scale );
-            }
-    
+        drawChar(unicodeString[i], pos.getElementDirect(i));
         }
     
     return returnVal;
@@ -537,7 +751,7 @@ double Font::drawString( const char *inString, doublePair inPosition,
 
 
 
-double Font::positionCharacter( unsigned char inC, doublePair inTargetPos,
+double Font::positionCharacter( unicode inC, doublePair inTargetPos,
                                 doublePair *outActualPos ) {
     *outActualPos = inTargetPos;
     
@@ -548,21 +762,21 @@ double Font::positionCharacter( unsigned char inC, doublePair inTargetPos,
         }
 
     if( !mFixedWidth ) {
-        outActualPos->x -= mCharLeftEdgeOffset[ inC ] * scale;
+        outActualPos->x -= ( inC < 128 ? mCharLeftEdgeOffset[ inC ] : 0 ) * scale;
         }
     
     if( mFixedWidth ) {
         return mCharBlockWidth * scale;
         }
     else {
-        return mCharWidth[ inC ] * scale;
+        return ( inC < 128 ? mCharWidth[ inC ] : unicodeWide ) * scale;
         }
     }
 
     
 
 
-double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
+double Font::drawCharacter( unicode inC, doublePair inPosition ) {
     
     doublePair drawPos;
     double returnVal = positionCharacter( inC, inPosition, &drawPos );
@@ -571,30 +785,23 @@ double Font::drawCharacter( unsigned char inC, doublePair inPosition ) {
         return returnVal;
         }
 
-    SpriteHandle spriteID = mSpriteMap[ inC ];
-    
-    if( spriteID != NULL ) {
-        double scale = scaleFactor * mScaleFactor;
-        drawSprite( spriteID, drawPos, scale );
-        }
+    drawChar(inC, drawPos);
     
     return returnVal;
     }
 
 
 
-void Font::drawCharacterSprite( unsigned char inC, doublePair inPosition ) {
-    SpriteHandle spriteID = mSpriteMap[ inC ];
-    
-    if( spriteID != NULL ) {
-        double scale = scaleFactor * mScaleFactor;
-        drawSprite( spriteID, inPosition, scale );
-        }
+void Font::drawCharacterSprite( unicode inC, doublePair inPosition ) {
+    drawChar(inC, inPosition);
     }
 
-
-
 double Font::measureString( const char *inString, int inCharLimit ) {
+    unicode unicodeString[strlen(inString)];
+    utf8ToUnicode(inString, unicodeString);
+    return measureString(unicodeString, inCharLimit);
+}
+double Font::measureString( const unicode *inString, int inCharLimit ) {
     double scale = scaleFactor * mScaleFactor;
 
     int numChars = inCharLimit;
@@ -607,7 +814,7 @@ double Font::measureString( const char *inString, int inCharLimit ) {
     double width = 0;
     
     for( int i=0; i<numChars; i++ ) {
-        unsigned char c = inString[i];
+        unicode c = inString[i];
         
         if( c == ' ' ) {
             width += mSpaceWidth * scale;
@@ -616,15 +823,17 @@ double Font::measureString( const char *inString, int inCharLimit ) {
             width += mCharBlockWidth * scale;
             }
         else {
-            width += mCharWidth[ c ] * scale;
+            width += ( c < 128 ? mCharWidth[ c ] : unicodeWide ) * scale;
 
             if( mEnableKerning
-                && i < numChars - 1 
-                && mKerningTable[(unsigned char)( inString[i] )] != NULL ) {
+                && i < numChars - 1
+                && inString[i] < 128
+                && inString[i+1] < 128
+                && mKerningTable[ inString[i] ] != NULL ) {
                 // there's another character after this
                 // apply true kerning adjustment to the pair
-                int offset = mKerningTable[ (unsigned char)( inString[i] ) ]->
-                    offset[ (unsigned char)( inString[i+1] ) ];
+                int offset = mKerningTable[ inString[i] ]->
+                    offset[ inString[i+1] ];
                 width += offset * scale;
                 }
             }
@@ -637,7 +846,7 @@ double Font::measureString( const char *inString, int inCharLimit ) {
         // (added in last step of loop)
         width -= mCharSpacing * scale;
         }
-    
+
     return width;
     }
 

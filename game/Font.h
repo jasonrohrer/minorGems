@@ -4,6 +4,10 @@
 
 #include "minorGems/game/gameGraphics.h"
 #include "minorGems/util/SimpleVector.h"
+#include "minorGems/graphics/openGL/glInclude.h"
+#include "minorGems/graphics/openGL/SingleTextureGL.h"
+#include <ft2build.h>
+#include <freetype/ftglyph.h>
 
 
 enum TextAlignment {
@@ -22,6 +26,31 @@ typedef struct KerningTable {
     } KerningTable;
 
 
+typedef unsigned short unicode;
+
+
+struct xCharTexture  
+{  
+    SingleTextureGL  *mTex;  
+    int     mWidth;  
+    int     mHeight;  
+public:  
+    xCharTexture()  
+    {  
+        mTex  = NULL;  
+        mWidth  = 0;  
+        mHeight = 0;  
+    }  
+};  
+
+class xFreeTypeLib  
+{  
+    FT_Face    mFTFace;  
+  
+public:  
+    void load(const char* fontFile , int _w , int _h);  
+    char loadChar(unicode ch);  
+};  
 
 class Font {
         
@@ -51,10 +80,14 @@ class Font {
 
 
         double measureString( const char *inString, int inCharLimit = -1 );
+        double measureString( const unicode *inString, int inCharLimit = -1 );
         
         // gets per-character position of string without drawing it
         double getCharPos( SimpleVector<doublePair> *outPositions,
             const char *inString, doublePair inPosition,
+            TextAlignment inAlign = alignCenter );
+        double getCharPos( SimpleVector<doublePair> *outPositions,
+            const unicode *inString, doublePair inPosition,
             TextAlignment inAlign = alignCenter );
         
 
@@ -83,15 +116,17 @@ class Font {
         double getCharSpacing();
         
         // returns x coordinate to right of drawn character
-        double drawCharacter( unsigned char inC, doublePair inPosition );
+        double drawCharacter( unicode inC, doublePair inPosition );
 
         // draws sprite centered on inPosition with no spacing adjustments
-        void drawCharacterSprite( unsigned char inC, doublePair inPosition );
+        void drawCharacterSprite( unicode inC, doublePair inPosition );
+
+        void drawChar(unicode c, doublePair inCenter);
 
     private:        
         
         // returns x coordinate to right of drawn character
-        double positionCharacter( unsigned char inC, doublePair inTargetPos,
+        double positionCharacter( unicode inC, doublePair inTargetPos,
                                   doublePair *outActualPos );
 
         
@@ -128,6 +163,8 @@ class Font {
         char mEnableKerning;
 
         double mMinimumPositionPrecision;
+
+        char isErased = false;
     };
 
 

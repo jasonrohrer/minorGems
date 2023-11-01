@@ -15,12 +15,13 @@
 # __mac__ to trigger certain mac-specific coping code
 # paths to GL and GLUT headers
 
-PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.framework/Headers
+PLATFORM_COMPILE_FLAGS = -DBSD -D__mac__ -I/System/Library/Frameworks/OpenGL.framework/Headers -I/usr/local/include/freetype2 -mmacosx-version-min=10.9
 
 
-# various frameworks to support OpenGL and SDL
+# various frameworks to support OpenGL
+# get SDL lib by using `brew install sdl12-compat`
 # static linking against zlib and libpng
-PLATFORM_LINK_FLAGS = -framework OpenGL -framework SDL -framework Cocoa ../../minorGems/game/platforms/SDL/mac/SDLMain.m ${CUSTOM_MACOSX_LINK_FLAGS}
+PLATFORM_LINK_FLAGS = -lfreetype -framework OpenGL -lSDL -framework Cocoa ../../minorGems/game/platforms/SDL/mac/SDLMain.m ${CUSTOM_MACOSX_LINK_FLAGS}
 
 # for headless builds with no GL or SDL
 PLATFORM_LINK_FLAGS_HEADLESS = ${CUSTOM_MACOSX_LINK_FLAGS}
@@ -31,7 +32,7 @@ PLATFORM_LINK_FLAGS_HEADLESS = ${CUSTOM_MACOSX_LINK_FLAGS}
 PLATFORM_LIBJPEG_FLAG = /usr/lib/libjpeg.a
 
 # not used for some builds
-PLATFORM_LIBPNG_FLAG = /usr/lib/libz.a /usr/lib/libpng.a
+PLATFORM_LIBPNG_FLAG = -lz -lpng
 
 
 # Nothing special for OS X here

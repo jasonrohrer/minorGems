@@ -1,0 +1,71 @@
+#
+# Modification History
+#
+# 2003-November-2    Jason Rohrer
+# Created.
+#
+# 2003-November-10    Jason Rohrer
+# Removed pthread flag.
+# Changed LINUX flag to WIN_32 flag.
+# Added wsock32 library flag.
+#
+
+
+##
+# The common MinGW (GNU for Win32) portion of Makefiles.
+# Should not be made manually---used by configure to build Makefiles.
+##
+
+
+# static lib flag needed to link compiled objs against miniupnp
+PLATFORM_COMPILE_FLAGS = -DWIN_32 -DSTATICLIB -I../../freetype2
+
+
+# need various GL libraries, winmm, and portaudio
+# -mwindows tells mingw to hide the dos command window on launch
+PLATFORM_LINK_FLAGS = -lopengl32 -lglu32 -lmingw32 -lSDLmain -lSDL -lfreetype -mwindows -lwsock32 -lwinmm -static-libstdc++ -static-libgcc -L ../../SDL-1.2.15/lib -L ../../mingw32/lib ${CUSTOM_MINGW_LINK_FLAGS}
+
+# for headless builds with no GL or SDL
+PLATFORM_LINK_FLAGS_HEADLESS = -lmingw32 -mconsole -mwindows -lwsock32 -static-libstdc++ -static-libgcc ${CUSTOM_MINGW_LINK_FLAGS}
+
+
+# not used for some builds
+PLATFORM_LIBJPEG_FLAG = -ljpeg
+
+# not used for some builds
+PLATFORM_LIBPNG_FLAG = -lz -lpng
+
+
+# All platforms but OSX support g++ and need no linker hacks
+GXX = i686-w64-mingw32-g++ 
+LINK_FLAGS = 
+
+
+# don't build icon.o when make invoked with no arguments!
+all: all2
+
+icon.o: ../build/win32/icon.ico ../build/win32/icon.rc
+	cp ../build/win32/icon.ico ../build/win32/icon.rc .
+	i686-w64-mingw32-windres -i icon.rc -o icon.o
+
+ICON_FILE = icon.o
+
+
+
+##
+# Platform-specific minorGems file path prefixes
+##
+
+PLATFORM = Win32
+PLATFORM_PATH = win32
+
+TIME_PLATFORM = Win32
+TIME_PLATFORM_PATH = win32
+
+DIRECTORY_PLATFORM = Win32
+DIRECTORY_PLATFORM_PATH = win32
+
+POLL_PLATFORM = Unix
+POLL_PLATFORM_PATH = unix
+
+
