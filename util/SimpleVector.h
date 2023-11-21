@@ -50,6 +50,7 @@
 *		Jason Rohrer	1-4-2018	deleteStartElements for efficiency.
 *		Jason Rohrer	7-12-2018	push_middle function.
 *		Jason Rohrer	5-10-2019	getElementDirectFast function.
+*		Jason Rohrer	11-21-2023	getMatchingStringIndex function.
 */
 
 #include "minorGems/common.h"
@@ -260,6 +261,15 @@ class SimpleVector {
          * on each element) and deletes them from the vector. 
 		 */
 		void deallocateStringElements();
+
+        
+        /**
+		 * For vectors of char* elements (c-strings).
+         *
+         * Gets index of first string that matches with strcmp, or
+         * -1 if no match found.
+         */
+        int getMatchingStringIndex( char *inString );
 
 
 
@@ -781,6 +791,19 @@ inline void SimpleVector<char*>::deallocateStringElements() {
         }
 
     deleteAll();
+    }
+
+
+
+
+template <>
+inline int SimpleVector<char*>::getMatchingStringIndex( char *inString ) {
+    for( int i=0; i<numFilledElements; i++ ) {
+        if( strcmp( elements[i], inString ) == 0 ) {
+            return i;
+            }
+        }
+    return -1;
     }
 
 
