@@ -389,12 +389,30 @@ char *vautoSprintf( const char* inFormatString, va_list inArgList );
  * char *s = "10 11 12 13";
  * char *nextScanPointer = s;
  *
- * int x = scanNextIntAndSkipNextCharacter( &nextScanPointer );
- * int y = scanNextIntAndSkipNextCharacter( &nextScanPointer );
- * int z = scanNextIntAndSkipNextCharacter( &nextScanPointer );
+ * int x = scanNextIntAndSkip( &nextScanPointer );
+ * int y = scanNextIntAndSkip( &nextScanPointer );
+ * int z = scanNextIntAndSkip( &nextScanPointer );
  *
  * char success;
- * int a = scanNextIntAndSkipNextCharacter( &nextScanPointer, &success );
+ * int a = scanNextIntAndSkip( &nextScanPointer, &success );
+ *
+ *
+ * Note that the character after the integer is skipped to permit the
+ * scanning of mixed ASCII and binary data, in the case of an integer
+ * followed by a delimeter character, followed by binary data, like this:
+ * 1534#[BINARY_DATA]
+ *
+ * In this case, after scanning the integer, this function skips the delimeter
+ * and returns a pointer to the beginning of the [BINARY_DATA]
+ *
+ * However, the underlying int-parsing code can handle an arbitrary amount
+ * of whitespace characters BEFORE each integer.
+ *
+ * Thus, int lists with more than a single character of whitespace between
+ * the ints can be parsed with this function.
+ *
+ * For example, ASCII text that may have been subjected to line-end conversion
+ * where there's one int per line, with lines ending in \r\n.
  *
  *
  * @param inStringPointer pointer to a pointer into a string.
