@@ -8,6 +8,9 @@
 #include "minorGems/util/log/FileLog.h"
 #include "minorGems/system/Thread.h"
 #include "minorGems/system/Time.h"
+#include "minorGems/io/file/File.h"
+#include "minorGems/util/SimpleVector.h"
+
 
 #include "minorGems/crypto/cryptoRandom.h"
 #include "minorGems/crypto/keyExchange/curve25519.h"
@@ -277,6 +280,8 @@ static void showTicketCreationError() {
 
 
 
+void processMods();
+
 
 
 int main() {
@@ -343,6 +348,9 @@ int main() {
         delete [] email;
         
         AppLog::info( "We already have saved login info.  Launching game." );
+
+        processMods();
+
         launchGame();
         AppLog::info( "Exiting." );
         return 0;
@@ -629,3 +637,244 @@ int main() {
     AppLog::info( "Exiting." );
     return 0;
     }
+
+
+
+void deallocateFileVector( SimpleVector<File*> *inVector ) {
+    for( int i=0; i< inVector->size(); i++ ) {
+        delete inVector->getElementDirect( i );
+        }
+    inVector->deleteAll();
+    }
+
+
+
+File *findFileInVector( SimpleVector<File*> *inVector, char *inName ) {
+    for( int i=0; i< inVector->size(); i++ ) {
+        File *f = inVector->getElementDirect( i );
+        
+        char *name = f->getFileName();
+        
+        if( strcmp( inName, name ) == 0 ) {
+            return f;
+            }
+        }
+    return NULL;
+    }
+
+
+
+
+typedef struct ModToUpload {
+    File *oxzFile;
+    File *jpgFile;
+    } ModToUpload;
+
+
+
+
+// Example class for receiving a call result
+class CGameManager { 
+    public: 
+        void GetNumberOfCurrentPlayers();
+    private:
+        void OnGetNumberOfCurrentPlayers( NumberOfCurrentPlayers_t *pCallback,
+                                          bool bIOFailure ); 
+        CCallResult< CGameManager, NumberOfCurrentPlayers_t >
+            m_NumberOfCurrentPlayersCallResult;
+    };
+
+// Make the asynchronous request to receive the number of current players.
+void CGameManager::GetNumberOfCurrentPlayers() { 
+    printf( "Getting Number of Current Players\n" );
+    SteamAPICall_t hSteamAPICall =
+        SteamUserStats()->GetNumberOfCurrentPlayers();
+    
+    m_NumberOfCurrentPlayersCallResult.Set( 
+        hSteamAPICall, 
+        this, 
+        &CGameManager::OnGetNumberOfCurrentPlayers );
+    }
+
+// Called when SteamUserStats()->GetNumberOfCurrentPlayers() returns
+// asynchronously, after a call to SteamAPI_RunCallbacks().
+void CGameManager::OnGetNumberOfCurrentPlayers(
+    NumberOfCurrentPlayers_t *pCallback, bool bIOFailure ) {
+    
+    if ( bIOFailure || !pCallback->m_bSuccess ) {
+        printf( "NumberOfCurrentPlayers_t failed!\n" ); 
+        return; 
+        }
+    printf( "Number of players currently playing: %d\n", 
+            pCallback->m_cPlayers );
+    }
+
+
+
+
+
+
+void processModUploads() {
+    File steamModUploadsDir( NULL, "steamModUploads" );
+    
+    if( ! steamModUploadsDir.exists() || ! steamModUploadsDir.isDirectory() ) {
+        AppLog::info( "steamModUploads directory not found." );
+        
+        return;
+        }
+    SimpleVector<File *> oxzFiles;
+    
+    SimpleVector<File *> steamTxtFiles;
+    
+    SimpleVector<File *> jpgFiles;
+    
+    int numChildFiles;
+    File **childFiles = steamModUploadsDir.getChildFiles( &numChildFiles );
+    
+    for( int i=0; i<numChildFiles; i++ ) {
+        File *f = childFiles[i];
+        
+        char *name = f->getFileName();
+        
+        char nameLen = strlen( name );
+
+        if( nameLen > 4 && 
+            strcmp( &( name[ nameLen - 4 ] ), ".oxz" ) == 0 ) {
+            // ends with .oxz
+            oxzFiles.push_back( f );
+            }
+        else if( nameLen > 4 && 
+                 strcmp( &( name[ nameLen - 4 ] ), ".jpg" ) == 0 ) {
+            // ends with .oxz
+            jpgFiles.push_back( f );
+            }
+        else if( nameLen > 10 && 
+                 strcmp( &( name[ nameLen - 10 ] ), "_steam.txt" ) == 0 ) {
+            // a companion file
+            steamTxtFiles.push_back( f );
+            }
+        else {
+            delete f;
+            }
+        
+        delete [] name;
+        }
+    delete [] childFiles;
+
+
+
+    SimpleVector<ModToUpload> uploadList;
+    
+
+    for( int i=0; i< oxzFiles.size(); i++ ) {
+        File *f = oxzFiles.getElementDirect( i );
+        
+        char *name = f->getFileName();
+        
+        // strip extension
+        name[ strlen(name) - 4 ] = '\0';
+        
+        char *steamTxtName = autoSprintf( "%s_steam.txt", name );
+        char *jpgName = autoSprintf( "%s.jpg", name );
+        
+        File *jpgFile = findFileInVector( &jpgFiles, jpgName );
+
+        if( jpgFile != NULL ) {
+
+            File *steamFile = findFileInVector( &steamTxtFiles, steamTxtName );
+            
+            if( steamFile == NULL ) {
+                // never been uploaded before, upload now
+                ModToUpload m = { f, jpgFile };
+                
+                uploadList.push_back( m );
+                
+                char *message = 
+                    autoSprintf( 
+                        "Uploading new mod %s to Steam Workshop.", name );
+            
+                showMessage( gameName ":  Steam Workshop",
+                             message,
+                             true );
+                delete [] message;
+                }
+            else {
+                // steam companion file exists for this mod
+                
+                // check dates... has mod been updated locally since last
+                // upload?
+                
+                timeSec_t oxzTime = f->getModificationTime();
+                timeSec_t steamTxtTime = steamFile->getModificationTime();
+                
+                if( oxzTime > steamTxtTime ) {
+                    ModToUpload m = { f, jpgFile };
+                
+                    uploadList.push_back( m );
+                
+                    char *message = 
+                        autoSprintf( 
+                            "Mod %s has changed, uploading latest version "
+                            "to Steam Workshop.", name );
+                
+                    showMessage( gameName ":  Steam Workshop",
+                                 message,
+                                 true );
+                    delete [] message;
+                    }
+                }
+            }
+        else {
+            char *message = 
+                autoSprintf( 
+                    "Preview file %s missing for mod in "
+                    "steamUModUploads folder.", jpgFile );
+            
+            showMessage( gameName ":  Error",
+                         message,
+                         true );
+            delete [] message;
+            }
+        
+        delete [] name;
+
+        delete [] steamTxtName;
+        delete [] jpgName;
+        }
+    
+    // now we have a list of mods to upload (either new ones or changed ones)
+    
+    SteamAPICall_t hSteamAPICall = 
+        SteamUGC()->CreateItem( SteamUtils()->GetAppID(), 
+                                k_EWorkshopFileTypeCommunity );
+    
+    // FIXME:  register handler for call result
+    // see sample class above
+    // do we need to run some function repeatedly to step call results in steam?
+
+    // yes, seems like we should run
+    // SteamAPI_RunCallbacks()  in a loop that sleeps 10x per second
+    // ah, yes, we do that above
+    
+    deallocateFileVector( &oxzFiles );
+    deallocateFileVector( &steamTxtFiles );
+    deallocateFileVector( &jpgFiles );
+    }
+
+
+void processModDownloads() {
+    }
+
+
+
+
+void processMods() {
+    AppLog::info( "Processing mods before launching the game." );
+    
+    processModUploads();
+    
+    processModDownloads();
+    }
+
+
+
