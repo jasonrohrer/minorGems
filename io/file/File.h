@@ -95,6 +95,9 @@
  *
  * 2017-August-8    Jason Rohrer
  * Function for getting alphabetically sorted child files.
+ *
+ * 2023-December-19    Jason Rohrer
+ * uint64_t versions of reading/writing single int from file, using C99.
  */
 
 
@@ -110,6 +113,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include <dirent.h>
 
@@ -345,6 +350,8 @@ class File {
         // inDefaultValue returned if reading fails
         int readFileIntContents( int inDefaultValue );
         
+        uint64_t readFileUInt64Contents( uint64_t inDefaultValue );
+        
 
 
         /**
@@ -395,6 +402,7 @@ class File {
         //   false otherwise.
         char writeToFile( int inInt );
         
+        char writeToFile( uint64_t inInt );
         
 		
 	private:
@@ -1044,6 +1052,28 @@ inline int File::readFileIntContents( int inDefaultValue ) {
 
 
 
+inline uint64_t File::readFileUInt64Contents( uint64_t inDefaultValue ) {
+    char *cont = readFileContents();
+    
+    if( cont == NULL ) {
+        return inDefaultValue;
+        }
+    
+    uint64_t val;
+    
+    int numRead = sscanf( cont, "%" SCNu64, &val );
+    
+    delete [] cont;
+
+    if( numRead != 1 ) {
+        return inDefaultValue;
+        }
+
+    return val;
+    }
+
+
+
 
 inline unsigned char *File::readFileContents( int *outLength, 
                                               char inTextMode ) {
@@ -1092,6 +1122,18 @@ inline char File::writeToFile( const char *inString ) {
 
 inline char File::writeToFile( int inInt ) {
     char *stringVal = autoSprintf( "%d", inInt );
+    
+    char returnVal = writeToFile( stringVal );
+
+    delete [] stringVal;
+
+    return returnVal;
+    }
+
+
+
+inline char File::writeToFile( uint64_t inInt ) {
+    char *stringVal = autoSprintf( "%" PRIu64, inInt );
     
     char returnVal = writeToFile( stringVal );
 
