@@ -18,6 +18,7 @@
 #define STEAM_API_NON_VERSIONED_INTERFACES 1
 
 #include "steam/steam_api.h"
+#include "steam/isteamugc.h"
 //#include "openSteamworks/Steamclient.h"
 
 
@@ -666,49 +667,72 @@ File *findFileInVector( SimpleVector<File*> *inVector, char *inName ) {
 
 
 typedef struct ModToUpload {
-    File *oxzFile;
-    File *jpgFile;
+        File *oxzFile;
+        File *jpgFile;
+        PublishedFileId_t existingID;
     } ModToUpload;
 
 
 
 
 // Example class for receiving a call result
-class CGameManager { 
+class WorkshopCallResultHandler { 
     public: 
-        void GetNumberOfCurrentPlayers();
-    private:
-        void OnGetNumberOfCurrentPlayers( NumberOfCurrentPlayers_t *pCallback,
-                                          bool bIOFailure ); 
-        CCallResult< CGameManager, NumberOfCurrentPlayers_t >
-            m_NumberOfCurrentPlayersCallResult;
+        // for creating item id
+        void OnCreateItemDone( CreateItemResult_t *pCallback, 
+                               bool bIOFailure ); 
+        
+        CCallResult< WorkshopCallResultHandler, CreateItemResult_t >
+            mCreateItemCallResult;
+
+        PublishedFileId_t mCreateItemID;
+
+
+
+
+        // for submitting item update
+        void OnSubmitItemUpdateDone( SubmitItemUpdateResult_t *pCallback, 
+                               bool bIOFailure ); 
+        
+        CCallResult< WorkshopCallResultHandler, SubmitItemUpdateResult_t >
+            mSubmitItemUpdateCallResult;
+
+        char mSubmitItemUpdateSuccess;
+
+
     };
 
-// Make the asynchronous request to receive the number of current players.
-void CGameManager::GetNumberOfCurrentPlayers() { 
-    printf( "Getting Number of Current Players\n" );
-    SteamAPICall_t hSteamAPICall =
-        SteamUserStats()->GetNumberOfCurrentPlayers();
-    
-    m_NumberOfCurrentPlayersCallResult.Set( 
-        hSteamAPICall, 
-        this, 
-        &CGameManager::OnGetNumberOfCurrentPlayers );
-    }
 
-// Called when SteamUserStats()->GetNumberOfCurrentPlayers() returns
-// asynchronously, after a call to SteamAPI_RunCallbacks().
-void CGameManager::OnGetNumberOfCurrentPlayers(
-    NumberOfCurrentPlayers_t *pCallback, bool bIOFailure ) {
+
+void WorkshopCallResultHandler::OnCreateItemDone( CreateItemResult_t *pCallback,
+                                                  bool bIOFailure ) {
     
-    if ( bIOFailure || !pCallback->m_bSuccess ) {
-        printf( "NumberOfCurrentPlayers_t failed!\n" ); 
-        return; 
+    if( bIOFailure || ! pCallback->m_eResult != k_EResultOK ) {
+        mCreateItemID = 1;
         }
-    printf( "Number of players currently playing: %d\n", 
-            pCallback->m_cPlayers );
+    else {
+        mCreateItemID = pCallback->m_nPublishedFileId;
+        }
     }
 
+
+
+void WorkshopCallResultHandler::OnSubmitItemUpdateDone( 
+    SubmitItemUpdateResult_t *pCallback,
+    bool bIOFailure ) {
+    
+    if( bIOFailure || ! pCallback->m_eResult != k_EResultOK ) {
+        mSubmitItemUpdateSuccess = false;
+        }
+    else {
+        mSubmitItemUpdateSuccess = true;
+        }
+    }
+
+
+
+
+static WorkshopCallResultHandler handler;
 
 
 
@@ -785,18 +809,9 @@ void processModUploads() {
             
             if( steamFile == NULL ) {
                 // never been uploaded before, upload now
-                ModToUpload m = { f, jpgFile };
+                ModToUpload m = { f, jpgFile, 0 };
                 
                 uploadList.push_back( m );
-                
-                char *message = 
-                    autoSprintf( 
-                        "Uploading new mod %s to Steam Workshop.", name );
-            
-                showMessage( gameName ":  Steam Workshop",
-                             message,
-                             true );
-                delete [] message;
                 }
             else {
                 // steam companion file exists for this mod
@@ -808,19 +823,34 @@ void processModUploads() {
                 timeSec_t steamTxtTime = steamFile->getModificationTime();
                 
                 if( oxzTime > steamTxtTime ) {
-                    ModToUpload m = { f, jpgFile };
+                    PublishedFileId_t existingID = 
+                        steamFile->readFileUInt64Contents( 0 );
+                    
+                    if( existingID == 0 ) {
+                        char *message = 
+                            autoSprintf( 
+                                "Existing steam info file %s corrupted?",
+                                steamTxtName );
+            
+                        showMessage( gameName ":  Error",
+                                     message,
+                                     true );
+                        delete [] message;
+                        }
+                    else {
+                        ModToUpload m = { f, jpgFile, existingID };
                 
-                    uploadList.push_back( m );
+                        uploadList.push_back( m );
                 
-                    char *message = 
-                        autoSprintf( 
-                            "Mod %s has changed, uploading latest version "
-                            "to Steam Workshop.", name );
-                
-                    showMessage( gameName ":  Steam Workshop",
-                                 message,
-                                 true );
-                    delete [] message;
+                        char *message = 
+                            autoSprintf( 
+                                "Mod %s has changed, uploading latest version "
+                                "to Steam Workshop.", name );
+                        
+                        showMessage( gameName ":  Steam Workshop",
+                                     message );
+                        delete [] message;
+                        }
                     }
                 }
             }
@@ -841,20 +871,245 @@ void processModUploads() {
         delete [] steamTxtName;
         delete [] jpgName;
         }
+
+
     
     // now we have a list of mods to upload (either new ones or changed ones)
-    
-    SteamAPICall_t hSteamAPICall = 
-        SteamUGC()->CreateItem( SteamUtils()->GetAppID(), 
-                                k_EWorkshopFileTypeCommunity );
-    
-    // FIXME:  register handler for call result
-    // see sample class above
-    // do we need to run some function repeatedly to step call results in steam?
 
-    // yes, seems like we should run
-    // SteamAPI_RunCallbacks()  in a loop that sleeps 10x per second
-    // ah, yes, we do that above
+    
+    if( uploadList.size() > 0 ) {
+        // only upload the first one
+
+        // there are enough steps, including displaying the resulting item
+        // web page inside steam overlay on success, that we don't want to
+        // iterate through a whole list in one go.
+
+        // the next ones will be uploaded on next launch, if there is more
+        // than one.
+
+        
+        // alert user to this condition, if there's more than one
+        
+        if( uploadList.size() > 1 ) {
+            
+            char *name = uploadList.getElement( 0 )->oxzFile->getFileName();
+            
+            char *message = 
+                autoSprintf( 
+                    "Multiple mods found, only uploading the first one: %s", name );
+            
+            delete [] name;
+            
+            showMessage( gameName ":  Steam Workshop", message );
+            
+            delete [] message;
+            }
+        
+        ModToUpload m = uploadList.getElementDirect( 0 );
+        
+        File *oxzFile = m.oxzFile;
+        
+
+        char isNewItem = true;
+        PublishedFileId_t itemID;
+
+        if( m.existingID != 0 ) {
+            isNewItem = false;
+            itemID = m.existingID;
+            }
+        
+        
+        if( isNewItem ) {
+            // create a new id for the item
+            
+            SteamAPICall_t hSteamAPICall = 
+                SteamUGC()->CreateItem( SteamUtils()->GetAppID(), 
+                                        k_EWorkshopFileTypeCommunity );
+    
+            
+            // register handler for CreateItem callback
+            handler.mCreateItemID = 0;
+            
+            handler.mCreateItemCallResult.Set( 
+                hSteamAPICall, 
+                &handler, 
+                &WorkshopCallResultHandler::OnCreateItemDone );
+            
+            
+            double startTime = Time::getCurrentTime();
+            double maxTime = 20;
+            
+            while( handler.mCreateItemID == 0 ) {
+                if( Time::getCurrentTime() - startTime > maxTime ) {
+                    showMessage( gameName ":  Error",
+                                 "Timed out waiting for "
+                                 "Steam to create Workshop item ID.",
+                                 true );
+            
+                    AppLog::error( "Timed out on CreateItem." );
+                    deallocateFileVector( &oxzFiles );
+                    deallocateFileVector( &steamTxtFiles );
+                    deallocateFileVector( &jpgFiles );
+                    return;
+                    }
+        
+                Thread::staticSleep( 100 );
+                SteamAPI_RunCallbacks();
+                }
+            
+            if( handler.mCreateItemID == 1 ) {
+                showMessage( gameName ":  Error",
+                             "Steam failed to create Workshop item ID.",
+                             true );
+            
+                AppLog::error( "CreateItem failed." );
+                deallocateFileVector( &oxzFiles );
+                deallocateFileVector( &steamTxtFiles );
+                deallocateFileVector( &jpgFiles );
+                return;
+                }
+
+            itemID = handler.mCreateItemID;
+            }
+    
+        
+        UGCUpdateHandle_t updateHandle =
+            SteamUGC()->StartItemUpdate( SteamUtils()->GetAppID(), itemID );
+        
+        if( isNewItem ) {
+            // setup defaults
+            char *name = oxzFile->getFileName();
+            
+            SteamUGC()->SetItemTitle( updateHandle, name );
+            
+            delete [] name;
+            
+            SteamUGC()->SetItemDescription( updateHandle, 
+                                            "(placeholder description)" );
+
+            const char *tags[1];
+            tags[0] = "Content Mod";
+            SteamParamStringArray_t tagArray = { tags, 1 };
+            
+            SteamUGC()->SetItemTags( updateHandle, &tagArray );
+
+            // private
+            SteamUGC()->SetItemVisibility( 
+                updateHandle, 
+                k_ERemoteStoragePublishedFileVisibilityPrivate );
+            }
+
+        // else leave every field alone for item (don't change them)
+        // except re-specify the JPG preview (in case that changed locally)
+        
+        char *jpgAbsPath = m.jpgFile->getAbsoluteFileName();
+        
+        if( jpgAbsPath != NULL ) {
+            
+            SteamUGC()->SetItemPreview( updateHandle, jpgAbsPath );
+            
+            delete [] jpgAbsPath;
+            }
+        
+        char contentsSet = false;
+
+        // make a temp folder for the upload
+        File *tempFolder = steamModUploadsDir.getChildFile( "tempWorkshopUpload" );
+        
+        tempFolder->makeDirectory();
+        
+        File *tempFile = NULL;
+
+        if( tempFolder->exists() && tempFolder->isDirectory() ) {
+            char *name = oxzFile->getFileName();
+            
+            tempFile = tempFolder->getChildFile( name );
+
+            oxzFile->copy( tempFile );
+
+            char *tempAbsPath = tempFile->getAbsoluteFileName();
+            
+            if( tempAbsPath != NULL ) {
+                SteamUGC()->SetItemContent( updateHandle, tempAbsPath );
+                delete [] tempAbsPath;
+
+                contentsSet = true;
+                }
+            
+            delete [] name;
+            }
+
+
+        if( contentsSet ) {
+
+            SteamAPICall_t hSteamAPICall = 
+                SteamUGC()->SubmitItemUpdate( updateHandle, NULL );
+            
+            handler.mCreateItemID = 0;
+
+            handler.mSubmitItemUpdateSuccess = false;
+            
+            handler.mSubmitItemUpdateCallResult.Set( 
+                hSteamAPICall, 
+                &handler, 
+                &WorkshopCallResultHandler::OnSubmitItemUpdateDone );
+
+            if( handler.mSubmitItemUpdateSuccess ) {
+
+                char *name = oxzFile->getFileName();
+                int nameLen = strlen( name );
+
+                if( nameLen > 4 ) {
+                    name[ nameLen - 4 ] = '\0';
+                    }
+                char *steamFileName = autoSprintf( "%s_steam.txt", name );
+                
+                delete [] name;
+
+                File *steamTxtFile = 
+                    steamModUploadsDir.getChildFile( steamFileName );
+                
+                delete [] steamFileName;
+                
+                steamTxtFile->writeToFile( itemID );
+                
+                delete steamTxtFile;
+                
+                showMessage( gameName ":  Steam Workshop",
+                             "Steam Workshop upload complete." );
+            
+                // show them the resulting item page
+                char *url = autoSprintf( "steam://url/CommunityFilePage/%" PRIu64,
+                                         itemID );
+                                         
+                SteamFriends()->ActivateGameOverlayToWebPage( url );
+                delete [] url;
+                }
+            else {
+                showMessage( gameName ":  Error",
+                             "Failed to upload Steam Workshop item.",
+                             true );
+                }
+            }
+        else {
+            showMessage( gameName ":  Error",
+                         "Failed to setup contents for Workshop item.",
+                         true );
+            }
+        
+
+        
+        
+        if( tempFile != NULL ) {
+            tempFile->remove();
+            delete tempFile;
+            }
+
+        tempFolder->remove();
+        
+        delete tempFolder;
+        }
+    
     
     deallocateFileVector( &oxzFiles );
     deallocateFileVector( &steamTxtFiles );
