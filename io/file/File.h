@@ -98,6 +98,7 @@
  *
  * 2023-December-19    Jason Rohrer
  * uint64_t versions of reading/writing single int from file, using C99.
+ * Added getAbsoluteFileName() function.
  */
 
 
@@ -322,6 +323,15 @@ class File {
 		 */
 		char *getFullFileName( int *outLength = NULL );
 	
+
+        /**
+         * Gets the absolute-path file from the platform-specific root
+         * of the filesystem.
+         * 
+         * Parameters and return value are the same as getFullFileName
+         */
+        char *getAbsoluteFileName( int *outLength = NULL );
+        
 
 
 		/**
@@ -1001,6 +1011,22 @@ inline char *File::getFullFileName( int *outLength ) {
 	
 	return returnString;
 	}
+
+
+
+inline char *File::getAbsoluteFileName( int *outLength ) {
+    char *name = getFullFileName();
+    
+    char *absolutePath = Path::makeAbsolute( name );
+    
+    delete [] name;
+    
+    if( absolutePath != NULL && outLength != NULL ) {
+        *outLength = strlen( absolutePath );
+        }
+
+    return absolutePath;
+    }
 
 
 

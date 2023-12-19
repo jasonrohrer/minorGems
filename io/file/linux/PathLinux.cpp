@@ -12,10 +12,16 @@
  *
  * 2010-May-18    Jason Rohrer
  * String parameters as const to fix warnings.
+ *
+ * 2023-December-19    Jason Rohrer
+ * Added makeAbsolute static function.
  */
 
 #include "minorGems/io/file/Path.h"
 #include "minorGems/util/stringUtils.h"
+
+#include <stdlib.h>
+#include <linux/limits.h>
 
 
 
@@ -75,3 +81,7 @@ char Path::isRoot( const char *inPathString ) {
     }
 
 
+
+char *Path::makeAbsolute( const char *inPathString ) {
+    return realpath( inPathString, NULL );
+    }

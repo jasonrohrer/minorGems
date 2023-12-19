@@ -52,6 +52,9 @@
  *
  * 2011-March-9    Jason Rohrer
  * Removed Fortify inclusion.
+ *
+ * 2023-December-19    Jason Rohrer
+ * Added makeAbsolute static function.
  */
 
 #include "minorGems/common.h"
@@ -233,7 +236,26 @@ class Path {
          *   Must be destroyed by the caller.
 		 */
 		static char *getAbsoluteRootString();
+        
 
+
+        /**
+         * Gets absolute version of a file path.
+         * 
+         * NOTE:  this only works if the file pointed to by the relative
+         *        path inPathString exists in the file system.
+         *
+         * There also might be internal length limitations that vary by platform.
+         *
+         * @param inPathString the file path.
+         *   Must be destroyed by caller if non-const.
+         *
+         * @return the absolute version of inPathString, relative to
+         *   the platform-specific root of the filesystem, or NULL on failure.
+         *   Must be destroyed by caller if non-NULL.
+         */
+        static char *makeAbsolute( const char *inPathString );
+        
         
 
 		/**
