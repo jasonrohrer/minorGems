@@ -857,11 +857,14 @@ void processModUploads() {
                 
                         uploadList.push_back( m );
                 
+                        char *fullName = f->getFileName();
                         char *message = 
                             autoSprintf( 
-                                "Mod %s has changed, uploading latest version "
-                                "to Steam Workshop.", name );
+                                "Mod %s has changed since it was last uploaded "
+                                "to Steam Workshop.", fullName );
                         
+                        delete [] fullName;
+
                         showMessage( gameName ":  Steam Workshop",
                                      message );
                         delete [] message;
@@ -902,16 +905,22 @@ void processModUploads() {
         // the next ones will be uploaded on next launch, if there is more
         // than one.
 
+        ModToUpload m = uploadList.getElementDirect( 0 );
+        
+        File *oxzFile = m.oxzFile;
+
         
         // alert user to this condition, if there's more than one
         
         if( uploadList.size() > 1 ) {
             
-            char *name = uploadList.getElement( 0 )->oxzFile->getFileName();
+            char *name = oxzFile->getFileName();
             
             char *message = 
                 autoSprintf( 
-                    "Multiple mods found, only uploading the first one: %s", name );
+                    "Multiple new/changed mods found, only uploading the "
+                    "first one: %s",
+                    name );
             
             delete [] name;
             
@@ -920,9 +929,6 @@ void processModUploads() {
             delete [] message;
             }
         
-        ModToUpload m = uploadList.getElementDirect( 0 );
-        
-        File *oxzFile = m.oxzFile;
         
 
         char isNewItem = true;
@@ -1015,8 +1021,9 @@ void processModUploads() {
             
             delete [] name;
             
-            SteamUGC()->SetItemDescription( updateHandle, 
-                                            "(placeholder description)" );
+            SteamUGC()->SetItemDescription( 
+                updateHandle, 
+                "Placeholder description --- please edit me." );
 
             const char *tags[1];
             tags[0] = "Content Mod";
@@ -1045,7 +1052,8 @@ void processModUploads() {
         char contentsSet = false;
 
         // make a temp folder for the upload
-        File *tempFolder = steamModUploadsDir.getChildFile( "tempWorkshopUpload" );
+        File *tempFolder = 
+            steamModUploadsDir.getChildFile( "tempWorkshopUpload" );
         
         tempFolder->makeDirectory();
         
@@ -1072,9 +1080,27 @@ void processModUploads() {
 
 
         if( contentsSet ) {
+            
+            char *name = oxzFile->getFileName();
+            
+            char *message = 
+                autoSprintf( 
+                    "Starting to upload %s to Steam Workshop.",
+                    name );
+            
+            delete [] name;
+            
+            showMessage( gameName ":  Steam Workshop", message );
+            
+            delete [] message;
+            
+            
 
+            char *noteText = 
+                "Placeholder Change Note text --- please edit me.";
+            
             SteamAPICall_t hSteamAPICall = 
-                SteamUGC()->SubmitItemUpdate( updateHandle, NULL );
+                SteamUGC()->SubmitItemUpdate( updateHandle, noteText );
             
             handler.mCreateItemID = 0;
 
