@@ -710,6 +710,7 @@ class WorkshopCallResultHandler {
         CCallResult< WorkshopCallResultHandler, SubmitItemUpdateResult_t >
             mSubmitItemUpdateCallResult;
 
+        char mSubmitItemUpdateDone;
         char mSubmitItemUpdateSuccess;
 
 
@@ -732,6 +733,8 @@ void WorkshopCallResultHandler::OnCreateItemDone( CreateItemResult_t *pCallback,
 void WorkshopCallResultHandler::OnSubmitItemUpdateDone( 
     SubmitItemUpdateResult_t *pCallback,
     bool bIOFailure ) {
+    
+    mSubmitItemUpdateDone = true;
     
     if( bIOFailure || pCallback->m_eResult != k_EResultOK ) {
         mSubmitItemUpdateSuccess = false;
@@ -1055,7 +1058,7 @@ void processModUploads() {
 
             oxzFile->copy( tempFile );
 
-            char *tempAbsPath = tempFile->getAbsoluteFileName();
+            char *tempAbsPath = tempFolder->getAbsoluteFileName();
             
             if( tempAbsPath != NULL ) {
                 SteamUGC()->SetItemContent( updateHandle, tempAbsPath );
@@ -1075,6 +1078,7 @@ void processModUploads() {
             
             handler.mCreateItemID = 0;
 
+            handler.mSubmitItemUpdateDone = false;
             handler.mSubmitItemUpdateSuccess = false;
             
             handler.mSubmitItemUpdateCallResult.Set( 
@@ -1082,6 +1086,26 @@ void processModUploads() {
                 &handler, 
                 &WorkshopCallResultHandler::OnSubmitItemUpdateDone );
 
+
+            double startTime = Time::getCurrentTime();
+            double maxTime = 40;
+            
+            while( ! handler.mSubmitItemUpdateDone ) {
+                if( Time::getCurrentTime() - startTime > maxTime ) {
+                    showMessage( gameName ":  Error",
+                                 "Timed out waiting for "
+                                 "Steam to upload workshop item.",
+                                 true );
+            
+                    AppLog::error( "Timed out on SubmitItemUpdate." );
+                    
+                    break;
+                    }
+        
+                Thread::staticSleep( 100 );
+                SteamAPI_RunCallbacks();
+                }
+            
             if( handler.mSubmitItemUpdateSuccess ) {
 
                 char *name = oxzFile->getFileName();
