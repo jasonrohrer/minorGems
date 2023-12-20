@@ -1079,9 +1079,14 @@ void processModUploads() {
                              "Steam Workshop upload complete." );
             
                 // show them the resulting item page
-                char *url = autoSprintf( "steam://url/CommunityFilePage/%" PRIu64,
-                                         itemID );
-                                         
+                #ifdef WIN_32
+                char *url = autoSprintf( 
+                    "steam://url/CommunityFilePage/%I64u", itemID );
+                #else
+                char *url = autoSprintf( 
+                    "steam://url/CommunityFilePage/%" PRIu64, itemID );
+                #endif
+
                 SteamFriends()->ActivateGameOverlayToWebPage( url );
                 delete [] url;
                 }

@@ -23,6 +23,10 @@
 #include "minorGems/io/file/Path.h"
 #include "minorGems/util/stringUtils.h"
 
+#include <stdio.h>
+
+#include <windows.h>
+
 
 /*
  * Windows-specific path implementation.
@@ -106,12 +110,15 @@ char *Path::makeAbsolute( const char *inPathString ) {
         return NULL;
         }
 
-    char *absPathPointer = _fullpath( absPath, inPathString, MAX_ABS_PATH_LENGTH );
-
+    int pathLen = GetFullPathNameA( inPathString,
+                                    MAX_ABS_PATH_LENGTH,
+                                    absPath,
+                                    NULL );
+    
     char *returnString = NULL;
     
-    if( absPathPointer != NULL ) {
-        returnString = stringDuplicate( absPathPointer );
+    if( pathLen > 0 ) {
+        returnString = stringDuplicate( absPath );
         }
     
     delete [] absPath;

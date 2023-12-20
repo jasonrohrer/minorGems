@@ -115,7 +115,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+
+#ifndef WIN_32
+// windows doesn't support inttypes
 #include <inttypes.h>
+#endif
+
 
 #include <dirent.h>
 
@@ -1087,8 +1093,12 @@ inline uint64_t File::readFileUInt64Contents( uint64_t inDefaultValue ) {
     
     uint64_t val;
     
+    #ifdef WIN_32
+    int numRead = sscanf( cont, "%I64u", &val );
+    #else
     int numRead = sscanf( cont, "%" SCNu64, &val );
-    
+    #endif
+
     delete [] cont;
 
     if( numRead != 1 ) {
@@ -1159,7 +1169,11 @@ inline char File::writeToFile( int inInt ) {
 
 
 inline char File::writeToFile( uint64_t inInt ) {
+    #ifdef WIN_32
+    char *stringVal = autoSprintf( "%I64u", inInt );
+    #else
     char *stringVal = autoSprintf( "%" PRIu64, inInt );
+    #endif
     
     char returnVal = writeToFile( stringVal );
 
