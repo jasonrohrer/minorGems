@@ -99,6 +99,9 @@
  * 2023-December-19    Jason Rohrer
  * uint64_t versions of reading/writing single int from file, using C99.
  * Added getAbsoluteFileName() function.
+ *
+ * 2023-December-20    Jason Rohrer
+ * Fixed so that remove correctly handles removing directories (only if empty).
  */
 
 
@@ -852,19 +855,29 @@ inline timeSec_t File::getModificationTime() {
 
 
 
+#include "Directory.h"
+
+
+
 inline char File::remove() {
     char returnVal = false;
     
     if( exists() ) {
-		char *stringName = getFullFileName(); 
-
-		int error = ::remove( stringName );
-
-        if( error == 0 ) {
-            returnVal = true;
+        
+        if( isDirectory() ) {
+            returnVal = Directory::removeDirectory( this );
             }
+        else {
+            char *stringName = getFullFileName(); 
             
-		delete [] stringName;
+            int error = ::remove( stringName );
+            
+            if( error == 0 ) {
+                returnVal = true;
+                }
+            
+            delete [] stringName;
+            }
 		}
 
     return returnVal;
@@ -1202,7 +1215,6 @@ inline char File::writeToFile( unsigned char *inData, int inLength ) {
 
 
 
-#include "Directory.h"
 
 
 
