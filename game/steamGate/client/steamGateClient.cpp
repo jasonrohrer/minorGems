@@ -281,6 +281,10 @@ static void showTicketCreationError() {
 
 
 
+static char steamInited = false;
+
+
+
 void processMods();
 
 
@@ -315,7 +319,9 @@ int main() {
                 AppLog::error( "Could not init Steam API." );
                 return 0;
                 }
-
+            
+            steamInited = true;
+            
             AppLog::info( "Calling MarkContentCorrupt." );
 
             // only check for missing files
@@ -352,6 +358,12 @@ int main() {
 
         processMods();
 
+        
+        if( steamInited ) {
+            SteamAPI_Shutdown();
+            steamInited = false;
+            }
+        
         launchGame();
         AppLog::info( "Exiting." );
         return 0;
@@ -382,6 +394,7 @@ int main() {
         return 0;
         }
     
+    steamInited = true;
 
     CSteamID id = SteamUser()->GetSteamID();
     
@@ -706,8 +719,7 @@ class WorkshopCallResultHandler {
 
 void WorkshopCallResultHandler::OnCreateItemDone( CreateItemResult_t *pCallback,
                                                   bool bIOFailure ) {
-    
-    if( bIOFailure || ! pCallback->m_eResult != k_EResultOK ) {
+    if( bIOFailure || pCallback->m_eResult != k_EResultOK ) {
         mCreateItemID = 1;
         }
     else {
@@ -721,7 +733,7 @@ void WorkshopCallResultHandler::OnSubmitItemUpdateDone(
     SubmitItemUpdateResult_t *pCallback,
     bool bIOFailure ) {
     
-    if( bIOFailure || ! pCallback->m_eResult != k_EResultOK ) {
+    if( bIOFailure || pCallback->m_eResult != k_EResultOK ) {
         mSubmitItemUpdateSuccess = false;
         }
     else {
@@ -916,6 +928,22 @@ void processModUploads() {
         if( m.existingID != 0 ) {
             isNewItem = false;
             itemID = m.existingID;
+            }
+
+        if( ! steamInited ) {
+            if( ! SteamAPI_Init() ) {
+                showMessage( gameName ":  Error",
+                             "Failed to connect to Steam.",
+                             true );
+                AppLog::error( "Could not init Steam API." );
+                
+                deallocateFileVector( &oxzFiles );
+                deallocateFileVector( &steamTxtFiles );
+                deallocateFileVector( &jpgFiles );
+                    
+                return;
+                }
+            steamInited = true;
             }
         
         
