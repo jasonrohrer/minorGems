@@ -102,6 +102,25 @@ static void showMessage( const char *inTitle, const char *inMessage,
 
 
 
+
+// progress bars not implemented for Mac
+typedef int ProgressHandle;
+
+ProgressHandle showProgressBar( const char *inTitle ) {
+    return 0;
+    }
+
+// percent in [0,100]
+void updateProgressBar( ProgressHandle inBar, int inPercent ) {
+    }
+
+void endProgressBar( ProgressHandle ) {
+    }
+
+
+
+
+
 #elif defined(LINUX)
 
 #include <unistd.h>
@@ -159,6 +178,24 @@ static void showMessage( const char *inTitle, const char *inMessage,
     }
 
 
+
+// progress bars not implemented for Linux
+typedef int ProgressHandle;
+
+ProgressHandle showProgressBar( const char *inTitle ) {
+    return 0;
+    }
+
+// percent in [0,100]
+void updateProgressBar( ProgressHandle inBar, int inPercent ) {
+    }
+
+void endProgressBar( ProgressHandle ) {
+    }
+
+
+
+
 #elif defined(WIN_32)
 
 #include <windows.h>
@@ -202,6 +239,24 @@ static void showMessage( const char *inTitle, const char *inMessage,
     delete [] wideTitle;
     delete [] wideMessage;
     }
+
+
+
+// progress bars are implemented for Windows
+// FIXME
+typedef int ProgressHandle;
+
+ProgressHandle showProgressBar( const char *inTitle ) {
+    return 0;
+    }
+
+// percent in [0,100]
+void updateProgressBar( ProgressHandle inBar, int inPercent ) {
+    }
+
+void endProgressBar( ProgressHandle ) {
+    }
+
 
 
 int main();
@@ -844,7 +899,8 @@ void processModUploads() {
                     if( existingID == 0 ) {
                         char *message = 
                             autoSprintf( 
-                                "Existing steam info file %s corrupted?",
+                                "Existing steam info file corrupted?\n\n"
+                                "File:\n%s",
                                 steamTxtName );
             
                         showMessage( gameName ":  Error",
@@ -860,8 +916,8 @@ void processModUploads() {
                         char *fullName = f->getFileName();
                         char *message = 
                             autoSprintf( 
-                                "Mod %s has changed since it was last uploaded "
-                                "to Steam Workshop.", fullName );
+                                "Mod has changed since it was last uploaded "
+                                "to Steam Workshop:\n\n%s", fullName );
                         
                         delete [] fullName;
 
@@ -875,8 +931,8 @@ void processModUploads() {
         else {
             char *message = 
                 autoSprintf( 
-                    "Preview file %s missing for mod in "
-                    "steamUModUploads folder.", jpgFile );
+                    "Preview file missing for mod in "
+                    "steamUModUploads folder:\n\n%s", jpgFile );
             
             showMessage( gameName ":  Error",
                          message,
@@ -919,7 +975,7 @@ void processModUploads() {
             char *message = 
                 autoSprintf( 
                     "Multiple new/changed mods found, only uploading the "
-                    "first one: %s",
+                    "first one:\n\n%s",
                     name );
             
             delete [] name;
@@ -1085,7 +1141,7 @@ void processModUploads() {
             
             char *message = 
                 autoSprintf( 
-                    "Starting to upload %s to Steam Workshop.",
+                    "Starting to upload mod to Steam Workshop:\n\n%s",
                     name );
             
             delete [] name;
