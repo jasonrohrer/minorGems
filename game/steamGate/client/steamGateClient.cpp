@@ -243,18 +243,116 @@ static void showMessage( const char *inTitle, const char *inMessage,
 
 
 // progress bars are implemented for Windows
-// FIXME
+#include <commctrl.h>
+
+// not used by windows implementation
+// static window is used internally
 typedef int ProgressHandle;
 
-ProgressHandle showProgressBar( const char *inTitle ) {
+
+HINSTANCE currentHInstance = NULL; 
+
+
+#include <windows.h>
+#include <commctrl.h>
+#pragma comment(lib, "comctl32.lib")
+
+// Global variable for the application instance
+HINSTANCE hInst;
+
+// static handles to our progress bar parent and child window
+HWND hwnd = NULL;
+HWND hwndPB = NULL;
+
+
+
+
+// Function implementations
+ProgressHandle showProgressBar(const char *inTitle) {
+    // Initialize common controls
+    INITCOMMONCONTROLSEX icex;
+    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+    icex.dwICC = ICC_PROGRESS_CLASS;
+    InitCommonControlsEx(&icex);
+
+    // Register the window class for the progress bar window
+    WNDCLASSEX wcex = {};
+    wcex.cbSize = sizeof(WNDCLASSEX);
+    // This is crucial
+    // DefWindowProc handles repainting, etc.
+    wcex.lpfnWndProc = DefWindowProc;
+    wcex.hInstance = hInst;
+    wcex.lpszClassName = L"ProgressBarClass";
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    RegisterClassEx(&wcex);
+
+    // Convert title to wide string
+    size_t titleLength = strlen(inTitle) + 1;
+    wchar_t *wideTitle = new wchar_t[titleLength];
+    mbstowcs(wideTitle, inTitle, titleLength);
+
+    
+    // center parent window on screen
+
+    int screenWidth = GetSystemMetrics( SM_CXSCREEN );
+    int screenHeight = GetSystemMetrics( SM_CYSCREEN );
+    int windowWidth = 400;
+    int windowHeight = 150;
+
+    // Calculate the starting x and y coordinates
+    int startX = ( screenWidth - windowWidth ) / 2;
+    int startY = ( screenHeight - windowHeight ) / 2;
+
+
+    // Create the progress bar parent window
+    hwnd = CreateWindowEx( 0, L"ProgressBarClass", wideTitle,
+                           WS_POPUP | WS_CAPTION,
+                           startX, startY, windowWidth, windowHeight,
+                           NULL, NULL, hInst, NULL );
+
+    delete[] wideTitle;
+
+    ShowWindow( hwnd, SW_SHOW );
+    UpdateWindow( hwnd );
+    
+    // create the child window where the progress bar is actually shown
+    int progressBarWidth = windowWidth - 50;
+    int progressBarHeight = 30;
+    
+    int gapX = ( windowWidth - progressBarWidth ) / 2;
+    int gapY = ( windowHeight - progressBarHeight ) / 2;
+    
+    hwndPB = CreateWindowEx( 0, PROGRESS_CLASS, nullptr,
+                             WS_CHILD | WS_VISIBLE,
+                             gapX, gapY, 
+                             progressBarWidth, progressBarHeight,
+                             hwnd, nullptr, hInst, nullptr );
+    
+    SendMessage( hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, 100) );
+    
+    // return parameter unused
     return 0;
     }
 
+
+
 // percent in [0,100]
 void updateProgressBar( ProgressHandle inBar, int inPercent ) {
+    // inBar ignored
+    if( hwndPB != NULL ) {
+        SendMessage( hwndPB, PBM_SETPOS, inPercent, 0 );
+        }
     }
 
-void endProgressBar( ProgressHandle ) {
+
+
+
+void endProgressBar( ProgressHandle inBar ) {
+    if( hwnd != NULL ) {
+        DestroyWindow( hwnd );
+        }
+    hwnd = NULL;
+    hwndPB = NULL;
     }
 
 
@@ -264,6 +362,8 @@ int main();
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
                     LPSTR lpCmdLine, int nShowCMD ) {
+    
+    currentHInstance = hInstance;
     
     return main();
     }
@@ -932,7 +1032,7 @@ void processModUploads() {
             char *message = 
                 autoSprintf( 
                     "Preview file missing for mod in "
-                    "steamUModUploads folder:\n\n%s", jpgFile );
+                    "steamUModUploads folder:\n\n%s", jpgName );
             
             showMessage( gameName ":  Error",
                          message,
@@ -1167,27 +1267,75 @@ void processModUploads() {
                 hSteamAPICall, 
                 &handler, 
                 &WorkshopCallResultHandler::OnSubmitItemUpdateDone );
-
-
-            double startTime = Time::getCurrentTime();
-            double maxTime = 40;
+            
+            
+            ProgressHandle bar = 
+                showProgressBar( "Steam Workshop Upload" );
             
             while( ! handler.mSubmitItemUpdateDone ) {
-                if( Time::getCurrentTime() - startTime > maxTime ) {
-                    showMessage( gameName ":  Error",
-                                 "Timed out waiting for "
-                                 "Steam to upload workshop item.",
-                                 true );
-            
-                    AppLog::error( "Timed out on SubmitItemUpdate." );
-                    
-                    break;
-                    }
-        
+                
                 Thread::staticSleep( 100 );
                 SteamAPI_RunCallbacks();
+                
+                if( ! handler.mSubmitItemUpdateDone ) {
+                    // still in progress
+                    // update progress bar
+
+                    uint64 bytesDone;
+                    uint64 bytesTotal;
+                    
+                    EItemUpdateStatus status =
+                        SteamUGC()->GetItemUpdateProgress( updateHandle, 
+                                                           &bytesDone,
+                                                           &bytesTotal );
+                    if( status != k_EItemUpdateStatusInvalid ) {
+                        int stepPercent = 20;
+                        
+                        int basePercent = 0;
+                        int incrementPercent = 0;
+                        
+                        switch( status ) {
+                            case k_EItemUpdateStatusPreparingConfig:
+                                basePercent = 0;
+                                break;
+                            case k_EItemUpdateStatusPreparingContent:
+                                basePercent = 20;
+                                break;
+                            case k_EItemUpdateStatusUploadingContent:
+                                basePercent = 40;
+                                break;
+                            case k_EItemUpdateStatusUploadingPreviewFile:
+                                basePercent = 60;
+                                break;
+                            case k_EItemUpdateStatusCommittingChanges:
+                                basePercent = 80;
+                                break;
+                            }
+                        
+                        if( bytesTotal > 0 ) {    
+                            incrementPercent =
+                                (int)( stepPercent * 
+                                       (double)bytesDone / 
+                                       (double) bytesTotal );
+                            }
+                        int totalPercent = basePercent + incrementPercent;
+                        updateProgressBar( bar, totalPercent );
+                        }
+                    else {
+                        showMessage( gameName ":  Error",
+                                     "Failed to upload workshop item to Steam.",
+                                     true );
+                        
+                        AppLog::error( 
+                            "Invalid response from GetItemUpdateProgress." );
+                        break;
+                        }
+                    }
                 }
             
+            endProgressBar( bar );
+            
+
             if( handler.mSubmitItemUpdateSuccess ) {
 
                 char *name = oxzFile->getFileName();
