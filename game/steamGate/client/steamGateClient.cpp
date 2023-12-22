@@ -825,8 +825,11 @@ File *findFileInVector( SimpleVector<File*> *inVector, char *inName ) {
         char *name = f->getFileName();
         
         if( strcmp( inName, name ) == 0 ) {
+            delete [] name;
             return f;
             }
+        
+        delete [] name;
         }
     return NULL;
     }
