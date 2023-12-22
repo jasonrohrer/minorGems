@@ -1404,7 +1404,215 @@ void processModUploads() {
     }
 
 
+
+// can return NULL if mod not installed or no files found
+File **getModInstalledFiles( PublishedFileId_t inItemID, int *outNumFiles ) {
+    *outNumFiles = NULL;
+    
+    uint32 itemState = SteamUGC()->GetItemState( inItemID );
+        
+    if( itemState & k_EItemStateInstalled ) {
+            
+        // an installed item
+            
+        uint64 sizeOnDisk = 0;
+        char folderPath[1024];
+        uint32 timestamp = 0;
+            
+        bool result = 
+            SteamUGC()->GetItemInstallInfo( 
+                inItemID, &sizeOnDisk, folderPath, 
+                sizeof( folderPath ), &timestamp );
+        
+        if( ! result ) {
+            // bad result
+            return NULL;
+            }
+        
+        File installFolder = File( NULL, folderPath );
+        
+        if( ! installFolder.exists() ||
+            ! installFolder.isDirectory() ) {
+            
+            AppLog::errorF( 
+                "Install folder %s for Workshop item not found.",
+                folderPath );
+            return NULL;
+            }
+            
+        return installFolder.getChildFiles( outNumFiles );
+        }
+    
+    return NULL;
+    }
+
+
+
+
+static const char *installedPrefix = "_steam_";
+
+
+
 void processModDownloads() {
+    
+    File modsFolder = File( NULL, "mods" );
+
+    if( ! modsFolder.exists() ) {
+        modsFolder.makeDirectory();
+        }
+    if( ! modsFolder.isDirectory() ) {
+        AppLog::error( "Required folder 'mods' not found, "
+                       "could not be created." );
+        return;
+        }
+
+    if( ! steamInited ) {
+        if( ! SteamAPI_Init() ) {
+            showMessage( gameName ":  Error",
+                         "Failed to connect to Steam.",
+                         true );
+            AppLog::error( "Could not init Steam API." );
+            
+            return;
+            }
+        steamInited = true;
+        }
+    
+    uint32 numItems = SteamUGC()->GetNumSubscribedItems();
+    
+    AppLog::infoF( "See %d subscribed Workshop items.", numItems );
+
+    PublishedFileId_t *itemIdList = NULL;
+    
+    if( numItems != 0 ) {
+        itemIdList = new PublishedFileId_t[ numItems ];
+    
+        uint32 numFetched = 
+            SteamUGC()->GetSubscribedItems( itemIdList, numItems );
+    
+        if( numFetched != numItems ) {
+            
+            AppLog::infoF( "Expected %d workshop items, but fetched %d.", 
+                           numItems, numFetched );
+            
+            delete [] itemIdList;
+            return;
+            }
+        }
+    
+    for( unsigned int i=0; i<numItems; i++ ) {
+        int numChildFiles;
+        File **childFiles = getModInstalledFiles( itemIdList[i], 
+                                                  &numChildFiles );
+        
+        if( childFiles == NULL ) {
+            continue;
+            }
+        
+        for( int j=0; j<numChildFiles; j++ ) {
+            
+            File *f = childFiles[j];
+            
+            char *name = f->getFileName();
+
+            // put "_steam_" prefix on mods in mods folder installed
+            // by steam workshop
+            char *prefixedName = autoSprintf( "%s%s", installedPrefix, name );
+                
+
+            File *existingModFile = 
+                modsFolder.getChildFile( prefixedName );
+                
+            if( ! existingModFile->exists() ||
+                existingModFile->getModificationTime() <
+                f->getModificationTime() ) {
+                    
+                // file does not exist in mods folder, or is older
+                
+                char *message = autoSprintf( "Installing Worshop mod:\n\n"
+                                             "%s",
+                                             name );
+                showMessage( gameName ":  Steam Workshop",
+                             message );
+                delete [] message;
+                
+                f->copy( existingModFile );
+                }
+            delete existingModFile;
+            delete f;
+                
+            delete [] name;
+            delete [] prefixedName;
+            }
+        delete [] childFiles;
+        }
+
+    
+    // next, look at all installed mods, and remove any that we don't
+    // subscribe to anymore
+    int numChildFiles;
+    File **childFiles = modsFolder.getChildFiles( &numChildFiles );
+    for( int j=0; j<numChildFiles; j++ ) {
+        File *f = childFiles[j];
+
+        char *name = f->getFileName();
+        
+
+        if( strstr( name, installedPrefix ) == name ) {
+            // file starts with prefix, was installed by us from Steam Worshop
+            
+            char *nameWithoutPrefix =
+                &( name[ strlen( installedPrefix ) ] );
+
+            // should it still be installed?
+            char foundAsInstalled = false;
+            
+            for( unsigned int i=0; i<numItems; i++ ) {
+                int numInstalledFiles;
+                File **installedFiles = 
+                    getModInstalledFiles( itemIdList[i], &numInstalledFiles );
+                
+                if( installedFiles == NULL ) {
+                    continue;
+                    }
+                for( int i=0; i<numInstalledFiles; i++ ) {
+                
+                    File *installedF = installedFiles[i];
+                
+                    char *installedName = installedF->getFileName();
+                    
+                    if( strcmp( installedName, nameWithoutPrefix ) == 0 ) {
+                        // match
+                        foundAsInstalled = true;
+                        }
+                    delete installedF;
+                    delete [] installedName;
+                    }
+                delete [] installedFiles;
+                }
+            
+            if( ! foundAsInstalled ) {
+                char *message = autoSprintf( "Removing uninstalled mod:\n\n"
+                                              "%s",
+                                              nameWithoutPrefix );
+                showMessage( gameName ":  Steam Workshop",
+                             message );
+                delete [] message;
+                
+                f->remove();
+                }
+            }
+        delete [] name;
+        delete f;
+        }
+    
+    
+    delete [] childFiles;
+
+
+    if( itemIdList != NULL ) {
+        delete [] itemIdList;
+        }
     }
 
 
