@@ -837,6 +837,51 @@ File *findFileInVector( SimpleVector<File*> *inVector, char *inName ) {
 
 
 
+// returns UNKNOWN if no name tag found
+// destroyed by caller
+static char *getNameTag( const char *inOXZFileName ) {
+    char *nameTag = stringDuplicate( inOXZFileName );
+    char *first_ = strstr( nameTag, "_" );
+    
+    if( first_ == NULL ) {
+        delete [] nameTag;
+        return stringDuplicate( "UNKNOWN" );
+        }
+    
+    // terminate after name tag
+    first_[0] = '\0';
+    return nameTag;
+    }
+
+
+
+static char *getSteamFileName( const char *inOXZFileName ) {
+    char *nameTag = getNameTag( inOXZFileName );
+    
+    char *steamFileName = autoSprintf( "%s_steam.txt", nameTag );
+    
+    delete [] nameTag;
+    
+    return steamFileName;
+    }
+
+
+
+static char *getJPGFileName( const char *inOXZFileName ) {
+    char *nameTag = getNameTag( inOXZFileName );
+    
+    char *jpgFileName = autoSprintf( "%s.jpg", nameTag );
+    
+    delete [] nameTag;
+    
+    return jpgFileName;
+    }
+
+
+
+
+
+
 typedef struct ModToUpload {
         File *oxzFile;
         File *jpgFile;
@@ -968,11 +1013,8 @@ void processModUploads() {
         
         char *name = f->getFileName();
         
-        // strip extension
-        name[ strlen(name) - 4 ] = '\0';
-        
-        char *steamTxtName = autoSprintf( "%s_steam.txt", name );
-        char *jpgName = autoSprintf( "%s.jpg", name );
+        char *steamTxtName = getSteamFileName( name );
+        char *jpgName = getJPGFileName( name );
         
         File *jpgFile = findFileInVector( &jpgFiles, jpgName );
 
@@ -1035,7 +1077,7 @@ void processModUploads() {
             char *message = 
                 autoSprintf( 
                     "Preview file missing for mod in "
-                    "steamUModUploads folder:\n\n%s", jpgName );
+                    "steamModUploads folder:\n\n%s", jpgName );
             
             showMessage( gameName ":  Error",
                          message,
@@ -1342,12 +1384,8 @@ void processModUploads() {
             if( handler.mSubmitItemUpdateSuccess ) {
 
                 char *name = oxzFile->getFileName();
-                int nameLen = strlen( name );
-
-                if( nameLen > 4 ) {
-                    name[ nameLen - 4 ] = '\0';
-                    }
-                char *steamFileName = autoSprintf( "%s_steam.txt", name );
+ 
+                char *steamFileName = getSteamFileName( name );
                 
                 delete [] name;
 
