@@ -1540,6 +1540,34 @@ void processModDownloads() {
             return;
             }
         }
+
+    
+    char anyNeedUpdate = false;
+    
+    for( unsigned int i=0; i<numItems; i++ ) {
+        
+        uint32 itemState = SteamUGC()->GetItemState( itemIdList[i] );
+        
+        if( itemState & k_EItemStateNeedsUpdate ) {
+            
+            bool started = 
+                SteamUGC()->DownloadItem( itemIdList[i], true );
+            
+            if( started ) {
+                anyNeedUpdate = true;
+                }
+            }
+        }
+    
+    if( anyNeedUpdate ) {
+        showMessage( 
+            gameName ":  Steam Workshop",
+            "Some installed mods need to be updated.\n\n"
+            "Downloads will happen in the background.\n\n"
+            "The updated mods will be loaded next time you start the game." );
+        }
+    
+
     
     for( unsigned int i=0; i<numItems; i++ ) {
         int numChildFiles;
@@ -1570,7 +1598,7 @@ void processModDownloads() {
                     
                 // file does not exist in mods folder, or is older
                 
-                char *message = autoSprintf( "Installing Worshop mod:\n\n"
+                char *message = autoSprintf( "Installing Workshop mod:\n\n"
                                              "%s",
                                              name );
                 showMessage( gameName ":  Steam Workshop",
@@ -1600,7 +1628,7 @@ void processModDownloads() {
         
 
         if( strstr( name, installedPrefix ) == name ) {
-            // file starts with prefix, was installed by us from Steam Worshop
+            // file starts with prefix, was installed by us from Steam Workshop
             
             char *nameWithoutPrefix =
                 &( name[ strlen( installedPrefix ) ] );
