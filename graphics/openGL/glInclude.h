@@ -32,7 +32,7 @@
 
 
 
-#ifdef WIN_32
+#ifdef WIN32
 // on Windows, some stuff that's normally in gl.h (1.2 and 1.3 stuff) is
 // in glext
 #include <GL/glext.h>

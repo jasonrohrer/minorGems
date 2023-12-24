@@ -5282,7 +5282,7 @@ char isClipboardSupported() {
     return clipboardSupport;
 #elif defined(__mac__)
     return true;
-#elif defined(WIN_32)
+#elif defined(WIN32)
     return true;
 #else
     return false;
@@ -5295,7 +5295,7 @@ char isURLLaunchSupported() {
     return true;
 #elif defined(__mac__)
     return true;
-#elif defined(WIN_32)
+#elif defined(WIN32)
     return true;
 #else
     return false;
@@ -5429,7 +5429,7 @@ void launchURL( char *inURL ) {
 
 
 
-#elif defined(WIN_32)
+#elif defined(WIN32)
 
 // simple windows clipboard solution found here:
 // https://www.allegro.cc/forums/thread/606034
@@ -5613,7 +5613,7 @@ char runSteamGateClient() {
 
 
 
-#elif defined(WIN_32)
+#elif defined(WIN32)
 
 #include <windows.h>
 #include <process.h>
@@ -5694,7 +5694,7 @@ char isSoundRecordingSupported() {
         }
 #elif defined(__mac__)
     return false;
-#elif defined(WIN_32)
+#elif defined(WIN32)
     return true;
 #else
     return false;
@@ -5785,7 +5785,7 @@ int16_t *stopRecording16BitMonoSound( int *outNumSamples ) {
     return NULL;
     }
 
-#elif defined(WIN_32)
+#elif defined(WIN32)
 
 #include <mmsystem.h>
 

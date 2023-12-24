@@ -102,6 +102,9 @@
  *
  * 2023-December-20    Jason Rohrer
  * Fixed so that remove correctly handles removing directories (only if empty).
+ *
+ * 2023-December-24    Jason Rohrer
+ * Switched to WIN32 for windows compiler flag.
  */
 
 
@@ -120,7 +123,7 @@
 #include <stdint.h>
 
 
-#ifndef WIN_32
+#ifndef WIN32
 // windows doesn't support inttypes
 #include <inttypes.h>
 #endif
@@ -1106,7 +1109,7 @@ inline uint64_t File::readFileUInt64Contents( uint64_t inDefaultValue ) {
     
     uint64_t val;
     
-    #ifdef WIN_32
+    #ifdef WIN32
     int numRead = sscanf( cont, "%I64u", &val );
     #else
     int numRead = sscanf( cont, "%" SCNu64, &val );
@@ -1182,7 +1185,7 @@ inline char File::writeToFile( int inInt ) {
 
 
 inline char File::writeToFile( uint64_t inInt ) {
-    #ifdef WIN_32
+    #ifdef WIN32
     char *stringVal = autoSprintf( "%I64u", inInt );
     #else
     char *stringVal = autoSprintf( "%" PRIu64, inInt );

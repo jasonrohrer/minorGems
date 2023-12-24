@@ -9,6 +9,10 @@
 # Changed LINUX flag to WIN_32 flag.
 # Added wsock32 library flag.
 #
+# 2023-December-24    Jason Rohrer
+# WIN32 flag is better than WIN_332 (defined automatically by windows compilers,
+# but we also define BOTH in compiler flags just to be safe).
+#
 
 
 ##
@@ -18,7 +22,7 @@
 
 
 # static lib flag needed to link compiled objs against miniupnp
-PLATFORM_COMPILE_FLAGS = -DWIN_32 -DSTATICLIB
+PLATFORM_COMPILE_FLAGS = -DWIN32 -DWIN_32 -DSTATICLIB
 
 
 # need various GL libraries, winmm, and portaudio

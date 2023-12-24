@@ -10,6 +10,9 @@
  *
  * 2004-December-7   Jason Rohrer
  * Fixed a bug in the evaluation of wait return codes.
+ *
+ * 2023-December-24   Jason Rohrer
+ * Switched to WIN32 for windows compiler flag.
  */
 
 
@@ -28,7 +31,7 @@
 
 #include "minorGems/util/stringUtils.h"
 
-#ifndef WIN_32
+#ifndef WIN32
     // standard unix includes
     #include <sys/types.h>
     #include <sys/socket.h>

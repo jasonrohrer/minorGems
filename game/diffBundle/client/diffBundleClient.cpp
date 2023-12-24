@@ -18,7 +18,7 @@
 #if defined(__mac__)
     #define PLATFORM_CODE "mac"
     #define WINDOWS_LINE_ENDS 0
-#elif defined(WIN_32)
+#elif defined(WIN32)
     #define PLATFORM_CODE "win"
     #define WINDOWS_LINE_ENDS 1
 #elif defined(LINUX)

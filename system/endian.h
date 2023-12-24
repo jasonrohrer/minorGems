@@ -9,6 +9,9 @@
  *
  * 2009-April-3   Jason Rohrer
  * OpenBSD support.
+ *
+ * 2023-December-24   Jason Rohrer
+ * Swtiched to WIN32 for windows compiler flag.
  */
 
 #include "minorGems/common.h"
@@ -66,7 +69,7 @@
 
 
 
-#elif defined(WIN_32) || defined(__MINGW32__) ||            \
+#elif defined(WIN32) || defined(__MINGW32__) ||            \
       ( defined(__MWERKS__) && defined(__INTEL__) )  // windows case
 #define __LITTLE_ENDIAN 1234
 #define __BYTE_ORDER __LITTLE_ENDIAN

@@ -43,7 +43,7 @@
     
 #include <sys/select.h>
 
-#elif defined(WIN_32)
+#elif defined(WIN32)
 
 #include <Winsock.h>
 
