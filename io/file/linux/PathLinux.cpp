@@ -15,13 +15,16 @@
  *
  * 2023-December-19    Jason Rohrer
  * Added makeAbsolute static function.
+ *
+ * 2023-December-24    Jason Rohrer
+ * linux/limits.h included not needed, and didn't work on Mac. 
  */
+
 
 #include "minorGems/io/file/Path.h"
 #include "minorGems/util/stringUtils.h"
 
 #include <stdlib.h>
-#include <linux/limits.h>
 
 
 
