@@ -1,0 +1,1 @@
+g++ -g -I../../.. -o diffBundle diffBundle.cpp ../../io/file/win32/PathWin32.cpp ../../util/stringUtils.cpp ../../formats/encodingUtils.cpp ../../crypto/hashes/sha1.cpp
