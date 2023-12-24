@@ -125,6 +125,7 @@
 
 #ifndef WIN32
 // windows doesn't support inttypes
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #endif
 

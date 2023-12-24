@@ -44,6 +44,10 @@ static const char *steamGateServerURL =
 #include <stdarg.h>
 #include <sys/wait.h>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
+
 static void launchGame() {
     AppLog::info( "Launching game." );
     int forkValue = fork();
@@ -126,6 +130,10 @@ void endProgressBar( ProgressHandle ) {
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/wait.h>
+
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 
 static void launchGame() {
     AppLog::info( "Launching game" );
