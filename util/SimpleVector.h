@@ -51,6 +51,9 @@
 *		Jason Rohrer	7-12-2018	push_middle function.
 *		Jason Rohrer	5-10-2019	getElementDirectFast function.
 *		Jason Rohrer	11-21-2023	getMatchingStringIndex function.
+*		Jason Rohrer	1-12-2024   Preventing size-zero vector construction,
+*                                   which causes a crash when vector grows
+*                                   (can't double zero).
 */
 
 #include "minorGems/common.h"
@@ -299,6 +302,12 @@ inline SimpleVector<Type>::SimpleVector()
 template <class Type>
 inline SimpleVector<Type>::SimpleVector(int sizeEstimate)
 		: vectorName( "" ) {
+    if( sizeEstimate <= 0 ) {
+        // can't double 0 when vector needs to grow, so min size has to
+        // be 1
+        sizeEstimate = 1;
+        }
+    
 	elements = new Type[sizeEstimate];
 	numFilledElements = 0;
 	maxSize = sizeEstimate;
