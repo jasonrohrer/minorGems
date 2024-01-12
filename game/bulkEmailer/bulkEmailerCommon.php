@@ -224,7 +224,9 @@ function be_mail( $inEmail,
 
         $headers = array( 'From' => $be_siteEmailAddress,
                           'To' => $inEmail,
-                          'Subject' => $inSubject );
+                          'Subject' => $inSubject,
+                          'List-Unsubscribe'=>
+                          "<mailto:$be_siteEmailAddress>" );
         
         $smtp;
 
