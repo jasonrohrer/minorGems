@@ -222,11 +222,16 @@ function be_mail( $inEmail,
 
         global $be_smtpHost, $be_smtpPort, $be_smtpUsername, $be_smtpPassword;
 
+
+        // for the X-SMTPAPI sendgrid header, specifying a List-Unsubscribe
+        $xHeaderBody =
+            "{ 'List-Unsubscribe' : '<mailto:$be_siteEmailAddress>' }";
+        
+        
         $headers = array( 'From' => $be_siteEmailAddress,
                           'To' => $inEmail,
                           'Subject' => $inSubject,
-                          'List-Unsubscribe'=>
-                          "<mailto:$be_siteEmailAddress>" );
+                          'X-SMTPAPI' => $xHeaderBody );
         
         $smtp;
 
