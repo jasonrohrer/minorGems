@@ -225,7 +225,7 @@ function be_mail( $inEmail,
 
         // for the X-SMTPAPI sendgrid header, specifying a List-Unsubscribe
         $xHeaderBody =
-            "{ 'List-Unsubscribe' : '<mailto:$be_siteEmailAddress>' }";
+            "{ \"List-Unsubscribe\" : \"<mailto:$be_siteEmailAddress>\" }";
         
         
         $headers = array( 'From' => $be_siteEmailAddress,
