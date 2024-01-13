@@ -2537,7 +2537,11 @@ function ts_sendAllNote() {
                 "ORDER BY sale_date ASC LIMIT $numToSkip, $batchSize;";
             }
         }
+
     
+    if( $useBulkEmailerForNotes ) {
+        $useBulk = 1;
+        }
     
     // show opt-out URL at bottom of email
     ts_sendNote_q( $query, $message_subject, $message_text, 1, $useBulk );
