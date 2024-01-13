@@ -2538,6 +2538,8 @@ function ts_sendAllNote() {
             }
         }
 
+
+    global $useBulkEmailerForNotes;
     
     if( $useBulkEmailerForNotes ) {
         $useBulk = 1;
