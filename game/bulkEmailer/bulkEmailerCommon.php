@@ -224,7 +224,8 @@ function be_mail( $inEmail,
 
         $headers = array( 'From' => $be_siteEmailAddress,
                           'To' => $inEmail,
-                          'Subject' => $inSubject );
+                          'Subject' => $inSubject,
+                          'X-PM-Message-Stream' => 'broadcast' );
         
         $smtp;
 
