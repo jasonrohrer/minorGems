@@ -7,7 +7,12 @@ char isUpdatePlatformSupported();
 
 // returns true if update process started, or false if
 // auto-update not available
-char startUpdate( char *inUpdateServerURL, int inOldVersionNumber );
+// if inSkipUniversalBundles is true, bundles that end in _all.dbz
+// (platform-independent content bundles) are skipped
+// This allows for selecting only binary, platform-specific updates, allowing
+// content to potentially be delivered separately from diff bundles.
+char startUpdate( char *inUpdateServerURL, int inOldVersionNumber,
+                  char inSkipUniversalBundles = false );
 
 // take anoter non-blocking step
 // return 1 if request complete

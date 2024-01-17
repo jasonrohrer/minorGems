@@ -66,6 +66,9 @@ static char *updateServerURL = NULL;
 static int oldVersionNumber;
 
 
+static char skipUniversalBundles = false;
+
+
 static char batchMirrorUpdate = false;
 
 static int batchStepsDone = 0;
@@ -97,12 +100,15 @@ char wasUpdateWriteError() {
 
 
 
-char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
+char startUpdate( char *inUpdateServerURL, int inOldVersionNumber,
+                  char inSkipUniversalBundles ) {
     writeError = false;
     
     batchMirrorUpdate = false;
     currentUpdateUniversal = false;
-
+    
+    skipUniversalBundles = inSkipUniversalBundles;
+    
 
     // make sure we're not being built from inside a working mercurial
     // checkout.  Don't want to download updates in this context
@@ -155,6 +161,12 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber ) {
     if( ! binaryFlagFile.exists() ) {
         // distribution compiled from source?
         // still try fetching platform-independent updates
+
+        if( skipUniversalBundles ) {
+            // but not if we're skipping them
+            return false;
+            }
+
         platformCode = "all";
         }
     
@@ -866,23 +878,47 @@ int stepUpdate() {
 
                         int numMirrors = list.mirrorURLS.size();
                         
-                        // shuffle them
-                        // https://en.wikipedia.org/wiki/
-                        //     Fisher%E2%80%93Yates_shuffle
-                        
-                        for( int j=numMirrors - 1; j >= 1; j-- ) {
-                            int k = shuffleRand.getRandomBoundedInt( 0, j );
-                            list.mirrorURLS.swap( k, j );
-                            }
-                        
-                        printf( "After shuffling, URL list=\n" );
-                        for( int j=0; j<numMirrors; j++ ) {
-                            printf( "%s\n",
-                                    list.mirrorURLS.getElementDirect( j ) );
-                            }
-                        printf( "\n" );
+                        if( numMirrors > 0 ) {
+                            
 
-                        mirrors.push_back( list );
+                            char bundleUniversal = false;
+                            
+                            if( strstr( list.mirrorURLS.getElementDirect( 0 ),
+                                        "_all.dbz" ) != NULL ) {
+                                bundleUniversal = true;
+                                }
+                            
+                            if( ! bundleUniversal ||
+                                ! skipUniversalBundles ) {
+
+                                // shuffle them
+                                // https://en.wikipedia.org/wiki/
+                                //     Fisher%E2%80%93Yates_shuffle
+                        
+                                for( int j=numMirrors - 1; j >= 1; j-- ) {
+                                    int k = 
+                                        shuffleRand.getRandomBoundedInt( 0, j );
+                                    list.mirrorURLS.swap( k, j );
+                                    }
+                                
+                                printf( "After shuffling, URL list=\n" );
+                                for( int j=0; j<numMirrors; j++ ) {
+                                    printf( 
+                                        "%s\n",
+                                        list.mirrorURLS.getElementDirect( j ) );
+                                    }
+                                printf( "\n" );
+
+                                mirrors.push_back( list );
+                                }
+                            else {
+                                printf( "Skipping universal "
+                                        "update bundle: %s\n",
+                                        list.mirrorURLS.getElementDirect( 0 ) );
+                                
+                                list.mirrorURLS.deallocateStringElements();
+                                }
+                            }
                         }
                     
                     delete [] lines;
