@@ -83,6 +83,9 @@ class SingleTextureGL {
 
 		/**
 		 * Specifies texture data as rgba bytes.
+         *
+         * Note that pixel data in inRGBA might be modified by this call
+         * (for example, if edge of texture needs to be expanded, etc.)
 		 */
 		SingleTextureGL( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight,

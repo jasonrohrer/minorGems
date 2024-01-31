@@ -170,10 +170,14 @@ SpriteHandle loadSpriteBase( const char *inTGAFileName,
 SpriteHandle fillSprite( Image *inImage, 
                          char inTransparentLowerLeftCorner = true );
 
+
+// pixel data in inRGBA might be modified by this call
 SpriteHandle fillSprite( unsigned char *inRGBA, 
                          unsigned int inWidth, unsigned int inHeight );
 
+
 // fails and returns NULL if inRawImage doesn't have 4 channels
+// pixel data in inRawImage might be modified by this call
 SpriteHandle fillSprite( RawRGBAImage *inRawImage );
 
 

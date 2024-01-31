@@ -38,6 +38,7 @@ class SpriteGL{
                   char inSetColoredRadii = false );
         
         
+        // NOTE:  pixel data in inRGBA might be modified by this call
         SpriteGL( unsigned char *inRGBA, 
                   unsigned int inWidth, unsigned int inHeight,
                   int inNumFrames = 1,
