@@ -24,8 +24,6 @@
 
 /////////////////////
 // settings:
-static const char *steamGateServerURL = 
-"http://onehouronelife.com/steamGate/server.php";
 
 #define linuxLaunchTarget "./OneLifeApp"
 #define macLaunchTarget "OneLife.app"
@@ -681,6 +679,20 @@ int main() {
 
     char *ourPubKeyHex = hexEncode( ourPubKey, 32 );
     
+    File serverURLFile( NULL, "steamGateServerURL.txt" );
+
+    char *steamGateServerURL;
+    
+    if( serverURLFile.exists() ) {
+        steamGateServerURL = serverURLFile.readFileContents();
+        }
+    else {
+        // default
+        steamGateServerURL = stringDuplicate(
+            "http://onehouronelife.com/steamGate/server.php" );
+        }
+
+
     char *webRequest = 
         autoSprintf( 
             "%s?action=get_account"
@@ -689,7 +701,9 @@ int main() {
             steamGateServerURL,
             authTicketHex,
             ourPubKeyHex );
-            
+         
+    delete [] steamGateServerURL;
+    
     delete [] ourPubKeyHex;
     delete [] authTicketHex;
 
