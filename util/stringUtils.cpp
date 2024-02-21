@@ -44,6 +44,9 @@
  *
  * 2018-July-19    Jason Rohrer
  * 2x faster in-place tokenizeString implementation.
+ *
+ * 2024-February-20    Jason Rohrer
+ * Added a stringEndsWith function.
  */
 
 
@@ -145,6 +148,27 @@ char stringStartsWith( const char *inString, const char *inPrefix ) {
             }
 
         // all characters, up to prefix length, are equal in both strings
+        return true;
+        }
+    }
+
+
+
+char stringEndsWith( const char *inString, const char *inSuffix ) {
+    unsigned int suffixLength = strlen( inSuffix );
+    unsigned int stringLength = strlen( inString );
+    
+    if( suffixLength > stringLength ) {
+        return false;
+        }
+    else {
+        for( unsigned int i=0; i<suffixLength; i++ ) {
+            if( inString[ stringLength - suffixLength + i ] != inSuffix[i] ) {
+                return false;
+                }
+            }
+
+        // all characters, up to suffix length, are equal in both strings
         return true;
         }
     }

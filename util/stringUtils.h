@@ -63,6 +63,9 @@
  *
  * 2018-July-19    Jason Rohrer
  * tokenizeStringInPlace is 3x faster.
+ *
+ * 2024-February-20    Jason Rohrer
+ * Added a stringEndsWith function.
  */
 
 
@@ -178,6 +181,20 @@ int stringCompareIgnoreCase( const char *inStringA,
  * @return true if inString begins with inPrefix, or false otherwise.
  */
 char stringStartsWith( const char *inString, const char *inPrefix );
+
+
+
+/**
+ * Checks if a string ends with a given suffix string.
+ *
+ * @param inString a \0-terminated string.
+ *   Must be destroyed by caller if non-const.
+ * @param inSuffix the suffix to look for as a \0-terminated string.
+ *   Must be destroyed by caller if non-const.
+ *
+ * @return true if inString ends with inSuffix, or false otherwise.
+ */
+char stringEndsWith( const char *inString, const char *inSuffix );
 
 
 
