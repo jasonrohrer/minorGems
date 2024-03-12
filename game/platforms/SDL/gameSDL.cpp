@@ -5619,6 +5619,13 @@ char runSteamGateClient() {
 #include <process.h>
 
 char relaunchGame() {
+    // re-launching doesn't always work on Windows
+    // for some reason, new window ends up tiny after relaunch?
+    
+    // to be safe, have user manually re-launch on Windows too
+    return false;
+    
+
     char *launchTarget = 
         autoSprintf( "%s%s", getAppName(), winLaunchExtension );
     
