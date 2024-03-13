@@ -21,6 +21,7 @@
 *   	Jason Rohrer	10-11-2002	Fixed some type casting warnings.
 *   	Jason Rohrer	07-09-2006	Added getRandomBoundedDouble.
 *   	Jason Rohrer	07-27-2006	Added getRandomBoolean.
+*   	Jason Rohrer	03-13-2024	Fixed to include Time.h.
 */
 
 #include "minorGems/common.h"
@@ -33,6 +34,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "RandomSource.h"
+#include "minorGems/system/Time.h"
 
 class StdRandomSource : public RandomSource {
 
