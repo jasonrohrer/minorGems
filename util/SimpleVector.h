@@ -59,6 +59,9 @@
 *                                   New fast implemention of appendArray using
 *	                                memcpy for simple types that don't need
 *                                   deep copying.
+*                                   New fast implemention of getElementArray 
+*                                   using memcpy for simple types that don't
+*                                   need deep copying.
 */
 
 #include "minorGems/common.h"
@@ -297,6 +300,9 @@ class SimpleVector {
         // types that don't need deep, element-by-element copying
         void appendArrayFast( Type *inArray, int inSize );
         
+        // same for fast getElementArray, for simple types
+        Type *getElementArrayFast();
+
 		};
 		
 		
@@ -728,6 +734,55 @@ inline Type *SimpleVector<Type>::getElementArray() {
 
     return newAlloc;
     }
+
+
+
+
+template <class Type>
+inline Type *SimpleVector<Type>::getElementArrayFast() {
+    Type *newAlloc = new Type[ numFilledElements ];
+
+    memcpy( newAlloc, elements, numFilledElements * sizeof( Type ) );
+    
+    return newAlloc;
+    }
+
+
+
+
+// various specializations for getElementArray, for simple types, 
+// use getElementArrayFast
+
+template <>
+inline char *SimpleVector<char>::getElementArray() {
+    return getElementArrayFast();
+    }
+
+template <>
+inline unsigned char *SimpleVector<unsigned char>::getElementArray() {
+    return getElementArrayFast();
+    }
+
+template <>
+inline int *SimpleVector<int>::getElementArray() {
+    return getElementArrayFast();
+    }
+
+template <>
+inline unsigned int *SimpleVector<unsigned int>::getElementArray() {
+    return getElementArrayFast();
+    }
+
+template <>
+inline float *SimpleVector<float>::getElementArray() {
+    return getElementArrayFast();
+    }
+
+template <>
+inline double *SimpleVector<double>::getElementArray() {
+    return getElementArrayFast();
+    }
+
 
 
 
