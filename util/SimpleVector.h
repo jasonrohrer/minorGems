@@ -54,6 +54,8 @@
 *		Jason Rohrer	1-12-2024   Preventing size-zero vector construction,
 *                                   which causes a crash when vector grows
 *                                   (can't double zero).
+*		Jason Rohrer	3-15-2024   Removed duplicate implementation for
+*                                   push_back and appendArray.
 */
 
 #include "minorGems/common.h"
@@ -91,6 +93,7 @@ class SimpleVector {
 		void push_back(Type x);		// add x to the end of the vector
 
         // add array of elements to the end of the vector
+        // an alias for appendArray
 		void push_back(Type *inArray, int inLength);		
 
         // add all elements from other vector
@@ -681,10 +684,7 @@ inline void SimpleVector<Type>::push_middle( Type x, int inNumBefore )	{
 
 template <class Type>
 inline void SimpleVector<Type>::push_back(Type *inArray, int inLength)	{
-    
-    for( int i=0; i<inLength; i++ ) {
-        push_back( inArray[i] );
-        }
+    appendArray( inArray, inLength );
     }
 
 
