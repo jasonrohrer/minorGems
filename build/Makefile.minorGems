@@ -213,6 +213,10 @@ WEB_REQUEST_H = ${ROOT_PATH}/minorGems/network/web/WebRequest.h
 WEB_REQUEST_CPP = ${ROOT_PATH}/minorGems/network/web/WebRequest.cpp
 WEB_REQUEST_O = ${ROOT_PATH}/minorGems/network/web/WebRequest.o
 
+WEB_REQUEST_COMPLETION_THREAD_H = ${ROOT_PATH}/minorGems/network/web/WebRequestCompletionThread.h
+WEB_REQUEST_COMPLETION_THREAD_CPP = ${ROOT_PATH}/minorGems/network/web/WebRequestCompletionThread.cpp
+WEB_REQUEST_COMPLETION_THREAD_O = ${ROOT_PATH}/minorGems/network/web/WebRequestCompletionThread.o
+
 
 
 

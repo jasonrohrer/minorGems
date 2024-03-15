@@ -110,6 +110,7 @@ WebRequest::WebRequest( const char *inMethod, const char *inURL,
 
     mLookupThread = NULL;
     
+    mCompletionThread = NULL;
 
     
     // launch right into name lookup
@@ -163,6 +164,11 @@ WebRequest::~WebRequest() {
     if( mLookupThread != NULL ) {    
         // this might block
         delete mLookupThread;
+        }
+
+    if( mCompletionThread != NULL ) {    
+        // this might block
+        delete mCompletionThread;
         }
     
     delete mSuppliedAddress;
@@ -308,10 +314,13 @@ int WebRequest::step() {
             mRequestPosition += numSent;
             
 
-            // don't start looking for response in same step,
-            // even if we just sent the entire request
+            if( mRequestPosition == (int)( strlen( mRequest ) ) ) {
+                // finished sending our request
+                
+                // start our thread that will receive the resonse
+                mCompletionThread = new WebRequestCompletionThread( mSock );
+                }
             
-            // in practice, it's never ready that fast
             return 0;
             }
         else if( mResultReady ) {
@@ -322,38 +331,26 @@ int WebRequest::step() {
             // done sending request
             // still receiving response
             
-            long bufferLength = 5000;
-            unsigned char *buffer = new unsigned char[ bufferLength ];
 
-            // non-blocking
-
-            // keep reading as long as we get full buffers
-            int numRead = bufferLength;
-            
-            while( numRead > 0 ) {
-                
-                numRead = mSock->receive( buffer, bufferLength, 0 );
-                
-                if( numRead > 0 ) {
-                    for( int i=0; i<numRead; i++ ) {
-                        mResponse.push_back( buffer[i] );
-                        }
-                    }
-                }
-            
-            
-            delete [] buffer;
-            
-
-            if( numRead == -1 ) {
+            if( mCompletionThread->isWebRequestDone() ) {
                 // connection closed, done done receiving result
 
                 // process it
                 
-                char *responseString = mResponse.getElementString();
-                int responseLength = mResponse.size();
+                int responseLength;
+                unsigned char *response = 
+                    mCompletionThread->getResponse( &responseLength );
                 
-                if( stringLocateIgnoreCase( responseString, "404 Not Found" ) 
+                delete mCompletionThread;
+                mCompletionThread = NULL;
+                
+                char *responseString = (char*)response;
+
+                // search for error headers, but only in short responses
+                // (if we have a 48MB response, don't search through entire 
+                // thing for errors
+                if( responseLength < 100000 && 
+                    stringLocateIgnoreCase( responseString, "404 Not Found" ) 
                     != NULL ) {
                     
                     mError = true;
@@ -394,7 +391,7 @@ int WebRequest::step() {
                     mResult[ resultLength ] = '\0';
                     mResultReady = true;
                     
-                    delete [] responseString;
+                    delete [] response;
                     return 1;
                     }
                 else {
@@ -404,7 +401,7 @@ int WebRequest::step() {
                             "WebRequest got badly formatted response:\n%s\n",
                             responseString );
 
-                    delete [] responseString;
+                    delete [] response;
                     
                     return -1;
                     }
@@ -431,7 +428,12 @@ int WebRequest::step() {
 
 
 int WebRequest::getProgressSize() {
-    return mResponse.size();
+    if( mCompletionThread != NULL ) {
+        return mCompletionThread->getBytesReceivedSoFar();
+        }
+    else {
+        return 0;
+        }
     }
 
 

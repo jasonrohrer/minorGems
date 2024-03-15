@@ -5,6 +5,7 @@
 #include "minorGems/network/Socket.h"
 #include "minorGems/network/HostAddress.h"
 #include "minorGems/network/LookupThread.h"
+#include "minorGems/network/web/WebRequestCompletionThread.h"
 
 
 
@@ -80,6 +81,8 @@ class WebRequest {
 
         double mRequestStartTime;
         double mRequestTimeoutSeconds;
+
+        WebRequestCompletionThread *mCompletionThread;
     };
 
 
