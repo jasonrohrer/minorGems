@@ -56,6 +56,9 @@
 *                                   (can't double zero).
 *		Jason Rohrer	3-15-2024   Removed duplicate implementation for
 *                                   push_back and appendArray.
+*                                   New fast implemention of appendArray using
+*	                                memcpy for simple types that don't need
+*                                   deep copying.
 */
 
 #include "minorGems/common.h"
@@ -288,6 +291,12 @@ class SimpleVector {
 
         char printExpansionMessage;
         const char *vectorName;
+
+
+        // used when implementing appendArray specialzations for simple
+        // types that don't need deep, element-by-element copying
+        void appendArrayFast( Type *inArray, int inSize );
+        
 		};
 		
 		
@@ -738,20 +747,9 @@ inline char *SimpleVector<char>::getElementString() {
     }
 
 
-template <>
-inline void SimpleVector<char>::appendElementString( const char *inString ) {
-    unsigned int numChars = strlen( inString );
-    appendArray( (char*)inString, (int)numChars );
-    }
 
 
 
-template <>
-inline void SimpleVector<char>::setElementString( const char *inString ) {
-    deleteAll();
-
-    appendElementString( inString );
-    }
 
 
 
@@ -759,10 +757,119 @@ inline void SimpleVector<char>::setElementString( const char *inString ) {
 template <class Type>
 inline void SimpleVector<Type>::appendArray( Type *inArray, int inSize ) {
     // slow but correct
-    
+
+    // push-back, element-by-element, allows deep copying with copy constructor
+    // for types that need that.
     for( int i=0; i<inSize; i++ ) {
         push_back( inArray[i] );
         }
+    }
+
+
+
+
+template <class Type>
+inline void SimpleVector<Type>::appendArrayFast( Type *inArray, int inSize ) {
+    // this implementation expands storage in one step and uses
+    // memcpy to insert.  Also uses memcpy to expand vector when needed.
+    
+    // this only works on simple types that don't need to have copy constructors
+    // invoked.
+
+    if( numFilledElements + inSize > maxSize ) {        
+        // need to allocate more space for vector
+        
+        // double size until it is big enough
+        int newMaxSize = maxSize * 2;
+        while( numFilledElements + inSize > newMaxSize ) {
+            newMaxSize *= 2;
+            }
+        
+        if( printExpansionMessage ) {
+            printf( "SimpleVector \"%s\" is expanding itself from %d to %d"
+                    " max elements\n", vectorName, maxSize, newMaxSize );
+            }
+
+
+        // use memcpy for fast copy into new space
+        Type *newAlloc = new Type[newMaxSize];
+
+        memcpy( newAlloc, 
+                elements, 
+                numFilledElements * sizeof( Type ) );
+        
+        
+        // delete old space
+        delete [] elements;
+        
+        elements = newAlloc;
+        maxSize = newMaxSize;
+        }
+
+
+    // we have room in vector
+    
+    memcpy( &( elements[numFilledElements] ),
+            inArray, 
+            inSize * sizeof( Type ) );
+    
+    numFilledElements += inSize;
+    }
+
+
+
+
+
+// various specializations for appendArray, for simple types, 
+// use appendArrayFast
+
+template <>
+inline void SimpleVector<char>::appendArray( char *inArray, int inSize ) {
+    appendArrayFast( inArray, inSize );
+    }
+
+template <>
+inline void SimpleVector<unsigned char>::appendArray( unsigned char *inArray,
+                                                      int inSize ) {
+    appendArrayFast( inArray, inSize );
+    }
+
+template <>
+inline void SimpleVector<int>::appendArray( int *inArray, int inSize ) {
+    appendArrayFast( inArray, inSize );
+    }
+
+template <>
+inline void SimpleVector<unsigned int>::appendArray( unsigned int *inArray,
+                                                     int inSize ) {
+    appendArrayFast( inArray, inSize );
+    }
+
+template <>
+inline void SimpleVector<float>::appendArray( float *inArray, int inSize ) {
+    appendArrayFast( inArray, inSize );
+    }
+
+template <>
+inline void SimpleVector<double>::appendArray( double *inArray, int inSize ) {
+    appendArrayFast( inArray, inSize );
+    }
+
+
+
+
+template <>
+inline void SimpleVector<char>::appendElementString( const char *inString ) {
+    unsigned int numChars = strlen( inString );
+    appendArray( (char*)inString, (int)numChars );
+    }
+
+
+template <>
+inline void SimpleVector<char>::setElementString( const char *inString ) {
+    deleteAll();
+
+    appendElementString( inString );
     }
 
 
