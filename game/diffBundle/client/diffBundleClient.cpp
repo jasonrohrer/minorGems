@@ -60,6 +60,9 @@ char isUpdatePlatformSupported() {
 static int webHandle = -1;
 static int updateSize = -1;
 
+static double webHandleStartTime = 0;
+
+
 static int updateProgressCompleteSteps;
 
 static char *updateServerURL = NULL;
@@ -98,6 +101,17 @@ char wasUpdateWriteError() {
     return writeError;
     }
 
+
+
+void printDownloadStats( int inDownloadSizeBytes ) {
+    double deltaTime = Time::getCurrentTime() - webHandleStartTime;
+            
+    printf( "Fetched %d bytes in %.2f seconds, %.2fKiB per second\n",
+            inDownloadSizeBytes, deltaTime, 
+            ( inDownloadSizeBytes / deltaTime ) / 1024 );
+    }
+
+            
 
 
 char startUpdate( char *inUpdateServerURL, int inOldVersionNumber,
@@ -179,7 +193,8 @@ char startUpdate( char *inUpdateServerURL, int inOldVersionNumber,
     printf( "Checking for latest update at %s\n", fullURL );
     
     webHandle = startWebRequest( "GET", fullURL, NULL );
-    
+    webHandleStartTime = Time::getCurrentTime();
+
     delete [] fullURL;
     
     if( updateServerURL != NULL ) {
@@ -215,6 +230,8 @@ static int applyUpdateFromWebResult() {
             
     int size;
     unsigned char *result = getWebResult( webHandle, &size );
+
+    printDownloadStats( size );
 
     char *nextRawScanPointer = (char*)result;
             
@@ -791,7 +808,8 @@ static int batchMirrorStep() {
                         list->mirrorURLS.getElementDirect( 
                         list->currentMirror ), 
                         NULL );
-                
+                webHandleStartTime = Time::getCurrentTime();
+
                 updateSize = list->size;
                 return 0;
                 }
@@ -826,6 +844,7 @@ int stepUpdate() {
         if( updateSize == -1 ) {
             char *result = getWebResult( webHandle );
             
+            printDownloadStats( strlen( result ) );
 
             if( strstr( result, "URLS" ) == result ) {
                 
@@ -966,7 +985,8 @@ int stepUpdate() {
                 printf( "Downloading update from %s\n", fullURL );
                 
                 webHandle = startWebRequest( "GET", fullURL, NULL );
-                
+                webHandleStartTime = Time::getCurrentTime();
+
                 delete [] fullURL;
             
                 return 0;
