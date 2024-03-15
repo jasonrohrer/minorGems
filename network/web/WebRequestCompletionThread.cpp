@@ -80,14 +80,11 @@ void WebRequestCompletionThread::run() {
             
             if( numRead > 0 ) {
                 
-                // FIXME:
-                // this is slow... actually doubling the time it takes to
-                // download a 100+ MB file over a fast connection.
-                for( int i=0; i<numRead; i++ ) {
-                    mReceivedBytes.push_back( buffer[i] );
-                    }
-                
-                // protect mBytesSoFar with lock, not entire vector-adding loop
+                // this is fast for unsigned char vectors, using
+                // memcpy internally
+                mReceivedBytes.push_back( buffer, numRead );                
+
+                // protect mBytesSoFar with lock, not add-to-vector code
                 mLock.lock();
                 mBytesSoFar += numRead;
                 endForced = mForceEnd;
