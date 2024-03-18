@@ -17,7 +17,7 @@
 void usage( char *inAppName );
 
 
-int main( char inNumArgs, char **inArgs ) {
+int main( int inNumArgs, char **inArgs ) {
 
 	if( inNumArgs > 2 ) {
 		usage( inArgs[0] );
