@@ -138,7 +138,8 @@ VALID
 INVALID
 
 
-string_to_hash must contain only the charcters 0-9, A-Z, and a-z
+string_to_hash must contain only the charcters:
+   0-9   A-Z   a-z   _ (underscore)   and   - (dash)
 
 hash_value is computed on both ends with:
 

@@ -774,7 +774,7 @@ function ts_checkTicketHash() {
     $hash_value = strtoupper( $hash_value );
     
     $string_to_hash =
-        ts_requestFilter( "string_to_hash", "/[A-Z0-9_]+/i", "0" );
+        ts_requestFilter( "string_to_hash", "/[A-Z0-9_\-]+/i", "0" );
 
 
     $computedHashValue =
