@@ -359,6 +359,8 @@ void setSoundLoudness( float inLoudness );
 typedef void* SoundSpriteHandle;
 
 
+// these require MONO aiff files
+
 // loads from sounds folder
 // returns handle to sound sprite, or NULL on load failure
 SoundSpriteHandle loadSoundSprite( const char *inAIFFFileName );
@@ -374,9 +376,16 @@ void toggleVariance( SoundSpriteHandle inHandle, char inNoVariance );
 
 
 
+// sets MONO sound sprite from samples
 // inSamples destroyed by caller
 // returns handle
 SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples );
+
+// sets STEREO sound sprite from samples
+// inSamples destroyed by caller
+// returns handle
+SoundSpriteHandle setSoundSprite( int16_t *inSamplesL, int16_t *inSamplesR,
+                                  int inNumSamples );
 
 
 // max volume defaults to 1.0

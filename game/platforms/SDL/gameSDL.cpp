@@ -532,7 +532,12 @@ typedef struct SoundSprite {
         double samplesPlayedF;
         
         
-        Sint16 *samples;
+        // can be NULL, depending on whether sound is mono or stereo
+        Sint16 *samplesM;
+        
+        Sint16 *samplesL;
+        Sint16 *samplesR;
+        
     } SoundSprite;
 
 
@@ -588,7 +593,17 @@ void cleanUpAtExit() {
     AppLog::info( "Freeing sound sprites\n" );
     for( int i=0; i<soundSprites.size(); i++ ) {
         SoundSprite *s = soundSprites.getElementDirect( i );
-        delete [] s->samples;
+        
+        if( s->samplesM != NULL ) {
+            delete [] s->samplesM;
+            }
+        if( s->samplesL != NULL ) {
+            delete [] s->samplesL;
+            }
+        if( s->samplesR != NULL ) {
+            delete [] s->samplesR;
+            }
+        
         delete s;
         }
     soundSprites.deleteAll();
@@ -797,9 +812,38 @@ SoundSpriteHandle setSoundSprite( int16_t *inSamples, int inNumSamples ) {
     s->samplesPlayed = 0;
     s->samplesPlayedF = 0;
     
-    s->samples = new Sint16[ s->numSamples ];
+    s->samplesM = new Sint16[ s->numSamples ];
+    s->samplesL = NULL;
+    s->samplesR = NULL;
+
+    memcpy( s->samplesM, inSamples, inNumSamples * sizeof( int16_t ) );
+
+    soundSprites.push_back( s );
     
-    memcpy( s->samples, inSamples, inNumSamples * sizeof( int16_t ) );
+    return (SoundSpriteHandle)s;
+    }
+
+
+
+SoundSpriteHandle setSoundSprite( int16_t *inSamplesL,
+                                  int16_t *inSamplesR, int inNumSamples ) {
+    
+    SoundSprite *s = new SoundSprite;
+    
+    s->handle = nextSoundSpriteHandle ++;
+    s->numSamples = inNumSamples;
+    
+    s->noVariance = false;
+
+    s->samplesPlayed = 0;
+    s->samplesPlayedF = 0;
+    
+    s->samplesM = NULL;
+    s->samplesL = new Sint16[ s->numSamples ];
+    s->samplesR = new Sint16[ s->numSamples ];
+
+    memcpy( s->samplesL, inSamplesL, inNumSamples * sizeof( int16_t ) );
+    memcpy( s->samplesR, inSamplesR, inNumSamples * sizeof( int16_t ) );
 
     soundSprites.push_back( s );
     
@@ -1036,7 +1080,16 @@ void freeSoundSprite( SoundSpriteHandle inHandle ) {
     for( int i=0; i<soundSprites.size(); i++ ) {
         SoundSprite *s2 = soundSprites.getElementDirect( i );
         if( s2->handle == s->handle ) {
-            delete [] s2->samples;
+            if( s2->samplesM != NULL ) {
+                delete [] s2->samplesM;
+                }
+            if( s2->samplesL != NULL ) {
+                delete [] s2->samplesL;
+                }
+            if( s2->samplesR != NULL ) {
+                delete [] s2->samplesR;
+                }
+            
             soundSprites.deleteElement( i );
             delete s2;
             }
@@ -1069,6 +1122,21 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
             int filled = 0;
             
             //int filledBytes = 0;
+            
+            Sint16 *samplesL;
+            Sint16 *samplesR;
+            
+            if( s->samplesM != NULL ) {
+                // mono
+                samplesL = s->samplesM;
+                samplesR = s->samplesM;
+                }
+            else {
+                // stereo
+                samplesL = s->samplesL;
+                samplesR = s->samplesR;
+                }
+
 
             if( rate == 1 ) {
                 
@@ -1078,13 +1146,14 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                 while( filled < numSamples &&
                        samplesPlayed < spriteNumSamples  ) {
                     
-                    Sint16 sample = s->samples[ samplesPlayed ];
+                    Sint16 sampleL = samplesL[ samplesPlayed ];
+                    Sint16 sampleR = samplesR[ samplesPlayed ];
                     
                     soundSpriteMixingBufferL[ filled ] 
-                        += volumeL * sample;
+                        += volumeL * sampleL;
                     
                     soundSpriteMixingBufferR[ filled ]
-                        += volumeR * sample;
+                        += volumeR * sampleR;
 
                     filled ++;
                     samplesPlayed ++;
@@ -1101,19 +1170,25 @@ void audioCallback( void *inUserData, Uint8 *inStream, int inLengthToFill ) {
                     int aIndex = (int)floor( samplesPlayedF );
                     int bIndex = (int)ceil( samplesPlayedF );
                     
-                    Sint16 sampleA = s->samples[ aIndex ];
-                    Sint16 sampleB = s->samples[ bIndex ];
+                    Sint16 sampleAL = samplesL[ aIndex ];
+                    Sint16 sampleBL = samplesL[ bIndex ];
+                    
+                    Sint16 sampleAR = samplesR[ aIndex ];
+                    Sint16 sampleBR = samplesR[ bIndex ];
                     
                     double bWeight = samplesPlayedF - aIndex;
                     double aWeight = 1 - bWeight;
 
-                    double sampleBlend = sampleA * aWeight + sampleB * bWeight;
+                    double sampleBlendL = 
+                        sampleAL * aWeight + sampleBL * bWeight;
+                    double sampleBlendR = 
+                        sampleAR * aWeight + sampleBR * bWeight;
 
                     soundSpriteMixingBufferL[ filled ] 
-                        += volumeL * sampleBlend;
+                        += volumeL * sampleBlendL;
                     
                     soundSpriteMixingBufferR[ filled ]
-                        += volumeR * sampleBlend;
+                        += volumeR * sampleBlendR;
 
                     filled ++;
                     samplesPlayedF += rate;
