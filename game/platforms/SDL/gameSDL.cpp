@@ -1467,6 +1467,58 @@ static char *pickFolder( const char *inPrompt ) {
 
 
 
+
+
+static char *getPrefFilePath() {
+    return autoSprintf( "%s/Library/Preferences/%s_prefs.txt",
+                        getenv( "HOME" ),
+                        getAppName() );
+    }
+
+
+#endif
+
+
+
+static char isSettingsFolderFound() {
+
+    File settingsFolder( NULL, "settings" );
+     
+    if( settingsFolder.exists() && settingsFolder.isDirectory() ) {
+        return true;
+        }
+
+    return false;
+    }
+
+
+
+
+
+#ifdef WIN32
+
+#include <windows.h>
+#include <tchar.h>
+
+#endif
+
+
+
+
+
+
+
+
+#ifdef __mac__
+
+#include <unistd.h>
+#include <stdarg.h>
+#include <sys/wait.h>
+
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
+
 static void showMessage( const char *inAppName,
                          const char *inTitle, const char *inMessage,
                          char inError = false ) {
@@ -1502,22 +1554,76 @@ static void showMessage( const char *inAppName,
     }
 
 
-static char *getPrefFilePath() {
-    return autoSprintf( "%s/Library/Preferences/%s_prefs.txt",
-                        getenv( "HOME" ),
-                        getAppName() );
-    }
+
+#elif defined(LINUX)
+
+#include <unistd.h>
+#include <stdarg.h>
+#include <sys/wait.h>
+
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 
-static char isSettingsFolderFound() {
 
-    File settingsFolder( NULL, "settings" );
-     
-    if( settingsFolder.exists() && settingsFolder.isDirectory() ) {
-        return true;
+
+static void showMessage( const char *inAppName,
+                         const char *inTitle, const char *inMessage,
+                         char inError = false ) {
+    const char *zenCommand = "--info";
+    if( inError ) {
+        zenCommand = "--error";
         }
 
-    return false;
+    char *command = autoSprintf( "zenity %s --text='%s' --title='%s:  %s'",
+                                 zenCommand, inMessage, inAppName, inTitle );
+
+    FILE *zentityPipe = popen( command, "r" );
+    
+    delete [] command;
+
+    if( zentityPipe == NULL ) {
+        AppLog::error( 
+            "Failed to open pipe to zenity for displaying GUI messages." );
+        }
+    else {
+        pclose( zentityPipe );
+        }
+    }
+
+#elif defined(WIN32)
+
+#include <windows.h>
+#include <process.h>
+
+#include <stdlib.h>
+
+static void showMessage( const char *inAppName,
+                         const char *inTitle, const char *inMessage,
+                         char inError = false ) {
+    UINT uType = MB_OK | MB_TOPMOST;
+    
+    if( inError ) {
+        uType |= MB_ICONERROR;
+        }
+    else {
+        uType |= MB_ICONINFORMATION;    
+        }
+    
+    chart *fullTitle = autoSprintf( "%s:  %s", inAppName, inTitle );
+
+    wchar_t *wideTitle = new wchar_t[ strlen( fullTitle ) * 2 + 2 ];
+    mbstowcs( wideTitle, fullTitle, strlen( fullTitle ) + 1 );
+
+    delete [] fullTitle;
+    
+    wchar_t *wideMessage = new wchar_t[ strlen( inMessage ) * 2 + 2 ];
+    mbstowcs( wideMessage, inMessage, strlen( inMessage ) + 1 );
+    
+    MessageBox( NULL, wideMessage, wideTitle, uType );
+
+    delete [] wideTitle;
+    delete [] wideMessage;
     }
 
 
@@ -1525,12 +1631,14 @@ static char isSettingsFolderFound() {
 
 
 
-#ifdef WIN32
 
-#include <windows.h>
-#include <tchar.h>
 
-#endif
+
+
+
+
+
+
 
 
 
@@ -1604,6 +1712,21 @@ int mainFunction( int inNumArgs, char **inArgs ) {
         }
 #endif
 
+    #ifndef __mac__
+        // on non-Mac platforms, still check if settings folder not
+        // found BEFORE loading SDL
+        
+        if( ! isSettingsFolderFound() ) {
+            
+            showMessage( getAppName(), "First Start Up Error",
+                         "Cannot find game data.\n\n"
+                         "Please run the OneLife executable\n"
+                         "inside the OneLife game folder. ",
+                         true );
+            return 1;
+            }
+    #endif
+        
 
     // check result below, after opening log, so we can log failure
     Uint32 flags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE;
