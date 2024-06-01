@@ -1610,7 +1610,7 @@ static void showMessage( const char *inAppName,
         uType |= MB_ICONINFORMATION;    
         }
     
-    chart *fullTitle = autoSprintf( "%s:  %s", inAppName, inTitle );
+    char *fullTitle = autoSprintf( "%s:  %s", inAppName, inTitle );
 
     wchar_t *wideTitle = new wchar_t[ strlen( fullTitle ) * 2 + 2 ];
     mbstowcs( wideTitle, fullTitle, strlen( fullTitle ) + 1 );
