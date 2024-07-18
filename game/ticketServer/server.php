@@ -69,7 +69,7 @@ $setup_footer = "
 
 // ensure that magic quotes are OFF
 // we hand-filter all _REQUEST data with regexs before submitting it to the DB
-if( get_magic_quotes_gpc() ) {
+if( function_exists( "get_magic_quotes_gpc" ) && get_magic_quotes_gpc() ) {
     // force magic quotes to be removed
     $_GET     = array_map( 'ts_stripslashes_deep', $_GET );
     $_POST    = array_map( 'ts_stripslashes_deep', $_POST );
