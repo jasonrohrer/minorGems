@@ -45,6 +45,9 @@
  * 2020-March-3    Jason Rohrer
  * Setting double settings (printing them to file) now uses %f format specifier,
  * since %lf doesn't seem to work on mingw, and %f is correct.
+ *
+ * 2024-August-29    Jason Rohrer
+ * Fixed a memory leak.
  */
 
 
@@ -489,6 +492,8 @@ void SettingsManager::setSetting( const char *inSettingName,
     delete [] settingParts;
     
     setSetting( inSettingName, settingString );
+    
+    delete [] settingString;
     }
 
 
