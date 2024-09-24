@@ -1463,8 +1463,7 @@ function ml_checkPassword( $inFunctionName ) {
             
             echo "Incorrect password.";
 
-            ml_log( "Failed $inFunctionName access with password:  ".
-                    "$password" );
+            ml_log( "Failed $inFunctionName access with bad password." );
             }
         else {
             echo "Session expired.";
