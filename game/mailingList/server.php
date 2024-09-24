@@ -1413,7 +1413,7 @@ function ml_checkPassword( $inFunctionName ) {
 
     
     if( isset( $_REQUEST[ "password" ] ) ) {
-        $password = $_REQUEST[ "password" ];
+        $password = ml_requestFilter( "password", "/[a-z0-9,#]+/i", "" );
 
         // generate a new hash cookie from this password
         $newSalt = time();
@@ -1422,7 +1422,8 @@ function ml_checkPassword( $inFunctionName ) {
         $password_hash = $newSalt . "_" . $newHash;
         }
     else if( isset( $_COOKIE[ $cookieName ] ) ) {
-        $password_hash = $_COOKIE[ $cookieName ];
+        $password_hash = ml_filter( $_COOKIE[ $cookieName ],
+                                    "/[a-f0-9_]+/i", "" );
         
         // check that it's a good hash
         
