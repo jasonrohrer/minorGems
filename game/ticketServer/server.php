@@ -287,7 +287,8 @@ function ts_setupDatabase() {
         $query =
             "CREATE TABLE $tableName(" .
             "entry TEXT NOT NULL, ".
-            "entry_time DATETIME NOT NULL );";
+            "entry_time DATETIME NOT NULL, ".
+            "INDEX( entry_time ) );";
 
         $result = ts_queryDatabase( $query );
 

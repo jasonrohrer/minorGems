@@ -1,0 +1,1 @@
+ALTER TABLE ticketServer_log ADD INDEX( entry_time );
