@@ -474,17 +474,16 @@ function ml_massSubscribe() {
 function ml_createSubscription( $email, $confirmed, $manual ) {
     global $tableNamePrefix, $remoteIP, $header, $footer;
 
-    $unfilteredEmail = $email;
     $email = ml_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
     if( $email == "" ) {
         if( $manual ) {
-            echo "Invalid email address: $unfilteredEmail<br>";
+            echo "Invalid email address.<br>";
             }
         else {
             eval( $header );
             
-            echo "Invalid email address: <b>$unfilteredEmail</b>";
+            echo "Invalid email address.";
             
             eval( $footer );
             }
