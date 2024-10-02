@@ -335,10 +335,9 @@ function ml_subscribe() {
         
         eval( $footer );
 
-        $email = "";
-        if( isset( $_REQUEST[ "email" ] ) ) {
-            $email = $_REQUEST[ "email" ];
-            }
+        $email = ml_requestFilter( "email",
+                                   "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i",
+                                   "");
         
         ml_log( "Email '$email' signed up too fast ($seconds sec) ".
                 "after loading form." );
@@ -353,21 +352,20 @@ function ml_subscribe() {
         
         eval( $footer );
 
-        $email = "";
-        if( isset( $_REQUEST[ "email" ] ) ) {
-            $email = $_REQUEST[ "email" ];
-            }
+        $email = ml_requestFilter( "email",
+                                   "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i",
+                                   "");
         
         ml_log( "Email '$email' signed up too slow ($seconds sec) ".
                 "after loading form." );
         return;
         }
 
-    $email = "";
-    if( isset( $_REQUEST[ "email" ] ) ) {
-        $email = $_REQUEST[ "email" ];
-        }
-
+    
+    $email = ml_requestFilter( "email",
+                               "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i",
+                               "");
+    
     eval( $header );
 
     echo "Are you human?<br><br>";
@@ -390,16 +388,13 @@ function ml_subscribe() {
 function ml_subscribeStepB() {
     
     // input filtering handled below
-    $email = "";
-    if( isset( $_REQUEST[ "email" ] ) ) {
-        $email = $_REQUEST[ "email" ];
-        }
+    $email = ml_requestFilter( "email",
+                               "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i",
+                               "");
 
-    $human_test = "";
-    if( isset( $_REQUEST[ "human_test" ] ) ) {
-        $human_test = $_REQUEST[ "human_test" ];
-        $human_test = strtolower( $human_test );
-        }
+    $human_test = ml_requestFilter( "human_test",
+                                    "/[a-z0-9]+/i",
+                                    "");
 
     if( $human_test != "tree" ) {
         echo "You failed the human test.";
@@ -436,6 +431,11 @@ function ml_massSubscribe() {
     $alreadySubscribedCount = 0;
     $successCount = 0;
     foreach( $emailArray as $email ) {
+
+        $email = ml_filter( $email,
+                            "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i",
+                            "");
+        
         $result = ml_createSubscription( $email, $confirmed, 1 );
 
         switch( $result ) {
@@ -751,11 +751,10 @@ function ml_massRemove() {
     $successCount = 0;
     foreach( $emailArray as $email ) {
 
-        $unfilteredEmail = $email;
         $email = ml_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
 
         if( $email == "" ) {
-            echo "Invalid email address: $unfilteredEmail<br>";
+            echo "Invalid email address.<br>";
             $failedCount++;
             }
         else {
