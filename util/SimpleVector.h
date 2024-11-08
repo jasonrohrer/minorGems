@@ -62,6 +62,15 @@
 *                                   New fast implemention of getElementArray 
 *                                   using memcpy for simple types that don't
 *                                   need deep copying.
+*		Jason Rohrer	11-8-2024   Profiling found inefficiency in
+*	                                push_back_other after deleting all
+*                                   elements in target vector, since vector
+*	                                max size would shrink back to 2, and then
+*                                   get expanded/copied over and over
+*	                                for each push.  Refactored expansion code
+*                                   into expandToNewMaxSize, and invoked it in
+*                                   push_back_other to make room for other
+*                                   vector in one expansion step.
 */
 
 #include "minorGems/common.h"
@@ -302,7 +311,9 @@ class SimpleVector {
         
         // same for fast getElementArray, for simple types
         Type *getElementArrayFast();
+        
 
+        void expandToNewMaxSize( int inNewMaxSize );
 		};
 		
 		
@@ -633,40 +644,9 @@ inline void SimpleVector<Type>::push_back(Type x)	{
 	else {					// need to allocate more space for vector
 
 		int newMaxSize = maxSize << 1;		// double size
-		
-        if( printExpansionMessage ) {
-            printf( "SimpleVector \"%s\" is expanding itself from %d to %d"
-                    " max elements\n", vectorName, maxSize, newMaxSize );
-            }
-
-
-        // NOTE:  memcpy does not work here, because it does not invoke
-        // copy constructors on elements.
-        // And then "delete []" below causes destructors to be invoked
-        //  on old elements, which are shallow copies of new objects.
-
-        Type *newAlloc = new Type[newMaxSize];
-        /*
-		unsigned int sizeOfElement = sizeof(Type);
-		unsigned int numBytesToMove = sizeOfElement*(numFilledElements);
-		
-
-		// move into new space
-		memcpy((void *)newAlloc, (void *) elements, numBytesToMove);
-		*/
-
-        // must use element-by-element assignment to invoke constructors
-        for( int i=0; i<numFilledElements; i++ ) {
-            newAlloc[i] = elements[i];
-            }
         
-
-		// delete old space
-		delete [] elements;
-		
-		elements = newAlloc;
-		maxSize = newMaxSize;	
-		
+        expandToNewMaxSize( newMaxSize );
+        
 		elements[numFilledElements] = x;
 		numFilledElements++;	
 		}
@@ -704,8 +684,65 @@ inline void SimpleVector<Type>::push_back(Type *inArray, int inLength)	{
 
 
 template <class Type>
+inline void SimpleVector<Type>::expandToNewMaxSize( int inNewMaxSize ) {
+    int newMaxSize = inNewMaxSize;
+
+    if( printExpansionMessage ) {
+        printf( "SimpleVector \"%s\" is expanding itself from %d to %d"
+                " max elements\n", vectorName, maxSize, newMaxSize );
+        }
+    
+
+    // NOTE:  memcpy does not work here, because it does not invoke
+    // copy constructors on elements.
+    // And then "delete []" below causes destructors to be invoked
+    //  on old elements, which are shallow copies of new objects.
+    
+    Type *newAlloc = new Type[newMaxSize];
+    /*
+      unsigned int sizeOfElement = sizeof(Type);
+      unsigned int numBytesToMove = sizeOfElement*(numFilledElements);
+      
+      
+      // move into new space
+      memcpy((void *)newAlloc, (void *) elements, numBytesToMove);
+    */
+
+    // must use element-by-element assignment to invoke constructors
+    for( int i=0; i<numFilledElements; i++ ) {
+        newAlloc[i] = elements[i];
+        }
+    
+
+    // delete old space
+    delete [] elements;
+	
+    elements = newAlloc;
+    maxSize = newMaxSize;    
+    }
+
+
+
+
+template <class Type>
 inline void SimpleVector<Type>::push_back_other(
     SimpleVector<Type> *inOtherVector ) {
+
+    
+    int newMaxSize = numFilledElements + inOtherVector->size();
+    
+
+    if( newMaxSize > maxSize ) {
+        // not enough room in vector
+
+        // expand it all in one operation now
+        
+        // otherwise, as we push back individual elements, the
+        // vector might need to be expanded over and over
+        
+        expandToNewMaxSize( newMaxSize );
+        }
+
     
     for( int i=0; i<inOtherVector->size(); i++ ) {
         push_back( inOtherVector->getElementDirect( i ) );
