@@ -225,12 +225,14 @@ void testRandom( RandomSource *inSource ) {
 #include "CustomRandomSource.h"
 #include "StdRandomSource.h"
 #include "JenkinsRandomSource.h"
+#include "XoshiroRandomSource.h"
 
 int main() {
     
-    JenkinsRandomSource randSource( 11234258 );
+    //JenkinsRandomSource randSource( 11234258 );
     //CustomRandomSource randSource( 11234258 );
     //StdRandomSource randSource( 11 );
+    XoshiroRandomSource randSource( 0 );
     
     testRandom( &randSource );
     
