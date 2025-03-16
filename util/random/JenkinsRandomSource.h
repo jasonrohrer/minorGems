@@ -26,8 +26,13 @@
  *
  * Maintains its own internal state.
  *
- * Ends up being about 5% slower than CustomRandomSource, but has a much
- * longer expected period.
+ * Ends up being between 5% and 20% slower than CustomRandomSource,
+ * but has a much longer expected period AND passes all tests in
+ * PractRand (where CustomRandomSource fails many tests).
+ *
+ * This is also 37% faster than XoshiroRandomSource
+ *
+ * https://github.com/MartyMacGyver/PractRand
  */
 class JenkinsRandomSource : public RandomSource32 {
 

@@ -26,6 +26,11 @@
  * https://prng.di.unimi.it/xoshiro128plusplus.c
  *
  * Maintains its own internal state.
+ *
+ * This is 56% slower than Jenkins, and 2x slower than CustomRandomSource.
+ *
+ * BUT, this passes all tests in PractRand
+ * https://github.com/MartyMacGyver/PractRand
  */
 class XoshiroRandomSource : public RandomSource32 {
 

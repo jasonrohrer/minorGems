@@ -25,6 +25,9 @@
  * Implementation of RandomSource that does not depend on platform or library.
  *
  * Maintains its own internal state.
+ *
+ * This is a very fast generator.  However, it fails many tests in PractRand
+ * https://github.com/MartyMacGyver/PractRand
  */
 class CustomRandomSource : public RandomSource32 {
 
