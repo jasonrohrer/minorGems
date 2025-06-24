@@ -757,41 +757,49 @@ function ts_checkTicketHash() {
     $numRows = mysqli_num_rows( $result );
 
     $ticket_id = "";
-    
-    // could be more than one with this email
-    // return first only
-    if( $numRows > 0 ) {
-        $ticket_id = ts_mysqli_result( $result, 0, "ticket_id" );
-        }
-    else {
+
+    if( $numRows == 0 ) {
         ts_log( "email $email not found on check_ticket_hash" );
         echo "INVALID";
         return;
         }
+    
+    
+    // could be more than one with this email
 
-    // remove hyphens
-    $ticket_id = implode( preg_split( "/-/", $ticket_id ) );
+    // loop over all and return VALID if one matches
+
+    for( $i=0; $i<$numRows; $i++ ) {
+        $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+    
+        // remove hyphens
+        $ticket_id = implode( preg_split( "/-/", $ticket_id ) );
     
 
-    $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
+        $hash_value = ts_requestFilter( "hash_value", "/[A-F0-9]+/i", "" );
 
-    $hash_value = strtoupper( $hash_value );
+        $hash_value = strtoupper( $hash_value );
     
-    $string_to_hash =
-        ts_requestFilter( "string_to_hash", "/[A-Z0-9_\-]+/i", "0" );
+        $string_to_hash =
+            ts_requestFilter( "string_to_hash", "/[A-Z0-9_\-]+/i", "0" );
 
 
-    $computedHashValue =
-        strtoupper( ts_hmac_sha1( $ticket_id, $string_to_hash ) );
+        $computedHashValue =
+            strtoupper( ts_hmac_sha1( $ticket_id, $string_to_hash ) );
     
 
-    if( $computedHashValue == $hash_value ) {
-        echo "VALID";
+        if( $computedHashValue == $hash_value ) {
+            echo "VALID";
+            // stop looping
+            return;
+            }
+        // else keep looping and check other records with same email
         }
-    else {
-        ts_log( "hash for $email invalid on check_ticket_hash" );
-        echo "INVALID";
-        }
+
+    // if we got here without returning, none of the records match
+    // the submitted hash
+    ts_log( "hash for $email invalid on check_ticket_hash" );
+    echo "INVALID";
     }
 
 
@@ -1959,7 +1967,7 @@ function ts_showData( $checkPassword = true ) {
 ?>
     </SELECT><br>
 
-    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=0>
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=1>
           Force email opt-out<br>
           
     <INPUT TYPE="Submit" VALUE="Generate">
@@ -2015,7 +2023,7 @@ function ts_showData( $checkPassword = true ) {
 ?>
     </SELECT><br>
 
-    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=0>
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=1>
           Force email opt-out<br>
           
     <INPUT TYPE="Submit" VALUE="Generate">
@@ -2242,7 +2250,7 @@ function ts_showDetail( $checkPassword = true ) {
     Tag:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="tag"
             VALUE="<?php echo $tag;?>"><br>
-    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE="0"
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE="1"
              <?php echo $optOutChecked;?> >
           Email opt-out<br>
     <INPUT TYPE="Submit" VALUE="Update">
