@@ -1967,7 +1967,7 @@ function ts_showData( $checkPassword = true ) {
 ?>
     </SELECT><br>
 
-    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=1>
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=0>
           Force email opt-out<br>
           
     <INPUT TYPE="Submit" VALUE="Generate">
@@ -2023,7 +2023,7 @@ function ts_showData( $checkPassword = true ) {
 ?>
     </SELECT><br>
 
-    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=1>
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE=0>
           Force email opt-out<br>
           
     <INPUT TYPE="Submit" VALUE="Generate">
@@ -2250,7 +2250,7 @@ function ts_showDetail( $checkPassword = true ) {
     Tag:
     <INPUT TYPE="text" MAXLENGTH=40 SIZE=20 NAME="tag"
             VALUE="<?php echo $tag;?>"><br>
-    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE="1"
+    <INPUT TYPE="checkbox" NAME="email_opt_in" VALUE="0"
              <?php echo $optOutChecked;?> >
           Email opt-out<br>
     <INPUT TYPE="Submit" VALUE="Update">
