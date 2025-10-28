@@ -1867,7 +1867,7 @@ int mainFunction( int inNumArgs, char **inArgs ) {
 
         
 
-    AppLog::setLog( new FileLog( "log.txt" ) );
+    AppLog::setLog( new FileLog( "gameLog.txt" ) );
     AppLog::setLoggingLevel( Log::DETAIL_LEVEL );
     
     AppLog::info( "New game starting up" );
