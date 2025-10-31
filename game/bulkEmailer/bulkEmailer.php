@@ -128,6 +128,8 @@ function be_sendBatch() {
     global $be_tableNamePrefix,
         $be_emailMaxBatchSize, $be_reportToEmailAddress;
 
+    $startTime = microtime();
+    
     $numSent = 0;
     
     $reportBody = "";
@@ -254,6 +256,11 @@ function be_sendBatch() {
                 $reportBody = $reportBody .
                     "\nRemaining recipients:  $numLeft\n\n";
                 }
+
+            $deltaTime = microtime() - $startTime;
+
+            $reportBody = $reportBody .
+                    "\nBatch took $deltaTime seconds.\n\n";
             
 
             $reportBody = $reportBody .
