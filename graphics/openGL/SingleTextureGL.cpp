@@ -21,6 +21,9 @@
  *
  * 2011-January-23   Jason Rohrer
  * Changed internal format of single-channel texture to RGBA for compatibility.
+ *
+ * 2025-November-6   Jason Rohrer
+ * Support for getting backup bytes externally.
  */
 
 
@@ -61,6 +64,17 @@ void SingleTextureGL::disableTexturing() {
     glDisable( GL_TEXTURE_2D );
 	sTexturingEnabled = false;
     sLastBoundTextureID = 0;
+    }
+
+
+
+
+char SingleTextureGL::getBackupBytes( unsigned char **outBytes, 
+                                      int *outWidth, int *outHeight ) {
+    *outBytes = mBackupBytes;
+    *outWidth = mWidthBackup;
+    *outHeight = mHeightBackup;
+    return mAlphaOnly;
     }
 
 

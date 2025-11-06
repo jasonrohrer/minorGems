@@ -73,6 +73,20 @@ void toggleInvertedBlend( char inInverted );
 
 
 
+// defaults to drawing full color
+// Turning on renders drawn sprites in grayscale
+// Turning off goes back to drawing sprites in full color
+//
+// No shader is used in the implementation ( a second copy of each sprite
+// drawn is permanently added to the GPU's texture memory, though
+// each unique sprite only has a grayscale version added once).
+//
+// Thus, using this toggle can double the memory footprint of the sprites
+// drawn.
+void toggleGrayscaleDrawing( char inGrayscale );
+
+
+
 // distinct from additive fragment blending (above)
 // turning on makes texture and vertex color combination additive
 // turning off goes back to multiplicative combination of texture and vertex

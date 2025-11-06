@@ -25,6 +25,9 @@
  *
  * 2011-January-17   Jason Rohrer
  * Support for single-channel textures for efficiency.
+ *
+ * 2025-November-6   Jason Rohrer
+ * Support for getting backup bytes externally.
  */
  
  
@@ -182,7 +185,14 @@ class SingleTextureGL {
         // is enabled.
         static void disableTexturing();
         
-		
+
+        // returns internal backup bytes for texture
+        // either RGBA or alpha-only A bytes
+        // returns true for alpha-only (width * height bytes)
+        // returns false for RGBA bytes (width * height * 4 bytes)
+		char getBackupBytes( unsigned char **outBytes,
+                             int *outWidth, int *outHeight );
+        
 	private:
         char mRepeat;
         char mMipMap;

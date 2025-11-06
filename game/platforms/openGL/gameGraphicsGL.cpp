@@ -12,6 +12,7 @@ static float lastR, lastG, lastB, lastA;
 
 static char additiveTextureColorMode = false;
 
+static char grayscaleOn = false;
 
 
 typedef struct GlobalFade {
@@ -99,6 +100,13 @@ void setDrawColor( float inR, float inG, float inB, float inA ) {
         }        
     else {
         inA *= globalFadeTotal;
+        }
+
+    if( grayscaleOn ) {
+        float gray = inR * 0.299 + inG * 0.587 + inB * 0.114;
+        inR = gray;
+        inG = gray;
+        inB = gray;
         }
         
     glColor4f( inR, inG, inB, inA );
@@ -190,6 +198,16 @@ void toggleInvertedBlend( char inInverted ) {
         setNormalBlend();
         }
     }
+
+
+
+
+void toggleGrayscaleDrawing( char inGrayscale ) {
+    grayscaleOn = inGrayscale;
+    }
+
+
+
 
 
 
@@ -742,6 +760,8 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     spritePos.mX = inCenter.x;
     spritePos.mY = inCenter.y;
     
+    sprite->toggleGrayscaleDrawing( grayscaleOn );
+
     sprite->draw( 0,
                   &spritePos,
                   inZoom,
@@ -761,6 +781,8 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     spritePos.mX = inCenter.x;
     spritePos.mY = inCenter.y;
 
+    sprite->toggleGrayscaleDrawing( grayscaleOn );
+
     sprite->draw( 0,
                   &spritePos,
                   inCornerColors,
@@ -776,6 +798,8 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
 void drawSprite( SpriteHandle inSprite, doublePair inCornerPos[4], 
                  FloatColor inCornerColors[4] ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
+    
+    sprite->toggleGrayscaleDrawing( grayscaleOn );
     
     sprite->draw( 0,
                   inCornerPos,

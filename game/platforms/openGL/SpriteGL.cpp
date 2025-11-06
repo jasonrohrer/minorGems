@@ -255,7 +255,11 @@ void SpriteGL::initTexture( Image *inImage,
                                     // no wrap
                                     false,
                                     sGenerateMipMaps );
+    mAlphaOnly = false;
 
+    mGrayscaleDrawingToggle = false;
+    mGrayscaleTexture = NULL;
+    
 
     mWidth = spriteImage->getWidth();
     mHeight = spriteImage->getHeight();
@@ -300,7 +304,11 @@ SpriteGL::SpriteGL( unsigned char *inRGBA,
     mTexture = new SingleTextureGL( inRGBA, inWidth, inHeight,
                                     // no wrap
                                     false,
-                                    sGenerateMipMaps );    
+                                    sGenerateMipMaps ); 
+    mAlphaOnly = false;
+
+    mGrayscaleDrawingToggle = false;
+    mGrayscaleTexture = NULL;
 
     mWidth = inWidth;
     mHeight = inHeight;
@@ -345,6 +353,10 @@ SpriteGL::SpriteGL( char inAlphaOnly,
                                     // no wrap
                                     false,
                                     sGenerateMipMaps );
+    mAlphaOnly = true;
+
+    mGrayscaleDrawingToggle = false;
+    mGrayscaleTexture = NULL;
 
     mWidth = inWidth;
     mHeight = inHeight;
@@ -365,6 +377,85 @@ SpriteGL::SpriteGL( char inAlphaOnly,
 
 SpriteGL::~SpriteGL() {
     delete mTexture;
+    
+    if( mGrayscaleTexture != NULL ) {
+        delete mGrayscaleTexture;
+        }
+    }
+
+
+
+void SpriteGL::toggleGrayscaleDrawing( char inGrayscale ) {
+    mGrayscaleDrawingToggle = inGrayscale;
+    }
+
+
+
+void SpriteGL::enableGrayscaleTexture() {
+    if( mGrayscaleTexture != NULL ) {
+        mGrayscaleTexture->enable();
+        }
+    else if( mAlphaOnly ) {
+        // no grayscale texture for alpha-only sprites
+        // enable regular texture
+        mTexture->enable();
+        }
+    else {
+        // duplicate texture to make grayscale version
+
+        unsigned char *backupBytes;
+        int w;
+        int h;
+        char alphaOnly = mTexture->getBackupBytes( &backupBytes, &w, &h );
+        
+        if( alphaOnly ) {
+            // case that should never happen
+            // we think we're RGBA, but mTexture is alpha only
+            mTexture->enable();
+            return;
+            }
+        
+        int numPixels = w * h;
+        unsigned char *grayBytes = new unsigned char[ numPixels * 4 ];
+        
+        for( int i=0; i<numPixels; i++ ) {
+            int pixIndex = i * 4;
+            
+            unsigned char grayValue = 
+                backupBytes[pixIndex] * 0.299 +
+                backupBytes[ pixIndex + 1 ] * 0.587 +
+                backupBytes[ pixIndex + 2 ] * 0.114;
+
+            grayBytes[ pixIndex ] = grayValue;
+            grayBytes[ pixIndex + 1 ] = grayValue;
+            grayBytes[ pixIndex + 2 ] = grayValue;
+            // keep alpha
+            grayBytes[ pixIndex + 3 ] = backupBytes[ pixIndex + 3 ];
+            }
+        
+        mGrayscaleTexture = new SingleTextureGL( grayBytes, w, h,
+                                                 // no wrap
+                                                 false,
+                                                 sGenerateMipMaps );
+        delete [] grayBytes;
+        
+        mGrayscaleTexture->enable();
+        }
+    }
+
+
+
+static void makeCornerColorsGray( GLfloat inSquareColors[4*4] ) {
+    for( int c=0; c<4; c++ ) {
+        int cIndex = c * 4;
+        GLfloat r = inSquareColors[ cIndex ];
+        GLfloat g = inSquareColors[ cIndex + 1 ];
+        GLfloat b = inSquareColors[ cIndex + 2 ];
+        GLfloat grayValue = r * 0.299 + g * 0.587 + b * 0.114;
+        inSquareColors[ cIndex ] = grayValue;
+        inSquareColors[ cIndex + 1 ] = grayValue;
+        inSquareColors[ cIndex + 2 ] = grayValue;
+        }
     }
 
 
@@ -466,8 +557,14 @@ void SpriteGL::prepareDraw( int inFrame,
             }
         }
 
+    if( mGrayscaleDrawingToggle ) {
+        enableGrayscaleTexture();
+        }
+    else {
+        // full color texture
+        mTexture->enable();
+        }
 
-    mTexture->enable();
     
     if( inMipMapFilter ) {
         if( mLastSetMinFilter != 2 ) {
@@ -608,6 +705,10 @@ void SpriteGL::draw( int inFrame,
         }
     
     
+    if( mGrayscaleDrawingToggle ) {
+        makeCornerColorsGray( squareColors );
+        }
+
     glColorPointer( 4, GL_FLOAT, 0, squareColors );
     glEnableClientState( GL_COLOR_ARRAY );
     
@@ -776,8 +877,15 @@ void SpriteGL::prepareDraw( int inFrame,
     else {
         glColor4f( 1, 1, 1, inFadeFactor );
         }
-    */          
-    mTexture->enable();
+    */  
+
+    if( mGrayscaleDrawingToggle ) {
+        enableGrayscaleTexture();
+        }
+    else {
+        // full color texture
+        mTexture->enable();
+        }
     
 
     if( inMipMapFilter ) {
@@ -949,7 +1057,10 @@ void SpriteGL::draw( int inFrame,
         squareColors[ start + 3 ] = inCornerColors[c].a;
         }
     
-    
+    if( mGrayscaleDrawingToggle ) {
+        makeCornerColorsGray( squareColors );
+        }
+
     glColorPointer( 4, GL_FLOAT, 0, squareColors );
     glEnableClientState( GL_COLOR_ARRAY );
 
@@ -1018,7 +1129,10 @@ void SpriteGL::draw( int inFrame,
         squareColors[ start + 3 ] = inCornerColors[c].a;
         }
     
-    
+    if( mGrayscaleDrawingToggle ) {
+        makeCornerColorsGray( squareColors );
+        }
+
     glColorPointer( 4, GL_FLOAT, 0, squareColors );
     glEnableClientState( GL_COLOR_ARRAY );
 
