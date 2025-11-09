@@ -30,15 +30,18 @@ TALL KEY_LEFTALT KEY_LEFT
 SHORT KEY_LEFTALT KEY_RIGHT
 
 
+# open clear history panel
+DOWN  KEY_LEFTCTRL KEY_LEFTSHIFT KEY_DELETE
 
 
 
 
 "emacs:"
 
-# navigation
+# save
 TOP  KEY_LEFTCTRL KEY_X KEY_S
 
+# navigation
 KNOB_TURN_CCW  KEY_LEFTCTRL KEY_LEFT
 KNOB_TURN_CW   KEY_LEFTCTRL KEY_RIGHT
 
@@ -62,3 +65,14 @@ TOUR  KEY_LEFTALT KEY_SLASH
 # buffers
 C1  KEY_LEFTCTRL KEY_X KEY_LEFT
 C2  KEY_LEFTCTRL KEY_X KEY_RIGHT
+
+
+# save current buffer and compile
+UP  KEY_LEFTCTRL KEY_X KEY_S > KEY_LEFTALT KEY_X "compile" KEY_ENTER > KEY_ENTER
+
+# step through errors
+RIGHT KEY_LEFTALT KEY_X "next-error" KEY_ENTER
+LEFT KEY_LEFTALT KEY_X "previous-error" KEY_ENTER
+
+# close extra window
+DOWN KEY_LEFTCTRL KEY_X > KEY_1
