@@ -95,10 +95,18 @@ void toggleInvertedBlend( char inInverted );
 // becomes white, except for the blackest lines).  This threshold is
 // applied to the gray value after RGB conversion, per pixel in the texture
 // when it is being changed into grayscale.
+//
+// Note that this parameter is ignored for sprites that are drawn
+// in multiplicative-blend mode.
+//
 // Also note that this thresholding happens only ONCE per texture, whever
 // it is first converted.  Setting a different threshold later, and drawing
 // the texture in grayscale mode, will result in the original thresholded
 // texture being drawn.
+// This also applies if sprite is first drawn in or out of multiplicative
+// blend mode when it is first drawn in grayscale (the threshold will
+// be ignored or applied once, and permanently affect the grayscale
+// copy of the texture).
 // 
 void toggleGrayscaleDrawing( char inGrayscale,
                              float inForceGrayColorValue = -1.0f,
