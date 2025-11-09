@@ -61,7 +61,11 @@ class SpriteGL{
         // defaults to full color drawing
         // note that if sprite is drawn with grayscale toggle on
         // a separate grayscale texture is loaded into GPU ram
-        void toggleGrayscaleDrawing( char inGrayscale );
+        //
+        // See documentation in toggleGrayscaleDrawing in gameGraphics.h
+        // for inGrayTextureWhiteThreshold
+        void toggleGrayscaleDrawing( char inGrayscale,
+                                     int inGrayTextureWhiteThreshold = -1 );
         
 
         void draw( int inFrame,
@@ -191,6 +195,7 @@ class SpriteGL{
         char mAlphaOnly;
 
         char mGrayscaleDrawingToggle;
+        int mGrayTextureWhiteThreshold;
         
         SingleTextureGL *mTexture;
 

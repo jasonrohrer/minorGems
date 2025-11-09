@@ -385,8 +385,10 @@ SpriteGL::~SpriteGL() {
 
 
 
-void SpriteGL::toggleGrayscaleDrawing( char inGrayscale ) {
+void SpriteGL::toggleGrayscaleDrawing( char inGrayscale,
+                                     int inGrayTextureWhiteThreshold ) {
     mGrayscaleDrawingToggle = inGrayscale;
+    mGrayTextureWhiteThreshold = inGrayTextureWhiteThreshold;
     }
 
 
@@ -418,6 +420,12 @@ void SpriteGL::enableGrayscaleTexture() {
         int numPixels = w * h;
         unsigned char *grayBytes = new unsigned char[ numPixels * 4 ];
         
+        unsigned char threshold = 255;
+        
+        if( mGrayTextureWhiteThreshold != -1 ) {
+            threshold = (unsigned char) mGrayTextureWhiteThreshold;
+            }
+        
         for( int i=0; i<numPixels; i++ ) {
             int pixIndex = i * 4;
             
@@ -426,6 +434,9 @@ void SpriteGL::enableGrayscaleTexture() {
                 backupBytes[ pixIndex + 1 ] * 0.587 +
                 backupBytes[ pixIndex + 2 ] * 0.114;
 
+            if( grayValue > threshold ) {
+                grayValue = 255;
+                }
             grayBytes[ pixIndex ] = grayValue;
             grayBytes[ pixIndex + 1 ] = grayValue;
             grayBytes[ pixIndex + 2 ] = grayValue;

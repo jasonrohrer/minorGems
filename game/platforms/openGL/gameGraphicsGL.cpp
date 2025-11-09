@@ -13,6 +13,8 @@ static float lastR, lastG, lastB, lastA;
 static char additiveTextureColorMode = false;
 
 static char grayscaleOn = false;
+static float forceGrayColorValue = -1.0f;
+static int grayTextureWhiteThreshold = -1;
 
 
 typedef struct GlobalFade {
@@ -104,6 +106,11 @@ void setDrawColor( float inR, float inG, float inB, float inA ) {
 
     if( grayscaleOn ) {
         float gray = inR * 0.299 + inG * 0.587 + inB * 0.114;
+
+        if( forceGrayColorValue >= 0 ) {
+            gray = forceGrayColorValue;
+            }
+        
         inR = gray;
         inG = gray;
         inB = gray;
@@ -202,8 +209,11 @@ void toggleInvertedBlend( char inInverted ) {
 
 
 
-void toggleGrayscaleDrawing( char inGrayscale ) {
+void toggleGrayscaleDrawing( char inGrayscale, float inForceGrayColorValue,
+                             int inGrayTextureWhiteThreshold ) {
     grayscaleOn = inGrayscale;
+    forceGrayColorValue = inForceGrayColorValue;
+    grayTextureWhiteThreshold = inGrayTextureWhiteThreshold;
     }
 
 
@@ -760,7 +770,7 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     spritePos.mX = inCenter.x;
     spritePos.mY = inCenter.y;
     
-    sprite->toggleGrayscaleDrawing( grayscaleOn );
+    sprite->toggleGrayscaleDrawing( grayscaleOn, grayTextureWhiteThreshold );
 
     sprite->draw( 0,
                   &spritePos,
@@ -781,7 +791,7 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     spritePos.mX = inCenter.x;
     spritePos.mY = inCenter.y;
 
-    sprite->toggleGrayscaleDrawing( grayscaleOn );
+    sprite->toggleGrayscaleDrawing( grayscaleOn, grayTextureWhiteThreshold );
 
     sprite->draw( 0,
                   &spritePos,
@@ -799,7 +809,7 @@ void drawSprite( SpriteHandle inSprite, doublePair inCornerPos[4],
                  FloatColor inCornerColors[4] ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
     
-    sprite->toggleGrayscaleDrawing( grayscaleOn );
+    sprite->toggleGrayscaleDrawing( grayscaleOn, grayTextureWhiteThreshold );
     
     sprite->draw( 0,
                   inCornerPos,

@@ -83,7 +83,26 @@ void toggleInvertedBlend( char inInverted );
 //
 // Thus, using this toggle can double the memory footprint of the sprites
 // drawn.
-void toggleGrayscaleDrawing( char inGrayscale );
+//
+// inForceGrayColorValue, if not -1.0f, sets a value in 0..1.0 to overrule
+// colors set by setDrawColor.  If -1.0f, the converted-to-gray color
+// of the RGB value sent through setDrawColor will be used.  Note
+// that this only affects setDrawColor calls after the gray toggle is on.
+//
+// inGrayTextureWhiteThreshold, if not -1, sets a gray value threshold
+// in 0..255, above which texture values will be clamped to 1.  By setting
+// a low value, like 16 or 32, a line-art look is possible (all shading
+// becomes white, except for the blackest lines).  This threshold is
+// applied to the gray value after RGB conversion, per pixel in the texture
+// when it is being changed into grayscale.
+// Also note that this thresholding happens only ONCE per texture, whever
+// it is first converted.  Setting a different threshold later, and drawing
+// the texture in grayscale mode, will result in the original thresholded
+// texture being drawn.
+// 
+void toggleGrayscaleDrawing( char inGrayscale,
+                             float inForceGrayColorValue = -1.0f,
+                             int inGrayTextureWhiteThreshold = -1 );
 
 
 
