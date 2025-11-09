@@ -168,10 +168,17 @@ FloatColor getFloatColor( const char *inHexString ) {
 
 
 
+static char multiplicativeBlend = false;
+static char additiveBlend = false;
+static char invertedBlend = false;
 
 
 static void setNormalBlend() {
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    
+    multiplicativeBlend = false;
+    additiveBlend = false;
+    invertedBlend = false;
     }
 
 
@@ -179,6 +186,9 @@ static void setNormalBlend() {
 void toggleAdditiveBlend( char inAdditive ) {
     if( inAdditive ) {
         glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+        additiveBlend = true;
+        multiplicativeBlend = false;
+        invertedBlend = false;
         }
     else {
         setNormalBlend();
@@ -190,6 +200,9 @@ void toggleAdditiveBlend( char inAdditive ) {
 void toggleMultiplicativeBlend( char inMultiplicative ) {
     if( inMultiplicative ) {
         glBlendFunc( GL_DST_COLOR, GL_ZERO );
+        additiveBlend = false;
+        multiplicativeBlend = true;
+        invertedBlend = false;
         }
     else {
         setNormalBlend();
@@ -200,6 +213,9 @@ void toggleMultiplicativeBlend( char inMultiplicative ) {
 void toggleInvertedBlend( char inInverted ) {
     if( inInverted ) {
         glBlendFunc( GL_ONE_MINUS_DST_COLOR, GL_ZERO );
+        additiveBlend = false;
+        multiplicativeBlend = false;
+        invertedBlend = true;
         }
     else {
         setNormalBlend();
@@ -770,7 +786,14 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     spritePos.mX = inCenter.x;
     spritePos.mY = inCenter.y;
     
-    sprite->toggleGrayscaleDrawing( grayscaleOn, grayTextureWhiteThreshold );
+    // disable texture threshold for multiplicative-blended sprites
+    // since they have no "white" parts (white is transparent)
+    int threshold = grayTextureWhiteThreshold;
+    if( multiplicativeBlend ) {
+        threshold = -1;
+        }
+
+    sprite->toggleGrayscaleDrawing( grayscaleOn, threshold );
 
     sprite->draw( 0,
                   &spritePos,
@@ -791,7 +814,14 @@ void drawSprite( SpriteHandle inSprite, doublePair inCenter,
     spritePos.mX = inCenter.x;
     spritePos.mY = inCenter.y;
 
-    sprite->toggleGrayscaleDrawing( grayscaleOn, grayTextureWhiteThreshold );
+    // disable texture threshold for multiplicative-blended sprites
+    // since they have no "white" parts (white is transparent)
+    int threshold = grayTextureWhiteThreshold;
+    if( multiplicativeBlend ) {
+        threshold = -1;
+        }
+
+    sprite->toggleGrayscaleDrawing( grayscaleOn, threshold );
 
     sprite->draw( 0,
                   &spritePos,
@@ -809,7 +839,14 @@ void drawSprite( SpriteHandle inSprite, doublePair inCornerPos[4],
                  FloatColor inCornerColors[4] ) {
     SpriteGL *sprite = (SpriteGL *)inSprite;
     
-    sprite->toggleGrayscaleDrawing( grayscaleOn, grayTextureWhiteThreshold );
+    // disable texture threshold for multiplicative-blended sprites
+    // since they have no "white" parts (white is transparent)
+    int threshold = grayTextureWhiteThreshold;
+    if( multiplicativeBlend ) {
+        threshold = -1;
+        }
+
+    sprite->toggleGrayscaleDrawing( grayscaleOn, threshold );
     
     sprite->draw( 0,
                   inCornerPos,
