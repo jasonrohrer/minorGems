@@ -76,3 +76,15 @@ LEFT KEY_LEFTALT KEY_X "previous-error" KEY_ENTER
 
 # close extra window
 DOWN KEY_LEFTCTRL KEY_X > KEY_1
+
+
+
+
+"Gnumeric"
+
+# undo redo
+TALL  KEY_LEFTCTRL  KEY_Z
+SHORT KEY_LEFTCTRL  KEY_Y
+
+# delete row
+LEFT KEY_LEFTALT KEY_E > KEY_D > KEY_R
