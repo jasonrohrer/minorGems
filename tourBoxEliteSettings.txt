@@ -88,3 +88,42 @@ SHORT KEY_LEFTCTRL  KEY_Y
 
 # delete row
 LEFT KEY_LEFTALT KEY_E > KEY_D > KEY_R
+
+
+
+# For xxdiff diff tool
+
+"<->"
+
+# scroll to go through files in recursive directory listing
+SCROLL_TURN_DOWN H2 R0  KEY_DOWN
+SCROLL_TURN_UP H2 R0  KEY_UP
+
+# pick a file to view diff
+TOP KEY_ENTER
+
+# knob to turn through diff regions
+KNOB_TURN_CW H2 R0 KEY_N
+KNOB_TURN_CCW H2 R0 KEY_P
+
+# pick version of region in left pane
+TALL KEY_H
+
+# pick version of region in right pane
+SHORT KEY_K
+
+
+# close window without saving
+C1 KEY_LEFTCTRL KEY_Q
+
+# close window and save selected changes, and force unselected
+# changes to match right region
+C2 KEY_LEFTCTRL KEY_LEFTSHIFT KEY_LEFTALT KEY_K > KEY_LEFTCTRL KEY_LEFTSHIFT KEY_R
+
+
+# For xxdiff modal dialog boxes
+
+"xxdiff"
+
+# OK button
+TOP KEY_ENTER
