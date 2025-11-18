@@ -1,0 +1,9 @@
+Accel.Search: "Ctrl+F"
+Accel.SearchForward: "Ctrl+G"
+DirDiffRecursive: True
+
+Accel.SelectGlobalUnselectedRight: "Ctrl+Alt+Shift+K"
+
+
+FontApp: "Sans,12,-1,5,50,0,0,0,0,0"
+FontText: "Lucidatypewriter,12,-1,2,50,0,0,0,1,0"

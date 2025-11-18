@@ -120,6 +120,10 @@ C1 KEY_LEFTCTRL KEY_Q
 # changes to match right region
 C2 KEY_LEFTCTRL KEY_LEFTSHIFT KEY_LEFTALT KEY_K > KEY_LEFTCTRL KEY_LEFTSHIFT KEY_R
 
+# scroll to left/right on long source lines
+DIAL_TURN_CW H2 R2 KEY_RIGHT > KEY_RIGHT
+DIAL_TURN_CCW H2 R2 KEY_LEFT > KEY_LEFT
+
 
 # For xxdiff modal dialog boxes
 
