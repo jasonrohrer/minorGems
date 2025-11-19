@@ -155,6 +155,9 @@ TOP KEY_ENTER
 # execute last command
 UP KEY_UP > KEY_ENTER
 
+# list directory in newest-at-bottom order
+LEFT "ls -ltr" > KEY_ENTER
+
 KNOB_TURN_CCW H2 R1 KEY_UP
 KNOB_TURN_CW H2 R1 KEY_DOWN
 
