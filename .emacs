@@ -22,6 +22,9 @@
 
 (setq frame-title-format "emacs: %b")
 
+(setq default-frame-alist '((width . 81) (height . 31)))
+
+
 ;; Stop forcing newlines at the end of every file, please
 (setq mode-require-final-newline nil)
 
