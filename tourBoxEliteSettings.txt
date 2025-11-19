@@ -96,8 +96,18 @@ LEFT KEY_LEFTALT KEY_E > KEY_D > KEY_R
 "<->"
 
 # scroll to go through files in recursive directory listing
-SCROLL_TURN_DOWN H2 R0  KEY_DOWN
-SCROLL_TURN_UP H2 R0  KEY_UP
+SCROLL_TURN_DOWN H1 R0  KEY_DOWN
+SCROLL_TURN_UP H1 R0  KEY_UP
+
+
+# bigger jumps
+LEFT SCROLL_TURN_DOWN H2 R1  KEY_DOWN > KEY_DOWN > KEY_DOWN > KEY_DOWN
+LEFT SCROLL_TURN_UP H2 R1  KEY_UP > KEY_UP > KEY_UP  > KEY_UP 
+
+# even bigger jumps
+UP SCROLL_TURN_DOWN H2 R1  KEY_PAGEDOWN
+UP SCROLL_TURN_UP H2 R1  KEY_PAGEUP
+
 
 # pick a file to view diff
 TOP KEY_ENTER
@@ -131,3 +141,39 @@ DIAL_TURN_CCW H2 R2 KEY_LEFT > KEY_LEFT
 
 # OK button
 TOP KEY_ENTER
+
+
+
+
+
+# for xfce4-terminal, which allows custom window titles
+# other terminals make this hard, so there's no known string to latch
+# onto
+
+"Terminal"
+
+# execute last command
+UP KEY_UP > KEY_ENTER
+
+KNOB_TURN_CCW H2 R1 KEY_UP
+KNOB_TURN_CW H2 R1 KEY_DOWN
+
+TOP KEY_ENTER
+
+DIAL_TURN_CCW H2 R0 KEY_LEFTCTRL KEY_PAGEUP
+DIAL_TURN_CW H2 R0 KEY_LEFTCTRL KEY_PAGEDOWN
+
+# close tab
+C1 KEY_LEFTSHIFT KEY_LEFTCTRL KEY_W
+
+# new tab
+C2 KEY_LEFTSHIFT KEY_LEFTCTRL KEY_T
+
+# copy
+TALL KEY_LEFTSHIFT KEY_LEFTCTRL KEY_C
+
+# paste
+SHORT KEY_LEFTSHIFT KEY_LEFTCTRL KEY_V
+
+# delete typed line
+DOWN KEY_LEFTCTRL KEY_U
