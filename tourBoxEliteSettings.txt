@@ -146,6 +146,24 @@ TOP KEY_ENTER
 
 
 
+# for terminals that have cmus open
+# had to customize title in cmus to keep it from switching based on song
+
+"cmus"
+
+KNOB_TURN_CCW H2 R1 KEY_UP
+KNOB_TURN_CW H2 R1 KEY_DOWN
+
+TOP KEY_ENTER
+
+TALL KEY_C
+
+DIAL_TURN_CCW H2 R1 KEY_TAB > KEY_UP > KEY_TAB
+DIAL_TURN_CW H2 R1 KEY_TAB > KEY_DOWN > KEY_TAB
+
+
+
+
 # for xfce4-terminal, which allows custom window titles
 # other terminals make this hard, so there's no known string to latch
 # onto
