@@ -51,8 +51,8 @@ SCROLL_TURN_DOWN  KEY_LEFTCTRL KEY_DOWN
 DIAL_TURN_CCW  KEY_LEFT
 DIAL_TURN_CW   KEY_RIGHT
 
-# cut and paste
-TALL  KEY_LEFTCTRL  KEY_K
+# cut and paste whole line
+TALL  KEY_ESC KEY_0 > KEY_LEFTCTRL KEY_K > KEY_LEFTCTRL  KEY_K
 SHORT KEY_LEFTCTRL  KEY_Y
 
 # undo
@@ -76,6 +76,11 @@ LEFT KEY_LEFTALT KEY_X "previous-error" KEY_ENTER
 
 # close extra window
 DOWN KEY_LEFTCTRL KEY_X > KEY_1
+
+
+# debug from current line in ddd
+DIAL_PRESS  KEY_LEFTALT KEY_X "ddd-debug-line" KEY_ENTER > KEY_ENTER
+
 
 
 
