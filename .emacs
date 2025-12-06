@@ -271,3 +271,27 @@
 ;; don't show help screen at startup
 (setq inhibit-startup-message t)
 (setq inhibit-splash-screen t)
+
+
+
+(defvar ddd-debug-line-command nil
+  "The last executable used for debugging in 'ddd-debug-line'.")
+
+
+(defun ddd-debug-line (executable)
+  "Start ddd with gdb, set a breakpoint at the current line, and run."
+  (interactive
+   (list (read-shell-command "Command to debug: " (or ddd-debug-line-command "./myProgram" ) )))  ;; Auto-complete based on current directory
+    
+  (let ((file (buffer-file-name))             ; Get current file
+        (line (line-number-at-pos)))          ; Get current line number
+    (if (and file line)
+		(with-temp-buffer
+        (shell-command
+         (format "ddd --debugger 'gdb -ex \"break %s:%d\" -ex \"run\"' %s"
+                 (file-name-nondirectory file) line executable )
+		 t ) )
+      (message "Not in a file or unable to get line number!"))
+;; Store the last used executable
+    (setq ddd-debug-line-command executable)))
+
