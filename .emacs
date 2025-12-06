@@ -1,4 +1,5 @@
-; Modification History
+
+										; Modification History
 ;;
 ;; 2001-March-10   Jason Rohrer
 ;; Created.
@@ -295,3 +296,78 @@
 ;; Store the last used executable
     (setq ddd-debug-line-command executable)))
 
+
+
+
+
+
+(require 'cl-lib)
+(require 'subr-x)  ;; for string-trim-left
+
+(defun jcr-prev-line-column-starts ()
+  "Return a list of column numbers where tokens start on the
+nearest usable previous line.
+
+Skips lines that are:
+  - completely blank,
+  - only spaces/tabs, or
+  - whose first non-space character is '/' (comment lines).
+
+A token start is a non-space character that is either at BOL or
+immediately preceded by a space or tab."
+  (save-excursion
+    (let ((found nil))
+      ;; Walk upward until we find a “real” line or hit bobp.
+      (while (and (not found)
+                  (not (bobp)))
+        (forward-line -1)
+        (let* ((line (buffer-substring-no-properties
+                      (line-beginning-position)
+                      (line-end-position)))
+               (trimmed (string-trim-left line)))
+          (cond
+           ;; Blank / whitespace-only line: keep going
+           ((string-match-p "\\`[ \t]*\\'" line)
+            nil)
+           ;; First non-space is '/', treat as comment: keep going
+           ((and (> (length trimmed) 0)
+                 (eq (aref trimmed 0) ?/))
+            nil)
+           ;; Otherwise, this is our reference line
+           (t
+            (setq found t)))))
+      (when found
+        (let ((cols nil)
+              (eol (line-end-position))
+              (prev-space t))
+          (beginning-of-line)
+          (while (< (point) eol)
+            (let ((ch (char-after)))
+              (if (or (eq ch ?\s) (eq ch ?\t))
+                  (setq prev-space t)
+                (when prev-space
+                  (push (current-column) cols))
+                (setq prev-space nil)))
+            (forward-char 1))
+          (nreverse cols)))))
+  )
+
+
+
+(defun jcr-next-column ()
+  "Insert spaces to move point to the next \"column\" defined by previous line.
+
+Columns are defined by the token start positions on the previous line.
+Repeated calls keep moving to later columns. Only spaces are inserted;
+text before point is not disturbed."
+  (interactive)
+  (let* ((cols (jcr-prev-line-column-starts))
+         (cur  (current-column))
+         (target (cl-loop for c in cols
+                          when (> c cur) return c)))
+    (when target
+      (let ((n (- target cur)))
+        (when (> n 0)
+          (insert (make-string n ?\s))))))
+  ;; If there is no later column, do nothing.
+  )
