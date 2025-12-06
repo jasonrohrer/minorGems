@@ -96,6 +96,8 @@ LEFT KEY_LEFTALT KEY_E > KEY_D > KEY_R
 
 
 
+
+
 # For xxdiff diff tool
 
 "<->"
@@ -146,6 +148,29 @@ DIAL_TURN_CCW H2 R2 KEY_LEFT > KEY_LEFT
 
 # OK button
 TOP KEY_ENTER
+
+
+
+
+
+
+# for DDD debugger
+
+"DDD"
+
+# next
+TALL KEY_F6
+
+#step
+SHORT KEY_F5
+
+# run again
+TOP KEY_F2
+
+# quit
+SIDE KEY_LEFTCTRL KEY_Q
+
+
 
 
 
