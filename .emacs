@@ -343,7 +343,7 @@ immediately preceded by a space or tab."
           (beginning-of-line)
           (while (< (point) eol)
             (let ((ch (char-after)))
-              (if (or (eq ch ?\s) (eq ch ?\t))
+              (if (or (eq ch ?\s) (eq ch ?\t) (eq ch ?*))
                   (setq prev-space t)
                 (when prev-space
                   (push (current-column) cols))
@@ -362,7 +362,9 @@ Repeated calls keep moving to later columns. Only spaces are inserted;
 text before point is not disturbed."
   (interactive)
   (let* ((cols (jcr-prev-line-column-starts))
-         (cur  (current-column))
+         (cur  (if (eq (following-char) ?*)
+				   (+ (current-column) 1)
+				 (current-column) ) )
          (target (cl-loop for c in cols
                           when (> c cur) return c)))
     (when target
