@@ -161,11 +161,14 @@ TOP KEY_ENTER
 # next
 TALL KEY_F6
 
-#step
+# step
 SHORT KEY_F5
 
+# continue
+TOP  KEY_F9
+
 # run again
-TOP KEY_F2
+UP KEY_F2
 
 # quit
 SIDE KEY_LEFTCTRL KEY_Q

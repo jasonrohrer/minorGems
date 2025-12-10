@@ -274,6 +274,8 @@
 (setq inhibit-splash-screen t)
 
 
+;; don't open a buffer for output of async shell commands
+(setq async-shell-command-display-buffer nil)
 
 (defvar ddd-debug-line-command nil
   "The last executable used for debugging in 'ddd-debug-line'.")
@@ -288,10 +290,10 @@
         (line (line-number-at-pos)))          ; Get current line number
     (if (and file line)
 		(with-temp-buffer
-        (shell-command
+        (async-shell-command
          (format "ddd --debugger 'gdb -ex \"break %s:%d\" -ex \"run\"' %s"
                  (file-name-nondirectory file) line executable )
-		 t ) )
+		 ) )
       (message "Not in a file or unable to get line number!"))
 ;; Store the last used executable
     (setq ddd-debug-line-command executable)))
