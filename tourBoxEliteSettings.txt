@@ -168,7 +168,7 @@ SHORT KEY_F5
 TOP  KEY_F9
 
 # run again
-UP KEY_F2
+UP KEY_F3
 
 # quit
 SIDE KEY_LEFTCTRL KEY_Q
