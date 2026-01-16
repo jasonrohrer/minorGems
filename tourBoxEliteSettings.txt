@@ -173,8 +173,8 @@ UP KEY_F3
 # quit
 SIDE KEY_LEFTCTRL KEY_Q
 
-# show local vars
-TOUR KEY_LEFTALT KEY_L
+# show local vars, show arguments
+TOUR KEY_LEFTALT KEY_L > SLEEP_100 KEY_LEFTALT KEY_U
 
 
 
@@ -235,6 +235,9 @@ SHORT KEY_LEFTSHIFT KEY_LEFTCTRL KEY_V
 # delete typed line
 DOWN KEY_LEFTCTRL KEY_U
 
+
+# start a git commit message and position curor inside quotes
+RIGHT "git commit -m " KEY_LEFTSHIFT KEY_APOSTROPHE > KEY_LEFTSHIFT KEY_APOSTROPHE > KEY_LEFT
 
 
 
