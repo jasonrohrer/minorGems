@@ -630,7 +630,7 @@ function rs_showData( $checkPassword = true ) {
 
     $bigSkip = $nextSkip + 200;
 
-    if( $bigSkip < $totalTickets ) {
+    if( $bigSkip < $totalRecords ) {
         echo "[<a href=\"server.php?action=show_data" .
             "&skip=$bigSkip&search=$search&order_by=$order_by\">".
             "Big Jump</a>]";
