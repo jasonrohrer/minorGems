@@ -27,7 +27,10 @@
 
 
 ;; Stop forcing newlines at the end of every file, please
-(setq mode-require-final-newline nil)
+;; Actually, since a bunch of Unix tools freak out of there's not
+;; a final newline, I'm going back to adding these to every file now.
+;; (Jason, February 5, 2026)
+(setq mode-require-final-newline t)
 
 
 (custom-set-variables
