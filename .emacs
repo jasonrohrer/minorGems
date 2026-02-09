@@ -294,8 +294,10 @@
     (if (and file line)
 		(with-temp-buffer
         (async-shell-command
-         (format "ddd --debugger 'gdb -ex \"break %s:%d\" -ex \"run\"' %s"
-                 (file-name-nondirectory file) line executable )
+         ;(format "ddd --debugger 'gdb -ex \"break %s:%d\" -ex \"run\"' %s"
+	     ;        (file-name-nondirectory file) line executable )
+		 (format " /home/jasonrohrer/checkout/claudDBG/cdbg %s %s:%d"
+                 executable (file-name-nondirectory file) line )
 		 ) )
       (message "Not in a file or unable to get line number!"))
 ;; Store the last used executable

@@ -178,6 +178,30 @@ TOUR KEY_LEFTALT KEY_L > SLEEP_100 KEY_LEFTALT KEY_U
 
 
 
+# for cdb debugger
+
+"cdb"
+
+# next
+TALL KEY_F10
+
+# step
+SHORT KEY_F11
+
+# continue
+TOP  KEY_F5
+
+# run again
+UP KEY_LEFTCTRL KEY_F5
+
+# quit
+SIDE KEY_LEFTALT KEY_F4
+
+# knob to adjust font size
+KNOB_TURN_CW H2 R0 KEY_LEFTCTRL KEY_EQUAL
+KNOB_TURN_CCW H2 R0 KEY_LEFTCTRL KEY_MINUS
+
+
 
 
 
