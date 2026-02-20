@@ -318,12 +318,31 @@ SCROLL_TURN_DOWN H2 R2 KEY_LEFTCTRL KEY_Y
 TOUR  KEY_LEFTCTRL KEY_LEFTSHIFT KEY_APOSTROPHE
 
 
-# save
+# repeat export
+#TOP  KEY_LEFTCTRL KEY_LEFTCTRL KEY_LEFTALT KEY_LEFTSHIFT KEY_S > SLEEP_100 KEY_ENTER
+
+# actually, have TOP do plain old SAVE
 TOP  KEY_LEFTCTRL KEY_S
+
 
 # hold down ALT to toggle to eyedropper
 TALL KEY_LEFTALT HOLD
 
+# rotate through tabs
+C1 KEY_LEFTCTRL KEY_LEFTSHIFT KEY_TAB
+C2 KEY_LEFTCTRL KEY_TAB
+
+# switch to pencil
+SHORT KEY_B
+
+# switch to select
+UP KEY_M
+
+# select nothing
+DOWN KEY_ESC
+
+# switch to fill
+RIGHT KEY_G
 
 
 "Geeqie"
