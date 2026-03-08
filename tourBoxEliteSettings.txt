@@ -224,6 +224,9 @@ TALL KEY_C
 DIAL_TURN_CCW H2 R1 KEY_TAB > KEY_UP > KEY_TAB
 DIAL_TURN_CW H2 R1 KEY_TAB > KEY_DOWN > KEY_TAB
 
+# expand/collapse album sub-tree
+DOWN  KEY_SPACE
+
 
 
 
