@@ -83,16 +83,6 @@ char SingleTextureGL::getBackupBytes( unsigned char **outBytes,
 void SingleTextureGL::reloadFromBackup() {
     
     if( mBackupBytes != NULL ) {
-        
-        glGenTextures( 1, &mTextureID );
-        
-        int error = glGetError();
-        if( error != GL_NO_ERROR ) {		// error
-            printf( "Error generating new texture ID, error = %d, \"%s\"\n",
-                    error, glGetString( error ) );
-            }
-        
-        
         setTextureData( mBackupBytes, mAlphaOnly, 
                         mWidthBackup, mHeightBackup, 
                         // backup already has edges expanded
