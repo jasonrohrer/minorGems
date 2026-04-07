@@ -858,12 +858,13 @@ function ds_createAccount( $steam_id  ) {
         ds_log( "Creating user account for $steam_id" );
             
         return $discord_unlock_words;
-    }
+        }
     else {
         ds_log( "FAILED: Creating user account for $steam_id.  ".
                 "Error: failed to generate unique pass words sequence." );
 
         return "Failed to create account.";
+        }
     }
 
 
