@@ -504,7 +504,7 @@ function ds_showData( $checkPassword = true ) {
     $search = ds_requestFilter( "search", "/[A-Z0-9_@. \-]+/i" );
 
     $order_by = ds_requestFilter( "order_by", "/[A-Z_]+/i",
-                                  "id" );
+                                  "steam_id" );
     $order_dir = ds_requestFilter( "order_dir", "/(DESC|ASC)/",
                                    "DESC" );
     
