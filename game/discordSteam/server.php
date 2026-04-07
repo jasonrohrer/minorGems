@@ -761,7 +761,7 @@ function ds_getSecureRandomBoundedInt( $inMaxVal, $inSecret ) {
 
 // keeps trying up to 100 times until it picks
 // one that's not already assigned to another user
-function ds_generateRandomPasswordSequence( $email, $numberOfWords = 4 ) {
+function ds_generateRandomPasswordSequence( $steam_id, $numberOfWords = 4 ) {
 
     global $tableNamePrefix;
 
@@ -788,7 +788,7 @@ function ds_generateRandomPasswordSequence( $email, $numberOfWords = 4 ) {
             
             $pick = ds_getSecureRandomBoundedInt(
                 $totalNouns - 1,
-                $email . $passWordSelectionSecret );
+                $steam_id . $passWordSelectionSecret );
             
             $query = "SELECT noun from $tableNamePrefix"."random_nouns ".
                 "limit $pick, 1;";
@@ -835,70 +835,35 @@ function getHTTPHeaders() {
 
 
 // returns four secret words
-function ds_createAccount( $email, $amount_paid_uds_cents, $paymentSource,
-                           $note ) {
+function ds_createAccount( $steam_id  ) {
     global $tableNamePrefix;
-    
-    $id = ds_getUserID( $email );
-    
-    if( $id == -1 ) {
-        // don't check for duplicate email here
-        // we already know that email doesn't exist
-                
-        $discord_unlock_words = ds_generateRandomPasswordSequence( $email );
 
-        if( $discord_unlock_words != "FAILED" ) {
-            
-            $query =
-                "INSERT INTO $tableNamePrefix"."users ".
-                "SET email = '$email', ".
-                "sms_phone = '', ".
-                "amount_paid_uds_cents = '$amount_paid_uds_cents', ".
-                "discord_unlock_words = '$discord_unlock_words', ".
-                "discord_unlock_words_used = 0,".
-                "discord_user_id = '0',".
-                "discord_dm_channel_id = '0',".
-                "zip_latitude = '0', zip_longitude = '0', ".
-                "guess_date = CURRENT_TIMESTAMP, ".
-                "guess_latitude = '0', guess_longitude = '0', ".
-                "unsubscribe = '0', ".
-                "creation_date = CURRENT_TIMESTAMP;";
-            
-            $result = ds_queryDatabase( $query );
+    $discord_unlock_words = ds_generateRandomPasswordSequence( $steam_id );
 
-            $dollarsPaid = ds_centsToDollars( $amount_paid_uds_cents );
+    if( $discord_unlock_words != "FAILED" ) {
             
-            ds_log( "Creating user account for $email with ".
-                    "$dollarsPaid amount paid ".
-                    "(payment source: $paymentSource) ($note)" );
-            return $discord_unlock_words;
-            }
-        else {
-            ds_log( "FAILED: Creating user account for $email with".
-                    "$dollarsPaid dollars paid ".
-                    "(payment source: $paymentSource) ($note).  ".
-                    "Error: failed to generate unique pass words sequence." );
-
-            return "Failed to create account.";
-            }
-        }
-    else {
-        $query = "UPDATE $tableNamePrefix"."users ".
-            "SET amount_paid_uds_cents = ".
-            "amount_paid_uds_cents + $amount_paid_uds_cents ".
-            "WHERE id = '$id';";
+        $query =
+            "INSERT INTO $tableNamePrefix"."users ".
+            "SET steam_id = '$steam_id', ".
+            "discord_unlock_words = '$discord_unlock_words', ".
+            "discord_unlock_words_used = 0,".
+            "discord_user_id = '0',".
+            "discord_dm_channel_id = '0',".
+            "creation_date = CURRENT_TIMESTAMP;";
+            
         $result = ds_queryDatabase( $query );
 
         $dollarsPaid = ds_centsToDollars( $amount_paid_uds_cents );
-        
-        ds_log( "Adding $dollarsPaid dollars paid for $email ".
-                "(payment source: $paymentSource) ($note)" );
-
-        $discord_unlock_words =
-            ds_getUserField( $email, "discord_unlock_words",
-                             "ERROR: words not found" );
+            
+        ds_log( "Creating user account for $steam_id" );
+            
         return $discord_unlock_words;
-        }
+    }
+    else {
+        ds_log( "FAILED: Creating user account for $steam_id.  ".
+                "Error: failed to generate unique pass words sequence." );
+
+        return "Failed to create account.";
     }
 
 
@@ -1361,15 +1326,25 @@ function ds_steamLoginReturn() {
 
         // fixme:
         // check if they own any game
+        $ownOne = false;
 
-        //  use this:  $trueOwner = ds_doesSteamUserOwnApp( $steam_id );
-        //  block case where true owner isn't them (family sharing)
-        
-        // if they do, then generate four secret words for them
-        // save words in db
-        
+        global $steamAppIDs;
 
-        // if they don't, display error message and return
+        foreach( $steamAppIDs as $appID ) {
+
+            if( ds_doesSteamUserOwnApp( $steam_id, $appID ) ) {
+                $ownOne = true;
+                break;
+            }
+        }
+
+        if( ! $ownOne ) {
+
+            echo "You don't own the necessary games on Steam.<br><br>";
+            return;
+        }
+
+        $discord_unlock_words = ds_createAccount( $steam_id );
         }
     else {
         $discord_unlock_words = ds_mysqli_result( $result,
@@ -1382,6 +1357,41 @@ function ds_steamLoginReturn() {
     echo "$discord_unlock_words<br><br>";
     }
 
+
+
+// returns true or false
+function ds_doesSteamUserOwnApp( $inSteamID, $inAppID ) {
+    global $steamWebAPIKey;
+    
+    $url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/V0001".
+        "?format=xml".
+        "&key=$steamWebAPIKey".
+        "&steamid=$inSteamID".
+        "&appid=$inAppID";
+
+    $result = file_get_contents( $url );
+
+    
+    $matched = preg_match( "#<ownsapp>(\w+)</ownsapp>#",
+                           $result, $matches );
+
+    if( $matched && $matches[1] == "true" ) {
+
+        // make sure we return the true owner
+        $matchedB = preg_match( "#<ownersteamid>(\d+)</ownersteamid>#",
+                                $result, $matchesB );
+
+        if( $matchedB == $inSteamID) {
+            return true;
+            }
+        else {
+            return false;
+            }
+        }
+    else {
+        return false;
+        }
+    }  
 
 
 

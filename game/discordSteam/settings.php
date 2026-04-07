@@ -14,6 +14,10 @@ $serverRootURL = "http://localhost";
 $fullServerURL = "http://localhost/jcr13/discordSteam/server.php";
 
 
+// key to prove our publisher identity to Steam API
+// this key must be kept secret.
+$steamWebAPIKey = "REPLACE_ME";
+
 // the app IDs that we check ownership for
 // Inside a Star-filled Sky
 // The Castle Doctrine
