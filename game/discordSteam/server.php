@@ -961,7 +961,7 @@ function ds_areSecretWordsValid( $secret_words ) {
         "FROM $tableNamePrefix"."users ".
         "WHERE discord_unlock_words = '$secret_words';";
     
-    $result = sd_queryDatabase( $query );
+    $result = ds_queryDatabase( $query );
     $numRows = mysqli_num_rows( $result );
         
     if( $numRows == 1 ) {
