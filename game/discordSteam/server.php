@@ -954,11 +954,28 @@ function ds_openDMChannel( $user_id, $discordID ) {
 
 
 
+function ds_areSecretWordsValid( $secret_words ) {
+    global $tableNamePrefix;
+
+    $query = "SELECT steam_id ".
+        "FROM $tableNamePrefix"."users ".
+        "WHERE discord_unlock_words = '$secret_words';";
+    
+    $result = sd_queryDatabase( $query );
+    $numRows = mysqli_num_rows( $result );
+        
+    if( $numRows == 1 ) {
+        return true;
+        }
+    else {
+        return false;
+        }
+    }
+
+
 
 function ds_discordInteraction() {
     global $discordPublicKey;
-
-    ds_log( "Got Discord interaction" );
     
     $postBody = file_get_contents( 'php://input' );
 
