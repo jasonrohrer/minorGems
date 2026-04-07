@@ -965,6 +965,7 @@ function ds_discordInteraction() {
         ds_discordEndpointVerify( $_SERVER, $postBody, $discordPublicKey );
 
     if( ! $result ) {
+        ds_log( "Discord endpoint verification failed, returning 401" );
         http_response_code( 401 );
         die;
         }
@@ -1191,12 +1192,14 @@ function ds_discordEndpointVerify( array $headers, $payload, $publicKey ) {
 
     if( ! isset( $headers['HTTP_X_SIGNATURE_ED25519'] )
         || ! isset( $headers['HTTP_X_SIGNATURE_TIMESTAMP'] ) ) {
+        ds_log( "Discord request missing HTTP_X headers" );
         return false;
         }
     $signature = $headers[ 'HTTP_X_SIGNATURE_ED25519' ];
     $timestamp = $headers[ 'HTTP_X_SIGNATURE_TIMESTAMP' ];
     
     if( !trim( $signature, '0..9A..Fa..f' ) == '' ) {
+        ds_log( "Trimming signature on Discord request failed" );
         return false;
         }
     
@@ -1206,6 +1209,8 @@ function ds_discordEndpointVerify( array $headers, $payload, $publicKey ) {
     
     if( !sodium_crypto_sign_verify_detached( $binarySignature,
                                              $message, $binaryKey ) ) {
+        ds_log( "Sodium crypto signature verify on Discord request failed, ".
+                "bad signature $signature for public key $publicKey" );
         return false;
         }
     
