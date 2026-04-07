@@ -81,13 +81,13 @@ postData = '{ "name": "unlock", "description":"Unlock the Members area.", "type"
 
 
 
-#response = requests.post( endpoint, headers = headers, data = postData )
+response = requests.post( endpoint, headers = headers, data = postData )
 
 #response = requests.get( endpoint, headers = headers )
 
 #response = requests.delete( endpoint, headers = headers )
 
-response = requests.put( endpoint, headers = headers )
+#response = requests.put( endpoint, headers = headers )
 
 
 print( "Response code:  " + 
