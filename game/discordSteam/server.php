@@ -170,9 +170,6 @@ else if( $action == "logout" ) {
 else if( $action == "discord_interaction" ) {
     ds_discordInteraction();
     }
-else if( $action == "establish_dm" ) {
-    ds_establishDM();
-    }
 else if( $action == "ds_setup" ) {
     global $setup_header, $setup_footer;
     echo $setup_header; 
@@ -630,7 +627,7 @@ function ds_showData( $checkPassword = true ) {
 
 
     for( $i=0; $i<$numRows; $i++ ) {
-        $steam_id = ds_mysqli_result( $result, $i, "id" );
+        $steam_id = ds_mysqli_result( $result, $i, "steam_id" );
     
         $discord_unlock_words =
             ds_mysqli_result( $result, $i, "discord_unlock_words" );
@@ -1051,7 +1048,7 @@ function ds_discordInteraction() {
 
                 global $tableNamePrefix;
                 
-                $query = "SELECT id, discord_unlock_words_used ".
+                $query = "SELECT steam_id, discord_unlock_words_used ".
                     "FROM $tableNamePrefix"."users ".
                     "WHERE discord_unlock_words = '$submittedWords';";
 
@@ -1060,7 +1057,7 @@ function ds_discordInteraction() {
                 
                 if( $valid && $numRows == 1 ) {
                     
-                    $user_id = ds_mysqli_result( $result, 0, "id" );
+                    $steam_id = ds_mysqli_result( $result, 0, "steam_id" );
                     $discord_unlock_words_used =
                         ds_mysqli_result( $result, 0,
                                           "discord_unlock_words_used" );
@@ -1088,7 +1085,7 @@ function ds_discordInteraction() {
                             $query = "UPDATE $tableNamePrefix"."users ".
                                 "SET discord_user_id = '$discordID', ".
                                 "discord_unlock_words_used = 1 ".
-                                "WHERE id = $user_id";
+                                "WHERE steam_id = $steam_id";
                             
                             ds_queryDatabase( $query );
                             
@@ -1163,44 +1160,6 @@ function ds_discordInteraction() {
 
         echo $response;
         }
-    }
-
-
-
-function ds_establishDM() {
-    ds_checkPassword( "establish_dm" );
-
-    $user_id = ds_requestFilter( "id", "/[0-9]+/i", -1 );
-
-    if( $user_id != 1 ) {    
-
-        $email = ds_getEmail( $user_id );
-    
-        $discord_user_id = ds_getUserField( $email, "discord_user_id", 0 );
-
-        if( $discord_user_id != 0 ) {
-            $dmResult = ds_openDMChannel( $user_id, $discord_user_id );
-
-            if( $dmResult == 2 ) {
-                echo "Opened DM channel and sent message<br>";
-                }
-            else if( $dmResult == 1 ) {
-                echo "Opened DM channel but FAILED to send message<br>";
-                }
-            else {
-                echo "Failed to open DM channel<br>";
-                }
-            }
-        else {
-            echo "Failed to get discord_user_id for $email<br>";
-            }
-        }
-    else {
-        echo "id parameter not set<br>";
-        }
-    
-        
-    ds_showDetail( false );
     }
 
 
