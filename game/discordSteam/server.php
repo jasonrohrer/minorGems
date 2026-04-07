@@ -957,6 +957,8 @@ function ds_openDMChannel( $user_id, $discordID ) {
 
 function ds_discordInteraction() {
     global $discordPublicKey;
+
+    ds_log( "Got Discord interaction" );
     
     $postBody = file_get_contents( 'php://input' );
 
