@@ -1131,29 +1131,6 @@ function ds_discordInteraction() {
                             $message =
                                 "Command **/$commandName** was successful.  ".
                                 "You now have the **$roleName** role.";
-
-
-                            $dmResult =
-                                ds_openDMChannel( $steam_id, $discordID );
-
-                            if( $dmResult == 2 ) {
-                                
-                                $message =  $message .
-                                    "  A private message channel with ".
-                                    "this bot should now exist.";
-                                }
-                            else if( $dmResult == 1 ) {
-                                $message =  $message .
-                                    "  Failed to send a private ".
-                                    "message to you from this ".
-                                    "bot.";
-                                }
-                            else {
-                                $message =
-                                    $message .
-                                    "  NOTE:  A private message channel with ".
-                                    "this bot could NOT be created.";
-                                }
                             }
                         else {
                             $message = "Command **/$commandName** Error: ".
