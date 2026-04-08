@@ -1401,7 +1401,7 @@ function ds_doesSteamUserOwnApp( $inSteamID, $inAppID ) {
         $matchedB = preg_match( "#<ownersteamid>(\d+)</ownersteamid>#",
                                 $result, $matchesB );
 
-        if( $matchedB == $inSteamID) {
+        if( $matchedB && $matchesB[1] == $inSteamID ) {
             return true;
             }
         else {
