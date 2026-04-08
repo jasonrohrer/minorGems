@@ -923,7 +923,7 @@ function ds_getDiscordRoleName( $inRoleID ) {
 // returns 0 if failed to make channel
 // returns 1 if made channel but failed to send first message
 // returns 2 if made channel and sent first message
-function ds_openDMChannel( $user_id, $discordID ) {
+function ds_openDMChannel( $steam_id, $discordID ) {
     
     // now try to open a DM channel with them
     $endpoint = "https://discordapp.com/api".
@@ -948,7 +948,7 @@ function ds_openDMChannel( $user_id, $discordID ) {
                     "UPDATE $tableNamePrefix"."users ".
                     "SET discord_dm_channel_id = ".
                     "'$channelID' ".
-                    "WHERE id = $user_id";
+                    "WHERE steam_id = $steam_id";
                             
                 ds_queryDatabase( $query );
 
@@ -1134,7 +1134,7 @@ function ds_discordInteraction() {
 
 
                             $dmResult =
-                                ds_openDMChannel( $user_id, $discordID );
+                                ds_openDMChannel( $steam_id, $discordID );
 
                             if( $dmResult == 2 ) {
                                 
