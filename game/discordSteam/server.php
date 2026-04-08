@@ -875,8 +875,6 @@ function ds_createAccount( $steam_id  ) {
             
         $result = ds_queryDatabase( $query );
 
-        $dollarsPaid = ds_centsToDollars( $amount_paid_uds_cents );
-            
         ds_log( "Creating user account for $steam_id" );
             
         return $discord_unlock_words;
