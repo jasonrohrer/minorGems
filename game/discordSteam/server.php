@@ -131,6 +131,19 @@ if( isset( $_SERVER[ "REMOTE_ADDR" ] ) ) {
     }
 
 
+$showHeaderAndFooter = false;
+
+// pages that are shown to end user have header and footer
+if( $action == "steam_login_return" ||
+    $action == "unlock_discord" ) {
+
+    $showHeaderAndFooter = true;
+    
+    global $header;
+    eval( $header );
+    }
+
+
 $logAllRequests = false;
 
 if( $logAllRequests ) {
@@ -166,6 +179,9 @@ else if( $action == "show_detail" ) {
     }
 else if( $action == "logout" ) {
     ds_logout();
+    }
+else if( $action == "unlock_discord" ) {
+    ds_unlockDiscord();
     }
 else if( $action == "discord_interaction" ) {
     ds_discordInteraction();
@@ -206,7 +222,7 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
     
         
     if( $exists  ) {
-        echo "Skydrop Server database setup and ready";
+        echo "Discord Steam Server database setup and ready";
         }
     else {
         // start the setup procedure
@@ -225,6 +241,15 @@ else if( preg_match( "/server\.php/", $_SERVER[ "SCRIPT_NAME" ] ) ) {
 
         echo $setup_footer;
         }
+    }
+
+
+
+// pages that are shown to end user have header and footer
+if( $showHeaderAndFooter ) {
+
+    global $footer;
+    eval( $footer );
     }
 
 
@@ -969,6 +994,17 @@ function ds_areSecretWordsValid( $secret_words ) {
         }
     }
 
+
+
+function ds_unlockDiscord() {
+
+    echo "<br><br><center>Login with Steam to unlock the ".
+        "Discord Members Area:<br><br>";
+    
+    ds_showSteamLoginButton();
+
+    echo "</center><br><br>";
+    }
 
 
 function ds_discordInteraction() {

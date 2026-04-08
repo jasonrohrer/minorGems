@@ -133,6 +133,10 @@ $discordSpecialRoleID = "1110719232804655115";
 $discordInviteURL = "https://discord.gg/DREkqSNCxp";
 
 
+// header and footers for various pages
+$header = "include( \"header.php\" );";
+$footer = "include( \"footer.php\" );";
+
 
 // SMTP settings
 
