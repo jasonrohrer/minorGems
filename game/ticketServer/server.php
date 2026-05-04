@@ -561,6 +561,36 @@ function ts_sellTicket() {
     
             $found_unused_id = 0;
             $salt = 0;
+
+
+            // watch for attempted duplicate creation of ticket for
+            // existing steamID that already has a ticket
+            if( ! $manual
+                &&
+                preg_match( "#(\d+)@steamgames.com#", $inEmail, $matches ) ) {
+
+                // this is a "fake" steam user email
+
+                // do they already have an account here?
+
+                // If so, return that existing ticket, which allows
+                // steamGate to recover from a loss of data without
+                // force-generating new tickets for every existing user
+                
+                $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
+                    "WHERE email = '$email' AND blocked = '0';";
+                $result = ts_queryDatabase( $query );
+
+                $numRows = mysqli_num_rows( $result );
+
+                if( $numRows > 0 ) {
+                    $ticket_id = ts_mysqli_result( $result, 0, "ticket_id" );
+
+                    echo "$ticket_id";
+                    return;
+                    }
+                }
+
             
             
             while( ! $found_unused_id ) {
