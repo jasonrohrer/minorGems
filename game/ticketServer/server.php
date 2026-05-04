@@ -567,7 +567,7 @@ function ts_sellTicket() {
             // existing steamID that already has a ticket
             if( ! $manual
                 &&
-                preg_match( "#(\d+)@steamgames.com#", $inEmail, $matches ) ) {
+                preg_match( "#(\d+)@steamgames.com#", $email, $matches ) ) {
 
                 // this is a "fake" steam user email
 
