@@ -80,8 +80,6 @@
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (require 'col-highlight)
 
-(toggle-highlight-column-when-idle 1)
-(col-highlight-set-interval 0.5)
 (set-face-background 'col-highlight "#EEEEFF")
 
 

@@ -72,6 +72,11 @@ SCROLL_TURN_DOWN KEY_LEFTALT KEY_X > "unpop-to-mark-command" > KEY_ENTER
 SIDE  KEY_LEFTALT KEY_LEFTSHIFT KEY_SEMICOLON > "(setq mark-ring  ())" > KEY_ENTER > KEY_LEFTCTRL KEY_U > KEY_0 > KEY_LEFTALT KEY_X > "visible-mark-mode" > KEY_ENTER
 
 
+# toggle column highlight, which is visually distracting if it's on
+# all the time
+SCROLL_PRESS  KEY_LEFTALT KEY_X > "colu-h" > KEY_ENTER
+
+
 
 # buffers
 C1  KEY_LEFTCTRL KEY_X KEY_LEFT
