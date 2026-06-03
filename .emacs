@@ -91,7 +91,7 @@
 (setq visible-mark-faces `(visible-mark-face1))
 
 (require 'visible-mark)
-(global-visible-mark-mode 1)
+(global-visible-mark-mode 0)
 
 (set-face-background 'visible-mark-face1 "#FFE2A8")
 (set-face-underline 'visible-mark-face1 t)

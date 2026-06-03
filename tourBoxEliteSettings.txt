@@ -59,8 +59,8 @@ SHORT KEY_LEFTCTRL  KEY_Y
 
 
 
-# add new mark and deactivate it
-TOUR  KEY_LEFTCTRL KEY_SPACE > KEY_LEFTCTRL KEY_SPACE
+# add new mark and deactivate it, and make marks visible
+TOUR  KEY_LEFTCTRL KEY_SPACE > KEY_LEFTCTRL KEY_SPACE > KEY_LEFTCTRL KEY_U > KEY_1 > KEY_LEFTALT KEY_X > "visible-mark-mode" > KEY_ENTER
 
 # cycle back through mark ring
 SCROLL_TURN_UP  KEY_LEFTCTRL KEY_U > KEY_LEFTCTRL KEY_SPACE
@@ -68,8 +68,9 @@ SCROLL_TURN_UP  KEY_LEFTCTRL KEY_U > KEY_LEFTCTRL KEY_SPACE
 # cycle forward through mark ring
 SCROLL_TURN_DOWN KEY_LEFTALT KEY_X > "unpop-to-mark-command" > KEY_ENTER
 
-# clear mark ring
-SIDE  KEY_LEFTALT KEY_LEFTSHIFT KEY_SEMICOLON > "(setq mark-ring  ())" > KEY_ENTER
+# clear mark ring, and hide marks
+SIDE  KEY_LEFTALT KEY_LEFTSHIFT KEY_SEMICOLON > "(setq mark-ring  ())" > KEY_ENTER > KEY_LEFTCTRL KEY_U > KEY_0 > KEY_LEFTALT KEY_X > "visible-mark-mode" > KEY_ENTER
+
 
 
 # buffers
