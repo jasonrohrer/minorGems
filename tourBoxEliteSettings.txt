@@ -55,11 +55,17 @@ DIAL_TURN_CW   KEY_RIGHT
 TALL  KEY_ESC KEY_0 > KEY_LEFTCTRL KEY_K > KEY_LEFTCTRL  KEY_K
 SHORT KEY_LEFTCTRL  KEY_Y
 
-# undo
-SIDE  KEY_LEFTCTRL  KEY_SLASH
 
-# auto complete
-TOUR  KEY_LEFTALT KEY_X "jcr-next-column" KEY_ENTER
+
+
+# add new mark and deactivate it
+SCROLL_PRESS  KEY_LEFTCTRL KEY_SPACE > KEY_LEFTCTRL KEY_SPACE
+
+# cycle back through mark ring
+TOUR  KEY_LEFTCTRL KEY_U > KEY_LEFTCTRL KEY_SPACE
+
+# clear mark ring
+SIDE  KEY_LEFTALT KEY_LEFTSHIFT KEY_SEMICOLON > "(setq mark-ring  ())" > KEY_ENTER
 
 
 # buffers
