@@ -85,6 +85,18 @@
 (set-face-background 'col-highlight "#EEEEFF")
 
 
+;; make marks visible
+(setq visible-mark-max 20)
+
+(setq visible-mark-faces `(visible-mark-face1))
+
+(require 'visible-mark)
+(global-visible-mark-mode 1)
+
+(set-face-background 'visible-mark-face1 "#FFE2A8")
+(set-face-underline 'visible-mark-face1 t)
+
+
 ; these don't work in emacs 23
 ; fix comment syntax highlighting problems
 ;( setq font-lock-support-mode 'lazy-lock-mode )
