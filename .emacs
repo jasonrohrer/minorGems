@@ -71,6 +71,20 @@
 ; auto fill mode
 ( add-hook 'c-mode-common-hook 'turn-on-auto-fill )
 
+
+;; Enable current line highlighting globally
+(global-hl-line-mode 1)
+(set-face-background 'hl-line "#EEEEFF")
+
+
+(add-to-list 'load-path "~/.emacs.d/lisp")
+(require 'col-highlight)
+
+(toggle-highlight-column-when-idle 1)
+(col-highlight-set-interval 0.5)
+(set-face-background 'col-highlight "#EEEEFF")
+
+
 ; these don't work in emacs 23
 ; fix comment syntax highlighting problems
 ;( setq font-lock-support-mode 'lazy-lock-mode )
