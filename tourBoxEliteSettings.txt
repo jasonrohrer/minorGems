@@ -347,6 +347,10 @@ TOP  KEY_LEFTCTRL KEY_S
 # hold down ALT to toggle to eyedropper
 TALL KEY_LEFTALT HOLD
 
+# press knob to hold down CTRL for copy-dragging a selection (and other things
+# like restricting the angles of lines)
+KNOB_PRESS KEY_LEFTCTRL HOLD
+
 # rotate through tabs
 C1 KEY_LEFTCTRL KEY_LEFTSHIFT KEY_TAB
 C2 KEY_LEFTCTRL KEY_TAB
