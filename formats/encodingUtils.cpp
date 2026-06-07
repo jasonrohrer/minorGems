@@ -9,6 +9,10 @@
  *
  * 2004-March-21   Jason Rohrer
  * Fixed a variable scoping and redefinition bug pointed out by Benjamin Meyer.
+ *
+ * 2026-June-7   Jason Rohrer
+ * Fixed a range warning in latest gcc.
+ *
  */
 
 
@@ -23,7 +27,7 @@
 
 
 
-char fourBitIntToHex( int inInt ) {
+char fourBitIntToHex( unsigned int inInt ) {
     char outChar[2];
 
     if( inInt < 10 ) {
