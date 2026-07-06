@@ -255,7 +255,7 @@ public:
 		memset ((void*) leakHash, 0x00, SOME_PRIME * sizeof(int));
 
 #ifdef MAGIC
-		fprintf (report, "# memory overrun protection of %d Bytes "
+		fprintf (report, "# memory overrun protection of %zu Bytes "
 			 "with magic 0x%4lX\n", 
 			 SAVESIZE, MAGIC);
 #endif
@@ -352,7 +352,7 @@ void* LeakTracer::registerAlloc (size_t size, bool type) {
 	//	fprintf(stderr, "LeakTracer::registerAlloc()\n");
 
 	if (destroyed) {
-		fprintf(stderr, "Oops, registerAlloc called after destruction of LeakTracer (size=%d)\n", size);
+		fprintf(stderr, "Oops, registerAlloc called after destruction of LeakTracer (size=%zu)\n", size);
 		return LT_MALLOC(size);
 	}
 
@@ -512,7 +512,7 @@ void LeakTracer::registerFree (void *p, bool type) {
             
             fprintf(report, 
 				"# new%s but delete%s "
-				"; size %d\n",
+				"; size %zu\n",
 				((!type) ? "[]" : " normal"),
 				((type) ? "[]" : " normal"),
 				leaks[i].size );
@@ -529,10 +529,10 @@ void LeakTracer::registerFree (void *p, bool type) {
             addStackTraceToReport( leaks[i] );
             
             fprintf(report, "# memory overwritten beyond allocated"
-				" %d bytes\n",
+				" %zu bytes\n",
 				leaks[i].size);
 
-			fprintf(report, "# %d byte beyond area:\n",
+			fprintf(report, "# %zu byte beyond area:\n",
 				SAVESIZE);
 			hexdump((unsigned char*)p+leaks[i].size,
 				SAVESIZE);
@@ -635,8 +635,20 @@ void operator delete (void *p) {
 	leakTracer.registerFree(p,false);
 }
 
+void operator delete (void *p, size_t s) {
+    (void)s;
+        
+	leakTracer.registerFree(p,false);
+}
+
 
 void operator delete[] (void *p) {
+	leakTracer.registerFree(p,true);
+}
+
+
+void operator delete[] (void *p, size_t s) {
+    (void)s;   
 	leakTracer.registerFree(p,true);
 }
 
