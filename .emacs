@@ -60,7 +60,7 @@
 					:underline nil))))
 
  '(font-lock-type-face
-   ((t (:foreground "#008888"
+   ((t (:foreground "#008080"
 					:weight normal
 					:slant normal
 					:underline nil))))
