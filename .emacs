@@ -324,7 +324,7 @@
 (defun ddd-debug-line (executable)
   "Start ddd with gdb, set a breakpoint at the current line, and run."
   (interactive
-   (list (read-shell-command "Command to debug: " (or ddd-debug-line-command "./myProgram" ) )))  ;; Auto-complete based on current directory
+   (list (read-shell-command "Command to debug: " (or ddd-debug-line-command "./Chessamphetamine" ) )))  ;; Auto-complete based on current directory
     
   (let ((file (buffer-file-name))             ; Get current file
         (line (line-number-at-pos)))          ; Get current line number
