@@ -41,9 +41,65 @@
  '(global-font-lock-mode t nil (font-lock))
  '(tab-stop-list (quote (4 8 12 16 20 24 28 32 36 40 44 48 52 56 60)))
  '(transient-mark-mode t))
+
+
+
+
 (custom-set-faces
-  ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
-  ;; Your init file should contain only one such instance.
+ ;; Comments: green, normal, no underline
+ '(font-lock-comment-face
+   ((t (:foreground "#00AA00"
+					:weight normal
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-string-face
+   ((t (:foreground "#FF00FF"
+					:weight normal
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-type-face
+   ((t (:foreground "#CC00FF"
+					:weight bold
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-keyword-face
+   ((t (:foreground "#C88000"
+					:weight bold
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-function-name-face
+   ((t (:foreground "#C80000"
+					:weight normal
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-variable-name-face
+   ((t (:foreground "#0000FF"
+					:weight normal
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-constant-face
+   ((t (:foreground "#C800FF"
+					:weight bold
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-warning-face
+   ((t (:foreground "#FF0000"
+					:weight bold
+					:slant normal
+					:underline nil))))
+
+ '(font-lock-reference-face
+   ((t (:foreground "#00FFFF"
+					:weight normal
+					:slant normal
+					:underline nil))))
  )
 
 
@@ -133,42 +189,6 @@
 ;( add-hook 'c-mode-common-hook 'turn-on-setnu-mode )
 
 
-( copy-face 'italic  'font-lock-comment-face )
-( set-face-foreground 'font-lock-comment-face "#00AA00" )
-( setq font-lock-comment-face 'font-lock-comment-face )
-
-( copy-face 'default 'font-lock-string-face )
-( set-face-foreground 'font-lock-string-face "#FF00FF" )
-( setq font-lock-string-face 'font-lock-string-face )
-
-( copy-face 'bold 'font-lock-type-face )
-( set-face-foreground 'font-lock-type-face "#0000FF" )
-( setq font-lock-type-face 'font-lock-type-face )
-
-( copy-face 'bold 'font-lock-keyword-face )
-( set-face-foreground 'font-lock-keyword-face "#C88000" )
-( setq font-lock-keyword-face 'font-lock-keyword-face )
-
-
-( copy-face 'default 'font-lock-function-name-face )
-( set-face-foreground 'font-lock-function-name-face "#C80000" )
-( setq font-lock-function-name-face 'font-lock-function-name-face )
-
-( copy-face 'default 'font-lock-variable-name-face )
-( set-face-foreground 'font-lock-variable-name-face "#0000FF" )
-( setq font-lock-variable-name-face 'font-lock-variable-name-face )
-
-( copy-face 'bold 'font-lock-constant-face )
-( set-face-foreground 'font-lock-constant-face "#C800FF" )
-( setq font-lock-constant-face 'font-lock-constant-face )
-
-( copy-face 'bold 'font-lock-warning-face )
-( set-face-foreground 'font-lock-warning-face "#FF0000" )
-( setq font-lock-warning-face 'font-lock-warning-face )
-
-( copy-face 'default 'font-lock-reference-face )
-( set-face-foreground 'font-lock-reference-face "#00FFFF" )
-( setq font-lock-reference-face 'font-lock-reference-face )
 
 
 
@@ -361,7 +381,7 @@ A token start is a non-space character that is either at BOL or
 immediately preceded by a space or tab."
   (save-excursion
     (let ((found nil))
-      ;; Walk upward until we find a “real” line or hit bobp.
+      ;; Walk upward until we find a ?real? line or hit bobp.
       (while (and (not found)
                   (not (bobp)))
         (forward-line -1)
