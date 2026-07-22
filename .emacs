@@ -60,14 +60,14 @@
 					:underline nil))))
 
  '(font-lock-type-face
-   ((t (:foreground "#CC00FF"
-					:weight bold
+   ((t (:foreground "#008888"
+					:weight normal
 					:slant normal
 					:underline nil))))
 
  '(font-lock-keyword-face
    ((t (:foreground "#C88000"
-					:weight bold
+					:weight normal
 					:slant normal
 					:underline nil))))
 
