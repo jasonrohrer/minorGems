@@ -150,6 +150,9 @@ else if( $action == "bulk_email_opt_out" ) {
 else if( $action == "bulk_account_delete" ) {
     ts_bulkAccountDelete();
     }
+else if( $action == "bulk_account_block" ) {
+    ts_bulkAccountBlock();
+    }
 else if( $action == "check_ticket" ) {
     ts_checkTicket();
     }
@@ -1098,6 +1101,82 @@ function ts_bulkAccountDelete() {
                 $result = ts_queryDatabase( $query );
 
                 ts_log( "$ticket_id for $email deleted by  $remoteIP" );
+                
+                $successCount ++;
+                }
+            if( $numRows == 0 ) {
+                echo "Email $email not found<br>";
+                $failedCount++;
+                }
+            }
+        }
+
+    echo "Summary:  $failedCount Failed, ".
+        "$successCount deleted.";
+    echo "<hr>";
+    ts_showData( false );
+    }
+
+
+function ts_bulkAccountBlock() {
+    ts_checkPassword( "bulk_account_block" );
+
+    global $tableNamePrefix, $remoteIP, $ts_mysqlLink;
+
+    $confirm = ts_requestFilter( "confirm", "/[01]/", 0 );
+
+    if( $confirm != 1 ) {
+        echo "Confirmation required.";
+        echo "<hr>";
+        ts_showData( false );
+        return;
+        }
+    
+    
+    // input filtering handled below
+    $emails = "";
+    if( isset( $_REQUEST[ "emails" ] ) ) {
+        $emails = trim( $_REQUEST[ "emails" ] );
+        }
+    
+    $emailArray = preg_split( "/\s+/", $emails );
+
+
+    $totalCount = count( $emailArray );
+    ts_log( "$totalCount account blocks initiated by $remoteIP" );
+
+
+    $failedCount = 0;
+    $successCount = 0;
+    foreach( $emailArray as $email ) {        
+        $unfilteredEmail = $email;
+        $email = ts_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
+        if( $email == "" ) {
+            echo "Invalid email address: $unfilteredEmail<br>";
+            $failedCount++;
+            }
+        else {
+            $email = strtolower( $email );
+
+            $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
+                "WHERE email = '$email';";
+            
+            $result = ts_queryDatabase( $query );
+
+
+            $numRows = mysqli_num_rows( $result );
+
+            for( $i=0; $i<$numRows; $i++ ) {
+                $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+
+                $query = "UPDATE $tableNamePrefix"."tickets SET " .
+                    "blocked = '1' " .
+                    "WHERE ticket_id = '$ticket_id';";
+                
+                $result = ts_queryDatabase( $query );
+
+                ts_log( "$ticket_id for $email blocked by  $remoteIP" );
                 
                 $successCount ++;
                 }
@@ -2133,6 +2212,20 @@ function ts_showData( $checkPassword = true ) {
     </FORM>
         </td>
 <?php
+
+    // form for bulk account blocking
+?>
+        <td>
+        Mass account BLOCK:<br><br>
+            <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="bulk_account_block">
+             Emails (one per line):<br>
+             <TEXTAREA NAME="emails" COLS=30 ROWS=10></TEXTAREA><br>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="BLOCK">
+    </FORM>
+        </td>
+<?php        
 
           
           
