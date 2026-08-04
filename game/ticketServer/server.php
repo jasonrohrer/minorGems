@@ -1188,7 +1188,7 @@ function ts_bulkAccountBlock() {
         }
 
     echo "Summary:  $failedCount Failed, ".
-        "$successCount deleted.";
+        "$successCount blocked.";
     echo "<hr>";
     ts_showData( false );
     }
