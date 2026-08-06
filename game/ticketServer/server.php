@@ -2310,8 +2310,6 @@ function ts_showData( $checkPassword = true ) {
         </td>
 <?php
 
-<?php
-
     // form for bulk account unblocking
 ?>
         <td>
