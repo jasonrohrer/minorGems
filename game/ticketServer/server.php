@@ -2291,6 +2291,9 @@ function ts_showData( $checkPassword = true ) {
     <INPUT TYPE="Submit" VALUE="REMOVE">
     </FORM>
         </td>
+
+             </tr>
+             <tr>
 <?php
 
     // form for bulk account blocking
@@ -2305,7 +2308,23 @@ function ts_showData( $checkPassword = true ) {
     <INPUT TYPE="Submit" VALUE="BLOCK">
     </FORM>
         </td>
-<?php        
+<?php
+
+<?php
+
+    // form for bulk account unblocking
+?>
+        <td>
+        Mass account UNBLOCK:<br><br>
+            <FORM ACTION="server.php" METHOD="post">
+    <INPUT TYPE="hidden" NAME="action" VALUE="bulk_account_unblock">
+             Emails (one per line):<br>
+             <TEXTAREA NAME="emails" COLS=30 ROWS=10></TEXTAREA><br>
+    <INPUT TYPE="checkbox" NAME="confirm" VALUE=1> Confirm<br>      
+    <INPUT TYPE="Submit" VALUE="UNBLOCK">
+    </FORM>
+        </td>
+<?php               
 
           
           
