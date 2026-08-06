@@ -153,6 +153,9 @@ else if( $action == "bulk_account_delete" ) {
 else if( $action == "bulk_account_block" ) {
     ts_bulkAccountBlock();
     }
+else if( $action == "bulk_account_unblock" ) {
+    ts_bulkAccountUnblock();
+    }
 else if( $action == "check_ticket" ) {
     ts_checkTicket();
     }
@@ -1189,6 +1192,83 @@ function ts_bulkAccountBlock() {
 
     echo "Summary:  $failedCount Failed, ".
         "$successCount blocked.";
+    echo "<hr>";
+    ts_showData( false );
+    }
+
+
+
+function ts_bulkAccountUnblock() {
+    ts_checkPassword( "bulk_account_unblock" );
+
+    global $tableNamePrefix, $remoteIP, $ts_mysqlLink;
+
+    $confirm = ts_requestFilter( "confirm", "/[01]/", 0 );
+
+    if( $confirm != 1 ) {
+        echo "Confirmation required.";
+        echo "<hr>";
+        ts_showData( false );
+        return;
+        }
+    
+    
+    // input filtering handled below
+    $emails = "";
+    if( isset( $_REQUEST[ "emails" ] ) ) {
+        $emails = trim( $_REQUEST[ "emails" ] );
+        }
+    
+    $emailArray = preg_split( "/\s+/", $emails );
+
+
+    $totalCount = count( $emailArray );
+    ts_log( "$totalCount account unblocks initiated by $remoteIP" );
+
+
+    $failedCount = 0;
+    $successCount = 0;
+    foreach( $emailArray as $email ) {        
+        $unfilteredEmail = $email;
+        $email = ts_filter( $email, "/[A-Z0-9._%+-]+@[A-Z0-9.-]+/i", "" );
+
+        if( $email == "" ) {
+            echo "Invalid email address: $unfilteredEmail<br>";
+            $failedCount++;
+            }
+        else {
+            $email = strtolower( $email );
+
+            $query = "SELECT ticket_id FROM $tableNamePrefix"."tickets ".
+                "WHERE email = '$email';";
+            
+            $result = ts_queryDatabase( $query );
+
+
+            $numRows = mysqli_num_rows( $result );
+
+            for( $i=0; $i<$numRows; $i++ ) {
+                $ticket_id = ts_mysqli_result( $result, $i, "ticket_id" );
+
+                $query = "UPDATE $tableNamePrefix"."tickets SET " .
+                    "blocked = '0' " .
+                    "WHERE ticket_id = '$ticket_id';";
+                
+                $result = ts_queryDatabase( $query );
+
+                ts_log( "$ticket_id for $email blocked by  $remoteIP" );
+                
+                $successCount ++;
+                }
+            if( $numRows == 0 ) {
+                echo "Email $email not found<br>";
+                $failedCount++;
+                }
+            }
+        }
+
+    echo "Summary:  $failedCount Failed, ".
+        "$successCount unblocked.";
     echo "<hr>";
     ts_showData( false );
     }
