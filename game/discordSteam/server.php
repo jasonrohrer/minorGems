@@ -1335,7 +1335,8 @@ function ds_steamLoginReturn() {
 
         if( ! $ownOne ) {
 
-            echo "You don't own the necessary games on Steam.<br><br>";
+            echo "You haven't owned any of the necessary games on ".
+                "Steam for at least 15 days.<br><br>";
             return;
         }
 
@@ -1358,7 +1359,7 @@ function ds_steamLoginReturn() {
 function ds_doesSteamUserOwnApp( $inSteamID, $inAppID ) {
     global $steamWebAPIKey;
     
-    $url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/V0001".
+    $url = "https://partner.steam-api.com/ISteamUser/CheckAppOwnership/v4/".
         "?format=xml".
         "&key=$steamWebAPIKey".
         "&steamid=$inSteamID".
@@ -1366,6 +1367,9 @@ function ds_doesSteamUserOwnApp( $inSteamID, $inAppID ) {
 
     $result = file_get_contents( $url );
 
+    if( $result === false ) {
+        return false;
+        }
     
     $matched = preg_match( "#<ownsapp>(\w+)</ownsapp>#",
                            $result, $matches );
@@ -1376,8 +1380,44 @@ function ds_doesSteamUserOwnApp( $inSteamID, $inAppID ) {
         $matchedB = preg_match( "#<ownersteamid>(\d+)</ownersteamid>#",
                                 $result, $matchesB );
 
-        if( $matchedB && $matchesB[1] == $inSteamID ) {
-            return true;
+        if( $matchedB && $matchesB[1] === (string)$inSteamID ) {
+
+            // make sure their ownership is permanent
+            $matchedPermanent = preg_match( "#<permanent>(\w+)</permanent>#",
+                                            $result, $matchesPermanent );
+
+            if( ! $matchedPermanent || $matchesPermanent[1] != "true" ) {
+                return false;
+                }
+
+            // make sure they have owned the game at least 15 days
+            // so they are outside the refund window
+
+            // steam timestamps look like this:
+            //2026-04-08T15:44:44Z
+
+            // match everything up to the next < character
+            $matchedC = preg_match( "#<timestamp>([^<]+)</timestamp>#",
+                                    $result, $matchesC );
+
+            if( ! $matchedC ) {
+                return false;
+                }
+            
+            $steamTime = strtotime( $matchesC[1] );
+
+            if( $steamTime === false ) {
+                return false;
+                }
+
+            $daysAgo = floor( ( time() - $steamTime ) / 86400 );
+
+            if( $daysAgo >= 15 ) {
+                return true;
+                }
+            else {
+                return false;
+                }
             }
         else {
             return false;
