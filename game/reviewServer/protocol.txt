@@ -24,6 +24,7 @@ server.php
 Return:
 game_count
 game_total_seconds
+account_existed_days
 OK
 -or-
 DENIED
