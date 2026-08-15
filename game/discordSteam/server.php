@@ -1036,6 +1036,7 @@ function ds_discordInteraction() {
         $commandName = $json->{ 'data' }->{ 'name' };
 
         $message = "";
+        $accountTooNew = false;
         
         if( $commandName == "unlock" ) {
 
@@ -1061,11 +1062,24 @@ function ds_discordInteraction() {
                 echo $response;
                 return;
                 }
-                        
+
+            // timestamp hidden in discord user ID
+            $timestampMS = ( ( (int)$discordID ) >> 22 ) + 1420070400000;
+
+            $timestampSec = (int)( $timestampMS / 1000 );
+
+            $accountAgeSec = time() - $timestampSec;
+
+            if( $accountAgeSec < 14 * 24 * 3600 ) {
+                $accountTooNew = true;
+                }
+            
             
             $optionName = $json->{ 'data' }->{ 'options' }[0]->{ 'name' };
 
-            if( $optionName == "secret-words" ) {
+            if( ! $accountTooNew
+                &&
+                $optionName == "secret-words" ) {
 
                 $optionValue = $json->{ 'data' }->{ 'options' }[0]->{ 'value' };
                 
@@ -1155,6 +1169,13 @@ function ds_discordInteraction() {
             }
         else {
             $message = "Command **/$commandName** unknown.";
+            }
+
+
+        if( $accountTooNew ) {
+            $message =
+                "Discord accounts must be at least ".
+                "**14 days old** to join.";
             }
         
         $response = '{ "type":4, "data":{ "flags":64, "content":"' . $message .'" } }';
