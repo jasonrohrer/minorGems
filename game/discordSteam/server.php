@@ -1070,7 +1070,7 @@ function ds_discordInteraction() {
 
             $accountAgeSec = time() - $timestampSec;
 
-            if( $accountAgeSec < 14 * 24 * 3600 ) {
+            if( $accountAgeSec < 6 * 30 * 24 * 3600 ) {
                 $accountTooNew = true;
                 }
             
@@ -1175,7 +1175,7 @@ function ds_discordInteraction() {
         if( $accountTooNew ) {
             $message =
                 "Discord accounts must be at least ".
-                "**14 days old** to join.";
+                "**6 months old** to join.";
             }
         
         $response = '{ "type":4, "data":{ "flags":64, "content":"' . $message .'" } }';
