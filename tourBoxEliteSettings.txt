@@ -385,3 +385,32 @@ KNOB_TURN_CW   H2 R2  KEY_EQUAL
 
 DIAL_TURN_CCW H2 R2 KEY_BACKSPACE
 DIAL_TURN_CW H2 R2 KEY_SPACE
+
+
+
+
+"obliqueVoxels"
+
+# zoom
+KNOB_TURN_CCW H2 R2 MOUSE_SCROLL_DOWN
+KNOB_TURN_CW H2 R2 MOUSE_SCROLL_UP
+
+# hold down ALT to toggle to eyedropper
+TALL KEY_LEFTALT HOLD
+
+# undo/redo
+SCROLL_TURN_UP   H2 R2 KEY_LEFTCTRL KEY_Z
+SCROLL_TURN_DOWN H2 R2 KEY_LEFTCTRL KEY_Y
+
+
+# select nothing
+DOWN KEY_ESC
+
+# select all
+UP KEY_LEFTCTRL KEY_A
+
+# switch to draw
+C1 KEY_D
+
+# switch to erase
+C2 KEY_E
